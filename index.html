@@ -1,8 +1,39 @@
 <!DOCTYPE html><html lang="ko"><head><meta charset="utf-8">
 <title>로블록스 밸런스</title><meta name="viewport" content="width=device-width,initial-scale=1">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docsify@4.13.1/lib/themes/vue.css">
+<style>
+/* 게임마다 큰 색 띠 */
+.markdown-section{max-width:1100px}
+.markdown-section h1{color:#fff;padding:14px 18px;border-radius:10px;margin-top:48px;font-size:1.6rem;background:#555}
+.markdown-section h1:nth-of-type(2){background:#d9822b}
+.markdown-section h1:nth-of-type(3){background:#2f8f5b}
+.markdown-section h1:nth-of-type(4){background:#3a6fd8}
+.markdown-section h1:nth-of-type(5){background:#c0392b}
+.markdown-section h1:nth-of-type(6){background:#7b4bc4}
+.markdown-section h1:nth-of-type(7){background:#444}
+/* 소제목: 왼쪽 굵은 선 + 연한 바탕 */
+.markdown-section h2{border-left:6px solid #42b983;background:#f1f8f4;padding:8px 12px;border-radius:6px;margin-top:32px}
+.markdown-section h3{color:#2c3e50;border-bottom:2px dashed #ccc;padding-bottom:4px}
+/* 표: 진한 머리줄, 줄무늬, 마우스 올린 줄 강조 */
+.markdown-section table{border-collapse:collapse;font-size:.92rem;box-shadow:0 1px 4px rgba(0,0,0,.12);border-radius:8px}
+.markdown-section table thead th{background:#2c3e50;color:#fff;font-weight:700;padding:9px 12px}
+.markdown-section table td{padding:7px 12px;border:1px solid #e3e3e3;font-variant-numeric:tabular-nums}
+.markdown-section table tbody tr:nth-child(odd){background:#fff}
+.markdown-section table tbody tr:nth-child(even){background:#f4f6f9}
+.markdown-section table tbody tr:hover{background:#fff4c2}
+/* 등급 글자색(게임에서 흔히 쓰는 색) */
+.r{font-weight:700;padding:1px 7px;border-radius:5px;color:#fff;white-space:nowrap}
+.r0{background:#8a8a8a}.r1{background:#3fa34d}.r2{background:#2f6fd6}.r3{background:#8e44ad}.r4{background:#e67e22}.r5{background:#d63031}.r6{background:#111}.r7{background:#e84393}
+</style>
 </head><body><div id="app"></div>
-<script>window.$docsify={name:"로블록스 밸런스",loadSidebar:false,search:"auto",maxLevel:3}</script>
+<script>
+// 표 칸 글자가 등급 이름이면 등급 색 딱지로 바꾼다
+var RAR=[[/^(일반|Common)$/,0],[/^(비범|Uncommon)$/,1],[/^(희귀|Rare)$/,2],[/^(영웅|초희귀|Epic|Ultra-Rare)$/,3],[/^(전설|Legendary)$/,4],[/^(신화|Mythic(al)?)$/,5],[/^(비밀|Secret|우주|Cosmic|오지|OG)$/,6],[/^(브레인롯갓|Brainrot God|신성|Divine|영원|Eternal|Prismatic)$/,7]];
+window.$docsify={name:"로블록스 밸런스",loadSidebar:false,subMaxLevel:2,search:"auto",maxLevel:3,
+plugins:[function(hook){hook.doneEach(function(){
+document.querySelectorAll('.markdown-section td').forEach(function(td){var t=td.textContent.trim();
+for(var i=0;i<RAR.length;i++){if(RAR[i][0].test(t)){td.innerHTML='<span class="r r'+RAR[i][1]+'">'+t+'</span>';break}}});});}]};
+</script>
 <script src="https://cdn.jsdelivr.net/npm/docsify@4.13.1/lib/docsify.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/docsify@4.13.1/lib/plugins/search.min.js"></script>
 </body></html>
