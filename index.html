@@ -29,7 +29,7 @@
 <script>
 // 표 칸 글자가 등급 이름이면 등급 색 딱지로 바꾼다
 var RAR=[[/^(일반|Common)$/,0],[/^(비범|Uncommon)$/,1],[/^(희귀|Rare)$/,2],[/^(영웅|초희귀|Epic|Ultra-Rare)$/,3],[/^(전설|Legendary)$/,4],[/^(신화|Mythic(al)?)$/,5],[/^(비밀|Secret|우주|Cosmic|오지|OG)$/,6],[/^(브레인롯갓|Brainrot God|신성|Divine|영원|Eternal|Prismatic)$/,7]];
-window.$docsify={name:"로블록스 밸런스",loadSidebar:false,subMaxLevel:2,search:"auto",maxLevel:3,
+window.$docsify={name:"로블록스 밸런스",loadSidebar:false,subMaxLevel:2,search:{paths:"auto",placeholder:"검색",noData:"찾는 내용이 없습니다"},maxLevel:3,
 plugins:[function(hook){hook.doneEach(function(){
 document.querySelectorAll('.markdown-section td').forEach(function(td){var t=td.textContent.trim();
 for(var i=0;i<RAR.length;i++){if(RAR[i][0].test(t)){td.innerHTML='<span class="r r'+RAR[i][1]+'">'+t+'</span>';break}}});});}]};
