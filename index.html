@@ -12,20 +12,25 @@ body,.markdown-section,.sidebar{font-family:"Noto Sans KR",system-ui,sans-serif;
 .markdown-section h1,.markdown-section h1 a,.markdown-section h1 a span{color:#fff!important}
 .markdown-section h1:first-of-type{background:none}
 .markdown-section h1:first-of-type,.markdown-section h1:first-of-type a,.markdown-section h1:first-of-type a span{color:var(--ink)!important}
-.markdown-section h1:nth-of-type(2){background:#b45309}
-.markdown-section h1:nth-of-type(3){background:#15803d}
-.markdown-section h1:nth-of-type(4){background:#1d4ed8}
-.markdown-section h1:nth-of-type(5){background:#b91c1c}
-.markdown-section h1:nth-of-type(6){background:#6d28d9}
-.markdown-section h1:nth-of-type(7){background:#0f766e}
-.markdown-section h1:nth-of-type(8){background:#374151}
-/* 소제목 */
-.markdown-section h2{border-left:6px solid #1e293b;background:#e2e8f0;padding:9px 14px;border-radius:6px;margin-top:36px;font-weight:700}
-.markdown-section h2,.markdown-section h2 a span,.markdown-section h3 a span{color:var(--ink)!important}
+/* 1단 게임 칸: 가장 진한 한 색(아래 분류 색과 안 섞이게) */
+.markdown-section h1:not(:first-of-type){background:#0f172a;font-size:1.75rem;padding:18px 22px;margin-top:72px}
+/* 2단 분류 칸(성장·돈 버는 법·로벅스·목록) — 중간 밝기 띠, 스크립트가 넣음 */
+.cat{--c:#1e40af;--c50:#eff6ff;--c100:#dbeafe;margin:40px 0 0;padding:10px 18px;border-radius:8px;background:var(--c);color:#fff;font-size:1.25rem;font-weight:900;letter-spacing:.02em}
+.cat small{font-size:.85rem;font-weight:400;opacity:.9;margin-left:10px}
+.cat-grow{--c:#1e40af;--c50:#eff6ff;--c100:#dbeafe}
+.cat-earn{--c:#166534;--c50:#f0fdf4;--c100:#dcfce7}
+.cat-pay{--c:#9a3412;--c50:#fff7ed;--c100:#ffedd5}
+.cat-list{--c:#475569;--c50:#f8fafc;--c100:#e2e8f0}
+.cat-etc{--c:#334155;--c50:#f8fafc;--c100:#e2e8f0}
+/* 3단 소제목: 같은 분류 색의 아주 옅은 바탕 + 아래 줄 */
+.markdown-section h2{background:var(--c50,#f1f5f9);border-bottom:2px solid var(--c,#334155);padding:9px 14px;border-radius:6px 6px 0 0;margin-top:22px;font-weight:700;font-size:1.15rem}
+.markdown-section h2,.markdown-section h2 a span{color:var(--c,var(--ink))!important}
+.markdown-section h2.marker{display:none}
+.markdown-section h3 a span{color:var(--ink)!important}
 .markdown-section h3{border-bottom:2px solid var(--line);padding-bottom:4px}
 /* 표 */
 .markdown-section table{border-collapse:collapse;font-size:1rem;border:1px solid var(--line)}
-.markdown-section table thead th{background:var(--head);color:#fff;font-weight:700;padding:10px 12px;border:1px solid var(--head)}
+.markdown-section table thead th{background:var(--c,var(--head));color:#fff;font-weight:700;padding:10px 12px;border:1px solid var(--c,var(--head))}
 .markdown-section table td{padding:8px 12px;border:1px solid var(--line);color:var(--ink);font-variant-numeric:tabular-nums}
 .markdown-section table tbody tr:nth-child(odd){background:#fff}
 .markdown-section table tbody tr:nth-child(even){background:var(--zebra)}
@@ -50,6 +55,23 @@ function tag(t){for(var i=0;i<RAR.length;i++)if(RAR[i][0].test(t))return '<span 
 window.$docsify={name:"로블록스 밸런스",loadSidebar:false,subMaxLevel:2,maxLevel:3,
 search:{paths:"auto",placeholder:"검색",noData:"찾는 내용이 없습니다"},
 plugins:[function(hook){hook.doneEach(function(){
+// 소제목(h2)을 분류(성장·돈 버는 법·로벅스·목록)로 묶고, 분류가 바뀌는 곳에 분류 띠를 넣는다. 그 아래 소제목·표에 같은 분류 색을 준다
+var CAT={grow:'성장 밸런스',earn:'돈 버는 법',pay:'로벅스(진짜 돈)',list:'전체 목록',etc:'그 밖'};
+var ORDER=['grow','earn','pay','etc','list'],el=document.querySelector('.markdown-section');
+function kind(t,inList){return /로벅스|게임패스|과금/.test(t)?'pay':inList||/목록/.test(t)?'list':/버는|수익|수입|판매값/.test(t)?'earn':/성장|업그레이드|강화|리버스|환생|사다리|단계|해금/.test(t)?'grow':'etc'}
+if(el&&!el.dataset.cat){el.dataset.cat=1;
+ // 게임(h1)마다: 소제목(h2)과 그 아래 내용을 한 덩어리로 모아 분류 순서대로 다시 놓는다
+ var nodes=[].slice.call(el.children),games=[],g=null;
+ nodes.forEach(function(n){if(n.tagName==='H1'){g={h1:n,secs:[]};games.push(g)}else if(g){if(n.tagName==='H2')g.secs.push([n]);else if(g.secs.length)g.secs[g.secs.length-1].push(n)}});
+ games.forEach(function(g){
+  var inList=false,box={};ORDER.forEach(function(k){box[k]=[]});
+  g.secs.forEach(function(s){var t=s[0].textContent;if(/^아래부터/.test(t)){inList=true;s.forEach(function(n){n.remove()});return}box[kind(t,inList)].push(s)});
+  var at=g.secs.length?g.secs[0][0]:null,anchor=document.createComment('');
+  if(!at)return;at.parentNode.insertBefore(anchor,at);
+  ORDER.forEach(function(k){if(!box[k].length)return;var d=document.createElement('div');d.className='cat cat-'+k;d.textContent=CAT[k];anchor.parentNode.insertBefore(d,anchor);
+   box[k].forEach(function(s){s.forEach(function(n){n.classList&&n.classList.add('cat-'+k);anchor.parentNode.insertBefore(n,anchor)})})});
+ });
+}
 document.querySelectorAll('.markdown-section table').forEach(function(tb){
  var ths=tb.querySelectorAll('thead th'),skip=[];
  ths.forEach(function(th,i){var t=th.textContent.trim();if(/장소|지역|바이옴|월드|구역/.test(t))skip.push(i);var h=tag(t);if(h)th.innerHTML=h});
