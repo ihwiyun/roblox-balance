@@ -1,38 +1,62 @@
 <!DOCTYPE html><html lang="ko"><head><meta charset="utf-8">
 <title>로블록스 밸런스</title><meta name="viewport" content="width=device-width,initial-scale=1">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docsify@4.13.1/lib/themes/vue.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&display=swap">
 <style>
-/* 게임마다 큰 색 띠 */
+:root{--ink:#1f2937;--sub:#4b5563;--line:#d1d5db;--head:#1e293b;--zebra:#f1f5f9;--hover:#fef3c7}
+body,.markdown-section,.sidebar{font-family:"Noto Sans KR",system-ui,sans-serif;color:var(--ink)}
 .markdown-section{max-width:1100px}
-.markdown-section h1{color:#fff;padding:14px 18px;border-radius:10px;margin-top:48px;font-size:1.6rem;background:#555}
-.markdown-section h1:nth-of-type(2){background:#d9822b}
-.markdown-section h1:nth-of-type(3){background:#2f8f5b}
-.markdown-section h1:nth-of-type(4){background:#3a6fd8}
-.markdown-section h1:nth-of-type(5){background:#c0392b}
-.markdown-section h1:nth-of-type(6){background:#7b4bc4}
-.markdown-section h1:nth-of-type(7){background:#444}
-/* 소제목: 왼쪽 굵은 선 + 연한 바탕 */
-.markdown-section h2{border-left:6px solid #42b983;background:#f1f8f4;padding:8px 12px;border-radius:6px;margin-top:32px}
-.markdown-section h3{color:#2c3e50;border-bottom:2px dashed #ccc;padding-bottom:4px}
-/* 표: 진한 머리줄, 줄무늬, 마우스 올린 줄 강조 */
-.markdown-section table{border-collapse:collapse;font-size:.92rem;box-shadow:0 1px 4px rgba(0,0,0,.12);border-radius:8px}
-.markdown-section table thead th{background:#2c3e50;color:#fff;font-weight:700;padding:9px 12px}
-.markdown-section table td{padding:7px 12px;border:1px solid #e3e3e3;font-variant-numeric:tabular-nums}
+.markdown-section p,.markdown-section li{color:var(--ink)}
+/* 게임 제목 띠: 흰 글씨와 대비 4.5:1 이상인 진한 색만 */
+.markdown-section h1{padding:14px 18px;border-radius:10px;margin-top:56px;font-size:1.6rem;font-weight:900;background:#374151}
+.markdown-section h1,.markdown-section h1 a,.markdown-section h1 a span{color:#fff!important}
+.markdown-section h1:first-of-type{background:none}
+.markdown-section h1:first-of-type,.markdown-section h1:first-of-type a,.markdown-section h1:first-of-type a span{color:var(--ink)!important}
+.markdown-section h1:nth-of-type(2){background:#b45309}
+.markdown-section h1:nth-of-type(3){background:#15803d}
+.markdown-section h1:nth-of-type(4){background:#1d4ed8}
+.markdown-section h1:nth-of-type(5){background:#b91c1c}
+.markdown-section h1:nth-of-type(6){background:#6d28d9}
+.markdown-section h1:nth-of-type(7){background:#0f766e}
+.markdown-section h1:nth-of-type(8){background:#374151}
+/* 소제목 */
+.markdown-section h2{border-left:6px solid #1e293b;background:#e2e8f0;padding:9px 14px;border-radius:6px;margin-top:36px;font-weight:700}
+.markdown-section h2,.markdown-section h2 a span,.markdown-section h3 a span{color:var(--ink)!important}
+.markdown-section h3{border-bottom:2px solid var(--line);padding-bottom:4px}
+/* 표 */
+.markdown-section table{border-collapse:collapse;font-size:1rem;border:1px solid var(--line)}
+.markdown-section table thead th{background:var(--head);color:#fff;font-weight:700;padding:10px 12px;border:1px solid var(--head)}
+.markdown-section table td{padding:8px 12px;border:1px solid var(--line);color:var(--ink);font-variant-numeric:tabular-nums}
 .markdown-section table tbody tr:nth-child(odd){background:#fff}
-.markdown-section table tbody tr:nth-child(even){background:#f4f6f9}
-.markdown-section table tbody tr:hover{background:#fff4c2}
-/* 등급 글자색(게임에서 흔히 쓰는 색) */
-.r{font-weight:700;padding:1px 7px;border-radius:5px;color:#fff;white-space:nowrap}
-.r0{background:#8a8a8a}.r1{background:#3fa34d}.r2{background:#2f6fd6}.r3{background:#8e44ad}.r4{background:#e67e22}.r5{background:#d63031}.r6{background:#111}.r7{background:#e84393}
+.markdown-section table tbody tr:nth-child(even){background:var(--zebra)}
+.markdown-section table tbody tr:hover{background:var(--hover)}
+/* 등급 딱지: 게임에서 쓰는 등급 색, 높은 등급은 그라데이션 */
+.r{display:inline-block;font-weight:700;padding:2px 9px;border-radius:6px;color:#fff;white-space:nowrap;text-shadow:0 1px 1px rgba(0,0,0,.45)}
+.r-common{background:#4b5563}.r-uncommon{background:#15803d}.r-rare{background:#1d4ed8}.r-epic{background:#7e22ce}
+.r-legend{background:#b45309}.r-mythic{background:#b91c1c}
+.r-cosmic{background:linear-gradient(90deg,#1e1b4b,#6d28d9)}
+.r-secret{background:#000;box-shadow:inset 0 0 0 2px #f59e0b}
+.r-eternal{background:linear-gradient(90deg,#155e75,#1e3a8a)}
+.r-divine{background:linear-gradient(90deg,#fde68a,#fbcfe8);color:#3b0764;text-shadow:none}
+.r-god{background:linear-gradient(90deg,#b91c1c,#b45309,#15803d,#1d4ed8,#6d28d9)}
+.r-og{background:linear-gradient(90deg,#000,#7c2d12)}
+.r-prism{background:linear-gradient(90deg,#be123c,#b45309,#15803d,#0369a1,#7e22ce)}
 </style>
 </head><body><div id="app"></div>
 <script>
-// 표 칸 글자가 등급 이름이면 등급 색 딱지로 바꾼다
-var RAR=[[/^(일반|Common)$/,0],[/^(비범|Uncommon)$/,1],[/^(희귀|Rare)$/,2],[/^(영웅|초희귀|Epic|Ultra-Rare)$/,3],[/^(전설|Legendary)$/,4],[/^(신화|Mythic(al)?)$/,5],[/^(비밀|Secret|우주|Cosmic|오지|OG)$/,6],[/^(브레인롯갓|Brainrot God|신성|Divine|영원|Eternal|Prismatic)$/,7]];
-window.$docsify={name:"로블록스 밸런스",loadSidebar:false,subMaxLevel:2,search:{paths:"auto",placeholder:"검색",noData:"찾는 내용이 없습니다"},maxLevel:3,
+// '등급' 칸에 있는 등급 이름만 색 딱지로 바꾼다(장소 칸의 '우주' 같은 것은 건드리지 않음)
+var RAR=[[/^일반$/,'common'],[/^비범$/,'uncommon'],[/^희귀$/,'rare'],[/^(영웅|초희귀)$/,'epic'],[/^전설$/,'legend'],[/^신화$/,'mythic'],[/^우주$/,'cosmic'],[/^비밀$/,'secret'],[/^영원$/,'eternal'],[/^신성$/,'divine'],[/^브레인롯갓$/,'god'],[/^오지$/,'og'],[/^(프리즘|무지개)$/,'prism']];
+function tag(t){for(var i=0;i<RAR.length;i++)if(RAR[i][0].test(t))return '<span class="r r-'+RAR[i][1]+'">'+t+'</span>';return null}
+window.$docsify={name:"로블록스 밸런스",loadSidebar:false,subMaxLevel:2,maxLevel:3,
+search:{paths:"auto",placeholder:"검색",noData:"찾는 내용이 없습니다"},
 plugins:[function(hook){hook.doneEach(function(){
-document.querySelectorAll('.markdown-section td').forEach(function(td){var t=td.textContent.trim();
-for(var i=0;i<RAR.length;i++){if(RAR[i][0].test(t)){td.innerHTML='<span class="r r'+RAR[i][1]+'">'+t+'</span>';break}}});});}]};
+document.querySelectorAll('.markdown-section table').forEach(function(tb){
+ var cols=[];tb.querySelectorAll('thead th').forEach(function(th,i){if(th.textContent.indexOf('등급')>=0)cols.push(i)});
+ tb.querySelectorAll('tbody tr').forEach(function(tr){cols.forEach(function(c){var td=tr.children[c];if(!td)return;var h=tag(td.textContent.trim());if(h)td.innerHTML=h})});
+});
+// '### 등급이름' 소제목도 딱지로
+document.querySelectorAll('.markdown-section h3 a span').forEach(function(s){var t=s.textContent.trim().split(' ')[0];var h=tag(t);if(h)s.innerHTML=h+s.textContent.trim().slice(t.length)});
+});}]};
 </script>
 <script src="https://cdn.jsdelivr.net/npm/docsify@4.13.1/lib/docsify.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/docsify@4.13.1/lib/plugins/search.min.js"></script>
