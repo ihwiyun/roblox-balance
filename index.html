@@ -44,15 +44,16 @@ body,.markdown-section,.sidebar{font-family:"Noto Sans KR",system-ui,sans-serif;
 </style>
 </head><body><div id="app"></div>
 <script>
-// '등급' 칸에 있는 등급 이름만 색 딱지로 바꾼다(장소 칸의 '우주' 같은 것은 건드리지 않음)
+// 칸 글자가 등급 이름이면 색 딱지로 바꾼다(장소 칸의 '우주' 같은 것은 건드리지 않음)
 var RAR=[[/^일반$/,'common'],[/^비범$/,'uncommon'],[/^희귀$/,'rare'],[/^(영웅|초희귀)$/,'epic'],[/^전설$/,'legend'],[/^신화$/,'mythic'],[/^우주$/,'cosmic'],[/^비밀$/,'secret'],[/^영원$/,'eternal'],[/^신성$/,'divine'],[/^브레인롯갓$/,'god'],[/^오지$/,'og'],[/^(프리즘|무지개)$/,'prism']];
 function tag(t){for(var i=0;i<RAR.length;i++)if(RAR[i][0].test(t))return '<span class="r r-'+RAR[i][1]+'">'+t+'</span>';return null}
 window.$docsify={name:"로블록스 밸런스",loadSidebar:false,subMaxLevel:2,maxLevel:3,
 search:{paths:"auto",placeholder:"검색",noData:"찾는 내용이 없습니다"},
 plugins:[function(hook){hook.doneEach(function(){
 document.querySelectorAll('.markdown-section table').forEach(function(tb){
- var cols=[];tb.querySelectorAll('thead th').forEach(function(th,i){if(th.textContent.indexOf('등급')>=0)cols.push(i)});
- tb.querySelectorAll('tbody tr').forEach(function(tr){cols.forEach(function(c){var td=tr.children[c];if(!td)return;var h=tag(td.textContent.trim());if(h)td.innerHTML=h})});
+ var ths=tb.querySelectorAll('thead th'),skip=[];
+ ths.forEach(function(th,i){var t=th.textContent.trim();if(/장소|지역|바이옴|월드|구역/.test(t))skip.push(i);var h=tag(t);if(h)th.innerHTML=h});
+ tb.querySelectorAll('tbody tr').forEach(function(tr){[].forEach.call(tr.children,function(td,i){if(skip.indexOf(i)>=0)return;var h=tag(td.textContent.trim());if(h)td.innerHTML=h})});
 });
 // '### 등급이름' 소제목도 딱지로
 document.querySelectorAll('.markdown-section h3 a span').forEach(function(s){var t=s.textContent.trim().split(' ')[0];var h=tag(t);if(h)s.innerHTML=h+s.textContent.trim().slice(t.length)});
