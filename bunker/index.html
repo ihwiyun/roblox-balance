@@ -9,7 +9,7 @@
   :root { --ink: #1c1b19; --muted: #8b877f; --paper: #fff; --line: #e4e0d8; --soft: #f6f4ef; --bad: #c0392b; --top: 48px; --bottom: 256px; }
   * { box-sizing: border-box; }
   html, body { height: 100%; margin: 0; background: var(--paper); color: var(--ink); }
-  body { font: 13px/1.4 ui-monospace, "Cascadia Mono", Consolas, Menlo, monospace; overflow: hidden; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; }
+  body { word-break: keep-all; font: 13px/1.4 ui-monospace, "Cascadia Mono", Consolas, Menlo, monospace; overflow: hidden; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; }
   button { font: inherit; color: inherit; }
   canvas.ico { image-rendering: pixelated; flex: none; display: block; }
 
@@ -18,7 +18,7 @@
   .chip { display: inline-flex; align-items: center; gap: 4px; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
   .rate { color: var(--muted); font-weight: 400; font-size: 11px; }
   .rate.neg { color: var(--bad); }
-  #waveLine { flex-basis: 100%; color: var(--muted); font-size: 12px; }
+  #waveLine { flex-basis: 100%; color: var(--muted); font-size: 12px; word-break: keep-all; }
   #waveLine b { color: var(--ink); }
   #topBtns { display: flex; flex: none; pointer-events: auto; }
   .tbtn { background: none; border: 0; color: var(--muted); padding: 6px 7px; cursor: pointer; white-space: nowrap; }
@@ -35,9 +35,32 @@
   #status { position: fixed; left: 0; right: 0; top: calc(var(--top) + 2px); text-align: center; pointer-events: none; color: var(--muted); padding: 0 12px; text-shadow: 0 0 3px #fff, 0 0 3px #fff, 0 0 3px #fff; z-index: 2; }
   #status.alert { color: var(--bad); font-weight: 700; }
   #labels span { position: fixed; transform: translate(0, -100%); font-size: 11px; font-weight: 700; color: var(--ink); background: rgba(255, 255, 255, .85); padding: 0 4px; pointer-events: none; white-space: nowrap; }
-  #banner { position: fixed; left: 0; right: 0; top: calc(var(--top) + 36px); text-align: center; font-size: 22px; font-weight: 700; pointer-events: none; opacity: 0; color: var(--ink); text-shadow: 0 0 4px #fff, 0 0 4px #fff, 0 0 4px #fff; }
-  #banner.on { animation: banner 2s ease-out; }
-  @keyframes banner { 0% { opacity: 0; transform: translateY(6px); } 12% { opacity: 1; transform: none; } 75% { opacity: 1; } 100% { opacity: 0; } }
+  #labels span.fl { transform: translate(0, -50%); display: grid; text-align: right; line-height: 1.25; }
+  #labels span.fl b { font-weight: 700; }
+  /* notifications: a translucent band across the picture, faded at both ends, with a thin line above and below */
+  #notes { position: fixed; left: 0; right: 0; top: calc(var(--top) + 24vh); display: grid; justify-items: center; pointer-events: none; z-index: 4; }
+  .note { position: relative; width: min(600px, 100%); padding: 10px 28px 11px; text-align: center; color: #fff;
+    background: linear-gradient(90deg, transparent, rgba(28, 27, 25, .72) 18%, rgba(28, 27, 25, .72) 82%, transparent);
+    animation: note 2.7s ease-out forwards; }
+  .note::before, .note::after { content: ''; position: absolute; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--line-c, rgba(255, 255, 255, .8)) 22%, var(--line-c, rgba(255, 255, 255, .8)) 78%, transparent); }
+  .note::before { top: 3px; } .note::after { bottom: 3px; }
+  .note b { display: block; font-size: 17px; letter-spacing: .02em; }
+  .note span { display: block; margin-top: 3px; font-size: 12px; color: rgba(255, 255, 255, .8); }
+  .note.danger { --line-c: #ff7a64; } .note.danger b { color: #ffd2c8; }
+  .note.new { --line-c: #ffd60a; } .note.new b { color: #fff1b0; }
+  .note.good { --line-c: #9fe07a; }
+  .note.long { animation-duration: 3.4s; }
+  @keyframes note { 0% { opacity: 0; transform: translateY(10px) scaleY(.7); } 9% { opacity: 1; transform: none; } 84% { opacity: 1; transform: none; } 100% { opacity: 0; transform: translateY(-8px); } }
+  /* the hero's magazine: a big number at the bottom right, a bar while reloading */
+  #ammo { position: fixed; right: max(8px, env(safe-area-inset-right)); bottom: calc(var(--bottom) + 6px); background: rgba(255, 255, 255, .92); border: 1px solid var(--ink); padding: 4px 8px 5px; display: grid; grid-template-columns: auto auto; align-items: center; gap: 0 6px; pointer-events: none; font-variant-numeric: tabular-nums; }
+  #ammo .n { font-size: 22px; font-weight: 700; line-height: 1; }
+  #ammo .n small { font-size: 12px; font-weight: 400; color: var(--muted); }
+  #ammo .bar { grid-column: 1 / -1; height: 4px; margin-top: 3px; background: var(--line); }
+  #ammo .bar i { display: block; height: 100%; width: 0; background: #e0a72c; }
+  #ammo.empty .n { color: var(--bad); }
+  .wide #ammo { right: calc(var(--side) + 10px); bottom: 10px; }
+  .wide #notes { right: var(--side); }
 
   #bottom { position: fixed; left: 0; right: 0; bottom: 0; height: var(--bottom); border-top: 1px solid var(--ink); background: var(--paper); display: flex; flex-direction: column; padding-bottom: env(safe-area-inset-bottom); }
   #panel { flex: 1; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); align-content: start; }
@@ -69,6 +92,13 @@
   .set input[type=range] { width: 130px; accent-color: var(--ink); }
   .danger { color: var(--bad); border-color: var(--bad); }
   @media (max-width: 440px) { :root { --top: 76px; --bottom: 266px; } #panel { grid-template-columns: 1fr; } }
+  /* wide screens: the panel stands on the right, the picture takes the rest */
+  .wide { --side: 400px; }
+  .wide #bottom { left: auto; top: var(--top); width: var(--side); height: auto; border-top: 0; border-left: 1px solid var(--ink); }
+  .wide #panel { grid-template-columns: 1fr; }
+  .wide #stage { right: var(--side); bottom: 0; }
+  .wide #hp { bottom: 10px; }
+  .wide #status { right: var(--side); }
 </style>
 </head>
 <body>
@@ -88,7 +118,8 @@
 <div id="stage"><canvas id="c" tabindex="0" aria-label="흰 바탕에 떠 있는 섬 한가운데 벙커. 섬 가장자리 너머에서 좀비가 몰려온다. 좀비를 누르면 직접 쏜다."></canvas></div>
 <div id="status" role="status" aria-live="polite"></div>
 <div id="labels" hidden></div>
-<div id="banner" aria-hidden="true"></div>
+<div id="notes" aria-live="polite"></div>
+<div id="ammo" aria-label="탄약"><span data-ico="bullet"></span><span class="n" id="ammoNum">0<small>/0</small></span><div class="bar"><i id="ammoBar"></i></div></div>
 <div id="hp">
   <span class="lbl" id="bunkerText">벙커</span><div class="track" id="bunkerTrack"><div class="fill" id="bunkerFill"></div></div>
   <span class="lbl" id="fenceText">울타리 없음</span><div class="track"><div class="fill" id="fenceFill"></div></div>
@@ -111,18 +142,38 @@
   <form method="dialog" style="text-align:right;margin-top:12px"><button class="mini">닫기</button></form>
 </dialog>
 <script>
-// the canvas: about 360 game pixels across (one world unit is 10 pixels, as in the first version),
-// blown up by a whole number of device pixels; the island is sized to fit
+// the canvas: about 360-480 game pixels across, blown up by a whole number of device pixels so every game
+// pixel stays a crisp square. One world unit is 16 pixels, sized for 32x32 characters. Wide screens put the
+// panel on the right so the picture gets the full height (three floors underground need it)
 (() => {
+  const wide = innerWidth >= 900 && innerWidth > innerHeight * 1.15;
+  document.documentElement.classList.toggle('wide', wide);
   const r = document.getElementById('stage').getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
-  const k = Math.max(1, Math.floor(Math.min(r.width * dpr / 360, r.height * dpr / 230)));
-  const width = Math.min(440, Math.floor(r.width * dpr / k)), height = Math.min(340, Math.floor(r.height * dpr / k));
-  const field = Math.max(7.5, Math.min(11.5, (width - 16) / 28.3, (height - 50) / 14.14));
-  window.PP_SCENE = { width, height, scale: 10, originY: 4, field, grassDensity: .17 };
+  const k = Math.max(1, Math.floor(Math.min(r.width * dpr / 360, r.height * dpr / 300)));
+  const width = Math.min(480, Math.floor(r.width * dpr / k)), height = Math.min(620, Math.floor(r.height * dpr / k));
+  // the island is a diamond that fits the picture with a margin: 2.83 * 16 px wide and 1.41 * 16 px tall per unit
+  const field = Math.max(6.4, Math.min(9, (width - 20) / 45.3, (height - 70) / 22.6));
+  window.PP_SCENE = { width, height, scale: 16, originY: 10, field, grassDensity: .11 };
 })();
 </script>
 <script src="engine.js"></script>
 <script src="art.js"></script>
-<script src="game.js"></script>
+<!-- the game, one file per job; they share globals and load in this order -->
+<script src="src/config.js"></script>
+<script src="src/buildings.js"></script>
+<script src="src/facilities.js"></script>
+<script src="src/state.js"></script>
+<script src="src/sprites.js"></script>
+<script src="src/fx.js"></script>
+<script src="src/layers.js"></script>
+<script src="src/yard.js"></script>
+<script src="src/under.js"></script>
+<script src="src/crew.js"></script>
+<script src="src/zombies.js"></script>
+<script src="src/actors.js"></script>
+<script src="src/loop.js"></script>
+<script src="src/sound.js"></script>
+<script src="src/hud.js"></script>
+<script src="src/main.js"></script>
 </body>
 </html>

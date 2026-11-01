@@ -2,7 +2,8 @@
 // From https://github.com/amirmushichge/pixel-plays (MIT, see LICENSE-pixel-plays).
 // Changed: canvas size and world scale come from PP_SCENE (width, height, scale); box steps, grass and
 // occlusion follow the world scale so a finer pixel grid stays solid. noise() keeps its lattice values in a
-// small table and box() only works out the grain of a sample that is actually in front, so big bakes stay fast.
+// small table and box() only works out the grain of a sample that is actually in front, so big bakes stay fast;
+// bakeOcclusion() takes optional pixel bounds.
 // Shared pixel renderer for every game: orthographic camera, depth buffer, ramps, shadows, edges and wind.
 // A game sets window.PP_SCENE before loading this file, then draws through these globals.
 const SCENE = window.PP_SCENE || {};
@@ -213,12 +214,14 @@ function drawLeaves(t) {
     if (leaf.k % 2 === 0) castShadow(leaf.x + swayX * .12, leaf.y, leaf.z, leaf.r);
   }
 }
-function bakeOcclusion() {
+function bakeOcclusion(bx0 = 0, by0 = 0, bx1 = W, by1 = H) {
+  // optional pixel bounds, so a small change only re-shades its own neighbourhood
+  const xa = Math.max(4, bx0), xb = Math.min(W - 4, bx1), ya = Math.max(4, by0), yb = Math.min(H - 4, by1);
   const offsets = [];
   for (const r of [2, 4].map(v => Math.round(v * S / 16))) for (let k = 0; k < 8; k++) {
     offsets.push([Math.round(Math.cos(k * Math.PI / 4) * r), Math.round(Math.sin(k * Math.PI / 4) * r * .7)]);
   }
-  for (let iy = 4; iy < H - 4; iy++) for (let ix = 4; ix < W - 4; ix++) {
+  for (let iy = ya; iy < yb; iy++) for (let ix = xa; ix < xb; ix++) {
     const i = iy * W + ix;
     if (!ground[i] || zb[i] !== groundZ[i]) continue;
     let hits = 0;
