@@ -70,10 +70,11 @@ function drawSurvivor(c) {
     if (hat) stampAnchored(hat, hat[view], hx, hy, mirror, pal, d + .01);
   }
   if (fr.gun && gunner) {
+    // the rifle sits at the hands' depth: in front of the body when facing us, behind it when facing away
     const a = frameSpot(info, [fr.gun[0], fr.gun[1]]), b = frameSpot(info, [fr.gun[2], fr.gun[3]]);
-    c.muzzle = drawGun(a, b, info.p.d + 12 * perPx + (front ? .15 : -.15), c);
+    c.muzzle = drawGun(a, b, info.p.d + (set.ay - fr.gun[1]) * perPx + .02 + (front ? .12 : -.12), c);
   }
-  if (fr.mag) { const [mx, my] = frameSpot(info, fr.mag); for (let y = 0; y < 4; y++) for (let x = 0; x < 2; x++) putPx(mx + x, my + y, y ? rgb(52, 50, 58) : rgb(200, 160, 70), info.p.d + 1); }
+  if (fr.mag) { const [mx, my] = frameSpot(info, fr.mag), x0 = info.mirror ? mx - 1 : mx; for (let y = 0; y < 3; y++) for (let x = 0; x < 2; x++) putPx(x0 + x, my + y, y ? rgb(52, 50, 58) : rgb(200, 160, 70), info.p.d + 1); }
 }
 function putPx(x, y, color, d) { if (x < 0 || y < 0 || x >= W || y >= H) return; const i = y * W + x; if (d <= zb[i]) return; zb[i] = d; pix[i] = color; }
 function pxLine(x0, y0, x1, y1, color, d, w = 1) {
@@ -176,7 +177,7 @@ function drawAmmo(s) {
 function drawSleeper(c) {
   const { x, y, z: fz } = sleepSpot(c.i), p = project(x, y, fz + .5), gear = gearOf({ ...c, job: '' }), pal = palFor(c, gear);
   if (window.ART_HUMANS && SPR.human.anims.sleep) {
-    const info = drawSprite('human', 'sleep', 'F', Math.floor(G.time * SPR.human.anims.sleep.fps), false, x, y, fz + .42, pal, { shadow: false });
+    const info = drawSprite('human', 'sleep', 'F', Math.floor(G.time * SPR.human.anims.sleep.fps), false, x, y, fz, pal, { shadow: false });
     const head = ART_HUMANS.heads[c.look.key] || ART_HUMANS.heads.hero;
     if (info.fr.head && head.sleep) { const [hx, hy] = frameSpot(info, info.fr.head); stampAnchored(head, head.sleep, hx, hy, false, pal, info.p.d + .5); }
   } else drawHead(c.look, 'sleep', 'F', Math.round(p.sx), Math.round(p.sy) - 3, false, pal, p.d + .2);

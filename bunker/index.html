@@ -38,7 +38,7 @@
   #labels span.fl { transform: translate(0, -50%); display: grid; text-align: right; line-height: 1.25; }
   #labels span.fl b { font-weight: 700; }
   /* notifications: a translucent band across the picture, faded at both ends, with a thin line above and below */
-  #notes { position: fixed; left: 0; right: 0; top: calc(var(--top) + 24vh); display: grid; justify-items: center; pointer-events: none; z-index: 4; }
+  #notes { position: fixed; left: 0; right: 0; top: calc(var(--top) + 9vh); display: grid; justify-items: center; pointer-events: none; z-index: 4; }
   .note { position: relative; width: min(600px, 100%); padding: 10px 28px 11px; text-align: center; color: #fff;
     background: linear-gradient(90deg, transparent, rgba(28, 27, 25, .72) 18%, rgba(28, 27, 25, .72) 82%, transparent);
     animation: note 2.7s ease-out forwards; }
@@ -158,6 +158,9 @@
 </script>
 <script src="engine.js"></script>
 <script src="art.js"></script>
+<script src="art/humans.js"></script>
+<script src="art/zombiesA.js"></script>
+<script src="art/zombiesB.js"></script>
 <!-- the game, one file per job; they share globals and load in this order -->
 <script src="src/config.js"></script>
 <script src="src/buildings.js"></script>
