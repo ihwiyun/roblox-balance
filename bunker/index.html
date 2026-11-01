@@ -5,278 +5,504 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>벙커 – 좀비 방치형</title>
 <style>
-  :root { --ink: #1c1b19; --muted: #8b877f; --paper: #fff; --line: #d9d5cc; }
+  :root { --ink: #1c1b19; --muted: #7d796f; --paper: #fff; --line: #d9d5cc; --bad: #c0392b; --top: 74px; --bottom: 268px; }
   * { box-sizing: border-box; }
   html, body { height: 100%; margin: 0; background: var(--paper); color: var(--ink); }
-  body { font: 13px/1.35 ui-monospace, "Cascadia Mono", Consolas, Menlo, monospace; overflow: hidden; user-select: none; -webkit-user-select: none; }
-  #stage { position: fixed; left: 0; right: 0; top: 58px; bottom: 150px; display: grid; place-items: center; }
+  body { font: 13px/1.4 ui-monospace, "Cascadia Mono", Consolas, Menlo, monospace; overflow: hidden; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; }
+  button { font: inherit; color: inherit; }
+
+  /* top: resources, wave, speed, settings */
+  #top { position: fixed; top: 0; left: 0; right: 0; height: var(--top); padding: max(8px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) 0 max(10px, env(safe-area-inset-left)); display: flex; gap: 8px; align-items: flex-start; justify-content: space-between; }
+  #res { display: grid; grid-template-columns: repeat(4, auto); gap: 2px 12px; align-items: center; justify-content: start; }
+  .chip { display: inline-flex; align-items: center; gap: 5px; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .ico { width: 11px; height: 11px; border: 1px solid var(--ink); flex: none; }
+  .ico.money { background: #f5c518; border-radius: 50%; }
+  .ico.food { background: #e07a3c; }
+  .ico.mineral { background: #7c9cc4; transform: rotate(45deg) scale(.85); }
+  .ico.wood { background: #9a6a3c; }
+  .rate { color: var(--muted); font-weight: 400; font-size: 11px; }
+  #waveLine { grid-column: 1 / -1; color: var(--muted); }
+  #topBtns { display: flex; gap: 6px; flex: none; }
+  .tbtn { background: #fff; border: 1px solid var(--ink); padding: 6px 10px; cursor: pointer; min-height: 34px; white-space: nowrap; }
+  .tbtn[aria-pressed="true"] { background: var(--ink); color: #fff; }
+
+  /* stage and hp overlay */
+  #stage { position: fixed; left: 0; right: 0; top: var(--top); bottom: var(--bottom); display: grid; place-items: center; overflow: hidden; }
   canvas { display: block; image-rendering: pixelated; touch-action: manipulation; cursor: crosshair; outline: none; }
-  #top { position: fixed; top: max(10px, env(safe-area-inset-top)); left: max(14px, env(safe-area-inset-left)); right: max(14px, env(safe-area-inset-right)); display: flex; justify-content: space-between; gap: 12px; pointer-events: none; }
-  #money { font-size: 18px; font-weight: 700; font-variant-numeric: tabular-nums; }
-  .sub { color: var(--muted); font-variant-numeric: tabular-nums; }
-  #bars { text-align: right; min-width: 150px; }
-  .bar { display: flex; align-items: center; justify-content: flex-end; gap: 6px; font-variant-numeric: tabular-nums; }
-  .track { width: 84px; height: 7px; border: 1px solid var(--ink); background: #fff; }
-  .fill { height: 100%; background: #6aa64a; }
+  #hp { position: fixed; left: max(8px, env(safe-area-inset-left)); bottom: calc(var(--bottom) + 8px); background: rgba(255, 255, 255, .9); border: 1px solid var(--ink); padding: 6px 8px; display: grid; grid-template-columns: auto 80px; gap: 4px 8px; align-items: center; pointer-events: none; font-size: 12px; }
+  #hp .lbl { white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .track { height: 8px; border: 1px solid var(--ink); background: #fff; }
+  .fill { height: 100%; background: #6aa64a; width: 0; }
   #fenceFill { background: #a0784a; }
-  .bar.hurt .fill { background: #d0503c; }
-  #mute { pointer-events: auto; font: inherit; color: var(--muted); background: none; border: 0; padding: 4px 0; cursor: pointer; }
-  #mute:hover { color: var(--ink); }
-  #status { position: fixed; left: 0; right: 0; bottom: 156px; text-align: center; color: var(--muted); pointer-events: none; min-height: 18px; }
-  #status.alert { color: #c0392b; font-weight: 600; }
-  #panel { position: fixed; left: 50%; transform: translateX(-50%); bottom: max(10px, env(safe-area-inset-bottom)); width: min(600px, calc(100vw - 16px)); display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
-  .up { font: inherit; text-align: left; background: #fff; color: var(--ink); border: 1px solid var(--ink); padding: 6px 8px; cursor: pointer; display: grid; grid-template-columns: 1fr auto; row-gap: 1px; min-height: 64px; }
-  .up:hover:not(.poor) { background: var(--ink); color: #fff; }
-  .up:hover:not(.poor) .d { color: #cfcac0; }
-  .up:active:not(.poor) { transform: translateY(1px); }
-  .up.poor { border-color: var(--line); color: #a9a59c; cursor: default; }
-  .up .n { font-weight: 700; }
-  .up .lv { color: var(--muted); text-align: right; }
-  .up .d { grid-column: 1 / -1; color: var(--muted); font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .up .c { grid-column: 1 / -1; font-weight: 700; font-variant-numeric: tabular-nums; }
-  .up.poor .c { color: #c9a39a; }
-  @media (max-width: 420px) { .up { padding: 5px 6px; } .up .d { font-size: 10px; } .track { width: 52px; } #bars { min-width: 0; } .bar { white-space: nowrap; font-size: 12px; } }
+  .hurt .fill { background: #d0503c; }
+  #status { position: fixed; left: 0; right: 0; top: calc(var(--top) + 4px); text-align: center; pointer-events: none; color: var(--muted); padding: 0 12px; text-shadow: 0 0 3px #fff, 0 0 3px #fff; }
+  #status.alert { color: var(--bad); font-weight: 700; }
+
+  /* bottom: panel and tab bar */
+  #bottom { position: fixed; left: 0; right: 0; bottom: 0; height: var(--bottom); border-top: 1px solid var(--ink); background: #fff; display: flex; flex-direction: column; padding-bottom: env(safe-area-inset-bottom); }
+  #panel { flex: 1; overflow-y: auto; padding: 8px; display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 6px; align-content: start; }
+  #tabs { display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid var(--ink); flex: none; }
+  .tab { background: #fff; border: 0; border-right: 1px solid var(--line); padding: 11px 4px; cursor: pointer; font-weight: 700; }
+  .tab:last-child { border-right: 0; }
+  .tab[aria-selected="true"] { background: var(--ink); color: #fff; }
+  .card { text-align: left; background: #fff; border: 1px solid var(--ink); padding: 7px 8px; cursor: pointer; display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+  .card:active:not(.off) { transform: translateY(1px); }
+  .card.off { border-color: var(--line); cursor: default; }
+  .card .head { display: flex; justify-content: space-between; gap: 6px; align-items: baseline; flex-wrap: wrap; }
+  .card .name { font-weight: 700; }
+  .card .lv { color: var(--muted); }
+  .card .desc { color: var(--muted); font-size: 12px; overflow-wrap: anywhere; }
+  .card .cost { display: flex; flex-wrap: wrap; gap: 2px 10px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .card .cost .short { color: var(--bad); }
+  .card.max .cost { color: var(--muted); }
+  .row { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 2px; }
+  .mini { background: #fff; border: 1px solid var(--ink); padding: 5px 8px; cursor: pointer; font-size: 12px; }
+  .mini[disabled] { background: var(--ink); color: #fff; cursor: default; }
+
+  /* settings */
+  dialog { border: 1px solid var(--ink); padding: 16px; width: min(320px, calc(100vw - 32px)); font: inherit; color: var(--ink); }
+  dialog::backdrop { background: rgba(255, 255, 255, .75); }
+  dialog h2 { margin: 0 0 12px; font-size: 15px; }
+  .set { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--line); }
+  .set input[type=range] { width: 130px; }
+  .set .mini[disabled] { background: #fff; color: var(--ink); }
+  .danger { color: var(--bad); border-color: var(--bad); }
+  @media (max-width: 440px) { :root { --top: 80px; } #res { grid-template-columns: repeat(2, auto); } .tbtn { padding: 6px 8px; } #panel { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 </style>
 </head>
 <body>
 <div id="top">
-  <div>
-    <div id="money">$0</div>
-    <div class="sub" id="wave">웨이브 1</div>
-    <div class="sub" id="income"></div>
+  <div id="res">
+    <span class="chip"><i class="ico money"></i><span id="r-money">0</span></span>
+    <span class="chip"><i class="ico food"></i><span id="r-food">0</span><span class="rate" id="rr-food"></span></span>
+    <span class="chip"><i class="ico mineral"></i><span id="r-mineral">0</span><span class="rate" id="rr-mineral"></span></span>
+    <span class="chip"><i class="ico wood"></i><span id="r-wood">0</span><span class="rate" id="rr-wood"></span></span>
+    <span id="waveLine"></span>
   </div>
-  <div id="bars">
-    <div class="bar" id="bunkerBar"><span id="bunkerText">벙커</span><div class="track"><div class="fill" id="bunkerFill"></div></div></div>
-    <div class="bar" id="fenceBar"><span id="fenceText">울타리 없음</span><div class="track"><div class="fill" id="fenceFill"></div></div></div>
-    <button id="mute" type="button" aria-pressed="false">소리 켜짐</button>
+  <div id="topBtns">
+    <button class="tbtn" id="speed" type="button" aria-pressed="false">1배속</button>
+    <button class="tbtn" id="settingsBtn" type="button">설정</button>
   </div>
 </div>
-<div id="stage"><canvas id="c" tabindex="0" aria-label="들판 한가운데 벙커. 사방에서 좀비가 몰려온다. 좀비를 누르면 직접 쏜다."></canvas></div>
+<div id="stage"><canvas id="c" tabindex="0" aria-label="벙커 주변 들판. 화면 밖에서 좀비가 몰려온다. 좀비를 누르면 직접 쏜다."></canvas></div>
 <div id="status" role="status" aria-live="polite"></div>
-<div id="panel"></div>
+<div id="hp">
+  <span class="lbl" id="bunkerText">벙커</span><div class="track" id="bunkerTrack"><div class="fill" id="bunkerFill"></div></div>
+  <span class="lbl" id="fenceText">울타리 없음</span><div class="track"><div class="fill" id="fenceFill"></div></div>
+</div>
+<div id="bottom">
+  <div id="panel"></div>
+  <div id="tabs" role="tablist">
+    <button class="tab" role="tab" data-tab="gun" aria-selected="true">무기</button>
+    <button class="tab" role="tab" data-tab="build" aria-selected="false">건설</button>
+    <button class="tab" role="tab" data-tab="crew" aria-selected="false">인원</button>
+  </div>
+</div>
+<dialog id="settings">
+  <h2>설정</h2>
+  <div class="set"><span>효과음</span><button class="mini" id="soundToggle" type="button">켜짐</button></div>
+  <div class="set"><span>음량</span><input type="range" id="volume" min="0" max="100" value="70"></div>
+  <div class="set"><span>풀 흔들림</span><button class="mini" id="windToggle" type="button">켜짐</button></div>
+  <div class="set"><span>진행 초기화</span><button class="mini danger" id="resetBtn" type="button">초기화</button></div>
+  <form method="dialog" style="text-align:right;margin-top:12px"><button class="mini">닫기</button></form>
+</dialog>
 <script>
-// the canvas is sized to the screen so every game pixel is a whole number of device pixels: crisp on phones too
+// size the game canvas to the stage: every game pixel is a whole number of device pixels,
+// and the world scale is chosen so the fenced yard fits with room around it
 (() => {
-  const dpr = window.devicePixelRatio || 1, sw = innerWidth, sh = Math.max(220, innerHeight - 64 - 170);
-  // a tall phone zooms in further and lets the field run off the sides, so the fight fills the screen
-  const tall = sh > sw * 1.1;
-  const NEED_W = tall ? 270 : 350, NEED_H = 230;
-  const k = Math.max(1, Math.floor(Math.min(sw * dpr / NEED_W, sh * dpr / NEED_H)));
-  const width = Math.min(480, Math.max(NEED_W, Math.floor(sw * dpr / k)));
-  const height = Math.min(tall ? 440 : 330, Math.max(NEED_H, Math.floor(sh * dpr / k)));
-  window.PP_SCENE = { width, height, scale: 16, originY: 12, field: tall ? 13.5 : 7.5 };
+  const r = document.getElementById('stage').getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
+  const pick = k => {
+    const width = Math.min(1600, Math.floor(r.width * dpr / k)), height = Math.min(900, Math.floor(r.height * dpr / k));
+    return { k, width, height, scale: Math.min(44, width / 16.5, height / 11.5) };
+  };
+  let best = pick(1);
+  for (let k = 2; k <= 6; k++) { const c = pick(k); if (c.scale >= 28) best = c; }
+  window.PP_SCENE = { width: best.width, height: best.height, scale: best.scale, originY: best.scale * .9, grassDensity: .07 };
 })();
 </script>
 <script src="engine.js"></script>
 <script>
 'use strict';
-/* ---------- tuning ---------- */
-const FIELD = PP_SCENE.field, B = 2.2, ROOF_Z = 2.1, FENCE_R = 4.4, BAG_R = 2.6, STOP_BUNKER = 2.95, SPAWN_R = FIELD - 1.6, RISE = .9;
-const MAX_ZOMBIES = 45, OFFLINE_CAP = 2 * 3600, SAVE_KEY = 'bunker-idle:v1';
-const CONCRETE = [172, 168, 156], BAG = [184, 160, 112], WOOD = [146, 104, 66], METAL = [150, 158, 164], DARK = [44, 40, 50];
-const DIRT = [150, 118, 82], CRATE = [178, 134, 82], SACK = [214, 198, 156], BARREL = [150, 72, 56], OLIVE = [96, 112, 70];
-const SURVIVOR = { shirt: [206, 172, 112], stripe: [188, 154, 98], legs: [70, 82, 104], hair: [92, 110, 64], skin: [222, 172, 134] };
-const ZOMBIE = { shirt: [96, 86, 92], stripe: [128, 60, 56], legs: [58, 56, 72], hair: [46, 52, 40], skin: [128, 176, 96] };
-const BRUTE = { shirt: [140, 48, 44], stripe: [104, 36, 36], legs: [50, 50, 62], hair: [40, 46, 36], skin: [116, 160, 86] };
-const FLASH = { shirt: [250, 250, 240], stripe: [250, 250, 240], legs: [250, 250, 240], hair: [250, 250, 240], skin: [250, 250, 240] };
-
-// each upgrade: cost = base * grow^level; val(level) is what the level gives
-const UP = {
-  atk:  { name: '공격력', base: 15, grow: 1.42, val: l => 12 * (1 + l * .6) * 1.06 ** l, show: v => fmt(v) + ' 피해' },
-  spd:  { name: '공속',   base: 20, grow: 1.5, max: 35, val: l => 1.2 + l * .3, show: (v, l) => v.toFixed(1) + '발/초 탄창' + (6 + Math.floor(l * .7)) },
-  gold: { name: '돈',     base: 25, grow: 1.5, val: l => 1 + l * .3, show: v => '보상 x' + v.toFixed(1) },
-  wall: { name: '방어벽', base: 40, grow: 1.6, val: l => l ? 80 * l * 1.18 ** l : 0, show: v => v ? '울타리 ' + fmt(v) : '울타리 없음' },
-  food: { name: '식량',   base: 30, grow: 1.5, val: l => 100 + 45 * l, show: (v, l) => '체력 ' + fmt(v) + ' +' + fmt(regenOf(l)) + '/초' },
-  res:  { name: '자원',   base: 50, grow: 1.55, val: l => l ? l * 1.5 * 1.15 ** l : 0, show: v => '$' + fmt(v) + '/초' },
+/* ================= numbers ================= */
+const FENCE_R = 5.2, MAX_ZOMBIES = 40, OFFLINE_CAP = 2 * 3600, SAVE_KEY = 'bunker-idle:v2';
+const STAGES = [
+  { name: '간이 참호', half: 1.25, roof: 0, hp: 150, cost: null },
+  { name: '나무 초소', half: 1.45, roof: 1.7, hp: 400, cost: { money: 80, wood: 30 } },
+  { name: '콘크리트 벙커', half: 1.9, roof: 2.1, hp: 1000, cost: { money: 400, wood: 120, mineral: 40 } },
+  { name: '강화 벙커', half: 2.05, roof: 2.3, hp: 2500, cost: { money: 2500, wood: 300, mineral: 250 } },
+  { name: '요새', half: 2.3, roof: 2.6, hp: 6000, cost: { money: 15000, wood: 800, mineral: 1200 } },
+];
+const FENCES = [
+  { name: '없음', hp: 0 },
+  { name: '나무 말뚝', hp: 120, cost: { wood: 15 } },
+  { name: '나무 울타리', hp: 300, cost: { money: 40, wood: 50 } },
+  { name: '통나무 목책', hp: 700, cost: { money: 200, wood: 150 } },
+  { name: '철조망', hp: 1500, cost: { money: 600, wood: 100, mineral: 80 } },
+  { name: '철판 벽', hp: 3500, cost: { money: 2000, mineral: 300 } },
+  { name: '콘크리트 벽', hp: 8000, cost: { money: 8000, wood: 500, mineral: 1000 } },
+];
+const BUILD = {
+  farm:  { name: '농장', res: 'food', max: 20, rate: L => L ? .3 * L * 1.12 ** L : 0, cost: L => ({ money: Math.ceil(25 * 1.55 ** L) }) },
+  saw:   { name: '벌목장', res: 'wood', max: 20, rate: L => L ? .35 * L * 1.12 ** L : 0, cost: L => ({ money: Math.ceil(30 * 1.55 ** L) }) },
+  drill: { name: '광산 드릴', res: 'mineral', max: 20, rate: L => L ? .2 * L * 1.12 ** L : 0, cost: L => ({ money: Math.ceil(80 * 1.6 ** L), wood: Math.ceil(15 * 1.5 ** L) }) },
 };
-const regenOf = l => 1 + l * .8;
-const cost = k => Math.ceil(UP[k].base * UP[k].grow ** G.lv[k]);
-const stat = k => UP[k].val(G.lv[k]);
-const zombieHp = w => 18 * 1.2 ** (w - 1);
-const zombieDps = w => 6 * 1.13 ** (w - 1);
-const zombieReward = w => 2 * 1.16 ** (w - 1);
-const killsNeeded = w => 8 + w * 2;
-const spawnEvery = w => Math.max(.22, 1.5 * .94 ** (w - 1));
-// the gun: the 공속 upgrade also brings a bigger magazine and quicker hands
-const magSize = () => 6 + Math.floor(G.lv.spd * .7);
-const reloadTime = () => Math.max(.6, 1.3 * .96 ** G.lv.spd);
-const ATTACK_EVERY = 1.1, STRIKE_AT = .78;
+const GUN = {
+  atk: { name: '공격력', max: 60, cost: L => Math.ceil(15 * 1.45 ** L), val: L => 10 * (1 + .5 * L) * 1.05 ** L },
+  spd: { name: '연사', max: 25, cost: L => Math.ceil(20 * 1.5 ** L), val: L => 1 + .12 * L },
+  mag: { name: '탄창', max: 25, cost: L => Math.ceil(15 * 1.4 ** L), val: L => 5 + L },
+};
+const reloadTime = () => 1.6 * .97 ** G.lv.mag;
+const JOBS = ['사수', '농부', '광부', '벌목꾼'];
+const JOB_RES = { 농부: 'food', 광부: 'mineral', 벌목꾼: 'wood' };
+const UPKEEP = .1; // food per second per hired survivor
+const hireCost = n => ({ money: Math.ceil(60 * 2.5 ** n), food: 20 + 20 * n });
+const zombieHp = w => 25 * 1.16 ** (w - 1);
+const zombieHit = w => 4 * 1.12 ** (w - 1);
+const zombieReward = w => 6 * 1.14 ** (w - 1);
+const killsNeeded = w => 8 + 2 * w;
+const spawnEvery = w => Math.max(.35, 3 * .94 ** (w - 1));
+const STRIKE_EVERY = 1.2;
+const NAMES = ['민준', '서연', '도윤', '하은', '지호'];
 
+/* ================= state ================= */
 const G = {
-  money: 0, wave: 1, waveKills: 0, totalKills: 0,
-  lv: { atk: 0, spd: 0, gold: 0, wall: 0, food: 0, res: 0 },
-  hp: 100, fenceHp: 0, fenceDown: false,
-  zombies: [], tracers: [], parts: [], decals: [], sideDmg: [0, 0, 0, 0], sideStage: [0, 0, 0, 0],
-  ammo: 6, reload: 0, reloadLen: 1, magOut: false, magIn: false,
-  time: 0, cool: 0, spawnIn: 1, yaw: Math.PI / 4, muzzle: 0, gunTip: [0, 0, 2.4], status: '', statusT: 0, hurt: 0, saveIn: 5,
+  money: 0, food: 0, mineral: 0, wood: 0,
+  lv: { atk: 0, spd: 0, mag: 0 }, stage: 0, fence: 0, build: { farm: 0, saw: 0, drill: 0 },
+  crew: [null, null, null, null, null],
+  wave: 1, waveKills: 0, totalKills: 0,
+  hp: 150, fenceHp: 0, fenceDown: false, sideDmg: [0, 0, 0, 0], sideStage: [0, 0, 0, 0],
+  zombies: [], tracers: [], parts: [], decals: [], floats: [], shooters: [], workers: [],
+  time: 0, spawnIn: 2, speed: 1, hurt: 0, banner: 0, hungry: false, saveIn: 5, statusT: 0,
 };
-
+const stage = () => STAGES[G.stage];
+const gunStat = k => GUN[k].val(G.lv[k]);
+const hired = () => G.crew.filter(Boolean);
+const jobCount = j => G.crew.filter(c => c && c.job === j).length;
+const slotsOpen = () => G.stage + 1;
+function rateOf(res) {
+  // a building's output, boosted by workers on that job; hands without a building still gather a little
+  const key = Object.keys(BUILD).find(k => BUILD[k].res === res), L = G.build[key];
+  const job = Object.keys(JOB_RES).find(j => JOB_RES[j] === res), n = jobCount(job);
+  return (G.hungry ? BUILD[key].rate(L) : BUILD[key].rate(L) * (1 + .5 * n) + n * .15);
+}
 function fmt(n) {
+  n = Math.max(0, n);
   if (n < 1000) return n < 10 && n % 1 ? n.toFixed(1) : Math.floor(n) + '';
-  const units = ['K', 'M', 'B', 'T', 'aa', 'ab', 'ac', 'ad'];
+  const units = ['K', 'M', 'B', 'T', 'aa', 'ab', 'ac'];
   let i = -1;
   while (n >= 1000 && i < units.length - 1) { n /= 1000; i++; }
   return n.toFixed(n < 10 ? 2 : n < 100 ? 1 : 0) + units[i];
 }
+const RES_NAME = { money: '$', food: '식량', mineral: '광물', wood: '나무' };
+const canPay = c => Object.entries(c).every(([k, v]) => G[k] >= v);
+function pay(c) { for (const [k, v] of Object.entries(c)) G[k] -= v; }
 
-/* ---------- scene ---------- */
-const PAPER_PX = rgb(255, 255, 255);
+/* ================= palette ================= */
+const CONCRETE = [176, 172, 160], BAG = [190, 166, 116], WOOD = [150, 106, 66], PLANK = [176, 132, 84], METAL = [148, 158, 166], DARK = [44, 40, 50];
+const DIRT = [152, 120, 84], TILLED = [118, 84, 58], CROP = [104, 152, 66], ROCK = [132, 130, 128], ORE = [104, 140, 196], TARP = [96, 116, 82];
+const STEP = .45 / S;
+const px = n => Math.max(1, Math.round(n * S / 16)); // sizes that follow the pixel grid
+
+/* ================= scene: ground ================= */
 const KIND_DIRT = 1;
 function groundColor(x, y, ix, iy) {
-  const n = Math.max(Math.abs(x), Math.abs(y));
-  // the field dissolves into the white page on every side
-  if (n > FIELD - noise(x * .6 + 9, y * .6) * 1.1 - hash(ix, iy) * .3) return [0, 0];
-  // and dissolves at the edges of the screen when the field is wider than it
-  const side = Math.min(ix, W - 1 - ix), cap = Math.min(iy - 22, H - 1 - iy);
-  if (side < 4 + noise(iy * .08, 3) * 10 + hash(ix, iy) * 3 || cap < 4 + noise(ix * .08, 5) * 8 + hash(ix, iy) * 3) return [0, 0];
-  const clearing = Math.hypot(x, y) + noise(x * .7, y * .7) * 1.4;
-  if (clearing < 4.2) {
+  const clearing = Math.hypot(x, y) + noise(x * .6, y * .6) * 1.6;
+  const patch = noise(x * .18 + 7, y * .18) > .72;
+  if (clearing < FENCE_R - .4 || patch) {
     const ramp = rampOf(DIRT), fine = hash(ix, iy);
-    if (fine > .97) return [ramp[4], KIND_DIRT];
-    return [ramp[clamp(Math.floor(2.1 + noise(x * 1.6, y * 1.6) * 1.4 + (bayerAt(ix, iy) - .5) * .6), 1, 4)], KIND_DIRT];
+    if (fine > .985) return [ramp[4], KIND_DIRT];
+    if (fine < .01) return [ramp[0], KIND_DIRT];
+    return [ramp[clamp(Math.floor(2.1 + noise(x * 1.4, y * 1.4) * 1.3 + (bayerAt(ix, iy) - .5) * .5), 1, 4)], KIND_DIRT];
   }
-  const tone = noise(x * .3, y * .3) * 1.5 + noise(x * 1.2 + 4, y * 1.2) * .7;
-  return [tuftLit[clamp(Math.floor(1 + tone + (bayerAt(ix, iy) - .5) * .6), 0, 4)], KIND_GRASS];
+  const tone = noise(x * .25, y * .25) * 1.5 + noise(x * 1.1 + 4, y * 1.1) * .7;
+  return [tuftLit[clamp(Math.floor(1 + tone + (bayerAt(ix, iy) - .5) * .5), 0, 4)], KIND_GRASS];
 }
-function shadowBlock(x0, y0, x1, y1, z1) {
-  for (let x = x0; x <= x1; x += .45) for (let y = y0; y <= y1; y += .45) for (let z = .3; z < z1; z += .45) castShadow(x, y, z, .45);
-}
-function buildBunker() {
-  const step = .04, dark = rampOf(DARK), steel = rampOf(METAL);
-  // one row of sandbags around the foot of the bunker
-  const count = 56;
-  for (let k = 0; k < count; k++) {
-    const t = (k / count) * 4, side = Math.floor(t) % 4, q = (t % 1) * 2 - 1, r = BAG_R;
-    const [x, y] = [[r, q * r], [-q * r, r], [-r, -q * r], [q * r, -r]][side];
-    sphere(x, y, .2, .25, BAG, 'rough');
-    castShadow(x, y, .2, .25);
-  }
-  // a squat concrete block, taller than the man on its roof, with a low parapet around the roof
-  box(-B, -B, 0, B, B, ROOF_Z, CONCRETE, 1);
-  const P = B + .08, T = .22, top = ROOF_Z + .32;
-  box(-P, P - T, ROOF_Z, P, P, top, CONCRETE, 2);
-  box(P - T, -P, ROOF_Z, P, P, top, CONCRETE, 3);
-  box(-P, -P, ROOF_Z, P, -P + T, top, CONCRETE, 4);
-  box(-P, -P, ROOF_Z, -P + T, P, top, CONCRETE, 5);
-  // stains running down from the roof, gun slits on both visible faces
-  for (let a = -B; a <= B; a += step) for (let z = .05; z < ROOF_Z; z += step) {
-    if (noise(a * 2.2, 1) * 1.6 > (ROOF_Z - z) && hash(a * 40 | 0, z * 40 | 0) > .5) { plot(a, B + .01, z, rampOf(CONCRETE)[1]); plot(B + .01, a, z, rampOf(CONCRETE)[1]); }
-  }
-  for (const c of [-1.25, 1.35]) for (let a = -.38; a <= .38; a += step) for (let z = 1.35; z <= 1.55; z += step) plot(B + .02, c + a, z, dark[0]);
-  for (let a = -.38; a <= .38; a += step) for (let z = 1.35; z <= 1.55; z += step) plot(-1.2 + a, B + .02, z, dark[0]);
-  // steel door on the right face
-  for (let a = -.42; a <= .42; a += step) for (let z = 0; z <= 1.25; z += step) {
-    const frame = Math.abs(a) > .36 || z > 1.19;
-    plot(B + .03, .1 + a, z, frame ? steel[1] : steel[Math.floor(z * 5) % 2 ? 2 : 3]);
-  }
-  // ladder up the left face to the roof
-  const LX = .9;
-  for (const x of [LX - .28, LX + .28]) box(x - .045, B + .02, 0, x + .045, B + .14, top + .25, METAL, 6);
-  for (let z = .3; z < top; z += .32) box(LX - .28, B + .05, z, LX + .28, B + .12, z + .06, METAL, 7);
-  // radio mast with a flag on the back corner
-  for (let z = top; z <= 4.4; z += .02) { plot(-1.8, -1.8, z, dark[2]); plot(-1.76, -1.8, z, dark[1]); }
-  for (let a = 0; a <= .8; a += .02) for (let z = 3.9; z <= 4.35; z += .02) {
-    plot(-1.8 + a, -1.8 - a * .25, z - Math.sin(a * 5) * .08, rampOf([186, 60, 50])[a > .45 ? 2 : 3]);
-  }
-  shadowBlock(-B, -B, B, B, ROOF_Z + .3);
-  for (let z = 2.6; z < 4.3; z += .3) castShadow(-1.8, -1.8, z, .08, 1, 0);
-  for (let z = .3; z < 2.6; z += .3) castShadow(LX, B + .1, z, .2, 1, 0);
-}
-function buildFence() {
-  const lvl = G.lv.wall;
-  if (!lvl) return;
-  const down = G.fenceDown, h = .75 + Math.min(lvl, 12) * .05, mat = lvl >= 8 ? METAL : WOOD, R = FENCE_R, seg = R / 5;
-  // side 0: y = +R, 1: x = +R, 2: y = -R, 3: x = -R; a point along a side is s in [-R, R]
-  const at = (side, s) => [[s, R], [R, s], [s, -R], [-R, s]][side];
-  for (let side = 0; side < 4; side++) {
-    const st = down ? 3 : G.sideStage[side];
-    for (let j = 0; j <= 10; j++) {
-      const [x, y] = at(side, -R + j * seg);
-      const snapped = down || hash(side * 11 + j, 5) < st * .22;
-      const top = snapped ? .2 + hash(side * 11 + j, 3) * .25 : h + (lvl < 8 ? hash(side * 11 + j, 4) * .08 : 0);
-      box(x - .08, y - .08, 0, x + .08, y + .08, top, mat, side * 11 + j);
-      for (let z = .2; z < top; z += .3) castShadow(x, y, z, .12, 1, 0);
-    }
-    for (let j = 0; j < 10; j++) for (const [r, z] of [[0, h * .4], [1, h * .8]]) {
-      const gone = down || hash(side * 23 + j, 7 + r) < st * (r ? .3 : .2);
-      const a = -R + j * seg, b = a + seg;
-      if (gone) {
-        // the broken rail lies in the grass outside
-        if (hash(side * 23 + j, 9 + r) < .6) {
-          const o = 1 + hash(side * 23 + j, 11) * .5, [x0, y0] = at(side, a + .1), [x1, y1] = at(side, b - .2);
-          const ox = side === 1 ? .35 * o : side === 3 ? -.35 * o : 0, oy = side === 0 ? .35 * o : side === 2 ? -.35 * o : 0;
-          box(Math.min(x0, x1) + ox - .04, Math.min(y0, y1) + oy - .04, 0, Math.max(x0, x1) + ox + .04, Math.max(y0, y1) + oy + .04, .06, mat, 40 + j);
-        }
-        continue;
-      }
-      const [x0, y0] = at(side, a), [x1, y1] = at(side, b);
-      box(Math.min(x0, x1) - .03, Math.min(y0, y1) - .03, z, Math.max(x0, x1) + .03, Math.max(y0, y1) + .03, z + .08, mat, 21 + side);
-      for (let t = 0; t <= 1; t += .4) castShadow(lerp(x0, x1, t), lerp(y0, y1, t), z, .06, 1, 0);
-    }
-    if (lvl >= 4 && st < 2 && !down) {
-      // barbed wire along the top
-      const wire = rampOf(DARK)[2];
-      for (let s = -R; s <= R; s += .03) {
-        const [x, y] = at(side, s);
-        plot(x, y, h + .12 + (Math.floor(s * 6) % 2 ? .05 : 0), wire);
-      }
-    }
-  }
-}
-const STORE_SPOTS = [[3.15, 3.15], [3.8, 3.15], [3.15, 3.8], [3.8, 3.8], [2.5, 3.8], [3.8, 2.5]];
-function buildStores() {
-  // food piles up on the left of the bunker, building material on the right
-  const food = Math.min(G.lv.food, 6), res = Math.min(G.lv.res, 9);
-  for (let k = 0; k < food; k++) {
-    const [a, b] = STORE_SPOTS[k], x = -a, y = b;
-    if (k % 2) {
-      capsule([x, y, .05], [x, y, .7], .26, .26, () => BARREL, 'rough');
-      castShadow(x, y, .4, .28);
-    } else {
-      sphere(x, y, .26, .3, SACK, 'rough'); sphere(x + .08, y - .08, .58, .22, SACK, 'rough');
-      castShadow(x, y, .4, .32);
-    }
-  }
-  for (let k = 0; k < res; k++) {
-    const [a, b] = STORE_SPOTS[k % 6], x = a, y = -b, z = k >= 6 ? .52 : 0;
-    box(x - .26, y - .26, z, x + .26, y + .26, z + .5, k % 3 === 2 ? OLIVE : CRATE, 30 + k);
-    castShadow(x, y, z + .3, .36);
-  }
-}
-function bake() {
-  zb.fill(-1e9);
-  pix.fill(PAPER_PX);
-  ground.fill(0);
-  shadowMask.fill(0);
+const groundPix = new Uint32Array(W * H), groundKinds = new Uint8Array(W * H), groundDepth = new Float32Array(W * H);
+function bakeGround() {
   for (let iy = 0; iy < H; iy++) for (let ix = 0; ix < W; ix++) {
     const g = unproject(ix + .5, iy + .5), [c, kind] = groundColor(g.x, g.y, ix, iy), i = iy * W + ix;
-    kinds[i] = kind;
-    if (!c) continue;
-    pix[i] = c; ground[i] = 1;
-    zb[i] = (g.x + g.y) / R2 * COS;
+    groundPix[i] = c; groundKinds[i] = kind;
+    groundDepth[i] = (g.x + g.y) / R2 * COS;
   }
+}
+// trees and rocks out by the edges of the screen, away from the yard
+function sceneryPoints() {
+  const spots = [[.1, .3], [.9, .62], [.08, .86], [.92, .18]];
+  return spots.map(([a, b]) => unproject(a * W, b * H)).filter(p => Math.max(Math.abs(p.x), Math.abs(p.y)) > FENCE_R + 2);
+}
+
+/* ================= scene: structures ================= */
+function shadowBlock(x0, y0, x1, y1, z1, r = .45) {
+  for (let x = x0; x <= x1; x += r) for (let y = y0; y <= y1; y += r) for (let z = .3; z < z1; z += r) castShadow(x, y, z, r);
+}
+function sandbagRing(half, rows) {
+  const per = Math.round(half * 8 * 2.6);
+  for (let row = 0; row < rows; row++) for (let k = 0; k < per; k++) {
+    const t = ((k + row * .5) / per) * 4, side = Math.floor(t) % 4, q = (t % 1) * 2 - 1, r = half;
+    const [x, y] = [[r, q * r], [-q * r, r], [-r, -q * r], [q * r, -r]][side];
+    sphere(x, y, .17 + row * .3, .21, BAG, 'rough');
+    if (row === 0) castShadow(x, y, .2, .22);
+  }
+}
+function ladder(x, y, top) {
+  // on the +y wall at x
+  for (const o of [-.22, .22]) box(x + o - .035, y + .02, 0, x + o + .035, y + .12, top + .3, METAL, 6);
+  for (let z = .28; z < top + .1; z += .28) box(x - .22, y + .05, z, x + .22, y + .11, z + .045, METAL, 7);
+  for (let z = .3; z < top; z += .35) castShadow(x, y + .1, z, .16, 1, 0);
+}
+function buildBunker() {
+  const st = G.stage, s = STAGES[st], h = s.half, top = s.roof, dark = rampOf(DARK), steel = rampOf(METAL);
+  if (st === 0) {
+    // a dugout: two rings of sandbags, a tarp strung over the back half, a crate
+    sandbagRing(h, 2);
+    for (let a = -h + .1; a <= h - .1; a += STEP) for (let b = -h + .1; b <= 0; b += STEP) {
+      plot(a, b, 1.25 + b * .35, rampOf(TARP)[Math.floor((a + 5) * 2.5) % 2 ? 3 : 2]);
+    }
+    for (const [x, y] of [[-h + .1, -h + .1], [h - .1, -h + .1], [-h + .1, 0], [h - .1, 0]]) box(x - .04, y - .04, 0, x + .04, y + .04, 1.25 + y * .35, WOOD, 3);
+    shadowBlock(-h, -h, h, 0, 1.2, .5);
+    box(-.9, .25, 0, -.45, .7, .42, PLANK, 4);
+    return;
+  }
+  if (st === 1) {
+    // a wooden watch post: plank walls, a flat roof with a rail, a ladder
+    box(-h, -h, 0, h, h, top, PLANK, 1);
+    const planks = rampOf(PLANK);
+    for (let a = -h; a <= h; a += STEP) for (let z = 0; z <= top; z += STEP) {
+      if (Math.floor((z + 9) * 5) % 4 === 0) { plot(a, h + .01, z, planks[1]); plot(h + .01, a, z, planks[0]); }
+    }
+    for (let a = -.3; a <= .3; a += STEP) for (let z = .9; z <= 1.2; z += STEP) plot(h + .02, a - .4, z, dark[0]);
+    box(-h - .08, -h - .08, top, h + .08, h + .08, top + .1, WOOD, 2);
+    for (const [x, y] of [[-h, -h], [h, -h], [-h, h], [h, h]]) box(x - .05, y - .05, top, x + .05, y + .05, top + .55, WOOD, 3);
+    box(-h, h - .04, top + .45, h, h + .04, top + .52, WOOD, 4);
+    box(h - .04, -h, top + .45, h + .04, h, top + .52, WOOD, 5);
+    box(-h, -h - .04, top + .45, h, -h + .04, top + .52, WOOD, 4);
+    box(-h - .04, -h, top + .45, -h + .04, h, top + .52, WOOD, 5);
+    ladder(.6, h, top);
+    shadowBlock(-h, -h, h, h, top);
+    return;
+  }
+  // concrete from stage 2 on
+  sandbagRing(h + .45, st >= 3 ? 2 : 1);
+  box(-h, -h, 0, h, h, top, CONCRETE, 1);
+  const P = h + .08, T = .2, rim = top + .3;
+  box(-P, P - T, top, P, P, rim, CONCRETE, 2);
+  box(P - T, -P, top, P, P, rim, CONCRETE, 3);
+  box(-P, -P, top, P, -P + T, rim, CONCRETE, 4);
+  box(-P, -P, top, -P + T, P, rim, CONCRETE, 5);
+  const conc = rampOf(CONCRETE);
+  for (let a = -h; a <= h; a += STEP) for (let z = .05; z < top; z += STEP) {
+    if (noise(a * 2.2, 1) * 1.6 > (top - z) && hash(a * 90 | 0, z * 90 | 0) > .55) { plot(a, h + .01, z, conc[1]); plot(h + .01, a, z, conc[1]); }
+  }
+  if (st >= 3) {
+    // bolted steel plates over the lower walls
+    for (let a = -h; a <= h; a += STEP) for (let z = 0; z <= .9; z += STEP) {
+      const m = (a + 9) % .7, seam = m < .03 || z > .86, bolt = Math.abs(m - .35) < .03 && Math.abs(z - .75) < .03;
+      const c = bolt ? steel[4] : seam ? steel[1] : steel[2 + (hash(a * 50 | 0, 3) > .7 ? 1 : 0)];
+      plot(a, h + .02, z, c); plot(h + .02, a, z, c);
+    }
+  }
+  for (const c of [-1.0, 1.1]) for (let a = -.35; a <= .35; a += STEP) for (let z = 1.25; z <= 1.45; z += STEP) plot(h + .03, c + a, z, dark[0]);
+  for (let a = -.35; a <= .35; a += STEP) for (let z = 1.25; z <= 1.45; z += STEP) plot(-.9 + a, h + .03, z, dark[0]);
+  for (let a = -.4; a <= .4; a += STEP) for (let z = 0; z <= 1.2; z += STEP) {
+    const frame = Math.abs(a) > .34 || z > 1.14;
+    plot(h + .04, .15 + a, z, frame ? steel[1] : steel[Math.floor(z * 6) % 3 ? 2 : 3]);
+  }
+  ladder(.75, h, rim);
+  // radio mast with a flag; a spotlight on the reinforced bunker; a corner tower on the fort
+  const mx = -h + .3, my = -h + .3;
+  for (let z = rim; z <= rim + 2.1; z += STEP) { plot(mx, my, z, dark[2]); plot(mx + .03, my, z, dark[1]); }
+  for (let a = 0; a <= .75; a += STEP) for (let z = rim + 1.6; z <= rim + 2.05; z += STEP) plot(mx + a, my - a * .25, z - Math.sin(a * 5) * .07, rampOf([186, 60, 50])[a > .45 ? 2 : 3]);
+  for (let z = rim + .3; z < rim + 2; z += .3) castShadow(mx, my, z, .07, 1, 0);
+  if (st >= 3) {
+    box(h - .5, -h + .2, rim, h - .2, -h + .5, rim + .7, METAL, 8);
+    sphere(h - .35, -h + .35, rim + .85, .2, [230, 226, 200], 'gloss');
+  }
+  if (st >= 4) {
+    box(-h - .1, -h - .1, top, -h + 1.1, -h + 1.1, top + 1.3, CONCRETE, 9);
+    box(-h - .2, -h - .2, top + 1.3, -h + 1.2, -h + 1.2, top + 1.45, METAL, 10);
+    for (let a = -.25; a <= .25; a += STEP) for (let z = top + .7; z <= top + .9; z += STEP) { plot(-h + 1.12, -h + .5 + a, z, dark[0]); plot(-h + .5 + a, -h + 1.12, z, dark[0]); }
+    shadowBlock(-h, -h, -h + 1, -h + 1, top + 1.4);
+  }
+  shadowBlock(-h, -h, h, h, rim);
+}
+/* fence tiers: stakes, rails, palisade, barbed wire, steel sheets, concrete */
+const SIDE_AT = (side, s, R = FENCE_R) => [[s, R], [R, s], [s, -R], [-R, s]][side];
+function buildFence() {
+  const tier = G.fence;
+  if (!tier) return;
+  const R = FENCE_R, down = G.fenceDown, seg = R / 6;
+  const H0 = [0, .7, .95, 1.2, 1.1, 1.35, 1.5][tier];
+  for (let side = 0; side < 4; side++) {
+    const wear = down ? 5 : G.sideStage[side];
+    for (let j = 0; j < 12; j++) {
+      const a = -R + j * seg, b = a + seg, key = side * 31 + j;
+      const broken = down || hash(key, 5) < wear * .2;
+      const [x0, y0] = SIDE_AT(side, a), [x1, y1] = SIDE_AT(side, b);
+      const lo = Math.min, hi = Math.max;
+      const along = (t, w, z0, z1, c, seed) => { const [x, y] = SIDE_AT(side, lerp(a, b, t)); box(x - w, y - w, z0, x + w, y + w, z1, c, seed); };
+      const rail = (z, th, c) => box(lo(x0, x1) - th, lo(y0, y1) - th, z, hi(x0, x1) + th, hi(y0, y1) + th, z + th * 2, c, side);
+      const debris = c => {
+        if (hash(key, 9) < .7) {
+          const o = .35 + hash(key, 11) * .4, ox = side === 1 ? o : side === 3 ? -o : 0, oy = side === 0 ? o : side === 2 ? -o : 0;
+          box(lo(x0, x1) + ox + .05, lo(y0, y1) + oy + .05, 0, hi(x0, x1) + ox - .25, hi(y0, y1) + oy - .25, .07, c, key);
+        }
+      };
+      if (tier === 1) {
+        for (const t of [0, .5]) {
+          const p = SIDE_AT(side, lerp(a, b, t)), h = broken && t ? .2 : H0 + hash(key, t * 9) * .15;
+          along(t, .06, 0, h, WOOD, key);
+          if (!(broken && t)) sphere(p[0], p[1], h + .06, .055, PLANK, 'solid');
+          castShadow(p[0], p[1], h * .5, .1, 1, 0);
+        }
+      } else if (tier === 2) {
+        along(0, .07, 0, broken ? .25 : H0, WOOD, key);
+        castShadow(x0, y0, .4, .1, 1, 0);
+        if (broken) { debris(PLANK); continue; }
+        for (const z of [.25, .55, .85]) rail(z * H0, .035, PLANK);
+      } else if (tier === 3) {
+        for (let t = 0; t < 1; t += .2) {
+          const [x, y] = SIDE_AT(side, lerp(a, b, t));
+          const h = broken ? .2 + hash(key, t * 7) * .3 : H0 + hash(key, t * 5) * .2;
+          capsule([x, y, 0], [x, y, h], .09, .09, () => WOOD, 'rough');
+          if (!broken) sphere(x, y, h + .08, .06, PLANK, 'solid');
+          castShadow(x, y, h * .5, .12, 1, 0);
+        }
+        if (broken) debris(WOOD); else rail(H0 * .6, .03, DARK);
+      } else if (tier === 4) {
+        along(0, .045, 0, broken ? .3 : H0, METAL, key);
+        castShadow(x0, y0, .5, .07, 1, 0);
+        if (broken) { debris(DARK); continue; }
+        const wire = rampOf(DARK)[2], barb = rampOf(METAL)[4];
+        for (const z of [.25, .5, .75, 1]) for (let t = 0; t <= 1; t += STEP / seg) {
+          const [x, y] = SIDE_AT(side, lerp(a, b, t));
+          plot(x, y, z * H0 + Math.sin(t * 40) * .02, hash(t * 300 | 0, z * 9 | 0) > .85 ? barb : wire);
+        }
+        for (let t = 0; t <= 1; t += .003) {
+          const [x, y] = SIDE_AT(side, lerp(a, b, t)), ang = t * 50, n = side % 2 ? [1, 0] : [0, 1];
+          plot(x + n[0] * Math.cos(ang) * .12, y + n[1] * Math.cos(ang) * .12, H0 + .12 + Math.sin(ang) * .12, wire);
+        }
+      } else if (tier === 5) {
+        along(0, .06, 0, broken ? .35 : H0 + .05, DARK, key);
+        if (broken) { debris(METAL); continue; }
+        const ramp = rampOf(METAL), rust = rampOf([150, 92, 60]);
+        for (let t = 0; t <= 1; t += STEP / seg) for (let z = .05; z <= H0; z += STEP) {
+          const [x, y] = SIDE_AT(side, lerp(a, b, t)), ridge = Math.floor(t * 18) % 2;
+          plot(x, y, z, (noise(x * 3 + side, z * 4) > .7 ? rust : ramp)[2 + ridge]);
+        }
+        for (let t = 0; t <= 1; t += .25) { const p = SIDE_AT(side, lerp(a, b, t)); castShadow(p[0], p[1], H0 * .5, .15, 1, 0); }
+      } else {
+        if (broken) { along(.5, .25, 0, .35, CONCRETE, key); debris(CONCRETE); continue; }
+        box(lo(x0, x1) - .15, lo(y0, y1) - .15, 0, hi(x0, x1) + .15, hi(y0, y1) + .15, H0, CONCRETE, key);
+        const stripe = [rgb(232, 190, 40), rgb(40, 38, 44)];
+        for (let t = 0; t <= 1; t += STEP / seg) for (let z = H0 * .55; z <= H0 * .7; z += STEP) {
+          const [x, y] = SIDE_AT(side, lerp(a, b, t), R + .16);
+          plot(x, y, z, stripe[Math.floor(t * 6 + z * 3) % 2]);
+        }
+        for (let t = 0; t <= 1; t += .25) { const p = SIDE_AT(side, lerp(a, b, t)); castShadow(p[0], p[1], H0 * .5, .2); }
+      }
+    }
+  }
+}
+/* production buildings */
+// everything sits where the camera can see it: nothing hides behind the bunker
+const FARM = { x0: 2.9, x1: 4.7, y0: -2.2, y1: 1.2 }, DRILL = { x: 0, y: -3.9 }, SAW = { x: .2, y: 3.8 }, STORE = { x: 3.4, y: 3.4 };
+function buildFarm() {
+  const L = G.build.farm;
+  if (!L) return;
+  const rows = Math.min(6, 1 + Math.floor(L / 2)), soil = rampOf(TILLED);
+  for (let r = 0; r < rows; r++) {
+    const y0 = FARM.y0 + r * .55, y1 = y0 + .4;
+    for (let x = FARM.x0; x <= FARM.x1; x += STEP) for (let y = y0; y <= y1; y += STEP) plot(x, y, .02 + (y - y0) * (y1 - y) * .4, soil[Math.abs(y - (y0 + y1) / 2) < .05 ? 1 : 2 + (hash(x * 60 | 0, y * 60 | 0) > .8 ? 1 : 0)]);
+    for (let x = FARM.x0 + .15; x < FARM.x1; x += .3) {
+      const grown = .12 + Math.min(1, L / 8) * .12;
+      sphere(x, (y0 + y1) / 2, grown, grown, CROP, 'rough');
+      if (L >= 5 && hash(x * 10 | 0, r) > .6) sphere(x + .05, (y0 + y1) / 2 + .04, grown * 1.6, .07, [226, 120, 60], 'solid');
+    }
+  }
+  capsule([FARM.x0 + .2, FARM.y0 - .35, .05], [FARM.x0 + .2, FARM.y0 - .35, .65], .22, .22, () => [92, 112, 140], 'rough');
+  castShadow(FARM.x0 + .2, FARM.y0 - .35, .4, .25);
+}
+function buildSaw() {
+  const L = G.build.saw;
+  if (!L) return;
+  const logs = Math.min(9, 2 + L);
+  for (let k = 0; k < logs; k++) {
+    const row = k < 4 ? 0 : k < 7 ? 1 : 2, i = row === 0 ? k : row === 1 ? k - 4 : k - 7;
+    const y = SAW.y - .6 + i * .32 + row * .16, z = .16 + row * .27, x0 = SAW.x - 1.6, x1 = SAW.x - .2;
+    capsule([x0, y, z], [x1, y, z], .15, .15, () => WOOD, 'rough');
+    sphere(x1 + .05, y, z, .13, [214, 176, 120], 'solid');
+    castShadow((x0 + x1) / 2, y, z, .2);
+  }
+  capsule([SAW.x + .6, SAW.y, 0], [SAW.x + .6, SAW.y, .38], .26, .24, () => WOOD, 'rough');
+  sphere(SAW.x + .6, SAW.y, .4, .2, [214, 176, 120], 'solid');
+  castShadow(SAW.x + .6, SAW.y, .2, .3);
+  if (L >= 4) {
+    box(SAW.x + 1.1, SAW.y - .8, .55, SAW.x + 1.8, SAW.y + .2, .65, PLANK, 51);
+    for (const [x, y] of [[1.15, -.75], [1.75, -.75], [1.15, .15], [1.75, .15]]) box(SAW.x + x - .04, SAW.y + y - .04, 0, SAW.x + x + .04, SAW.y + y + .04, .55, WOOD, 52);
+    shadowBlock(SAW.x + 1.1, SAW.y - .8, SAW.x + 1.8, SAW.y + .2, .6, .35);
+  }
+}
+function buildDrill() {
+  const L = G.build.drill;
+  if (!L) return;
+  const { x, y } = DRILL, top = 2.2 + Math.min(L, 10) * .05, dark = rampOf(DARK);
+  for (const [dx, dy] of [[-.6, -.6], [.6, -.6], [-.6, .6], [.6, .6]]) capsule([x + dx, y + dy, 0], [x + dx * .25, y + dy * .25, top], .05, .04, () => METAL, 'solid');
+  for (const z of [.7, 1.4]) {
+    const w = .6 - z * .2;
+    for (let t = -w; t <= w; t += STEP) { plot(x + t, y + w, z, dark[2]); plot(x + w, y + t, z, dark[2]); plot(x + t, y - w, z, dark[2]); plot(x - w, y + t, z, dark[2]); }
+  }
+  box(x - .2, y - .2, top, x + .2, y + .2, top + .2, METAL, 60);
+  box(x + .7, y - .5, 0, x + 1.4, y + .3, .7, [168, 120, 54], 61);
+  for (let a = x + .75; a < x + 1.35; a += STEP) for (let z = .2; z < .5; z += STEP) if (Math.floor(a * 20) % 2) plot(a, y + .31, z, dark[1]);
+  shadowBlock(x + .7, y - .5, x + 1.4, y + .3, .7, .35);
+  for (let z = .3; z < top; z += .4) castShadow(x, y, z, .35, 1);
+  const ore = Math.min(14, 2 + L * 2);
+  for (let k = 0; k < ore; k++) {
+    const a = hash(k, 81) * 6.28, d = Math.sqrt(hash(k, 82)) * .55;
+    sphere(x - 1.2 + Math.cos(a) * d, y + .4 + Math.sin(a) * d, .12 + (1 - d) * .25, .16, hash(k, 83) > .5 ? ORE : ROCK, 'rough');
+  }
+}
+const storeOf = () => Math.min(8, Math.floor(Math.log10(1 + G.wood + G.mineral + G.food) * 2));
+function buildStore() {
+  // crates stack up by the bunker as stores grow
+  const n = storeOf();
+  for (let k = 0; k < n; k++) {
+    const i = k % 4, z = k >= 4 ? .5 : 0, x = STORE.x - .3 + (i % 2) * .55, y = STORE.y - .3 + Math.floor(i / 2) * .55;
+    box(x - .24, y - .24, z, x + .24, y + .24, z + .48, k % 3 ? PLANK : [112, 124, 80], 70 + k);
+    castShadow(x, y, z + .25, .32);
+  }
+}
+let storeLevel = -1;
+function bake() {
+  pix.set(groundPix); kinds.set(groundKinds); ground.fill(1); zb.set(groundDepth);
+  shadowMask.fill(0);
   groundZ.set(zb);
+  leaves.length = 0;
+  sceneryPoints().forEach((p, k) => {
+    if (k % 2 === 0) growTree(p.x, p.y, .9, 170, k * 100);
+    else for (let r = 0; r < 4; r++) sphere(p.x + hash(k, r) * .8, p.y + hash(r, k) * .8, .15, .3 + hash(k + r, 3) * .2, ROCK, 'rough');
+  });
+  buildFarm(); buildSaw(); buildDrill(); buildStore();
   buildBunker();
   buildFence();
-  buildStores();
   bakeOcclusion();
   staticShadow.set(shadowMask);
   applyShadows(groundZ);
   bakedPix.set(pix);
   bakedZ.set(zb);
+  storeLevel = storeOf();
 }
 
-/* ---------- particles ---------- */
-// one list for everything that flies: coins, soil, wood chips, dust, shell casings, empty magazines
-const floorAt = (x, y) => Math.abs(x) < B && Math.abs(y) < B ? ROOF_Z : 0;
+/* ================= particles and floating text ================= */
+const floorAt = (x, y) => { const h = stage().half; return G.stage && Math.abs(x) < h && Math.abs(y) < h ? stage().roof : 0; };
 function part(x, y, z, vx, vy, vz, life, color, under, w = 1, h = 1) {
   G.parts.push({ x, y, z, vx, vy, vz, life, color, under, w, h });
-  if (G.parts.length > 400) G.parts.shift();
+  if (G.parts.length > 500) G.parts.shift();
 }
 function spray(x, y, z, n, speed, up, life, colors, w = 1, h = 1) {
   for (let k = 0; k < n; k++) {
-    const a = Math.random() * 6.28, v = speed * (.4 + Math.random() * .6), c = colors[k % colors.length];
-    part(x, y, z, Math.cos(a) * v, Math.sin(a) * v, up * (.5 + Math.random() * .7), life * (.7 + Math.random() * .5), c, null, w, h);
+    const a = Math.random() * 6.28, v = speed * (.4 + Math.random() * .6);
+    part(x, y, z, Math.cos(a) * v, Math.sin(a) * v, up * (.5 + Math.random() * .7), life * (.7 + Math.random() * .5), colors[k % colors.length], null, w, h);
   }
 }
 function updateParts(dt) {
@@ -284,217 +510,451 @@ function updateParts(dt) {
     q.vz -= 13 * dt;
     q.x += q.vx * dt; q.y += q.vy * dt; q.z += q.vz * dt;
     const floor = floorAt(q.x, q.y);
-    if (q.z < floor && q.z > floor - .4) {
-      q.z = floor; q.vz = Math.abs(q.vz) > 1 ? -q.vz * .35 : 0; q.vx *= .55; q.vy *= .55;
-    }
+    if (q.z < floor && q.z > floor - .5) { q.z = floor; q.vz = Math.abs(q.vz) > 1 ? -q.vz * .35 : 0; q.vx *= .5; q.vy *= .5; }
     q.life -= dt;
   }
   G.parts = G.parts.filter(q => q.life > 0 && q.z > -1);
+  for (const f of G.floats) { f.z += dt * .9; f.life -= dt; }
+  G.floats = G.floats.filter(f => f.life > 0);
 }
 function drawParts() {
   for (const q of G.parts) {
-    const p = project(q.x, q.y, q.z), x0 = Math.round(p.sx), y0 = Math.round(p.sy);
-    for (let dy = 0; dy < q.h + (q.under ? 1 : 0); dy++) for (let dx = 0; dx < q.w; dx++) {
+    const p = project(q.x, q.y, q.z), x0 = Math.round(p.sx), y0 = Math.round(p.sy), w = px(q.w), h = px(q.h), u = q.under ? px(1) : 0;
+    for (let dy = 0; dy < h + u; dy++) for (let dx = 0; dx < w; dx++) {
       const ix = x0 + dx, iy = y0 + dy;
       if (ix < 0 || iy < 0 || ix >= W || iy >= H) continue;
       const i = iy * W + ix;
-      if (p.d < zb[i] - .35) continue; // tucked behind the bunker or a zombie
-      pix[i] = dy >= q.h ? q.under : q.color;
+      if (p.d < zb[i] - .35) continue;
+      pix[i] = dy >= h ? q.under : q.color;
+    }
+  }
+}
+function float(x, y, z, text, color, size = 1) { G.floats.push({ x, y, z, text, color, size, life: .9 }); }
+
+/* ================= rigs: zombies and survivors ================= */
+// joints are given in the body's own frame: a forward, b to the left, c up. `fall` tips the body back about the feet.
+function rig(x, y, yaw, k, base, fall) {
+  const fx = Math.cos(yaw), fy = Math.sin(yaw), cf = Math.cos(fall), sf = Math.sin(fall);
+  return (a, b, c) => {
+    const a2 = a * cf - c * sf, c2 = a * sf + c * cf;
+    return [x + (fx * a2 - fy * b) * k, y + (fy * a2 + fx * b) * k, c2 * k + base];
+  };
+}
+const bone = (p, q, r0, r1, color, k) => dynamicAdd(p, q, r0 * k, r1 * k, () => color);
+function elbowOf(from, to, len, bend) {
+  // two equal segments from `from` to `to`, the joint pushed out along `bend`
+  const d = Math.hypot(to[0] - from[0], to[1] - from[1], to[2] - from[2]), half = Math.min(len, d / 2 + .001);
+  const out = Math.sqrt(Math.max(0, len * len - half * half));
+  return [(from[0] + to[0]) / 2 + bend[0] * out, (from[1] + to[1]) / 2 + bend[1] * out, (from[2] + to[2]) / 2 + bend[2] * out];
+}
+const ZPAL = { skin: [128, 174, 98], skinDark: [96, 138, 76], shirt: [118, 110, 118], shirt2: [146, 66, 60], pants: [64, 70, 96], shoe: [52, 46, 44], hair: [52, 46, 40] };
+const BPAL = { ...ZPAL, skin: [116, 162, 86], shirt: [156, 52, 46], shirt2: [118, 38, 36], pants: [52, 52, 64] };
+const HIT = { skin: [250, 250, 240], skinDark: [250, 250, 240], shirt: [250, 250, 240], shirt2: [250, 250, 240], pants: [250, 250, 240], shoe: [250, 250, 240], hair: [250, 250, 240] };
+function drawZombie(z) {
+  const pal = z.hit > 0 ? HIT : z.brute ? BPAL : ZPAL, k = z.scale;
+  let lean = .32, armR = 1.35, armL = 1.25, lunge = 0, fall = 0, base = 0, swingR = 0, swingL = 0;
+  const step = z.state === 'walk' ? Math.sin(z.walk) : 0;
+  if (z.state === 'walk') {
+    // a shamble: the left leg drags, the body rocks, the arms sway out in front
+    armR += Math.sin(z.walk) * .12; armL -= Math.sin(z.walk + .6) * .12; lean += Math.sin(z.walk * 2) * .03;
+  } else if (z.state === 'strike') {
+    // alternate claws: wind up high, rake down, lunge forward on the hit
+    const ph = z.atk / STRIKE_EVERY, right = z.swings % 2 === 0;
+    const up = ph < .55 ? ease(ph / .55) : ph < .68 ? 1 - (ph - .55) / .13 * 1.4 : -.4 + (ph - .68) / .32 * .4;
+    if (right) swingR = up; else swingL = up;
+    lunge = ph > .55 && ph < .85 ? Math.sin((ph - .55) / .3 * Math.PI) * .25 : 0;
+    lean = .22 + lunge * 1.6 - Math.max(0, up) * .12;
+  } else if (z.state === 'dying') {
+    const t = clamp(z.t / .5, 0, 1);
+    fall = -ease(t) * 1.45; // over on its back
+    base = z.t > 1.2 ? -(z.t - 1.2) * .6 : 0;
+    armR = 2.4; armL = 2.2;
+  }
+  const P = rig(z.x + Math.cos(z.yaw) * lunge * k, z.y + Math.sin(z.yaw) * lunge * k, z.yaw, k, base, fall);
+  // legs
+  const hipZ = .92 - Math.abs(step) * .03;
+  const footL = [step * .22, .13, .06], footR = [-step * .14 + .05, -.13, .06];
+  if (z.state === 'strike') { footL[0] = .2; footR[0] = -.14; }
+  for (const [foot, b] of [[footL, .12], [footR, -.12]]) {
+    const hip = [0, b, hipZ], knee = [(hip[0] + foot[0]) / 2 + .12, b, (hip[2] + foot[2]) / 2 + .02];
+    bone(P(...hip), P(...knee), .11, .09, pal.pants, k);
+    bone(P(...knee), P(...foot), .09, .07, pal.pants, k);
+    bone(P(...foot), P(foot[0] + .13, foot[1], .04), .07, .06, pal.shoe, k);
+  }
+  // torso, hunched; a ragged bloody band across the shirt
+  const neck = [Math.sin(lean) * .62, 0, hipZ + Math.cos(lean) * .62];
+  const mid = [neck[0] / 2, 0, (hipZ + neck[2]) / 2];
+  bone(P(0, 0, hipZ), P(...mid), .2, .21, pal.shirt, k);
+  bone(P(...mid), P(...neck), .21, .22, pal.shirt2, k);
+  // head, lolling to one side
+  const head = [neck[0] + Math.sin(lean + .5) * .17, .06, neck[2] + Math.cos(lean + .5) * .17];
+  bone(P(...neck), P(...head), .07, .07, pal.skinDark, k);
+  bone(P(...head), P(...head), .15, .15, pal.skin, k);
+  bone(P(head[0] - .05, head[1], head[2] + .06), P(head[0] - .05, head[1], head[2] + .06), .12, .12, pal.hair, k);
+  // arms
+  for (const [side, ang0, sw] of [[1, armL, swingL], [-1, armR, swingR]]) {
+    const sh = [neck[0] - .02, side * .22, neck[2] - .05];
+    const ang = ang0 + sw * 1.5, reach = .58;
+    const hand = [sh[0] + Math.sin(ang) * reach, sh[1] + side * .03, sh[2] - Math.cos(ang) * reach];
+    const elbow = elbowOf(sh, hand, .3, [0, side * .5, -.85]);
+    bone(P(...sh), P(...elbow), .075, .065, side > 0 ? pal.shirt : pal.skin, k);
+    bone(P(...elbow), P(...hand), .065, .055, pal.skin, k);
+    bone(P(...hand), P(hand[0] + Math.sin(ang) * .08, hand[1], hand[2] - Math.cos(ang) * .08), .055, .045, pal.skinDark, k);
+  }
+  z.eyes = [P(head[0] + .12, head[1] + .07, head[2] + .02), P(head[0] + .12, head[1] - .07, head[2] + .02)];
+  z.mouth = P(head[0] + .14, head[1], head[2] - .07);
+  const chest = project(...P(...mid));
+  z.sx = chest.sx; z.sy = chest.sy;
+}
+const EYE = rgb(255, 60, 40), MOUTH = rgb(60, 20, 24);
+function drawFace(z) {
+  if (z.state === 'dying' || !z.eyes) return;
+  const s = Math.max(1, Math.round(S / 26));
+  for (const [pos, c, n] of [[z.eyes[0], EYE, 1], [z.eyes[1], EYE, 1], [z.mouth, MOUTH, 2]]) {
+    const p = project(...pos), ix = Math.round(p.sx), iy = Math.round(p.sy);
+    for (let dy = 0; dy < s; dy++) for (let dx = 0; dx < s * n; dx++) {
+      const x = ix + dx - ((s * n) >> 1), y = iy + dy;
+      if (x < 0 || y < 0 || x >= W || y >= H) continue;
+      const i = y * W + x;
+      if (p.d > zb[i] - .08 * z.scale) pix[i] = c;
     }
   }
 }
 
-/* ---------- zombies ---------- */
-function spawn() {
-  const r = SPAWN_R - Math.random() * .5, side = Math.floor(Math.random() * 4), s = (Math.random() * 2 - 1) * r;
-  let [x, y] = [[r, s], [s, r], [-r, s], [s, -r]][side];
-  // pull the spot in towards the bunker until it is on visible ground with room around it
-  for (let k = 0; k < 60 && Math.max(Math.abs(x), Math.abs(y)) > FENCE_R + 1; k++) {
-    const p = project(x, y, 0), ix = p.sx | 0, iy = p.sy | 0;
-    if (ix > 14 && ix < W - 14 && iy > 46 && iy < H - 10 && ground[iy * W + ix]) break;
-    x *= .96; y *= .96;
+const SPAL = [
+  { shirt: [196, 166, 112], vest: [96, 112, 70], pants: [70, 82, 104], helmet: [92, 108, 64], skin: [222, 172, 134], shoe: [60, 52, 46] },
+  { shirt: [96, 132, 172], vest: [72, 76, 86], pants: [62, 66, 80], helmet: [70, 74, 66], skin: [196, 146, 110], shoe: [52, 46, 44] },
+  { shirt: [172, 92, 82], vest: [88, 96, 70], pants: [80, 72, 64], helmet: [92, 108, 64], skin: [236, 192, 152], shoe: [60, 52, 46] },
+  { shirt: [120, 150, 96], vest: [96, 86, 70], pants: [70, 82, 104], helmet: [120, 100, 70], skin: [168, 120, 92], shoe: [52, 46, 44] },
+  { shirt: [210, 196, 150], vest: [64, 80, 96], pants: [56, 56, 64], helmet: [72, 88, 104], skin: [222, 172, 134], shoe: [60, 52, 46] },
+  { shirt: [140, 110, 160], vest: [80, 92, 66], pants: [66, 70, 84], helmet: [92, 108, 64], skin: [204, 156, 120], shoe: [52, 46, 44] },
+];
+const GUN_DARK = [46, 44, 50], GUN_WOOD = [118, 82, 52];
+// a survivor with a rifle held in both hands along the way they face
+function drawShooter(sh) {
+  const pal = SPAL[sh.pal], k = .62;
+  const P = rig(sh.x, sh.y, sh.yaw, k, sh.z, 0);
+  let pitch = sh.recoil * .5, slide = -sh.recoil * .5, lean = .04 - sh.recoil * .3, leftHand = null, magInHand = false, magInGun = true;
+  if (sh.reload > 0) {
+    // tip the rifle up, drop the mag, reach to the pouch, seat a new one, pull the bolt
+    const t = 1 - sh.reload / sh.reloadLen;
+    pitch = t < .15 ? ease(t / .15) * .55 : t < .82 ? .55 : .55 * (1 - ease((t - .82) / .18));
+    magInGun = t < .14 || t > .7;
+    const pouch = [.05, .24, .85], well = [.3, -.02, 1.2];
+    if (t < .15) leftHand = null;
+    else if (t < .4) leftHand = ['lerp', ease((t - .15) / .25), 'guard', pouch];
+    else if (t < .7) leftHand = ['lerp', ease((t - .4) / .3), pouch, well];
+    else if (t < .82) leftHand = ['fixed', well];
+    else leftHand = ['lerp', ease((t - .82) / .18), [.15, -.12, 1.45], 'guard'];
+    magInHand = t > .38 && t < .7;
   }
-  const w = G.wave, brute = w >= 3 && Math.random() < .08;
-  const hp = zombieHp(w) * (brute ? 7 : 1) * (.9 + Math.random() * .2);
-  G.zombies.push({
-    x, y, n: Math.max(Math.abs(x), Math.abs(y)), hp, max: hp, brute,
-    speed: (.42 + Math.random() * .2 + Math.min(w, 40) * .005) * (brute ? .7 : 1),
-    dps: zombieDps(w) * (brute ? 3 : 1), reward: zombieReward(w) * (brute ? 6 : 1),
-    scale: brute ? .85 : .62 + Math.random() * .05, phase: Math.random() * 6.28,
-    state: 'rise', t: 0, hit: 0, sx: 0, sy: 0, atk: Math.random() * .5,
-  });
-  const soil = rampOf(DIRT);
-  spray(x, y, .1, 10, 1.2, 3.5, .6, [soil[1], soil[3], soil[2]]);
+  const hipZ = .95;
+  for (const b of [.13, -.13]) {
+    const foot = [b > 0 ? .12 : -.1, b * 1.2, .06], hip = [0, b, hipZ], knee = [foot[0] / 2 + .06, b * 1.1, .5];
+    bone(P(...hip), P(...knee), .12, .1, pal.pants, k);
+    bone(P(...knee), P(...foot), .1, .085, pal.pants, k);
+    bone(P(...foot), P(foot[0] + .14, foot[1], .04), .08, .07, pal.shoe, k);
+  }
+  const neck = [Math.sin(lean) * .6, 0, hipZ + Math.cos(lean) * .6];
+  bone(P(0, 0, hipZ), P(neck[0] * .5, 0, hipZ + .3), .19, .21, pal.shirt, k);
+  bone(P(neck[0] * .5, 0, hipZ + .3), P(...neck), .23, .22, pal.vest, k);
+  bone(P(-.22, 0, hipZ + .2), P(-.24, 0, hipZ + .52), .14, .15, [96, 86, 66], k); // backpack
+  const head = [neck[0] + .02, 0, neck[2] + .2];
+  bone(P(...neck), P(...head), .07, .07, pal.skin, k);
+  bone(P(...head), P(...head), .14, .14, pal.skin, k);
+  bone(P(head[0] - .02, 0, head[2] + .06), P(head[0] - .02, 0, head[2] + .06), .165, .165, pal.helmet, k);
+  bone(P(head[0] + .1, 0, head[2] + .02), P(head[0] + .17, 0, head[2] + .02), .045, .04, pal.helmet, k);
+  // the rifle: stock at the right shoulder, barrel along the facing direction
+  const cp = Math.cos(pitch), sp = Math.sin(pitch), gz = neck[2] - .12, gb = -.12;
+  const G0 = (a, c = 0) => [a * cp - c * sp + slide, gb, gz + a * sp + c * cp];
+  const stock = G0(-.12), grip = G0(.12, -.06), guard = G0(.42), muzzle = G0(.82), body0 = G0(.04), body1 = G0(.36);
+  bone(P(...stock), P(...body0), .055, .05, GUN_WOOD, k);
+  bone(P(...body0), P(...body1), .06, .06, GUN_DARK, k);
+  bone(P(...body1), P(...guard), .05, .05, GUN_WOOD, k);
+  bone(P(...guard), P(...muzzle), .025, .022, GUN_DARK, k);
+  if (magInGun) bone(P(...G0(.24, -.04)), P(...G0(.27, -.22)), .04, .035, GUN_DARK, k);
+  // arms reach the grip and the handguard
+  const shR = [neck[0], -.23, neck[2] - .05], shL = [neck[0], .23, neck[2] - .05];
+  let hl = guard;
+  if (leftHand) {
+    const pt = v => v === 'guard' ? guard : v;
+    hl = leftHand[0] === 'fixed' ? pt(leftHand[1]) : pt(leftHand[2]).map((v, i) => lerp(v, pt(leftHand[3])[i], leftHand[1]));
+  }
+  for (const [shp, hand, side] of [[shR, grip, -1], [shL, hl, 1]]) {
+    const elbow = elbowOf(shp, hand, .3, [-.3, side * .6, -.75]);
+    bone(P(...shp), P(...elbow), .08, .07, pal.shirt, k);
+    bone(P(...elbow), P(...hand), .07, .06, pal.skin, k);
+  }
+  if (magInHand) bone(P(hl[0], hl[1], hl[2] + .05), P(hl[0] + .03, hl[1], hl[2] - .14), .04, .035, GUN_DARK, k);
+  sh.muzzle = P(...muzzle);
+  sh.magPos = P(...G0(.26, -.2));
+  if (sh.flash > 0) {
+    const m = P(...G0(.93));
+    sphere(m[0], m[1], m[2], .13 * k * (1 + Math.random() * .4), [255, 226, 130], 'gloss');
+  }
 }
-const fenceUp = () => G.lv.wall > 0 && !G.fenceDown;
+/* workers with their own motions: hoeing, running the drill, chopping */
+function drawWorker(w, t) {
+  const pal = SPAL[w.pal], k = .58, P = rig(w.x, w.y, w.yaw, k, 0, 0);
+  const swing = Math.sin(t * 3.2 + w.phase);
+  let lean = .15, tool = null, hands, hat = [150, 120, 80];
+  if (w.job === '농부') {
+    // hoeing: lift, bring the blade down into the row
+    lean = .3 + Math.max(0, -swing) * .15;
+    hands = [[.28, -.08, 1.05 + swing * .2], [.42, .1, .9 + swing * .18]];
+    tool = [[.1, -.02, 1.3 + swing * .3], [.75 + swing * .1, 0, .05 + Math.max(0, swing) * .4]];
+  } else if (w.job === '광부') {
+    // working the drill's levers
+    const b = Math.sin(t * 9 + w.phase) * .04; lean = .2; hat = [232, 196, 60];
+    hands = [[.4, -.12, 1.0 + b], [.4, .12, 1.0 - b]];
+  } else {
+    // axe up over the shoulder, then down on the stump
+    const up = swing > 0 ? swing : swing * .15; lean = .1 + (1 - up) * .3;
+    hands = [[.2 + (1 - up) * .25, -.05, 1.1 + up * .75], [.18 + (1 - up) * .25, .06, 1.0 + up * .75]];
+    const tip = [hands[0][0] + .15 + (1 - up) * .45, 0, hands[0][2] + .55 * up - (1 - up) * .5];
+    tool = [hands[0], tip];
+  }
+  const hipZ = .92;
+  for (const b of [.13, -.13]) {
+    const foot = [b > 0 ? .15 : -.1, b * 1.3, .06], hip = [0, b, hipZ], knee = [foot[0] / 2 + .08, b * 1.1, .48];
+    bone(P(...hip), P(...knee), .12, .1, pal.pants, k); bone(P(...knee), P(...foot), .1, .085, pal.pants, k);
+    bone(P(...foot), P(foot[0] + .14, foot[1], .04), .08, .07, pal.shoe, k);
+  }
+  const neck = [Math.sin(lean) * .6, 0, hipZ + Math.cos(lean) * .6];
+  bone(P(0, 0, hipZ), P(...neck), .2, .22, pal.shirt, k);
+  const head = [neck[0] + .04, 0, neck[2] + .2];
+  bone(P(...head), P(...head), .14, .14, pal.skin, k);
+  bone(P(head[0] - .03, 0, head[2] + .07), P(head[0] - .03, 0, head[2] + .07), .15, .15, hat, k);
+  for (const [i, side] of [[0, -1], [1, 1]]) {
+    const sh = [neck[0], side * .23, neck[2] - .05], hand = hands[i], elbow = elbowOf(sh, hand, .3, [-.3, side * .6, -.75]);
+    bone(P(...sh), P(...elbow), .08, .07, pal.shirt, k); bone(P(...elbow), P(...hand), .07, .06, pal.skin, k);
+  }
+  if (tool) {
+    bone(P(...tool[0]), P(...tool[1]), .03, .03, [124, 92, 60], k);
+    bone(P(...tool[1]), P(tool[1][0] + .06, .05, tool[1][2] - .08), .06, .045, [96, 98, 108], k);
+  }
+}
+/* the drill bit spins, sparks fly, the engine smokes */
+function drawDrillMotion(t) {
+  if (!G.build.drill) return;
+  const { x, y } = DRILL, spin = t * 14, depth = Math.sin(t * 2) * .08, ramp = rampOf(METAL);
+  for (let z = .05; z < 1.9; z += STEP) {
+    const band = Math.floor(z * 8 + spin) % 2, r = .08 + (z < .4 ? (.4 - z) * .1 : 0);
+    for (let a = -r; a <= r; a += STEP) plot(x + a * .7, y + a * .7, z + depth, ramp[band ? 3 : 1]);
+  }
+  sphere(x, y, 1.95 + depth, .12, [196, 150, 64], 'solid');
+}
+
+/* ================= shooters and workers ================= */
+function shooterSpots() {
+  const s = stage(), h = s.half * .62;
+  return [[0, 0], [h, -h], [-h, h], [h, h], [-h, -h], [0, -h]].map(([x, y]) => [x, y, s.roof]);
+}
+function syncShooters() {
+  // the hero plus one gunner per survivor on the 사수 job
+  const spots = shooterSpots(), want = [{ hero: true, pal: 0 }];
+  G.crew.forEach((c, i) => { if (c && c.job === '사수') want.push({ hero: false, pal: i + 1 }); });
+  G.shooters = want.map((w, i) => {
+    const old = G.shooters.find(s => s.pal === w.pal);
+    const [x, y, z] = spots[i];
+    return Object.assign(old || { yaw: Math.PI / 4, cool: 0, ammo: gunStat('mag'), reload: 0, reloadLen: 1, recoil: 0, flash: 0, magOut: false, magIn: false }, { ...w, x, y, z });
+  });
+}
+function syncWorkers() {
+  const spots = { 농부: [3.8, FARM.y1 + .35, -Math.PI / 2], 광부: [DRILL.x - .55, DRILL.y + .8, -Math.PI / 2 - .4], 벌목꾼: [SAW.x + .05, SAW.y + .1, 0] };
+  const count = {};
+  G.workers = [];
+  G.crew.forEach((c, i) => {
+    if (!c || c.job === '사수') return;
+    const n = count[c.job] = (count[c.job] || 0) + 1, [x, y, yaw] = spots[c.job];
+    G.workers.push({ job: c.job, pal: i + 1, x: x + (n - 1) * .5, y: y + (n - 1) * .6, yaw, phase: i * 1.7 });
+  });
+}
+const damageOf = s => gunStat('atk') * (s.hero ? 1 : .6);
+const rateOfFire = s => gunStat('spd') * (s.hero ? 1 : .7);
+function startReload(s) { s.reloadLen = reloadTime() * (s.hero ? 1 : 1.2); s.reload = s.reloadLen; s.magOut = false; s.magIn = false; }
+function fire(s, z) {
+  if (s.reload > 0 || s.ammo <= 0 || !s.muzzle) return false;
+  s.ammo--;
+  s.recoil = .12; s.flash = .05;
+  const fx = Math.cos(s.yaw), fy = Math.sin(s.yaw);
+  part(s.muzzle[0] - fx * .4, s.muzzle[1] - fy * .4, s.muzzle[2], -fy * 1.5 + (Math.random() - .5) * .5, fx * 1.5 + (Math.random() - .5) * .5, 2.2 + Math.random(), 1.4, rgb(232, 184, 74), rgb(150, 104, 40));
+  G.tracers.push({ a: s.muzzle.slice(), b: [z.x, z.y, .95 * z.scale], life: .06 });
+  sound('shot');
+  hurt(z, damageOf(s));
+  if (s.ammo === 0) startReload(s);
+  return true;
+}
+function hurt(z, dmg) {
+  z.hp -= dmg; z.hit = .08;
+  const d = Math.hypot(z.x, z.y) || 1;
+  z.x += z.x / d * .05; z.y += z.y / d * .05; // knocked back a touch
+  float(z.x, z.y, 2 * z.scale, Math.round(dmg) + '', '#ffffff');
+  spray(z.x, z.y, z.scale, 3, 1.2, 1.5, .4, [rgb(110, 40, 40), rgb(80, 120, 60)]);
+  if (z.hp <= 0) kill(z);
+}
+function updateShooter(s, dt) {
+  s.recoil = Math.max(0, s.recoil - dt * .8); s.flash = Math.max(0, s.flash - dt);
+  if (s.reload > 0) {
+    s.reload -= dt;
+    const t = 1 - s.reload / s.reloadLen;
+    if (!s.magOut && t > .14) {
+      s.magOut = true;
+      if (s.magPos) part(s.magPos[0], s.magPos[1], s.magPos[2], Math.cos(s.yaw) * .3, Math.sin(s.yaw) * .3, .4, 2.5, rgb(52, 50, 58), rgb(30, 28, 34), 2, 3);
+      if (s.hero) sound('magout');
+    }
+    if (!s.magIn && t > .7) { s.magIn = true; if (s.hero) sound('magin'); }
+    if (s.reload <= 0) { s.reload = 0; s.ammo = gunStat('mag'); if (s.hero) sound('rack'); }
+    return;
+  }
+  if (!s.hero && G.hungry) return;
+  // turn toward the nearest zombie; only fire once the rifle is on it
+  let best = null;
+  for (const z of G.zombies) if (z.state !== 'dying' && z.onScreen && (!best || z.n < best.n)) best = z;
+  if (!best) { if (s.ammo < gunStat('mag') * .5) startReload(s); s.cool = Math.max(0, s.cool - dt); return; }
+  const want = Math.atan2(best.y - s.y, best.x - s.x);
+  let d = Math.atan2(Math.sin(want - s.yaw), Math.cos(want - s.yaw));
+  s.yaw += clamp(d, -7 * dt, 7 * dt);
+  d = Math.atan2(Math.sin(want - s.yaw), Math.cos(want - s.yaw));
+  s.cool -= dt;
+  if (s.cool <= 0 && Math.abs(d) < .08 && fire(s, best)) s.cool = 1 / rateOfFire(s);
+  if (s.cool < 0) s.cool = 0;
+}
+
+/* ================= zombies ================= */
+function spawn() {
+  // from just beyond the edge of the screen
+  const side = Math.floor(Math.random() * 4), m = S * 1.2, t = Math.random();
+  const [sx, sy] = [[t * W, -m * .2], [W + m, t * H], [t * W, H + m * 2], [-m, t * H]][side];
+  const g = unproject(sx, sy), w = G.wave, brute = w >= 4 && Math.random() < .07;
+  const hp = zombieHp(w) * (brute ? 6 : 1);
+  G.zombies.push({
+    x: g.x, y: g.y, n: Math.max(Math.abs(g.x), Math.abs(g.y)), yaw: Math.atan2(-g.y, -g.x), hp, max: hp, brute,
+    speed: (.5 + Math.random() * .15) * (brute ? .7 : 1), hitPower: zombieHit(w) * (brute ? 4 : 1), reward: zombieReward(w) * (brute ? 5 : 1),
+    scale: brute ? .8 : .6 + Math.random() * .04, walk: Math.random() * 6, state: 'walk', t: 0, hit: 0, atk: 0, swings: 0, sx: 0, sy: 0, onScreen: false,
+  });
+}
+const fenceUp = () => G.fence > 0 && !G.fenceDown;
+const sideOf = (x, y) => Math.abs(x) >= Math.abs(y) ? (x > 0 ? 1 : 3) : (y > 0 ? 0 : 2);
 function updateZombies(dt) {
   for (const z of G.zombies) {
     z.hit = Math.max(0, z.hit - dt);
-    if (z.state === 'dying') { z.t += dt; continue; }
-    if (z.state === 'rise') { if ((z.t += dt) >= RISE) z.state = 'walk'; continue; }
+    z.t += dt;
+    if (z.state === 'dying') continue;
+    const p = project(z.x, z.y, .5);
+    z.onScreen = p.sx > 4 && p.sx < W - 4 && p.sy > 4 && p.sy < H - 4;
     const atFence = fenceUp() && z.n >= FENCE_R - .2;
-    const stopAt = atFence ? FENCE_R + .45 : STOP_BUNKER;
+    const stopAt = atFence ? FENCE_R + .55 : stage().half + (G.stage ? .75 : .55);
     if (z.n > stopAt) {
       const d = Math.hypot(z.x, z.y) || 1;
-      z.x -= z.x / d * z.speed * dt;
-      z.y -= z.y / d * z.speed * dt;
+      const pace = z.speed * (1 + Math.max(0, z.n - 9) * .25); // far off it hurries in, then slows to a shamble
+      z.x -= z.x / d * pace * dt; z.y -= z.y / d * pace * dt;
       z.n = Math.max(Math.abs(z.x), Math.abs(z.y));
+      z.walk += dt * pace * 7;
+      z.yaw = Math.atan2(-z.y, -z.x);
       z.state = 'walk';
     } else {
-      if (z.state === 'walk') z.atk = 0;
-      z.state = atFence ? 'fence' : 'bunker';
-      // wind up, then strike: damage lands on the downswing, with splinters or concrete dust
-      const every = ATTACK_EVERY * (z.brute ? 1.3 : 1), before = z.atk / every;
+      if (z.state !== 'strike') { z.state = 'strike'; z.atk = 0; }
+      const before = z.atk / STRIKE_EVERY;
       z.atk += dt;
-      if (before < STRIKE_AT && z.atk / every >= STRIKE_AT) strike(z, z.dps * every, atFence);
-      if (z.atk >= every) z.atk -= every;
+      if (before < .62 && z.atk / STRIKE_EVERY >= .62) strike(z, atFence);
+      if (z.atk >= STRIKE_EVERY) { z.atk -= STRIKE_EVERY; z.swings++; }
     }
-    z.t += dt;
   }
-  G.zombies = G.zombies.filter(z => z.state !== 'dying' || z.t < .55);
+  G.zombies = G.zombies.filter(z => z.state !== 'dying' || z.t < 2.4);
 }
-const sideOf = (x, y) => Math.abs(x) >= Math.abs(y) ? (x > 0 ? 1 : 3) : (y > 0 ? 0 : 2);
-function strike(z, amount, atFence) {
-  const fx = -Math.sign(z.x) * (Math.abs(z.x) >= Math.abs(z.y)), fy = -Math.sign(z.y) * (Math.abs(z.y) > Math.abs(z.x));
+const fenceMat = () => rampOf(G.fence >= 5 ? (G.fence === 6 ? CONCRETE : METAL) : WOOD);
+function strike(z, atFence) {
+  const amount = z.hitPower;
   if (atFence) {
-    const R = FENCE_R, side = sideOf(z.x, z.y);
+    const side = sideOf(z.x, z.y), R = FENCE_R;
     const hx = side === 1 ? R : side === 3 ? -R : z.x, hy = side === 0 ? R : side === 2 ? -R : z.y;
-    const wood = rampOf(G.lv.wall >= 8 ? METAL : WOOD);
-    for (let k = 0; k < (z.brute ? 9 : 5); k++) {
-      part(hx, hy, .4 + Math.random() * .5, fx * (1 + Math.random() * 2) + (Math.random() - .5) * 2, fy * (1 + Math.random() * 2) + (Math.random() - .5) * 2, 2 + Math.random() * 3, .9, wood[2 + (k % 2)], wood[0], k % 3 ? 1 : 2, 1);
-    }
+    const mat = fenceMat(), ox = side === 1 ? -1 : side === 3 ? 1 : 0, oy = side === 0 ? -1 : side === 2 ? 1 : 0;
+    for (let k = 0; k < (z.brute ? 10 : 5); k++) part(hx, hy, .4 + Math.random() * .5, ox * (1 + Math.random() * 2) + (Math.random() - .5) * 2, oy * (1 + Math.random() * 2) + (Math.random() - .5) * 2, 2 + Math.random() * 3, .9, mat[2 + (k % 2)], mat[0], k % 3 ? 1 : 2, 1);
     G.sideDmg[side] += amount;
-    G.fenceShake = .15; G.shakeSide = side;
-    sound(z.brute ? 'crack' : 'thud');
-    damageFence(amount);
+    sound(G.fence >= 4 ? 'clang' : 'thud');
+    G.fenceHp -= amount;
+    if (G.fenceHp <= 0) breakFence(); else fenceStages();
   } else {
-    const dust = rampOf(CONCRETE);
-    const hx = z.x * .86, hy = z.y * .86;
-    spray(hx, hy, .7, z.brute ? 10 : 5, 1.4, 2.5, .7, [dust[3], dust[4], dust[2]]);
+    const dust = rampOf(G.stage ? CONCRETE : BAG);
+    spray(z.x * .85, z.y * .85, .7, z.brute ? 10 : 5, 1.4, 2.5, .7, [dust[3], dust[4], dust[2]]);
     G.hp -= amount; G.hurt = .3;
     sound('thud');
   }
 }
-function damageFence(amount) {
-  G.fenceHp -= amount;
-  if (G.fenceHp > 0) { fenceStages(); return; }
-  G.fenceHp = 0;
-  G.fenceDown = true;
-  // the whole fence goes over: planks flying off every side
-  const R = FENCE_R, wood = rampOf(G.lv.wall >= 8 ? METAL : WOOD);
-  for (let k = 0; k < 70; k++) {
-    const side = k % 4, s = (Math.random() * 2 - 1) * R;
-    const [x, y] = [[s, R], [R, s], [s, -R], [-R, s]][side];
-    part(x, y, .3 + Math.random() * .7, (Math.random() - .5) * 3, (Math.random() - .5) * 3, 2 + Math.random() * 4, 1.6 + Math.random(), wood[1 + (k % 3)], wood[0], 2 + (k % 2), 1);
+function breakFence() {
+  G.fenceHp = 0; G.fenceDown = true;
+  const mat = fenceMat();
+  for (let k = 0; k < 90; k++) {
+    const [x, y] = SIDE_AT(k % 4, (Math.random() * 2 - 1) * FENCE_R);
+    part(x, y, .3 + Math.random() * .7, (Math.random() - .5) * 3, (Math.random() - .5) * 3, 2 + Math.random() * 4, 1.6 + Math.random(), mat[1 + (k % 3)], mat[0], 2 + (k % 2), 1);
   }
   G.sideDmg = [0, 0, 0, 0]; G.sideStage = [0, 0, 0, 0];
   bake();
   say('울타리가 무너졌다!', true);
   sound('crash');
 }
-// each side shows its own wear: rails fall out and posts snap as that side takes hits
 function fenceStages() {
-  const max = stat('wall') || 1;
+  const max = FENCES[G.fence].hp || 1;
   let changed = false;
   for (let k = 0; k < 4; k++) {
-    const st = clamp(Math.floor(G.sideDmg[k] / (max * .22)), 0, 3);
+    const st = clamp(Math.floor(G.sideDmg[k] / (max * .2)), 0, 3);
     if (st !== G.sideStage[k]) { G.sideStage[k] = st; changed = true; }
   }
   if (changed) bake();
 }
-function pickTarget() {
-  let best = null;
-  for (const z of G.zombies) if (z.state !== 'dying' && z.n < FIELD - .3 && (!best || z.n < best.n)) best = z;
-  return best;
-}
-function shoot(z) {
-  if (G.reload > 0 || G.ammo <= 0) return false;
-  G.ammo--;
-  // brass flips out of the right side of the gun and rattles across the roof
-  const fx = Math.cos(G.yaw), fy = Math.sin(G.yaw), brass = rgb(232, 184, 74);
-  part(G.gunTip[0] - fx * .35, G.gunTip[1] - fy * .35, G.gunTip[2], -fy * 1.6 + (Math.random() - .5) * .6, fx * 1.6 + (Math.random() - .5) * .6, 2.2 + Math.random(), 1.4, brass, rgb(150, 104, 40));
-  if (G.ammo === 0) startReload();
-  z.hp -= stat('atk');
-  z.hit = .08;
-  G.muzzle = .06;
-  G.tracers.push({ a: G.gunTip.slice(), b: [z.x, z.y, 1.05 * z.scale], life: .07 });
-  sound('shot');
-  if (z.hp <= 0) kill(z);
-  return true;
-}
-function startReload() {
-  G.reloadLen = reloadTime();
-  G.reload = G.reloadLen;
-  G.magOut = false; G.magIn = false;
-}
-function updateReload(dt) {
-  if (G.reload <= 0) return;
-  G.reload -= dt;
-  const t = 1 - G.reload / G.reloadLen;
-  if (!G.magOut && t > .14) {
-    // the empty magazine drops out of the gun
-    G.magOut = true;
-    const m = G.gunTip, fx = Math.cos(G.yaw), fy = Math.sin(G.yaw);
-    part(m[0] - fx * .25, m[1] - fy * .25, m[2] - .1, fx * .3, fy * .3, .5, 2.5, rgb(52, 50, 58), rgb(30, 28, 34), 2, 2);
-    sound('magout');
-  }
-  if (!G.magIn && t > .72) { G.magIn = true; sound('magin'); }
-  if (G.reload <= 0) { G.reload = 0; G.ammo = magSize(); sound('rack'); }
-}
 function kill(z) {
   z.state = 'dying'; z.t = 0;
-  const gain = z.reward * stat('gold');
-  G.money += gain;
+  G.money += z.reward;
   G.totalKills++;
+  float(z.x, z.y, 2.5 * z.scale, '+$' + fmt(z.reward), '#ffd84a');
   sound('kill');
-  for (let k = 0; k < (z.brute ? 8 : 3); k++) {
-    part(z.x, z.y, 1, (Math.random() - .5) * 2, (Math.random() - .5) * 2, 3 + Math.random() * 2, .8, rgb(255, 214, 10), rgb(186, 132, 20), 2, 1);
-  }
+  for (let k = 0; k < (z.brute ? 8 : 3); k++) part(z.x, z.y, 1, (Math.random() - .5) * 2, (Math.random() - .5) * 2, 3 + Math.random() * 2, .8, rgb(255, 214, 10), rgb(186, 132, 20), 2, 1);
   const pts = [];
-  for (let k = 0; k < (z.brute ? 40 : 18); k++) {
-    const a = Math.random() * 6.28, d = Math.sqrt(Math.random()) * .55 * z.scale;
-    const p = project(z.x + Math.cos(a) * d, z.y + Math.sin(a) * d, 0), ix = p.sx | 0, iy = p.sy | 0;
-    if (ix >= 0 && iy >= 0 && ix < W && iy < H) pts.push(iy * W + ix);
+  for (let k = 0; k < (z.brute ? 60 : 30); k++) {
+    const a = Math.random() * 6.28, d = Math.sqrt(Math.random()) * .5;
+    const p = project(z.x - Math.cos(z.yaw) * .6 * z.scale + Math.cos(a) * d, z.y - Math.sin(z.yaw) * .6 * z.scale + Math.sin(a) * d, 0), ix = p.sx | 0, iy = p.sy | 0;
+    for (let q = 0; q < px(1); q++) if (ix + q >= 0 && iy >= 0 && ix + q < W && iy < H) pts.push(iy * W + ix + q);
   }
-  G.decals.push({ pts, color: Math.random() < .5 ? rgb(70, 92, 50) : rgb(96, 46, 44), life: 10 });
+  G.decals.push({ pts, color: Math.random() < .5 ? rgb(70, 92, 50) : rgb(100, 44, 42), life: 12 });
   if (G.decals.length > 40) G.decals.shift();
   if (++G.waveKills >= killsNeeded(G.wave)) {
-    G.wave++;
-    G.waveKills = 0;
-    say('웨이브 ' + G.wave + ' — 좀비가 더 단단해진다');
+    G.wave++; G.waveKills = 0; G.banner = 2;
+    say('웨이브 ' + G.wave + ' · 좀비 체력 ' + fmt(zombieHp(G.wave)));
   }
 }
 function fall() {
   const back = Math.max(1, G.wave - 2);
   say('벙커가 뚫렸다… 웨이브 ' + G.wave + ' → ' + back, true);
   sound('crash');
-  G.wave = back;
-  G.waveKills = 0;
-  G.zombies = [];
-  G.hp = stat('food');
-  G.sideDmg = [0, 0, 0, 0]; G.sideStage = [0, 0, 0, 0];
-  if (G.lv.wall) { G.fenceHp = stat('wall'); G.fenceDown = false; bake(); }
+  G.wave = back; G.waveKills = 0; G.zombies = [];
+  G.hp = stage().hp;
+  if (G.fence) { G.fenceHp = FENCES[G.fence].hp; G.fenceDown = false; G.sideDmg = [0, 0, 0, 0]; G.sideStage = [0, 0, 0, 0]; bake(); }
   G.spawnIn = 3;
 }
 
-/* ---------- loop ---------- */
+/* ================= loop ================= */
 function say(text, alert) {
-  G.status = text; G.statusT = 4;
+  G.statusT = 4;
   nodes.status.textContent = text;
   nodes.status.classList.toggle('alert', !!alert);
 }
 function update(dt) {
   G.time += dt;
-  G.money += stat('res') * dt;
-  // bunker heals from the food store, the fence patches itself
-  G.hp = Math.min(stat('food'), G.hp + regenOf(G.lv.food) * dt);
-  if (G.lv.wall) {
-    const max = stat('wall');
-    const heal = Math.min(max - G.fenceHp, max * .025 * dt);
+  // production, then mouths to feed
+  for (const r of ['food', 'mineral', 'wood']) G[r] += rateOf(r) * dt;
+  G.food -= hired().length * UPKEEP * dt;
+  const wasHungry = G.hungry;
+  G.hungry = G.food <= 0 && hired().length > 0;
+  if (G.food < 0) G.food = 0;
+  if (G.hungry && !wasHungry) say('식량이 바닥났다 · 고용한 사람들이 일을 멈춘다', true);
+  G.hp = Math.min(stage().hp, G.hp + stage().hp * .015 * dt);
+  if (G.fence) {
+    const max = FENCES[G.fence].hp, heal = Math.min(max - G.fenceHp, max * .02 * dt);
     G.fenceHp += heal;
     for (let k = 0; k < 4; k++) G.sideDmg[k] = Math.max(0, G.sideDmg[k] - heal / 2);
     if (G.fenceDown && G.fenceHp >= max * .4) { G.fenceDown = false; G.sideDmg = [0, 0, 0, 0]; G.sideStage = [0, 0, 0, 0]; bake(); say('울타리를 다시 세웠다'); sound('hammer'); }
-    else if (!G.fenceDown && G.lv.wall) fenceStages();
+    else if (!G.fenceDown) fenceStages();
   }
   if ((G.spawnIn -= dt) <= 0) {
     if (G.zombies.length < MAX_ZOMBIES) spawn();
@@ -502,285 +962,341 @@ function update(dt) {
   }
   updateZombies(dt);
   if (G.hp <= 0) fall();
-  const target = pickTarget();
-  if (target) {
-    const want = Math.atan2(target.y, target.x);
-    let d = want - G.yaw;
-    d = Math.atan2(Math.sin(d), Math.cos(d));
-    G.yaw += d * Math.min(1, dt * 18);
-    G.cool -= dt;
-    while (G.cool <= 0 && target.state !== 'dying' && shoot(target)) G.cool += 1 / stat('spd');
-    if (G.cool < 0) G.cool = 0;
-  } else {
-    G.cool = Math.max(0, G.cool - dt);
-    // nothing to shoot at: top up a half-empty magazine
-    if (G.reload <= 0 && G.ammo < magSize() * .5) startReload();
+  for (const s of G.shooters) updateShooter(s, dt);
+  if (!G.hungry) {
+    if (G.build.drill && Math.random() < dt * 8) part(DRILL.x, DRILL.y, .1, (Math.random() - .5) * 2, (Math.random() - .5) * 2, 2, .4, rgb(255, 200, 90), null);
+    if (G.build.drill && Math.random() < dt * 2) part(DRILL.x + 1.05, DRILL.y - .1, .8, 0, 0, .8, 1.2, rgb(110, 108, 112), null, 2, 2);
+    for (const w of G.workers) {
+      const c = Math.sin(G.time * 3.2 + w.phase), prev = Math.sin((G.time - dt) * 3.2 + w.phase);
+      if (w.job === '벌목꾼' && prev > -.9 && c <= -.9) { spray(w.x + .55, w.y - .1, .45, 5, 1.2, 2.5, .6, [rgb(214, 176, 120), rgb(150, 106, 66)]); sound('chop'); }
+      if (w.job === '농부' && prev > .9 && c <= .9) spray(w.x - .45, w.y, .05, 4, .8, 2, .5, [rampOf(TILLED)[2], rampOf(TILLED)[3]]);
+    }
   }
-  updateReload(dt);
-  G.fenceShake = Math.max(0, (G.fenceShake || 0) - dt);
-  G.muzzle = Math.max(0, G.muzzle - dt);
   G.hurt = Math.max(0, G.hurt - dt);
+  G.banner = Math.max(0, G.banner - dt);
   for (const t of G.tracers) t.life -= dt;
   G.tracers = G.tracers.filter(t => t.life > 0);
   updateParts(dt);
   for (const d of G.decals) d.life -= dt;
   G.decals = G.decals.filter(d => d.life > 0);
-  if (G.statusT > 0 && (G.statusT -= dt) <= 0) { nodes.status.textContent = ''; G.status = ''; }
+  if (G.statusT > 0 && (G.statusT -= dt) <= 0) nodes.status.textContent = '';
   if ((G.saveIn -= dt) <= 0) { save(); G.saveIn = 5; }
+  if (storeOf() !== storeLevel) bake();
 }
 
-/* ---------- draw ---------- */
-function drawZombie(z) {
-  const palette = z.hit > 0 ? FLASH : z.brute ? BRUTE : ZOMBIE;
-  const yaw = Math.atan2(-z.y, -z.x), t = G.time * 2.6 * z.speed + z.phase;
-  const pose = { scale: z.scale, lean: .22, stance: .06 + Math.abs(Math.sin(t)) * .16, armR: 1.35 + Math.sin(t) * .12, armL: 1.3 - Math.sin(t) * .12 };
-  if (z.state === 'fence' || z.state === 'bunker') {
-    // arms go up over the head, then come crashing down on the strike
-    const k = z.atk / (ATTACK_EVERY * (z.brute ? 1.3 : 1));
-    const raise = k < STRIKE_AT - .08 ? ease(k / (STRIKE_AT - .08)) : k < STRIKE_AT ? 1 - (k - STRIKE_AT + .08) / .08 : Math.max(0, -.15 + (k - STRIKE_AT) * .2);
-    pose.armR = 1.1 + raise * 1.9; pose.armL = 1.05 + raise * 1.85;
-    pose.lean = .1 + (1 - raise) * .4 - (k > STRIKE_AT && k < STRIKE_AT + .12 ? -.12 : 0); pose.stance = .18;
-  }
-  if (z.state === 'rise') {
-    // clawing up out of the ground: the ground hides whatever is still below it
-    const k = ease(clamp(z.t / RISE, 0, 1));
-    pose.z = -(1 - k) * 2.3 * z.scale; pose.armR = 2.7 - k * 1.3; pose.armL = 2.5 - k * 1.2; pose.lean = .5 - k * .28;
-  }
-  if (z.state === 'dying') {
-    const k = z.t / .55;
-    pose.z = -k * 2.2 * z.scale; pose.lean = .22 - k * .9; pose.armR = 2.6; pose.armL = 2.4;
-  }
-  figure(z.x, z.y, yaw, pose, palette, dynamicAdd);
-  z.pose = { yaw, lean: pose.lean, base: pose.z || 0 };
-  const chest = project(z.x, z.y, 1.05 * z.scale);
-  z.sx = chest.sx; z.sy = chest.sy;
-}
-function drawSurvivor() {
-  const fx = Math.cos(G.yaw), fy = Math.sin(G.yaw);
-  let armR = 1.55, armL = 1.45, lean = .08, kick = 0, magHand = false;
-  if (G.reload > 0) {
-    // reload: tip the gun up, drop the mag, reach to the belt, slap a new one in, rack it
-    const t = 1 - G.reload / G.reloadLen;
-    armR = t < .15 ? lerp(1.55, 2.15, ease(t / .15)) : t < .82 ? 2.15 : lerp(2.15, 1.55, ease((t - .82) / .18));
-    if (t < .15) armL = lerp(1.45, 1.9, t / .15);
-    else if (t < .42) armL = lerp(1.9, .05, ease((t - .15) / .27));
-    else if (t < .68) armL = lerp(.05, 2.0, ease((t - .42) / .26));
-    else if (t < .76) armL = 2.0 + (t - .68) * 4;
-    else armL = lerp(2.3, 1.45, ease((t - .76) / .24));
-    magHand = t > .38 && t < .74;
-    lean = -.04;
-    if (t > .86 && t < .94) kick = -.05; // the rack
-  } else if (G.muzzle > 0) { armR = 1.72; kick = -.07; }
-  const k = .58, base = ROOF_Z, px = fx * kick, py = fy * kick;
-  const hand = figure(px, py, G.yaw, { z: base, scale: k, armR, armL, stance: .12, lean }, SURVIVOR, dynamicAdd);
-  // the gun follows the right forearm's pitch
-  const pitch = armR + .18 - Math.PI / 2, gx = fx * Math.cos(pitch), gy = fy * Math.cos(pitch), gz = Math.sin(pitch);
-  const tip = [hand[0] + gx * .42, hand[1] + gy * .42, hand[2] + gz * .42 + .02];
-  capsule([hand[0] - gx * .18, hand[1] - gy * .18, hand[2] - gz * .18 - .02], tip, .06, .045, () => DARK, 'solid');
-  if (G.reload <= 0 || !G.magOut || G.magIn) capsule([hand[0] + gx * .05, hand[1] + gy * .05, hand[2] - .04], [hand[0] + gx * .05, hand[1] + gy * .05, hand[2] - .2], .04, .035, () => [52, 50, 58], 'solid');
-  if (magHand) {
-    // the fresh magazine in the left hand (same arm maths as figure())
-    const shA = Math.sin(lean) * .95, shZ = 1.28 + Math.cos(lean) * .95;
-    const a = shA + Math.sin(armL + .2) * .9, c = shZ - .03 - Math.cos(armL + .2) * .9;
-    const hx = px + (fx * a + fy * .43) * k, hy = py + (fy * a - fx * .43) * k, hz = c * k + base;
-    capsule([hx, hy, hz + .02], [hx, hy, hz - .16], .045, .04, () => [60, 58, 66], 'solid');
-  }
-  G.gunTip = tip;
-  if (G.muzzle > 0) sphere(tip[0] + gx * .1, tip[1] + gy * .1, tip[2], .12, [255, 220, 120], 'gloss');
-}
-// rounds left in the magazine above the survivor's head, or a reload bar
-function drawAmmo() {
-  const p = project(0, 0, ROOF_Z + 2.4), mag = magSize(), cx = Math.round(p.sx), top = Math.round(p.sy);
-  const put = (ix, iy, c) => { if (ix >= 0 && iy >= 0 && ix < W && iy < H) pix[iy * W + ix] = c; };
-  if (G.reload > 0) {
-    const w = 20, left = cx - w / 2, fill = Math.round(w * (1 - G.reload / G.reloadLen));
-    for (let x = -1; x <= w; x++) for (let y = -1; y <= 2; y++) put(left + x, top + y, x < 0 || x >= w || y < 0 || y > 1 ? INK : x < fill ? SIGNAL : rgb(70, 66, 64));
-    return;
-  }
-  const shown = Math.min(mag, 16), step = 2, left = cx - Math.round(shown * step / 2);
-  for (let k = 0; k < shown; k++) {
-    const full = k < Math.ceil(G.ammo * shown / mag);
-    for (let y = -1; y <= 3; y++) put(left + k * step, top + y, y < 0 || y > 2 ? PAPER : full ? (y === 0 ? rgb(232, 184, 74) : SIGNAL) : rgb(150, 146, 140));
-    for (let y = -1; y <= 3; y++) put(left + k * step + 1, top + y, PAPER);
-  }
-}
-// glowing eyes on the zombies' faces, so they never read as the survivor
-const EYE = rgb(255, 70, 50);
-function drawEyes(z) {
-  if (z.state === 'dying' || z.pose == null) return;
-  const { yaw, lean, base } = z.pose, k = z.scale, fx = Math.cos(yaw), fy = Math.sin(yaw);
-  const shA = Math.sin(lean) * .95, shZ = 1.28 + Math.cos(lean) * .95, a = shA + Math.sin(lean) * .32 + .22;
-  for (const b of [-.09, .09]) {
-    const x = z.x + (fx * a - fy * b) * k, y = z.y + (fy * a + fx * b) * k, p = project(x, y, (shZ + .38) * k + base);
-    const ix = p.sx | 0, iy = p.sy | 0;
-    if (ix < 0 || iy < 0 || ix >= W || iy >= H) continue;
-    const i = iy * W + ix;
-    if (p.d > zb[i] - .1 * k) pix[i] = EYE;
-  }
-}
-function line3(a, b, color) {
-  const pa = project(...a), pb = project(...b), n = Math.ceil(Math.hypot(pb.sx - pa.sx, pb.sy - pa.sy));
+/* ================= draw ================= */
+function line3(a, b, color, color2) {
+  const pa = project(...a), pb = project(...b), n = Math.ceil(Math.hypot(pb.sx - pa.sx, pb.sy - pa.sy)), w = px(1);
   for (let k = 0; k <= n; k++) {
     const ix = lerp(pa.sx, pb.sx, k / n) | 0, iy = lerp(pa.sy, pb.sy, k / n) | 0;
-    if (ix >= 0 && iy >= 0 && ix < W && iy < H) pix[iy * W + ix] = color;
+    for (let d = 0; d < w; d++) if (ix >= 0 && iy + d >= 0 && ix < W && iy + d < H) pix[(iy + d) * W + ix] = d ? color2 : color;
   }
 }
 function drawBars() {
-  const ink = INK, green = rgb(120, 196, 88), red = rgb(220, 80, 60);
+  const green = rgb(120, 196, 88), red = rgb(220, 80, 60), empty = rgb(70, 66, 64), t = px(1);
   for (const z of G.zombies) {
     if (z.state === 'dying' || z.hp >= z.max) continue;
-    const p = project(z.x, z.y, 3 * z.scale), w = z.brute ? 12 : 8, left = Math.round(p.sx - w / 2), top = Math.round(p.sy) - 3;
+    const p = project(z.x, z.y, 2.05 * z.scale), w = Math.round((z.brute ? 1 : .6) * S), left = Math.round(p.sx - w / 2), top = Math.round(p.sy) - 3 * t;
     const fill = Math.ceil(w * clamp(z.hp / z.max, 0, 1));
-    for (let k = -1; k <= w; k++) for (let r = -1; r <= 1; r++) {
+    for (let k = -t; k < w + t; k++) for (let r = -t; r < 2 * t; r++) {
       const ix = left + k, iy = top + r;
       if (ix < 0 || iy < 0 || ix >= W || iy >= H) continue;
-      pix[iy * W + ix] = r === 0 && k >= 0 && k < w ? (k < fill ? (z.brute ? red : green) : rgb(70, 66, 64)) : ink;
+      pix[iy * W + ix] = r >= 0 && r < t && k >= 0 && k < w ? (k < fill ? (z.brute ? red : green) : empty) : INK;
     }
+  }
+}
+function drawAmmo(s) {
+  if (!s.hero) return;
+  const p = project(s.x, s.y, s.z + 1.95), mag = gunStat('mag'), cx = Math.round(p.sx), top = Math.round(p.sy), t = px(1);
+  const put = (ix, iy, c) => { for (let a = 0; a < t; a++) for (let b = 0; b < t; b++) { const x = ix + a, y = iy + b; if (x >= 0 && y >= 0 && x < W && y < H) pix[y * W + x] = c; } };
+  if (s.reload > 0) {
+    const w = 16, left = cx - (w * t) / 2, fill = Math.round(w * (1 - s.reload / s.reloadLen));
+    for (let x = -1; x <= w; x++) for (let y = -1; y <= 2; y++) put(left + x * t, top + y * t, x < 0 || x >= w || y < 0 || y > 1 ? INK : x < fill ? SIGNAL : rgb(70, 66, 64));
+    return;
+  }
+  const shown = Math.min(mag, 15), left = cx - shown * t;
+  for (let k = 0; k < shown; k++) {
+    const full = k < Math.ceil(s.ammo * shown / mag);
+    for (let y = -1; y <= 3; y++) put(left + k * 2 * t, top + y * t, y < 0 || y > 2 ? PAPER : full ? (y === 0 ? rgb(232, 184, 74) : SIGNAL) : rgb(150, 146, 140));
   }
 }
 function draw() {
   pix.set(bakedPix);
   zb.set(bakedZ);
   pendingShadows.length = 0;
-  const windT = STILL ? 0 : Math.floor(G.time * WIND_FPS) / WIND_FPS;
-  for (const d of G.decals) {
-    for (let k = 0; k < d.pts.length; k++) {
-      const i = d.pts[k];
-      if (d.life < 2 && hash(i, 7) > d.life / 2) continue;
-      if (zb[i] === groundZ[i]) pix[i] = d.color;
-    }
+  const windT = STILL || !settings.wind ? 0 : Math.floor(G.time * WIND_FPS) / WIND_FPS;
+  for (const d of G.decals) for (const i of d.pts) {
+    if (d.life < 2 && hash(i, 7) > d.life / 2) continue;
+    if (zb[i] === groundZ[i]) pix[i] = d.color;
   }
-  drawSurvivor();
+  drawDrillMotion(G.hungry ? 0 : G.time);
+  for (const w of G.workers) drawWorker(w, G.hungry ? 0 : G.time);
+  for (const s of G.shooters) drawShooter(s);
   for (const z of G.zombies) drawZombie(z);
+  drawLeaves(windT);
   drawTufts(windT);
   flushShadows();
   applyShadows(groundZ);
   shadeEdges();
-  for (const t of G.tracers) line3(t.a, t.b, SIGNAL);
+  for (const t of G.tracers) line3(t.a, t.b, SIGNAL, rgb(255, 250, 220));
   drawParts();
-  for (const z of G.zombies) drawEyes(z);
+  for (const z of G.zombies) drawFace(z);
   drawBars();
-  drawAmmo();
-  const shake = G.hurt > .2 ? (Math.floor(G.time * 40) % 2 ? 1 : -1) : 0;
+  for (const s of G.shooters) drawAmmo(s);
+  const shake = G.hurt > .2 ? (Math.floor(G.time * 40) % 2 ? 1 : -1) * px(1) : 0;
   ctx.putImageData(image, shake, 0);
+  // numbers on top as text: damage, rewards, the wave banner
+  ctx.textAlign = 'center';
+  ctx.lineJoin = 'round';
+  for (const f of G.floats) {
+    const p = project(f.x, f.y, f.z), size = Math.round(S * .42 * f.size);
+    ctx.font = `bold ${size}px ui-monospace, Menlo, Consolas, monospace`;
+    ctx.globalAlpha = clamp(f.life * 2.5, 0, 1);
+    ctx.lineWidth = Math.max(2, size / 4);
+    ctx.strokeStyle = '#1c1b19'; ctx.strokeText(f.text, p.sx, p.sy);
+    ctx.fillStyle = f.color; ctx.fillText(f.text, p.sx, p.sy);
+  }
+  ctx.globalAlpha = 1;
+  if (G.banner > 0) {
+    const size = Math.round(S * .9);
+    ctx.font = `bold ${size}px ui-monospace, Menlo, Consolas, monospace`;
+    ctx.globalAlpha = clamp(G.banner, 0, 1);
+    ctx.lineWidth = size / 5;
+    ctx.strokeStyle = '#1c1b19'; ctx.strokeText('웨이브 ' + G.wave, W / 2, H * .22);
+    ctx.fillStyle = '#ffd84a'; ctx.fillText('웨이브 ' + G.wave, W / 2, H * .22);
+    ctx.globalAlpha = 1;
+  }
 }
 
-/* ---------- HUD ---------- */
+/* ================= HUD ================= */
 const nodes = {};
-for (const id of ['money', 'wave', 'income', 'status', 'panel', 'bunkerFill', 'bunkerText', 'bunkerBar', 'fenceFill', 'fenceText', 'fenceBar', 'stage']) nodes[id] = document.getElementById(id);
-const buttons = {};
-for (const k of Object.keys(UP)) {
-  const b = document.createElement('button');
-  b.type = 'button';
-  b.className = 'up';
-  b.innerHTML = '<span class="n"></span><span class="lv"></span><span class="d"></span><span class="c"></span>';
-  b.addEventListener('click', () => buy(k));
-  nodes.panel.append(b);
-  buttons[k] = b;
+for (const id of ['status', 'panel', 'bunkerFill', 'bunkerText', 'bunkerTrack', 'fenceFill', 'fenceText', 'waveLine', 'stage', 'speed']) nodes[id] = document.getElementById(id);
+let tab = 'gun';
+document.querySelectorAll('.tab').forEach(b => b.addEventListener('click', () => {
+  tab = b.dataset.tab;
+  document.querySelectorAll('.tab').forEach(t => t.setAttribute('aria-selected', String(t === b)));
+  renderPanel(true);
+}));
+const costHtml = c => Object.entries(c).map(([k, v]) => `<span class="${G[k] < v ? 'short' : ''}">${k === 'money' ? '$' + fmt(v) : RES_NAME[k] + ' ' + fmt(v)}</span>`).join('');
+const shotsToKill = dmg => Math.ceil(zombieHp(G.wave) / dmg - 1e-9);
+function cards() {
+  if (tab === 'gun') {
+    return Object.entries(GUN).map(([k, g]) => {
+      const L = G.lv[k], max = L >= g.max, now = g.val(L), next = g.val(L + 1);
+      let desc;
+      if (k === 'atk') desc = `한 발 ${fmt(now)} → ${fmt(next)}<br>지금 좀비 ${shotsToKill(now)}발 → ${shotsToKill(next)}발`;
+      else if (k === 'spd') desc = `초당 ${now.toFixed(2)}발 → ${next.toFixed(2)}발`;
+      else desc = `${now}발 → ${next}발<br>장전 ${reloadTime().toFixed(1)}초`;
+      return { id: 'gun:' + k, name: g.name, lv: 'Lv ' + L, desc: max ? '최대 레벨' : desc, cost: max ? null : { money: g.cost(L) }, max };
+    });
+  }
+  if (tab === 'build') {
+    const list = [], s = G.stage, nextS = STAGES[s + 1], f = G.fence, nextF = FENCES[f + 1];
+    list.push({ id: 'stage', name: '벙커', lv: (s + 1) + '단계', desc: nextS ? `${STAGES[s].name} → ${nextS.name}<br>체력 ${fmt(STAGES[s].hp)} → ${fmt(nextS.hp)} · 인원 슬롯 +1` : STAGES[s].name + ' · 최대 단계', cost: nextS ? nextS.cost : null, max: !nextS });
+    list.push({ id: 'fence', name: '울타리', lv: f + '단계', desc: nextF ? `${FENCES[f].name} → ${nextF.name}<br>체력 ${fmt(nextF.hp)}` : FENCES[f].name + ' · 최대 단계', cost: nextF ? nextF.cost : null, max: !nextF });
+    for (const [k, b] of Object.entries(BUILD)) {
+      const L = G.build[k], max = L >= b.max;
+      list.push({ id: 'build:' + k, name: b.name, lv: 'Lv ' + L, desc: max ? '최대 레벨' : `${RES_NAME[b.res]} 초당 ${fmt(b.rate(L))} → ${fmt(b.rate(L + 1))}<br>일꾼 1명당 +50%`, cost: max ? null : b.cost(L), max });
+    }
+    return list;
+  }
+  return G.crew.map((c, i) => {
+    if (i >= slotsOpen()) return { id: 'slot:' + i, name: '슬롯 ' + (i + 1), lv: '잠김', desc: `벙커 ${i + 1}단계(${STAGES[i].name})에서 열림`, locked: true };
+    if (!c) return { id: 'hire:' + i, name: '슬롯 ' + (i + 1), lv: '비어 있음', desc: `생존자를 고용한다<br>식량을 초당 ${UPKEEP}씩 먹는다`, cost: hireCost(hired().length) };
+    const job = c.job, what = job === '사수' ? '지붕에서 함께 쏜다 (피해 60%)' : `${RES_NAME[JOB_RES[job]]} 생산 +50%`;
+    return { id: 'job:' + i, name: NAMES[i], lv: job, desc: what + (G.hungry ? '<br>배고파서 쉬는 중' : ''), jobs: true, slot: i };
+  });
 }
-function buy(k) {
+let panelKey = '';
+function renderPanel(force) {
+  const list = cards();
+  const key = tab + JSON.stringify(list.map(c => [c.id, c.lv, c.desc, c.cost && Object.entries(c.cost).map(([k, v]) => [v, G[k] >= v])]));
+  if (!force && key === panelKey) return;
+  panelKey = key;
+  nodes.panel.innerHTML = '';
+  for (const c of list) {
+    const el = document.createElement(c.jobs ? 'div' : 'button');
+    if (!c.jobs) el.type = 'button';
+    const off = c.locked || c.max || (c.cost && !canPay(c.cost));
+    el.className = 'card' + (off && !c.jobs ? ' off' : '') + (c.max ? ' max' : '');
+    el.innerHTML = `<div class="head"><span class="name">${c.name}</span><span class="lv">${c.lv}</span></div><div class="desc">${c.desc}</div>` +
+      (c.cost ? `<div class="cost">${costHtml(c.cost)}</div>` : c.max ? '<div class="cost">완료</div>' : '');
+    if (c.jobs) {
+      const row = document.createElement('div');
+      row.className = 'row';
+      for (const j of JOBS) {
+        const b = document.createElement('button');
+        b.type = 'button'; b.className = 'mini'; b.textContent = j;
+        if (G.crew[c.slot].job === j) b.disabled = true;
+        b.addEventListener('click', () => { G.crew[c.slot].job = j; syncShooters(); syncWorkers(); sound('buy'); renderPanel(true); });
+        row.append(b);
+      }
+      el.append(row);
+    } else if (!off) el.addEventListener('click', () => act(c.id));
+    nodes.panel.append(el);
+  }
+}
+function act(id) {
   ensureAudio();
-  const u = UP[k];
-  if (u.max != null && G.lv[k] >= u.max) return;
-  const price = cost(k);
-  if (G.money < price) return;
-  G.money -= price;
-  const oldFood = stat('food');
-  G.lv[k]++;
-  if (k === 'wall') { G.fenceHp = stat('wall'); G.fenceDown = false; if (G.lv.wall === 1) say('벙커 둘레에 울타리를 세웠다'); }
-  if (k === 'food') G.hp += stat('food') - oldFood;
-  if (k === 'wall' || k === 'food' || k === 'res') bake();
+  const [kind, key] = id.split(':');
+  if (kind === 'gun') {
+    const c = { money: GUN[key].cost(G.lv[key]) };
+    if (G.lv[key] >= GUN[key].max || !canPay(c)) return;
+    pay(c); G.lv[key]++;
+    if (key === 'mag') for (const s of G.shooters) if (!s.reload) s.ammo = gunStat('mag');
+  } else if (kind === 'stage') {
+    const next = STAGES[G.stage + 1];
+    if (!next || !canPay(next.cost)) return;
+    pay(next.cost); G.stage++; G.hp = stage().hp;
+    say(next.name + ' 완성 · 인원 슬롯이 하나 열렸다');
+    syncShooters(); bake();
+  } else if (kind === 'fence') {
+    const next = FENCES[G.fence + 1];
+    if (!next || !canPay(next.cost)) return;
+    pay(next.cost); G.fence++; G.fenceHp = next.hp; G.fenceDown = false; G.sideDmg = [0, 0, 0, 0]; G.sideStage = [0, 0, 0, 0];
+    say(next.name + ' 완성');
+    bake();
+  } else if (kind === 'build') {
+    const b = BUILD[key], c = b.cost(G.build[key]);
+    if (G.build[key] >= b.max || !canPay(c)) return;
+    pay(c); G.build[key]++;
+    if (G.build[key] === 1) say(b.name + ' 완성');
+    bake();
+  } else if (kind === 'hire') {
+    const c = hireCost(hired().length);
+    if (!canPay(c)) return;
+    pay(c); G.crew[+key] = { job: '사수' };
+    say(NAMES[+key] + ' 합류 · 아래에서 직업을 고를 수 있다');
+    syncShooters(); syncWorkers();
+  } else return;
   sound('buy');
-  refreshHud(true);
+  renderPanel(true);
+  refreshTop();
 }
-let hudIn = 0;
-function refreshHud(force) {
-  if (!force && (hudIn -= 1) > 0) return;
-  hudIn = 6;
-  nodes.money.textContent = '$' + fmt(G.money);
-  nodes.wave.textContent = '웨이브 ' + G.wave + ' · ' + G.waveKills + '/' + killsNeeded(G.wave);
-  nodes.income.textContent = (G.reload > 0 ? '장전 중…' : '탄창 ' + G.ammo + '/' + magSize()) + (G.lv.res ? ' · 자원 +$' + fmt(stat('res')) + '/초' : '');
-  const maxHp = stat('food');
+function refreshTop() {
+  for (const r of ['money', 'food', 'mineral', 'wood']) document.getElementById('r-' + r).textContent = fmt(G[r]);
+  for (const r of ['food', 'mineral', 'wood']) {
+    const net = rateOf(r) - (r === 'food' ? hired().length * UPKEEP : 0);
+    document.getElementById('rr-' + r).textContent = Math.abs(net) > .005 ? (net > 0 ? '+' : '−') + Math.abs(net).toFixed(1) + '/초' : '';
+  }
+  const hero = G.shooters[0];
+  nodes.waveLine.textContent = `웨이브 ${G.wave} · ${G.waveKills}/${killsNeeded(G.wave)} · ` + (hero && hero.reload > 0 ? '장전 중' : `탄창 ${hero ? hero.ammo : 0}/${gunStat('mag')}`);
+  const maxHp = stage().hp;
   nodes.bunkerFill.style.width = clamp(G.hp / maxHp, 0, 1) * 100 + '%';
   nodes.bunkerText.textContent = '벙커 ' + fmt(Math.max(0, G.hp)) + '/' + fmt(maxHp);
-  nodes.bunkerBar.classList.toggle('hurt', G.hurt > 0);
-  if (G.lv.wall) {
-    const max = stat('wall');
+  nodes.bunkerTrack.classList.toggle('hurt', G.hurt > 0);
+  if (G.fence) {
+    const max = FENCES[G.fence].hp;
     nodes.fenceFill.style.width = clamp(G.fenceHp / max, 0, 1) * 100 + '%';
-    nodes.fenceText.textContent = (G.fenceDown ? '울타리 복구 중 ' : '울타리 ') + fmt(G.fenceHp) + '/' + fmt(max);
-  } else {
-    nodes.fenceFill.style.width = '0%';
-    nodes.fenceText.textContent = '울타리 없음';
-  }
-  for (const [k, u] of Object.entries(UP)) {
-    const b = buttons[k], l = G.lv[k], maxed = u.max != null && l >= u.max, price = cost(k);
-    b.children[0].textContent = u.name;
-    b.children[1].textContent = 'Lv ' + l;
-    b.children[2].textContent = maxed ? u.show(u.val(l), l) : u.show(u.val(l), l) + ' → ' + u.show(u.val(l + 1), l + 1).replace(/^[^\d$x]*/, '');
-    b.children[3].textContent = maxed ? '최대' : '$' + fmt(price);
-    b.classList.toggle('poor', maxed || G.money < price);
-  }
+    nodes.fenceText.textContent = (G.fenceDown ? '울타리 복구 ' : '울타리 ') + fmt(G.fenceHp) + '/' + fmt(max);
+  } else { nodes.fenceFill.style.width = '0%'; nodes.fenceText.textContent = '울타리 없음'; }
 }
 function fitStage() {
-  nodes.stage.style.bottom = nodes.panel.offsetHeight + 30 + 'px';
-  nodes.status.style.bottom = nodes.panel.offsetHeight + 12 + 'px';
   const r = nodes.stage.getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
   const f = Math.min(r.width / W, r.height / H);
-  // whole device pixels per game pixel whenever they fit, so nothing smears
   const scale = f * dpr >= 1 ? Math.floor(f * dpr) / dpr : f;
   canvas.style.width = W * scale + 'px';
   canvas.style.height = H * scale + 'px';
 }
 
-/* ---------- input ---------- */
+/* ================= input ================= */
 canvas.addEventListener('pointerdown', e => {
   ensureAudio();
   const r = canvas.getBoundingClientRect(), x = (e.clientX - r.left) * W / r.width, y = (e.clientY - r.top) * H / r.height;
-  // a tap on a zombie is a free extra shot
-  let best = null, bestD = 22;
+  const hero = G.shooters[0];
+  if (!hero) return;
+  if (hero.reload > 0) { hero.reload = Math.max(.01, hero.reload - hero.reloadLen * .12); return; } // tapping hurries the reload
+  let best = null, bestD = S * .9;
   for (const z of G.zombies) {
-    if (z.state === 'dying' || z.n > FIELD) continue;
+    if (z.state === 'dying' || !z.onScreen) continue;
     const d = Math.hypot(z.sx - x, z.sy - y);
     if (d < bestD) { bestD = d; best = z; }
   }
-  if (G.reload > 0) { G.reload = Math.max(.01, G.reload - G.reloadLen * .12); return; } // tapping hurries the reload
   if (best) {
-    G.yaw = Math.atan2(best.y, best.x);
-    shoot(best);
+    // swing round onto it, then shoot along the rifle
+    hero.yaw = Math.atan2(best.y - hero.y, best.x - hero.x);
+    pendingShadows.length = 0;
+    drawShooter(hero);
+    fire(hero, best);
   }
 });
+nodes.speed.addEventListener('click', () => {
+  G.speed = G.speed === 1 ? 2 : 1;
+  nodes.speed.textContent = G.speed + '배속';
+  nodes.speed.setAttribute('aria-pressed', String(G.speed === 2));
+});
 
-/* ---------- save ---------- */
+/* ================= settings ================= */
+const settings = { sound: true, volume: .7, wind: true };
+try { Object.assign(settings, JSON.parse(localStorage.getItem('bunker-idle:settings')) || {}); } catch { /* defaults */ }
+const saveSettings = () => { try { localStorage.setItem('bunker-idle:settings', JSON.stringify(settings)); } catch { /* fine */ } };
+const dlg = document.getElementById('settings');
+const soundBtn = document.getElementById('soundToggle'), windBtn = document.getElementById('windToggle'), vol = document.getElementById('volume'), resetBtn = document.getElementById('resetBtn');
+function paintSettings() {
+  soundBtn.textContent = settings.sound ? '켜짐' : '꺼짐';
+  windBtn.textContent = settings.wind ? '켜짐' : '꺼짐';
+  vol.value = Math.round(settings.volume * 100);
+}
+document.getElementById('settingsBtn').addEventListener('click', () => { paintSettings(); resetBtn.textContent = '초기화'; dlg.showModal(); });
+dlg.addEventListener('click', e => { if (e.target === dlg) dlg.close(); });
+soundBtn.addEventListener('click', () => { settings.sound = !settings.sound; ensureAudio(); paintSettings(); saveSettings(); });
+windBtn.addEventListener('click', () => { settings.wind = !settings.wind; paintSettings(); saveSettings(); });
+vol.addEventListener('input', () => { settings.volume = vol.value / 100; saveSettings(); });
+let skipSave = false;
+resetBtn.addEventListener('click', () => {
+  if (resetBtn.textContent !== '한 번 더 누르면 삭제') { resetBtn.textContent = '한 번 더 누르면 삭제'; return; }
+  try { localStorage.removeItem(SAVE_KEY); } catch { /* fine */ }
+  skipSave = true;
+  location.reload();
+});
+
+/* ================= save ================= */
 function save() {
+  if (skipSave) return;
   try {
-    localStorage.setItem(SAVE_KEY, JSON.stringify({ money: G.money, wave: G.wave, waveKills: G.waveKills, totalKills: G.totalKills, lv: G.lv, at: Date.now() }));
+    localStorage.setItem(SAVE_KEY, JSON.stringify({
+      money: G.money, food: G.food, mineral: G.mineral, wood: G.wood, lv: G.lv, stage: G.stage, fence: G.fence, build: G.build, crew: G.crew,
+      wave: G.wave, waveKills: G.waveKills, totalKills: G.totalKills, at: Date.now(),
+    }));
   } catch { /* saving is a convenience */ }
 }
 function load() {
-  let data = null;
-  try { data = JSON.parse(localStorage.getItem(SAVE_KEY)); } catch { data = null; }
-  if (data && data.lv) {
-    G.money = +data.money || 0; G.wave = +data.wave || 1; G.waveKills = +data.waveKills || 0; G.totalKills = +data.totalKills || 0;
-    for (const k of Object.keys(G.lv)) G.lv[k] = +data.lv[k] || 0;
-    const away = clamp((Date.now() - (+data.at || Date.now())) / 1000, 0, OFFLINE_CAP);
-    const gain = stat('res') * away;
-    if (gain >= 1) { G.money += gain; say('자리 비운 동안 자원 +$' + fmt(gain)); }
+  let d = null;
+  try { d = JSON.parse(localStorage.getItem(SAVE_KEY)); } catch { d = null; }
+  if (d && d.lv) {
+    for (const k of ['money', 'food', 'mineral', 'wood', 'waveKills', 'totalKills']) G[k] = +d[k] || 0;
+    G.wave = Math.max(1, +d.wave || 1);
+    for (const k of Object.keys(G.lv)) G.lv[k] = +d.lv[k] || 0;
+    for (const k of Object.keys(G.build)) G.build[k] = +(d.build || {})[k] || 0;
+    G.stage = clamp(+d.stage || 0, 0, STAGES.length - 1);
+    G.fence = clamp(+d.fence || 0, 0, FENCES.length - 1);
+    if (Array.isArray(d.crew)) G.crew = [0, 1, 2, 3, 4].map(i => d.crew[i] && JOBS.includes(d.crew[i].job) ? { job: d.crew[i].job } : null);
+    // what the yard made while nobody was looking
+    const away = clamp((Date.now() - (+d.at || Date.now())) / 1000, 0, OFFLINE_CAP);
+    if (away > 30) {
+      const gains = {};
+      for (const r of ['food', 'mineral', 'wood']) gains[r] = rateOf(r) * away;
+      gains.food -= hired().length * UPKEEP * away;
+      for (const r of Object.keys(gains)) G[r] = Math.max(0, G[r] + gains[r]);
+      const text = ['food', 'mineral', 'wood'].filter(r => gains[r] > 1).map(r => RES_NAME[r] + ' +' + fmt(gains[r])).join(', ');
+      if (text) say('자리 비운 동안 ' + text);
+    }
   }
-  G.hp = stat('food');
-  G.fenceHp = stat('wall');
-  G.ammo = magSize();
-  if (!G.status) say('좀비가 사방에서 온다 · 좀비를 누르면 직접 쏜다');
+  G.hp = stage().hp;
+  G.fenceHp = FENCES[G.fence].hp;
 }
 addEventListener('beforeunload', save);
 document.addEventListener('visibilitychange', () => { if (document.hidden) save(); });
 
-/* ---------- sound ---------- */
-let audio = null, muted = false, noiseBuffer = null, lastShot = 0;
+/* ================= sound ================= */
+let audio = null, noiseBuffer = null, master = null, lastShot = 0;
 function ensureAudio() {
   if (audio) { if (audio.state === 'suspended') audio.resume(); return; }
   const AC = window.AudioContext || window.webkitAudioContext;
   if (!AC) return;
   audio = new AC();
+  master = audio.createGain();
+  master.connect(audio.destination);
   noiseBuffer = audio.createBuffer(1, audio.sampleRate, audio.sampleRate);
   const data = noiseBuffer.getChannelData(0);
   for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
@@ -791,52 +1307,53 @@ function burst(type, freq, volume, length, delay = 0) {
   filter.type = type; filter.frequency.value = freq; filter.Q.value = .8;
   gain.gain.setValueAtTime(volume, now);
   gain.gain.exponentialRampToValueAtTime(.0005, now + length);
-  src.connect(filter).connect(gain).connect(audio.destination);
+  src.connect(filter).connect(gain).connect(master);
   src.start(now, Math.random() * .5, length + .02);
 }
 function sound(kind) {
-  if (!audio || muted || document.hidden) return;
+  if (!audio || !settings.sound || document.hidden) return;
+  master.gain.value = settings.volume;
   if (kind === 'shot') {
-    if (audio.currentTime - lastShot < .06) return; // fast fire rates would turn into a hiss
+    if (audio.currentTime - lastShot < .07) return;
     lastShot = audio.currentTime;
-    burst('bandpass', 1600, .05, .06);
+    burst('bandpass', 1500, .06, .07); burst('lowpass', 300, .05, .08);
   }
-  if (kind === 'kill') burst('lowpass', 320, .09, .12);
+  if (kind === 'kill') burst('lowpass', 320, .09, .14);
   if (kind === 'buy') burst('bandpass', 2400, .06, .08);
   if (kind === 'crash') { burst('lowpass', 160, .3, .6); burst('bandpass', 700, .12, .4, .05); }
-  if (kind === 'thud') burst('lowpass', 240, .1, .1);
-  if (kind === 'crack') { burst('lowpass', 200, .14, .14); burst('bandpass', 1100, .06, .08); }
+  if (kind === 'thud') burst('lowpass', 240, .08, .1);
+  if (kind === 'clang') burst('bandpass', 2600, .05, .12);
   if (kind === 'magout') burst('highpass', 3000, .04, .03);
   if (kind === 'magin') burst('bandpass', 1800, .07, .04);
   if (kind === 'rack') { burst('highpass', 2500, .06, .03); burst('highpass', 2200, .06, .03, .07); }
   if (kind === 'hammer') for (let k = 0; k < 3; k++) burst('bandpass', 900, .08, .05, k * .15);
+  if (kind === 'chop') burst('bandpass', 700, .04, .05);
 }
-const muteButton = document.getElementById('mute');
-muteButton.addEventListener('click', () => {
-  muted = !muted;
-  muteButton.textContent = muted ? '소리 꺼짐' : '소리 켜짐';
-  muteButton.setAttribute('aria-pressed', String(muted));
-});
 
-/* ---------- boot ---------- */
+/* ================= boot ================= */
 load();
+bakeGround();
 bake();
 growGrass();
-refreshHud(true);
+syncShooters();
+syncWorkers();
+renderPanel(true);
+refreshTop();
 addEventListener('resize', fitStage);
 fitStage();
-let last = performance.now();
+if (!nodes.status.textContent) say('화면 밖에서 좀비가 몰려온다 · 좀비를 누르면 직접 쏜다');
+let last = performance.now(), hudIn = 0;
 function frame(now) {
-  // a background tab gets its time back in chunks, so an idle game keeps running while hidden
-  let dt = Math.min(5, (now - last) / 1000);
+  // a background tab gets its time back in chunks, so the yard keeps working while hidden
+  let dt = Math.min(5, (now - last) / 1000) * G.speed;
   last = now;
   while (dt > 0) { const step = Math.min(.04, dt); update(step); dt -= step; }
   draw();
-  refreshHud(false);
+  if (--hudIn <= 0) { hudIn = 6; refreshTop(); renderPanel(false); }
   requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);
-window.__bunker = { G, step(dt) { update(dt); draw(); }, buy };
+window.__bunker = { G, step(dt, noDraw) { update(dt); if (!noDraw) draw(); }, act, refreshTop, renderPanel, syncShooters, syncWorkers, bake };
 </script>
 </body>
 </html>

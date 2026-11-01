@@ -1,6 +1,7 @@
 'use strict';
 // From https://github.com/amirmushichge/pixel-plays (MIT, see LICENSE-pixel-plays).
-// Changed: canvas size and world scale can come from PP_SCENE (width, height, scale).
+// Changed: canvas size and world scale come from PP_SCENE (width, height, scale); box steps, grass and
+// occlusion follow the world scale so a finer pixel grid stays solid.
 // Shared pixel renderer for every game: orthographic camera, depth buffer, ramps, shadows, edges and wind.
 // A game sets window.PP_SCENE before loading this file, then draws through these globals.
 const SCENE = window.PP_SCENE || {};
@@ -104,7 +105,7 @@ function box(x0, y0, z0, x1, y1, z1, c, seed = 0) {
     zb[i] = p.d;
     pix[i] = ramp[clamp(Math.floor(base + (grain - .5) * 1.3 + (bayerAt(ix, iy) - .5) * .5), 0, 4)];
   };
-  const step = .045, longX = x1 - x0 >= y1 - y0;
+  const step = .45 / S, longX = x1 - x0 >= y1 - y0;
   for (let a = x0; a <= x1; a += step) for (let b = y0; b <= y1; b += step) {
     paint(a, b, z1, 3.4, longX ? noise(a * .8 + seed, b * 9) : noise(a * 9, b * .8 + seed));
   }
@@ -162,8 +163,8 @@ const tuftLit = GRASS.map(c => rgb(...c)), tuftDark = GRASS.map(c => rgb(c[0] * 
 function growGrass() {
   for (let iy = 3; iy < H; iy++) for (let ix = 0; ix < W; ix++) {
     const i = iy * W + ix;
-    if (kinds[i] !== KIND_GRASS || hash(ix * 3, iy * 5) > .17) continue;
-    const height = 1 + (hash(ix, iy * 2) * 3 | 0);
+    if (kinds[i] !== KIND_GRASS || hash(ix * 3, iy * 5) > (SCENE.grassDensity || .17)) continue;
+    const height = Math.max(1, Math.round((1 + hash(ix, iy * 2) * 3) * S / 16));
     tufts.push({
       ix, iy, i, height, base: Math.round(noise(ix * .09, iy * .18) * 2.2),
       phase: ix * .11 + iy * .19 + hash(ix, iy) * .9,
@@ -203,7 +204,7 @@ function drawLeaves(t) {
 }
 function bakeOcclusion() {
   const offsets = [];
-  for (const r of [2, 4]) for (let k = 0; k < 8; k++) {
+  for (const r of [2, 4].map(v => Math.round(v * S / 16))) for (let k = 0; k < 8; k++) {
     offsets.push([Math.round(Math.cos(k * Math.PI / 4) * r), Math.round(Math.sin(k * Math.PI / 4) * r * .7)]);
   }
   for (let iy = 4; iy < H - 4; iy++) for (let ix = 4; ix < W - 4; ix++) {
