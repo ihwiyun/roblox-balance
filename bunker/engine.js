@@ -1,9 +1,10 @@
 'use strict';
-// From https://github.com/amirmushichge/pixel-plays (MIT, see LICENSE-pixel-plays). Unchanged.
+// From https://github.com/amirmushichge/pixel-plays (MIT, see LICENSE-pixel-plays).
+// Changed: canvas size and world scale can come from PP_SCENE (width, height, scale).
 // Shared pixel renderer for every game: orthographic camera, depth buffer, ramps, shadows, edges and wind.
 // A game sets window.PP_SCENE before loading this file, then draws through these globals.
 const SCENE = window.PP_SCENE || {};
-const W = 360, H = 280, S = 10;
+const W = SCENE.width || 360, H = SCENE.height || 280, S = SCENE.scale || 10;
 const SIN = 0.5, COS = Math.sqrt(3) / 2, R2 = Math.SQRT2;
 const OX = W / 2, OY = H / 2 + (SCENE.originY || 0);
 const SHADOW_X = SCENE.shadowX == null ? 1.3 : SCENE.shadowX, SHADOW_Y = SCENE.shadowY == null ? -.12 : SCENE.shadowY;
