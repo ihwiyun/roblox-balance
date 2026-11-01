@@ -1,0 +1,608 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>벙커 – 좀비 방치형</title>
+<style>
+  :root { --ink: #1c1b19; --muted: #8b877f; --paper: #fff; --line: #d9d5cc; }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; background: var(--paper); color: var(--ink); }
+  body { font: 13px/1.35 ui-monospace, "Cascadia Mono", Consolas, Menlo, monospace; overflow: hidden; user-select: none; -webkit-user-select: none; }
+  #stage { position: fixed; left: 0; right: 0; top: 58px; bottom: 150px; display: grid; place-items: center; }
+  canvas { display: block; image-rendering: pixelated; touch-action: manipulation; cursor: crosshair; outline: none; }
+  #top { position: fixed; top: max(10px, env(safe-area-inset-top)); left: max(14px, env(safe-area-inset-left)); right: max(14px, env(safe-area-inset-right)); display: flex; justify-content: space-between; gap: 12px; pointer-events: none; }
+  #money { font-size: 18px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .sub { color: var(--muted); font-variant-numeric: tabular-nums; }
+  #bars { text-align: right; min-width: 150px; }
+  .bar { display: flex; align-items: center; justify-content: flex-end; gap: 6px; font-variant-numeric: tabular-nums; }
+  .track { width: 84px; height: 7px; border: 1px solid var(--ink); background: #fff; }
+  .fill { height: 100%; background: #6aa64a; }
+  #fenceFill { background: #a0784a; }
+  .bar.hurt .fill { background: #d0503c; }
+  #mute { pointer-events: auto; font: inherit; color: var(--muted); background: none; border: 0; padding: 4px 0; cursor: pointer; }
+  #mute:hover { color: var(--ink); }
+  #status { position: fixed; left: 0; right: 0; bottom: 156px; text-align: center; color: var(--muted); pointer-events: none; min-height: 18px; }
+  #status.alert { color: #c0392b; font-weight: 600; }
+  #panel { position: fixed; left: 50%; transform: translateX(-50%); bottom: max(10px, env(safe-area-inset-bottom)); width: min(600px, calc(100vw - 16px)); display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .up { font: inherit; text-align: left; background: #fff; color: var(--ink); border: 1px solid var(--ink); padding: 6px 8px; cursor: pointer; display: grid; grid-template-columns: 1fr auto; row-gap: 1px; min-height: 64px; }
+  .up:hover:not(.poor) { background: var(--ink); color: #fff; }
+  .up:hover:not(.poor) .d { color: #cfcac0; }
+  .up:active:not(.poor) { transform: translateY(1px); }
+  .up.poor { border-color: var(--line); color: #a9a59c; cursor: default; }
+  .up .n { font-weight: 700; }
+  .up .lv { color: var(--muted); text-align: right; }
+  .up .d { grid-column: 1 / -1; color: var(--muted); font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .up .c { grid-column: 1 / -1; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .up.poor .c { color: #c9a39a; }
+  @media (max-width: 420px) { .up { padding: 5px 6px; } .up .d { font-size: 10px; } }
+</style>
+</head>
+<body>
+<div id="top">
+  <div>
+    <div id="money">$0</div>
+    <div class="sub" id="wave">웨이브 1</div>
+    <div class="sub" id="income"></div>
+  </div>
+  <div id="bars">
+    <div class="bar" id="bunkerBar"><span id="bunkerText">벙커</span><div class="track"><div class="fill" id="bunkerFill"></div></div></div>
+    <div class="bar" id="fenceBar"><span id="fenceText">울타리 없음</span><div class="track"><div class="fill" id="fenceFill"></div></div></div>
+    <button id="mute" type="button" aria-pressed="false">소리 켜짐</button>
+  </div>
+</div>
+<div id="stage"><canvas id="c" tabindex="0" aria-label="들판 한가운데 벙커. 사방에서 좀비가 몰려온다. 좀비를 누르면 직접 쏜다."></canvas></div>
+<div id="status" role="status" aria-live="polite"></div>
+<div id="panel"></div>
+<script>window.PP_SCENE = { originY: 4 };</script>
+<script src="engine.js"></script>
+<script>
+'use strict';
+/* ---------- tuning ---------- */
+const FIELD = 11, FENCE_R = 4.6, BAG_R = 1.95, STOP_BUNKER = 2.45, SPAWN_R = 8.9, RISE = .9, ROOF_Z = 1.45;
+const MAX_ZOMBIES = 45, OFFLINE_CAP = 2 * 3600, SAVE_KEY = 'bunker-idle:v1';
+const CONCRETE = [172, 168, 156], BAG = [184, 160, 112], WOOD = [146, 104, 66], METAL = [150, 158, 164], DARK = [44, 40, 50];
+const DIRT = [150, 118, 82], CRATE = [178, 134, 82], SACK = [214, 198, 156], BARREL = [150, 72, 56], OLIVE = [96, 112, 70];
+const SURVIVOR = { shirt: [86, 104, 70], stripe: [70, 86, 58], legs: [58, 62, 76], hair: [62, 48, 40], skin: [214, 164, 128] };
+const ZOMBIE = { shirt: [108, 112, 94], stripe: [86, 90, 78], legs: [62, 64, 80], hair: [58, 70, 50], skin: [142, 174, 112] };
+const BRUTE = { shirt: [134, 76, 66], stripe: [112, 62, 56], legs: [54, 54, 66], hair: [48, 56, 42], skin: [122, 156, 98] };
+const FLASH = { shirt: [250, 250, 240], stripe: [250, 250, 240], legs: [250, 250, 240], hair: [250, 250, 240], skin: [250, 250, 240] };
+
+// each upgrade: cost = base * grow^level; val(level) is what the level gives
+const UP = {
+  atk:  { name: '공격력', base: 15, grow: 1.42, val: l => 10 * (1 + l * .6) * 1.06 ** l, show: v => fmt(v) + ' 피해' },
+  spd:  { name: '공속',   base: 20, grow: 1.5, max: 35, val: l => 1.2 + l * .3, show: v => v.toFixed(1) + '발/초' },
+  gold: { name: '돈',     base: 25, grow: 1.5, val: l => 1 + l * .3, show: v => '보상 x' + v.toFixed(1) },
+  wall: { name: '방어벽', base: 40, grow: 1.6, val: l => l ? 80 * l * 1.18 ** l : 0, show: v => v ? '울타리 ' + fmt(v) : '울타리 없음' },
+  food: { name: '식량',   base: 30, grow: 1.5, val: l => 100 + 45 * l, show: (v, l) => '체력 ' + fmt(v) + ' +' + fmt(regenOf(l)) + '/초' },
+  res:  { name: '자원',   base: 50, grow: 1.55, val: l => l ? l * 1.5 * 1.15 ** l : 0, show: v => '$' + fmt(v) + '/초' },
+};
+const regenOf = l => 1 + l * .8;
+const cost = k => Math.ceil(UP[k].base * UP[k].grow ** G.lv[k]);
+const stat = k => UP[k].val(G.lv[k]);
+const zombieHp = w => 18 * 1.2 ** (w - 1);
+const zombieDps = w => 6 * 1.13 ** (w - 1);
+const zombieReward = w => 2 * 1.16 ** (w - 1);
+const killsNeeded = w => 8 + w * 2;
+const spawnEvery = w => Math.max(.22, 1.5 * .94 ** (w - 1));
+
+const G = {
+  money: 0, wave: 1, waveKills: 0, totalKills: 0,
+  lv: { atk: 0, spd: 0, gold: 0, wall: 0, food: 0, res: 0 },
+  hp: 100, fenceHp: 0, fenceDown: false,
+  zombies: [], tracers: [], coins: [], decals: [],
+  time: 0, cool: 0, spawnIn: 1, yaw: Math.PI / 4, muzzle: 0, gunTip: [0, 0, 2.4], status: '', statusT: 0, hurt: 0, saveIn: 5,
+};
+
+function fmt(n) {
+  if (n < 1000) return n < 10 && n % 1 ? n.toFixed(1) : Math.floor(n) + '';
+  const units = ['K', 'M', 'B', 'T', 'aa', 'ab', 'ac', 'ad'];
+  let i = -1;
+  while (n >= 1000 && i < units.length - 1) { n /= 1000; i++; }
+  return n.toFixed(n < 10 ? 2 : n < 100 ? 1 : 0) + units[i];
+}
+
+/* ---------- scene ---------- */
+const PAPER_PX = rgb(255, 255, 255);
+const KIND_DIRT = 1;
+function groundColor(x, y, ix, iy) {
+  const n = Math.max(Math.abs(x), Math.abs(y));
+  // the field dissolves into the white page on every side
+  if (n > FIELD - noise(x * .45 + 9, y * .45) * 1.5 - hash(ix, iy) * .35) return [0, 0];
+  const clearing = Math.hypot(x, y) + noise(x * .7, y * .7) * 1.4;
+  if (clearing < 4.6) {
+    const ramp = rampOf(DIRT), fine = hash(ix, iy);
+    if (fine > .97) return [ramp[4], KIND_DIRT];
+    return [ramp[clamp(Math.floor(2.1 + noise(x * 1.6, y * 1.6) * 1.4 + (bayerAt(ix, iy) - .5) * .6), 1, 4)], KIND_DIRT];
+  }
+  const tone = noise(x * .3, y * .3) * 1.5 + noise(x * 1.2 + 4, y * 1.2) * .7;
+  return [tuftLit[clamp(Math.floor(1 + tone + (bayerAt(ix, iy) - .5) * .6), 0, 4)], KIND_GRASS];
+}
+function shadowBlock(x0, y0, x1, y1, z1) {
+  for (let x = x0; x <= x1; x += .45) for (let y = y0; y <= y1; y += .45) for (let z = .3; z < z1; z += .45) castShadow(x, y, z, .45);
+}
+function buildBunker() {
+  const step = .045;
+  // two rows of sandbags around the bunker
+  for (const [row, r, z, rad] of [[0, BAG_R, .22, .27], [1, BAG_R - .05, .56, .24]]) {
+    const count = 48;
+    for (let k = 0; k < count; k++) {
+      const t = ((k + row * .5) / count) * 4, side = Math.floor(t) % 4, s = (t % 1) * 2 - 1;
+      const [x, y] = [[r, s * r], [-s * r, r], [-r, -s * r], [s * r, -r]][side];
+      sphere(x, y, z, rad, BAG, 'rough');
+      castShadow(x, y, z, rad);
+    }
+  }
+  box(-1.5, -1.5, 0, 1.5, 1.5, 1.3, CONCRETE, 1);
+  box(-1.62, -1.62, 1.3, 1.62, 1.62, ROOF_Z, CONCRETE, 2);
+  // gun slits on the two visible faces, a steel door, a roof hatch, a radio mast with a rag of a flag
+  const dark = rampOf(DARK);
+  for (const c of [-.95, .95]) for (let a = -.3; a <= .3; a += step) for (let z = .86; z <= 1.04; z += step) {
+    plot(c + a, 1.51, z, dark[1]);
+    plot(1.51, c + a, z, dark[1]);
+  }
+  const steel = rampOf(METAL);
+  for (let a = -.32; a <= .32; a += step) for (let z = 0; z <= 1.02; z += step) plot(a, 1.52, z, steel[Math.abs(a) > .27 || z > .97 ? 1 : Math.floor(z * 6) % 3 ? 2 : 3]);
+  box(-.95, .3, ROOF_Z, -.3, .95, ROOF_Z + .07, METAL, 3);
+  for (let z = ROOF_Z; z <= 3.4; z += step) plot(-1.25, -1.25, z, dark[2]);
+  for (let a = 0; a <= .5; a += step) for (let z = 3.05; z <= 3.35; z += step) plot(-1.25 + a, -1.25 - a * .2, z - a * .15 * Math.sin(a * 6), rampOf([176, 64, 52])[3 - (a > .3 ? 1 : 0)]);
+  shadowBlock(-1.5, -1.5, 1.5, 1.5, 1.4);
+  for (let z = 1.6; z < 3.3; z += .3) castShadow(-1.25, -1.25, z, .08, 1, 0);
+}
+function buildFence() {
+  const lvl = G.lv.wall;
+  if (!lvl) return;
+  const down = G.fenceDown, h = .75 + Math.min(lvl, 12) * .05, mat = lvl >= 8 ? METAL : WOOD, R = FENCE_R;
+  const posts = [];
+  for (let s = -R; s <= R + .01; s += R / 5) posts.push([s, R], [s, -R], [R, s], [-R, s]);
+  posts.forEach(([x, y], k) => {
+    const top = down ? .22 + hash(k, 3) * .2 : h + (lvl < 8 ? hash(k, 4) * .08 : 0);
+    box(x - .08, y - .08, 0, x + .08, y + .08, top, mat, k);
+    for (let z = .2; z < top; z += .3) castShadow(x, y, z, .12, 1, 0);
+  });
+  if (down) return;
+  for (const z of [h * .4, h * .8]) {
+    box(-R, R - .03, z, R, R + .03, z + .08, mat, 21);
+    box(-R, -R - .03, z, R, -R + .03, z + .08, mat, 22);
+    box(R - .03, -R, z, R + .03, R, z + .08, mat, 23);
+    box(-R - .03, -R, z, -R + .03, R, z + .08, mat, 24);
+    for (let s = -R; s <= R; s += .35) for (const [x, y] of [[s, R], [s, -R], [R, s], [-R, s]]) castShadow(x, y, z, .06, 1, 0);
+  }
+  if (lvl >= 4) {
+    // barbed wire along the top
+    const wire = rampOf(DARK)[2];
+    for (let s = -R; s <= R; s += .03) {
+      const z = h + .12 + (Math.floor(s * 6) % 2 ? .05 : 0);
+      plot(s, R, z, wire); plot(s, -R, z, wire); plot(R, s, z, wire); plot(-R, s, z, wire);
+    }
+  }
+}
+function buildStores() {
+  // food piles up on the left of the bunker, building material on the right
+  const food = Math.min(G.lv.food, 9), res = Math.min(G.lv.res, 9);
+  for (let k = 0; k < food; k++) {
+    const x = -2.6 - (k % 3) * .7, y = 2.6 + Math.floor(k / 3) * .7 - (k % 3) * .1;
+    if (k % 2) {
+      capsule([x, y, .05], [x, y, .7], .3, .3, () => BARREL, 'rough');
+      castShadow(x, y, .4, .32);
+    } else {
+      sphere(x, y, .28, .34, SACK, 'rough'); sphere(x + .1, y - .1, .62, .26, SACK, 'rough');
+      castShadow(x, y, .4, .36);
+    }
+  }
+  for (let k = 0; k < res; k++) {
+    const stack = k >= 6, j = k % 6;
+    const x = 2.5 + (j % 3) * .72, y = -2.5 - Math.floor(j / 3) * .72, z = stack ? .6 : 0;
+    box(x - .29, y - .29, z, x + .29, y + .29, z + .58, k % 3 === 2 ? OLIVE : CRATE, 30 + k);
+    castShadow(x, y, z + .3, .4);
+  }
+}
+function bake() {
+  zb.fill(-1e9);
+  pix.fill(PAPER_PX);
+  ground.fill(0);
+  shadowMask.fill(0);
+  for (let iy = 0; iy < H; iy++) for (let ix = 0; ix < W; ix++) {
+    const g = unproject(ix + .5, iy + .5), [c, kind] = groundColor(g.x, g.y, ix, iy), i = iy * W + ix;
+    kinds[i] = kind;
+    if (!c) continue;
+    pix[i] = c; ground[i] = 1;
+    zb[i] = (g.x + g.y) / R2 * COS;
+  }
+  groundZ.set(zb);
+  buildBunker();
+  buildFence();
+  buildStores();
+  bakeOcclusion();
+  staticShadow.set(shadowMask);
+  applyShadows(groundZ);
+  bakedPix.set(pix);
+  bakedZ.set(zb);
+}
+
+/* ---------- zombies ---------- */
+function spawn() {
+  const r = SPAWN_R - Math.random() * .5, side = Math.floor(Math.random() * 4), s = (Math.random() * 2 - 1) * r;
+  const [x, y] = [[r, s], [s, r], [-r, s], [s, -r]][side];
+  const w = G.wave, brute = w >= 3 && Math.random() < .08;
+  const hp = zombieHp(w) * (brute ? 7 : 1) * (.9 + Math.random() * .2);
+  G.zombies.push({
+    x, y, n: Math.max(Math.abs(x), Math.abs(y)), hp, max: hp, brute,
+    speed: (.75 + Math.random() * .35 + Math.min(w, 40) * .01) * (brute ? .65 : 1),
+    dps: zombieDps(w) * (brute ? 3 : 1), reward: zombieReward(w) * (brute ? 6 : 1),
+    scale: brute ? 1.1 : .8 + Math.random() * .06, phase: Math.random() * 6.28,
+    state: 'rise', t: 0, hit: 0, sx: 0, sy: 0,
+  });
+  for (let k = 0; k < 8; k++) G.coins.push({ x, y, z: .1, vx: (Math.random() - .5) * 1.6, vy: (Math.random() - .5) * 1.6, vz: 2 + Math.random() * 2, life: .5, dirt: true });
+}
+const fenceUp = () => G.lv.wall > 0 && !G.fenceDown;
+function updateZombies(dt) {
+  for (const z of G.zombies) {
+    z.hit = Math.max(0, z.hit - dt);
+    if (z.state === 'dying') { z.t += dt; continue; }
+    if (z.state === 'rise') { if ((z.t += dt) >= RISE) z.state = 'walk'; continue; }
+    const atFence = fenceUp() && z.n >= FENCE_R - .2;
+    const stopAt = atFence ? FENCE_R + .45 : STOP_BUNKER;
+    if (z.n > stopAt) {
+      const d = Math.hypot(z.x, z.y) || 1;
+      z.x -= z.x / d * z.speed * dt;
+      z.y -= z.y / d * z.speed * dt;
+      z.n = Math.max(Math.abs(z.x), Math.abs(z.y));
+      z.state = 'walk';
+    } else {
+      z.state = atFence ? 'fence' : 'bunker';
+      if (atFence) damageFence(z.dps * dt);
+      else { G.hp -= z.dps * dt; G.hurt = .25; }
+    }
+    z.t += dt;
+  }
+  G.zombies = G.zombies.filter(z => z.state !== 'dying' || z.t < .55);
+}
+function damageFence(amount) {
+  G.fenceHp -= amount;
+  if (G.fenceHp > 0) return;
+  G.fenceHp = 0;
+  G.fenceDown = true;
+  bake();
+  say('울타리가 무너졌다!', true);
+  sound('crash');
+}
+function pickTarget() {
+  let best = null;
+  for (const z of G.zombies) if (z.state !== 'dying' && z.n < FIELD - .3 && (!best || z.n < best.n)) best = z;
+  return best;
+}
+function shoot(z) {
+  z.hp -= stat('atk');
+  z.hit = .08;
+  G.muzzle = .06;
+  G.tracers.push({ a: G.gunTip.slice(), b: [z.x, z.y, 1.05 * z.scale], life: .07 });
+  sound('shot');
+  if (z.hp <= 0) kill(z);
+}
+function kill(z) {
+  z.state = 'dying'; z.t = 0;
+  const gain = z.reward * stat('gold');
+  G.money += gain;
+  G.totalKills++;
+  sound('kill');
+  for (let k = 0; k < (z.brute ? 8 : 3); k++) {
+    G.coins.push({ x: z.x, y: z.y, z: 1, vx: (Math.random() - .5) * 2, vy: (Math.random() - .5) * 2, vz: 3 + Math.random() * 2, life: .8 });
+  }
+  const pts = [];
+  for (let k = 0; k < (z.brute ? 40 : 18); k++) {
+    const a = Math.random() * 6.28, d = Math.sqrt(Math.random()) * .55 * z.scale;
+    const p = project(z.x + Math.cos(a) * d, z.y + Math.sin(a) * d, 0), ix = p.sx | 0, iy = p.sy | 0;
+    if (ix >= 0 && iy >= 0 && ix < W && iy < H) pts.push(iy * W + ix);
+  }
+  G.decals.push({ pts, color: Math.random() < .5 ? rgb(70, 92, 50) : rgb(96, 46, 44), life: 10 });
+  if (G.decals.length > 40) G.decals.shift();
+  if (++G.waveKills >= killsNeeded(G.wave)) {
+    G.wave++;
+    G.waveKills = 0;
+    say('웨이브 ' + G.wave + ' — 좀비가 더 단단해진다');
+  }
+}
+function fall() {
+  const back = Math.max(1, G.wave - 2);
+  say('벙커가 뚫렸다… 웨이브 ' + G.wave + ' → ' + back, true);
+  sound('crash');
+  G.wave = back;
+  G.waveKills = 0;
+  G.zombies = [];
+  G.hp = stat('food');
+  if (G.lv.wall) { G.fenceHp = stat('wall'); G.fenceDown = false; bake(); }
+  G.spawnIn = 3;
+}
+
+/* ---------- loop ---------- */
+function say(text, alert) {
+  G.status = text; G.statusT = 4;
+  nodes.status.textContent = text;
+  nodes.status.classList.toggle('alert', !!alert);
+}
+function update(dt) {
+  G.time += dt;
+  G.money += stat('res') * dt;
+  // bunker heals from the food store, the fence patches itself
+  G.hp = Math.min(stat('food'), G.hp + regenOf(G.lv.food) * dt);
+  if (G.lv.wall) {
+    const max = stat('wall');
+    G.fenceHp = Math.min(max, G.fenceHp + max * .025 * dt);
+    if (G.fenceDown && G.fenceHp >= max * .4) { G.fenceDown = false; bake(); say('울타리를 다시 세웠다'); }
+  }
+  if ((G.spawnIn -= dt) <= 0) {
+    if (G.zombies.length < MAX_ZOMBIES) spawn();
+    G.spawnIn = spawnEvery(G.wave) * (.6 + Math.random() * .8);
+  }
+  updateZombies(dt);
+  if (G.hp <= 0) fall();
+  const target = pickTarget();
+  if (target) {
+    const want = Math.atan2(target.y, target.x);
+    let d = want - G.yaw;
+    d = Math.atan2(Math.sin(d), Math.cos(d));
+    G.yaw += d * Math.min(1, dt * 18);
+    G.cool -= dt;
+    while (G.cool <= 0 && target.state !== 'dying') { shoot(target); G.cool += 1 / stat('spd'); }
+  } else G.cool = Math.max(0, G.cool - dt);
+  G.muzzle = Math.max(0, G.muzzle - dt);
+  G.hurt = Math.max(0, G.hurt - dt);
+  for (const t of G.tracers) t.life -= dt;
+  G.tracers = G.tracers.filter(t => t.life > 0);
+  for (const c of G.coins) { c.vz -= 12 * dt; c.x += c.vx * dt; c.y += c.vy * dt; c.z = Math.max(.1, c.z + c.vz * dt); c.life -= dt; }
+  G.coins = G.coins.filter(c => c.life > 0);
+  for (const d of G.decals) d.life -= dt;
+  G.decals = G.decals.filter(d => d.life > 0);
+  if (G.statusT > 0 && (G.statusT -= dt) <= 0) { nodes.status.textContent = ''; G.status = ''; }
+  if ((G.saveIn -= dt) <= 0) { save(); G.saveIn = 5; }
+}
+
+/* ---------- draw ---------- */
+function drawZombie(z) {
+  const palette = z.hit > 0 ? FLASH : z.brute ? BRUTE : ZOMBIE;
+  const yaw = Math.atan2(-z.y, -z.x), t = G.time * 2.6 * z.speed + z.phase;
+  const pose = { scale: z.scale, lean: .22, stance: .06 + Math.abs(Math.sin(t)) * .16, armR: 1.35 + Math.sin(t) * .12, armL: 1.3 - Math.sin(t) * .12 };
+  if (z.state === 'fence' || z.state === 'bunker') {
+    const swing = Math.sin(G.time * 9 + z.phase);
+    pose.armR = 1.6 + swing * .7; pose.armL = 1.6 - swing * .7; pose.stance = .14; pose.lean = .35;
+  }
+  if (z.state === 'rise') {
+    // clawing up out of the ground: the ground hides whatever is still below it
+    const k = ease(clamp(z.t / RISE, 0, 1));
+    pose.z = -(1 - k) * 2.3 * z.scale; pose.armR = 2.7 - k * 1.3; pose.armL = 2.5 - k * 1.2; pose.lean = .5 - k * .28;
+  }
+  if (z.state === 'dying') {
+    const k = z.t / .55;
+    pose.z = -k * 2.2 * z.scale; pose.lean = .22 - k * .9; pose.armR = 2.6; pose.armL = 2.4;
+  }
+  figure(z.x, z.y, yaw, pose, palette, dynamicAdd);
+  const chest = project(z.x, z.y, 1.05 * z.scale);
+  z.sx = chest.sx; z.sy = chest.sy;
+}
+function drawSurvivor() {
+  const recoil = G.muzzle > 0 ? -.08 : 0;
+  const hand = figure(Math.cos(G.yaw) * recoil, Math.sin(G.yaw) * recoil, G.yaw, { z: ROOF_Z, scale: .9, armR: 1.55, armL: 1.45, stance: .12, lean: .08 }, SURVIVOR, dynamicAdd);
+  const fx = Math.cos(G.yaw), fy = Math.sin(G.yaw);
+  const tip = [hand[0] + fx * .55, hand[1] + fy * .55, hand[2] + .02];
+  capsule([hand[0] - fx * .2, hand[1] - fy * .2, hand[2] - .02], tip, .07, .05, () => DARK, 'solid');
+  G.gunTip = tip;
+  if (G.muzzle > 0) sphere(tip[0] + fx * .1, tip[1] + fy * .1, tip[2], .12, [255, 220, 120], 'gloss');
+}
+function line3(a, b, color) {
+  const pa = project(...a), pb = project(...b), n = Math.ceil(Math.hypot(pb.sx - pa.sx, pb.sy - pa.sy));
+  for (let k = 0; k <= n; k++) {
+    const ix = lerp(pa.sx, pb.sx, k / n) | 0, iy = lerp(pa.sy, pb.sy, k / n) | 0;
+    if (ix >= 0 && iy >= 0 && ix < W && iy < H) pix[iy * W + ix] = color;
+  }
+}
+function drawBars() {
+  const ink = INK, green = rgb(120, 196, 88), red = rgb(220, 80, 60);
+  for (const z of G.zombies) {
+    if (z.state === 'dying' || z.hp >= z.max) continue;
+    const p = project(z.x, z.y, 2.25 * z.scale), w = z.brute ? 12 : 8, left = Math.round(p.sx - w / 2), top = Math.round(p.sy) - 3;
+    const fill = Math.ceil(w * clamp(z.hp / z.max, 0, 1));
+    for (let k = -1; k <= w; k++) for (let r = -1; r <= 1; r++) {
+      const ix = left + k, iy = top + r;
+      if (ix < 0 || iy < 0 || ix >= W || iy >= H) continue;
+      pix[iy * W + ix] = r === 0 && k >= 0 && k < w ? (k < fill ? (z.brute ? red : green) : rgb(70, 66, 64)) : ink;
+    }
+  }
+}
+function draw() {
+  pix.set(bakedPix);
+  zb.set(bakedZ);
+  pendingShadows.length = 0;
+  const windT = STILL ? 0 : Math.floor(G.time * WIND_FPS) / WIND_FPS;
+  for (const d of G.decals) {
+    for (let k = 0; k < d.pts.length; k++) {
+      const i = d.pts[k];
+      if (d.life < 2 && hash(i, 7) > d.life / 2) continue;
+      if (zb[i] === groundZ[i]) pix[i] = d.color;
+    }
+  }
+  drawSurvivor();
+  for (const z of G.zombies) drawZombie(z);
+  drawTufts(windT);
+  flushShadows();
+  applyShadows(bakedZ);
+  shadeEdges();
+  for (const t of G.tracers) line3(t.a, t.b, SIGNAL);
+  const gold = rgb(255, 214, 10), goldDark = rgb(186, 132, 20), soil = rampOf(DIRT);
+  for (const c of G.coins) {
+    const p = project(c.x, c.y, c.z), ix = p.sx | 0, iy = p.sy | 0;
+    if (ix < 1 || iy < 1 || ix >= W - 1 || iy >= H - 1) continue;
+    if (c.dirt) { pix[iy * W + ix] = soil[c.vz > 0 ? 3 : 1]; continue; }
+    pix[iy * W + ix] = gold; pix[iy * W + ix + 1] = gold; pix[(iy + 1) * W + ix] = goldDark; pix[(iy + 1) * W + ix + 1] = goldDark;
+  }
+  drawBars();
+  ctx.putImageData(image, 0, 0);
+}
+
+/* ---------- HUD ---------- */
+const nodes = {};
+for (const id of ['money', 'wave', 'income', 'status', 'panel', 'bunkerFill', 'bunkerText', 'bunkerBar', 'fenceFill', 'fenceText', 'fenceBar', 'stage']) nodes[id] = document.getElementById(id);
+const buttons = {};
+for (const k of Object.keys(UP)) {
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.className = 'up';
+  b.innerHTML = '<span class="n"></span><span class="lv"></span><span class="d"></span><span class="c"></span>';
+  b.addEventListener('click', () => buy(k));
+  nodes.panel.append(b);
+  buttons[k] = b;
+}
+function buy(k) {
+  ensureAudio();
+  const u = UP[k];
+  if (u.max != null && G.lv[k] >= u.max) return;
+  const price = cost(k);
+  if (G.money < price) return;
+  G.money -= price;
+  const oldFood = stat('food');
+  G.lv[k]++;
+  if (k === 'wall') { G.fenceHp = stat('wall'); G.fenceDown = false; if (G.lv.wall === 1) say('벙커 둘레에 울타리를 세웠다'); }
+  if (k === 'food') G.hp += stat('food') - oldFood;
+  if (k === 'wall' || k === 'food' || k === 'res') bake();
+  sound('buy');
+  refreshHud(true);
+}
+let hudIn = 0;
+function refreshHud(force) {
+  if (!force && (hudIn -= 1) > 0) return;
+  hudIn = 6;
+  nodes.money.textContent = '$' + fmt(G.money);
+  nodes.wave.textContent = '웨이브 ' + G.wave + ' · ' + G.waveKills + '/' + killsNeeded(G.wave) + ' · 처치 ' + fmt(G.totalKills);
+  nodes.income.textContent = G.lv.res ? '자원 +$' + fmt(stat('res')) + '/초' : '';
+  const maxHp = stat('food');
+  nodes.bunkerFill.style.width = clamp(G.hp / maxHp, 0, 1) * 100 + '%';
+  nodes.bunkerText.textContent = '벙커 ' + fmt(Math.max(0, G.hp)) + '/' + fmt(maxHp);
+  nodes.bunkerBar.classList.toggle('hurt', G.hurt > 0);
+  if (G.lv.wall) {
+    const max = stat('wall');
+    nodes.fenceFill.style.width = clamp(G.fenceHp / max, 0, 1) * 100 + '%';
+    nodes.fenceText.textContent = (G.fenceDown ? '울타리 복구 중 ' : '울타리 ') + fmt(G.fenceHp) + '/' + fmt(max);
+  } else {
+    nodes.fenceFill.style.width = '0%';
+    nodes.fenceText.textContent = '울타리 없음';
+  }
+  for (const [k, u] of Object.entries(UP)) {
+    const b = buttons[k], l = G.lv[k], maxed = u.max != null && l >= u.max, price = cost(k);
+    b.children[0].textContent = u.name;
+    b.children[1].textContent = 'Lv ' + l;
+    b.children[2].textContent = maxed ? u.show(u.val(l), l) : u.show(u.val(l), l) + ' → ' + u.show(u.val(l + 1), l + 1).replace(/^[^\d$x]*/, '');
+    b.children[3].textContent = maxed ? '최대' : '$' + fmt(price);
+    b.classList.toggle('poor', maxed || G.money < price);
+  }
+}
+function fitStage() {
+  nodes.stage.style.bottom = nodes.panel.offsetHeight + 30 + 'px';
+  nodes.status.style.bottom = nodes.panel.offsetHeight + 14 + 'px';
+  const r = nodes.stage.getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
+  const f = Math.min(r.width / W, r.height / H);
+  // whole device pixels once there are enough of them; below that a fractional scale beats a tiny game
+  const scale = f * dpr >= 3 ? Math.floor(f * dpr) / dpr : f;
+  canvas.style.width = W * scale + 'px';
+  canvas.style.height = H * scale + 'px';
+}
+
+/* ---------- input ---------- */
+canvas.addEventListener('pointerdown', e => {
+  ensureAudio();
+  const r = canvas.getBoundingClientRect(), x = (e.clientX - r.left) * W / r.width, y = (e.clientY - r.top) * H / r.height;
+  // a tap on a zombie is a free extra shot
+  let best = null, bestD = 22;
+  for (const z of G.zombies) {
+    if (z.state === 'dying' || z.n > FIELD) continue;
+    const d = Math.hypot(z.sx - x, z.sy - y);
+    if (d < bestD) { bestD = d; best = z; }
+  }
+  if (best) {
+    G.yaw = Math.atan2(best.y, best.x);
+    shoot(best);
+  }
+});
+
+/* ---------- save ---------- */
+function save() {
+  try {
+    localStorage.setItem(SAVE_KEY, JSON.stringify({ money: G.money, wave: G.wave, waveKills: G.waveKills, totalKills: G.totalKills, lv: G.lv, at: Date.now() }));
+  } catch { /* saving is a convenience */ }
+}
+function load() {
+  let data = null;
+  try { data = JSON.parse(localStorage.getItem(SAVE_KEY)); } catch { data = null; }
+  if (data && data.lv) {
+    G.money = +data.money || 0; G.wave = +data.wave || 1; G.waveKills = +data.waveKills || 0; G.totalKills = +data.totalKills || 0;
+    for (const k of Object.keys(G.lv)) G.lv[k] = +data.lv[k] || 0;
+    const away = clamp((Date.now() - (+data.at || Date.now())) / 1000, 0, OFFLINE_CAP);
+    const gain = stat('res') * away;
+    if (gain >= 1) { G.money += gain; say('자리 비운 동안 자원 +$' + fmt(gain)); }
+  }
+  G.hp = stat('food');
+  G.fenceHp = stat('wall');
+  if (!G.status) say('좀비가 사방에서 온다 · 좀비를 누르면 직접 쏜다');
+}
+addEventListener('beforeunload', save);
+document.addEventListener('visibilitychange', () => { if (document.hidden) save(); });
+
+/* ---------- sound ---------- */
+let audio = null, muted = false, noiseBuffer = null, lastShot = 0;
+function ensureAudio() {
+  if (audio) { if (audio.state === 'suspended') audio.resume(); return; }
+  const AC = window.AudioContext || window.webkitAudioContext;
+  if (!AC) return;
+  audio = new AC();
+  noiseBuffer = audio.createBuffer(1, audio.sampleRate, audio.sampleRate);
+  const data = noiseBuffer.getChannelData(0);
+  for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+}
+function burst(type, freq, volume, length) {
+  const now = audio.currentTime, src = audio.createBufferSource(), filter = audio.createBiquadFilter(), gain = audio.createGain();
+  src.buffer = noiseBuffer;
+  filter.type = type; filter.frequency.value = freq; filter.Q.value = .8;
+  gain.gain.setValueAtTime(volume, now);
+  gain.gain.exponentialRampToValueAtTime(.0005, now + length);
+  src.connect(filter).connect(gain).connect(audio.destination);
+  src.start(now, Math.random() * .5, length + .02);
+}
+function sound(kind) {
+  if (!audio || muted || document.hidden) return;
+  if (kind === 'shot') {
+    if (audio.currentTime - lastShot < .06) return; // fast fire rates would turn into a hiss
+    lastShot = audio.currentTime;
+    burst('bandpass', 1600, .05, .06);
+  }
+  if (kind === 'kill') burst('lowpass', 320, .09, .12);
+  if (kind === 'buy') burst('bandpass', 2400, .06, .08);
+  if (kind === 'crash') burst('lowpass', 160, .3, .6);
+}
+const muteButton = document.getElementById('mute');
+muteButton.addEventListener('click', () => {
+  muted = !muted;
+  muteButton.textContent = muted ? '소리 꺼짐' : '소리 켜짐';
+  muteButton.setAttribute('aria-pressed', String(muted));
+});
+
+/* ---------- boot ---------- */
+load();
+bake();
+growGrass();
+refreshHud(true);
+addEventListener('resize', fitStage);
+fitStage();
+let last = performance.now();
+function frame(now) {
+  // a background tab gets its time back in chunks, so an idle game keeps running while hidden
+  let dt = Math.min(5, (now - last) / 1000);
+  last = now;
+  while (dt > 0) { const step = Math.min(.04, dt); update(step); dt -= step; }
+  draw();
+  refreshHud(false);
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+window.__bunker = { G, step(dt) { update(dt); draw(); }, buy };
+</script>
+</body>
+</html>
