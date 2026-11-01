@@ -28,7 +28,8 @@ function gunCost(k, L) {
 }
 const reloadTime = () => 1.6 * .97 ** G.lv.mag;
 const JOBS = ['사수', '농부', '광부'];
-const HIRE = [{ money: 50, food: 20 }, { money: 300, food: 60 }, { money: 1500, food: 150 }, { money: 7000, food: 400 }, { money: 25000, food: 1000 }];
+// hiring: each new hand costs more, but late hires stay within reach so the crew keeps growing
+const HIRE = [{ money: 50, food: 20 }, { money: 250, food: 50 }, { money: 1000, food: 120 }, { money: 3500, food: 300 }, { money: 10000, food: 700 }];
 const UPKEEP = .4, REPAIR_FOOD = .1, REPAIR_MONEY = .02;
 const FATIGUE_WORK = 100 / 110, FATIGUE_REST = 100 / 28; // about two minutes on, half a minute in bed
 // zombies grow about 11% a wave; rewards about 8.5%; more kinds join as the waves go on

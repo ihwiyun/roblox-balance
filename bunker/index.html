@@ -92,6 +92,8 @@
   .set input[type=range] { width: 130px; accent-color: var(--ink); }
   .danger { color: var(--bad); border-color: var(--bad); }
   @media (max-width: 440px) { :root { --top: 76px; --bottom: 266px; } #panel { grid-template-columns: 1fr; } }
+  /* short phones: a lower panel leaves the picture room for the three floors below ground */
+  @media (max-width: 440px) and (max-height: 720px) { :root { --bottom: 206px; } }
   /* wide screens: the panel stands on the right, the picture takes the rest */
   .wide { --side: 400px; }
   .wide #bottom { left: auto; top: var(--top); width: var(--side); height: auto; border-top: 0; border-left: 1px solid var(--ink); }
@@ -149,7 +151,9 @@
   const wide = innerWidth >= 900 && innerWidth > innerHeight * 1.15;
   document.documentElement.classList.toggle('wide', wide);
   const r = document.getElementById('stage').getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
-  const k = Math.max(1, Math.floor(Math.min(r.width * dpr / 360, r.height * dpr / 300)));
+  // at least 360 game pixels across and 300 down (400 on wide screens, where the height is there for the
+  // three floors below ground); phones keep the biggest pixels
+  const k = Math.max(1, Math.floor(Math.min(r.width * dpr / 360, r.height * dpr / (wide ? 400 : 300))));
   const width = Math.min(480, Math.floor(r.width * dpr / k)), height = Math.min(620, Math.floor(r.height * dpr / k));
   // the island is a diamond that fits the picture with a margin: 2.83 * 16 px wide and 1.41 * 16 px tall per unit
   const field = Math.max(6.4, Math.min(9, (width - 20) / 45.3, (height - 70) / 22.6));
