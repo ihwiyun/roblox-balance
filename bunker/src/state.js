@@ -7,7 +7,7 @@ const G = {
   crew: [null, null, null, null, null],
   wave: 1, waveKills: 0, totalKills: 0,
   hp: 150, fenceHp: 0, fenceDown: false, sideDmg: [0, 0, 0, 0], sideStage: [0, 0, 0, 0],
-  zombies: [], spits: [], tracers: [], parts: [], uparts: [], decals: [], floats: [], bossFor: 0,
+  zombies: [], spits: [], tracers: [], parts: [], uparts: [], decals: [], floats: [], bossFor: 0, seen: [],
   hero: null, time: 0, spawnIn: 2, speed: 1, hurt: 0, hungry: false, saveIn: 5, statusT: 0, view: 'yard',
 };
 const gunStat = k => GUN[k].val(G.lv[k]);
@@ -32,7 +32,7 @@ function save() {
     localStorage.setItem(SAVE_KEY, JSON.stringify({
       money: G.money, food: G.food, mineral: G.mineral, lv: G.lv, bunker: G.bunker, fence: G.fence, live: G.live, farm: G.farm, mine: G.mine,
       crew: G.crew.map(c => c && { job: c.job, fatigue: c.fatigue }), wave: G.wave, waveKills: G.waveKills, totalKills: G.totalKills, at: Date.now(),
-      hp: G.hp, fenceHp: G.fenceHp, fenceDown: G.fenceDown, ver: 4,
+      hp: G.hp, fenceHp: G.fenceHp, fenceDown: G.fenceDown, seen: G.seen, ver: 4,
     }));
   } catch { /* saving is a convenience */ }
 }
@@ -51,6 +51,7 @@ function load() {
     G.hp = Number.isFinite(+d.hp) && d.hp > 0 ? Math.min(+d.hp, bunkerHp(G.bunker)) : bunkerHp(G.bunker);
     G.fenceHp = Number.isFinite(+d.fenceHp) ? clamp(+d.fenceHp, 0, fenceHp(G.fence)) : fenceHp(G.fence);
     G.fenceDown = !!d.fenceDown && G.fence > 0;
+    G.seen = Array.isArray(d.seen) ? d.seen.filter(k => ZTYPES[k]) : MUTANT_ORDER.filter(k => ZTYPES[k].from <= G.wave);
     creditAway(clamp((Date.now() - (+d.at || Date.now())) / 1000, 0, OFFLINE_CAP), 300);
     return;
   }

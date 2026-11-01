@@ -36,7 +36,8 @@ const bunkerReach = () => bunkerInfo().half + .55;
 function stopRing(z, T) {
   if (z.under) return fenceUp() ? FENCE_R - .7 : bunkerReach() + .9;
   const base = fenceUp() && z.n >= FENCE_R ? FENCE_R + .45 : bunkerReach();
-  return base + (T.range || 0);
+  // never beyond where the gunners can see (a small island has little room for a spitter's distance)
+  return Math.min(base + (T.range || 0), FIELD - .6);
 }
 function updateZombies(dt) {
   for (const z of G.zombies) {
@@ -67,6 +68,7 @@ function updateZombies(dt) {
       const pace = z.speed * (z.n > FIELD - .3 ? 1.6 : 1) * (z.rage > 0 ? 1.6 : 1) * (z.under ? 1.3 : 1) * dt;
       z.x += Math.cos(ang) * pace; z.y += Math.sin(ang) * pace;
       z.n = Math.max(Math.abs(z.x), Math.abs(z.y));
+      if (z.state === 'attack') z.leftAttack = G.time;
       z.walkDist += pace; z.yaw = ang; z.state = 'walk';
       if (z.under && Math.random() < dt * 6) spray(z.x, z.y, .05, 1, .8, 1.2, .4, [rgb(120, 96, 66)]);
       // a burrower dives as soon as it is on the island; a leaper jumps the fence from just outside it
@@ -79,11 +81,14 @@ function updateZombies(dt) {
     }
     if (z.under) { z.state = 'emerge'; z.st = 0; sound('thud'); continue; }
     const atFence = fenceUp() && z.n >= FENCE_R;
-    if (z.state !== 'attack') { z.state = 'attack'; z.atk = 0; z.yaw = Math.atan2(-z.y, -z.x); }
-    z.atk += dt * (z.rage > 0 ? 1.4 : 1);
+    // stepping back in after a knockback keeps the windup it had; only a fresh approach starts from zero
+    if (z.state !== 'attack') { if (G.time - (z.leftAttack || -9) > .8) z.atk = 0; z.state = 'attack'; z.yaw = Math.atan2(-z.y, -z.x); }
+    z.lastAttack = G.time;
+    const inc = dt * (z.rage > 0 ? 1.4 : 1);
+    z.atk += inc;
     if (T.special === 'burst') { if (z.atk >= T.every) burst(z, atFence); continue; }
     const at = T.special === 'spit' || T.special === 'scream' ? .7 : .55;
-    if (z.atk - dt < T.every * at && z.atk >= T.every * at) {
+    if (z.atk - inc < T.every * at && z.atk >= T.every * at) {
       if (T.special === 'spit') spit(z, atFence);
       else if (T.special === 'scream') scream(z);
       else { strike(z, atFence); if (T.special === 'boss') stomp(z); }
@@ -136,7 +141,7 @@ function strike(z, atFence) {
     for (let k = 0; k < (BIG[z.type] ? 10 : 5); k++) part(hx, hy, .3 + Math.random() * .3, ox * (1 + Math.random() * 2) + (Math.random() - .5) * 2, oy * (1 + Math.random() * 2) + (Math.random() - .5) * 2, 2 + Math.random() * 3, .9, mat[2 + (k % 2)], mat[0], k % 3 ? 1 : 2, 1);
     sound(fenceInfo().metal ? 'clang' : 'thud');
     // the electric fence bites back
-    if (fenceInfo().electric) { hurt(z, zombieHp(G.wave) * .12, true); spray(hx, hy, .4, 6, 1.6, 2, .3, [rgb(140, 210, 255), rgb(255, 255, 255)]); }
+    if (fenceInfo().electric) { hurt(z, zombieHp(G.wave) * .12, true, true); spray(hx, hy, .4, 6, 1.6, 2, .3, [rgb(140, 210, 255), rgb(255, 255, 255)]); }
     damageFence(side, amount);
   } else {
     const dust = rampOf(bunkerInfo().material);
@@ -177,12 +182,12 @@ function fenceStages() {
     if (st !== cur) { G.sideStage[k] = st; fenceDirty = true; }
   }
 }
-function hurt(z, dmg, quiet) {
+function hurt(z, dmg, quiet, still) {
   if (z.state === 'dying' || z.under) return;
   dmg *= ZTYPES[z.type].armor || 1;
   z.hp -= dmg; z.hit = .07; z.lastHit = G.time;
   const d = Math.hypot(z.x, z.y) || 1;
-  if (!BIG[z.type] && z.state !== 'leap') { z.x += z.x / d * .04; z.y += z.y / d * .04; z.n = Math.max(Math.abs(z.x), Math.abs(z.y)); }
+  if (!still && !BIG[z.type] && z.state !== 'leap') { z.x += z.x / d * .04; z.y += z.y / d * .04; z.n = Math.max(Math.abs(z.x), Math.abs(z.y)); }
   if (!quiet) { const j = Math.random() - .5; float(z.x + j * .7, z.y - j * .7, 1.8 + Math.random() * .3, fmt(Math.round(dmg)), rgb(255, 255, 255)); } // spread so rapid hits stay readable
   spray(z.x, z.y, .9, 3, 1.2, 1.5, .4, [rgb(110, 40, 40), rgb(80, 120, 60)]);
   if (z.hp <= 0) kill(z);
@@ -208,7 +213,8 @@ function kill(z) {
   if (G.waveKills >= killsNeeded(G.wave)) {
     G.wave++; G.waveKills = 0;
     const fresh = MUTANT_ORDER.map(k => ZTYPES[k]).find(t => t.from === G.wave);
-    if (fresh) notify('새 변이체 · ' + fresh.name, fresh.desc, 'new');
+    const key = fresh && MUTANT_ORDER.find(k => ZTYPES[k] === fresh);
+    if (fresh && !G.seen.includes(key)) { G.seen.push(key); notify('새 변이체 · ' + fresh.name, fresh.desc, 'new'); }
     else if (!isBossWave(G.wave)) notify('웨이브 ' + G.wave, '좀비 체력 ' + fmt(zombieHp(G.wave)) + (nextMutant() ? ' · 다음 변이체 웨이브 ' + nextMutant().from : ''));
   }
 }
@@ -216,6 +222,7 @@ function fall() {
   const back = Math.max(1, G.wave - 2);
   notify('기지가 뚫렸다', '웨이브 ' + G.wave + ' → ' + back + ' · 다시 막아내자', 'danger');
   sound('crash');
+  for (const z of G.zombies) z.gone = true;
   G.wave = back; G.waveKills = 0; G.zombies = []; G.spits = []; G.bossFor = 0;
   G.hp = bunkerHp(G.bunker);
   if (G.fence) { G.fenceHp = fenceHp(G.fence); G.fenceDown = false; G.sideDmg = [0, 0, 0, 0]; G.sideStage = [0, 0, 0, 0]; composeYard(); }

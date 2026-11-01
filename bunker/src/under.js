@@ -18,7 +18,7 @@ function layoutFloors() {
   // the floors are as long as the picture allows (at most 16 units): three floor diamonds, their walls,
   // slabs, gaps and the hatch on top must fit the canvas height
   const yr = UG.y1 - UG.y0, fixed = 3 * UG.slab * COS * S + 2 * 10 + UG.h * COS * S + 1.4 * COS * S;
-  const xr = Math.min(16, ((H - 24 - fixed) / 3) * R2 / (SIN * S) - yr);
+  const xr = clamp(((H - 24 - fixed) / 3) * R2 / (SIN * S) - yr, 7, 16);
   UG.x0 = -xr / 2; UG.x1 = xr / 2;
   SHAFT.x = UG.x0 + .55;
   PIT.x = AX(3.75); PIT.y = UG.y0 + 2.45;
@@ -36,7 +36,9 @@ function layoutFloors() {
 // back wall, beds 3-4 along the front edge. bedSpot is where the sleeper walks to (in front of the bed, on the aisle
 // side); sleepSpot is the floor point under the middle of the mattress, where the sleeping figure is drawn
 const BED_L = 1.7, BEDS_A = [1.15, 3.0, 4.85, 1.15, 3.0];
-const BED_X = i => AX(BEDS_A[i]);
+// on a short floor the plan's spacing would make beds overlap: keep at least a bed's length between them
+const bedGap = () => Math.max(BED_L + .12, 1.85 * (UG.x1 - UG.x0) / PLAN);
+const BED_X = i => Math.max(AX(BEDS_A[0]), UG.x0 + 1.05) + (i % 3) * bedGap();
 const bedY = i => i < 3 ? [UG.y0 + .08, UG.y0 + .86] : [UG.y0 + 2.72, UG.y0 + 3.5];
 const bedSpot = c => ({ where: 'ug', floor: 0, x: BED_X(c.i) + .85, y: UG.y0 + (c.i < 3 ? 1.12 : 2.4), z: FLOOR_Z[0] });
 const sleepSpot = i => { const [a, b] = bedY(i); return { x: BED_X(i) + BED_L / 2, y: (a + b) / 2, z: FLOOR_Z[0] }; };

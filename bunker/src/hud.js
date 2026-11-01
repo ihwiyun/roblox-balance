@@ -46,8 +46,11 @@ for (const id of ['status', 'panel', 'bunkerFill', 'bunkerText', 'bunkerTrack', 
 // notifications: one band at a time, queued; kind is '' | 'good' | 'new' | 'danger'
 const noteQueue = [];
 let noteBusy = false;
-function notify(title, sub = '', kind = '') {
-  if (noteQueue.some(n => n.title === title && n.sub === sub)) return;
+const noteShown = {};
+function notify(title, sub = '', kind = '', gap = 25) {
+  const now = performance.now();
+  if (noteQueue.some(n => n.title === title && n.sub === sub) || now - (noteShown[title] || -1e9) < gap * 1000) return;
+  noteShown[title] = now;
   noteQueue.push({ title, sub, kind });
   if (noteQueue.length > 4) noteQueue.shift();
   if (!noteBusy) nextNote();
@@ -71,7 +74,7 @@ function refreshAmmo() {
   const key = reloading ? 'r' + Math.round(t * 20) : h.ammo + '/' + mag;
   if (key === ammoShown) return;
   ammoShown = key;
-  nodes.ammoNum.innerHTML = reloading ? `장전<small> ${Math.round(t * 100)}%</small>` : `${h.ammo}<small>/${mag}</small>`;
+  nodes.ammoNum.innerHTML = reloading ? `<small>장전 ${Math.round(t * 100)}%</small>` : `${h.ammo}<small>/${mag}</small>`;
   nodes.ammoBar.style.width = (reloading ? t : h.ammo / mag) * 100 + '%';
   nodes.ammo.classList.toggle('empty', !reloading && h.ammo === 0);
 }

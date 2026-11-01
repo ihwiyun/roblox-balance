@@ -51,12 +51,23 @@ const GLYPHS = {
   z: ['000', '111', '001', '010', '111'], Z: ['111', '001', '010', '100', '111'], a: ['000', '011', '101', '101', '011'], b: ['100', '110', '101', '101', '110'], c: ['000', '011', '100', '100', '011'],
 };
 function pixelText(text, cx, top, color) {
-  const glyphs = [...text].map(ch => GLYPHS[ch]).filter(Boolean), width = glyphs.length * 4 - 1;
-  const x0 = Math.round(cx - width / 2), y0 = Math.round(top), cells = [];
-  glyphs.forEach((g, n) => g.forEach((row, y) => [...row].forEach((on, x) => { if (on === '1') cells.push([x0 + n * 4 + x, y0 + y]); })));
-  for (const [x, y] of cells) for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
-    const ix = x + dx, iy = y + dy;
-    if (ix >= 0 && iy >= 0 && ix < W && iy < H) pix[iy * W + ix] = INK;
+  let n = 0;
+  for (const ch of text) if (GLYPHS[ch]) n++;
+  const x0 = Math.round(cx - (n * 4 - 1) / 2), y0 = Math.round(top);
+  // two passes over the glyph bits: a dark outline around every lit cell, then the cells themselves
+  for (let pass = 0; pass < 2; pass++) {
+    let k = 0;
+    for (const ch of text) {
+      const g = GLYPHS[ch];
+      if (!g) continue;
+      for (let y = 0; y < 5; y++) for (let x = 0; x < 3; x++) {
+        if (g[y][x] !== '1') continue;
+        const px = x0 + k * 4 + x, py = y0 + y;
+        if (pass === 0) {
+          for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) { const ix = px + dx, iy = py + dy; if (ix >= 0 && iy >= 0 && ix < W && iy < H) pix[iy * W + ix] = INK; }
+        } else if (px >= 0 && py >= 0 && px < W && py < H) pix[py * W + px] = color;
+      }
+      k++;
+    }
   }
-  for (const [x, y] of cells) if (x >= 0 && y >= 0 && x < W && y < H) pix[y * W + x] = color;
 }
