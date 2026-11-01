@@ -1,7 +1,8 @@
 'use strict';
 // From https://github.com/amirmushichge/pixel-plays (MIT, see LICENSE-pixel-plays).
 // Changed: canvas size and world scale come from PP_SCENE (width, height, scale); box steps, grass and
-// occlusion follow the world scale so a finer pixel grid stays solid.
+// occlusion follow the world scale so a finer pixel grid stays solid. noise() keeps its lattice values in a
+// small table and box() only works out the grain of a sample that is actually in front, so big bakes stay fast.
 // Shared pixel renderer for every game: orthographic camera, depth buffer, ramps, shadows, edges and wind.
 // A game sets window.PP_SCENE before loading this file, then draws through these globals.
 const SCENE = window.PP_SCENE || {};
@@ -49,9 +50,17 @@ function hash(x, y) {
   const s = Math.sin(x * 127.1 + y * 311.7) * 43758.5453;
   return s - Math.floor(s);
 }
+// the lattice values are the same hash as before, remembered in a small table (same picture, fewer sines)
+const LAT_N = 1 << 15, latX = new Int32Array(LAT_N), latY = new Int32Array(LAT_N), latV = new Float64Array(LAT_N).fill(-1);
+function lattice(ix, iy) {
+  const k = (Math.imul(ix, 73856093) ^ Math.imul(iy, 19349663)) & (LAT_N - 1);
+  if (latX[k] === ix && latY[k] === iy && latV[k] >= 0) return latV[k];
+  latX[k] = ix; latY[k] = iy;
+  return latV[k] = hash(ix, iy);
+}
 function noise(x, y) {
   const ix = Math.floor(x), iy = Math.floor(y), fx = ease(x - ix), fy = ease(y - iy);
-  return lerp(lerp(hash(ix, iy), hash(ix + 1, iy), fx), lerp(hash(ix, iy + 1), hash(ix + 1, iy + 1), fx), fy);
+  return lerp(lerp(lattice(ix, iy), lattice(ix + 1, iy), fx), lerp(lattice(ix, iy + 1), lattice(ix + 1, iy + 1), fx), fy);
 }
 function project(x, y, z) {
   const u = (x - y) / R2, v = (x + y) / R2;
@@ -97,20 +106,22 @@ function capsule(a, b, r0, r1, colorOf, mode) {
 }
 function box(x0, y0, z0, x1, y1, z1, c, seed = 0) {
   const ramp = rampOf(c);
-  const paint = (x, y, z, base, grain) => {
-    const p = project(x, y, z), ix = p.sx | 0, iy = p.sy | 0;
+  // the grain is noise(gx, gy), worked out only for a sample that wins the depth test
+  const paint = (x, y, z, base, gx, gy) => {
+    const u = (x - y) / R2, v = (x + y) / R2, d = v * COS + z * SIN;
+    const ix = (OX + u * S) | 0, iy = (OY + (v * SIN - z * COS) * S) | 0;
     if (ix < 0 || iy < 0 || ix >= W || iy >= H) return;
     const i = iy * W + ix;
-    if (p.d <= zb[i]) return;
-    zb[i] = p.d;
-    pix[i] = ramp[clamp(Math.floor(base + (grain - .5) * 1.3 + (bayerAt(ix, iy) - .5) * .5), 0, 4)];
+    if (d <= zb[i]) return;
+    zb[i] = d;
+    pix[i] = ramp[clamp(Math.floor(base + (noise(gx, gy) - .5) * 1.3 + (bayerAt(ix, iy) - .5) * .5), 0, 4)];
   };
   const step = .45 / S, longX = x1 - x0 >= y1 - y0;
   for (let a = x0; a <= x1; a += step) for (let b = y0; b <= y1; b += step) {
-    paint(a, b, z1, 3.4, longX ? noise(a * .8 + seed, b * 9) : noise(a * 9, b * .8 + seed));
+    if (longX) paint(a, b, z1, 3.4, a * .8 + seed, b * 9); else paint(a, b, z1, 3.4, a * 9, b * .8 + seed);
   }
-  for (let a = x0; a <= x1; a += step) for (let b = z0; b <= z1; b += step) paint(a, y1, b, 2.3, noise(a * .8 + seed, b * 9));
-  for (let a = y0; a <= y1; a += step) for (let b = z0; b <= z1; b += step) paint(x1, a, b, 1.2, noise(a * .8 + seed, b * 9));
+  for (let a = x0; a <= x1; a += step) for (let b = z0; b <= z1; b += step) paint(a, y1, b, 2.3, a * .8 + seed, b * 9);
+  for (let a = y0; a <= y1; a += step) for (let b = z0; b <= z1; b += step) paint(x1, a, b, 1.2, a * .8 + seed, b * 9);
 }
 function castShadow(x, y, z, r, strength = 1, dither = .4) {
   const p = project(x + SHADOW_X * z, y + SHADOW_Y * z, 0);
