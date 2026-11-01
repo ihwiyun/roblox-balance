@@ -82,8 +82,8 @@ const FLASH = { shirt: [250, 250, 240], stripe: [250, 250, 240], legs: [250, 250
 
 // each upgrade: cost = base * grow^level; val(level) is what the level gives
 const UP = {
-  atk:  { name: '공격력', base: 15, grow: 1.42, val: l => 10 * (1 + l * .6) * 1.06 ** l, show: v => fmt(v) + ' 피해' },
-  spd:  { name: '공속',   base: 20, grow: 1.5, max: 35, val: l => 1.2 + l * .3, show: v => v.toFixed(1) + '발/초' },
+  atk:  { name: '공격력', base: 15, grow: 1.42, val: l => 12 * (1 + l * .6) * 1.06 ** l, show: v => fmt(v) + ' 피해' },
+  spd:  { name: '공속',   base: 20, grow: 1.5, max: 35, val: l => 1.2 + l * .3, show: (v, l) => v.toFixed(1) + '발/초 탄창' + (6 + Math.floor(l * .7)) },
   gold: { name: '돈',     base: 25, grow: 1.5, val: l => 1 + l * .3, show: v => '보상 x' + v.toFixed(1) },
   wall: { name: '방어벽', base: 40, grow: 1.6, val: l => l ? 80 * l * 1.18 ** l : 0, show: v => v ? '울타리 ' + fmt(v) : '울타리 없음' },
   food: { name: '식량',   base: 30, grow: 1.5, val: l => 100 + 45 * l, show: (v, l) => '체력 ' + fmt(v) + ' +' + fmt(regenOf(l)) + '/초' },
@@ -97,12 +97,17 @@ const zombieDps = w => 6 * 1.13 ** (w - 1);
 const zombieReward = w => 2 * 1.16 ** (w - 1);
 const killsNeeded = w => 8 + w * 2;
 const spawnEvery = w => Math.max(.22, 1.5 * .94 ** (w - 1));
+// the gun: the 공속 upgrade also brings a bigger magazine and quicker hands
+const magSize = () => 6 + Math.floor(G.lv.spd * .7);
+const reloadTime = () => Math.max(.6, 1.3 * .96 ** G.lv.spd);
+const ATTACK_EVERY = 1.1, STRIKE_AT = .78;
 
 const G = {
   money: 0, wave: 1, waveKills: 0, totalKills: 0,
   lv: { atk: 0, spd: 0, gold: 0, wall: 0, food: 0, res: 0 },
   hp: 100, fenceHp: 0, fenceDown: false,
-  zombies: [], tracers: [], coins: [], decals: [],
+  zombies: [], tracers: [], parts: [], decals: [], sideDmg: [0, 0, 0, 0], sideStage: [0, 0, 0, 0],
+  ammo: 6, reload: 0, reloadLen: 1, magOut: false, magIn: false,
   time: 0, cool: 0, spawnIn: 1, yaw: Math.PI / 4, muzzle: 0, gunTip: [0, 0, 2.4], status: '', statusT: 0, hurt: 0, saveIn: 5,
 };
 
@@ -180,28 +185,41 @@ function buildBunker() {
 function buildFence() {
   const lvl = G.lv.wall;
   if (!lvl) return;
-  const down = G.fenceDown, h = .75 + Math.min(lvl, 12) * .05, mat = lvl >= 8 ? METAL : WOOD, R = FENCE_R;
-  const posts = [];
-  for (let s = -R; s <= R + .01; s += R / 5) posts.push([s, R], [s, -R], [R, s], [-R, s]);
-  posts.forEach(([x, y], k) => {
-    const top = down ? .22 + hash(k, 3) * .2 : h + (lvl < 8 ? hash(k, 4) * .08 : 0);
-    box(x - .08, y - .08, 0, x + .08, y + .08, top, mat, k);
-    for (let z = .2; z < top; z += .3) castShadow(x, y, z, .12, 1, 0);
-  });
-  if (down) return;
-  for (const z of [h * .4, h * .8]) {
-    box(-R, R - .03, z, R, R + .03, z + .08, mat, 21);
-    box(-R, -R - .03, z, R, -R + .03, z + .08, mat, 22);
-    box(R - .03, -R, z, R + .03, R, z + .08, mat, 23);
-    box(-R - .03, -R, z, -R + .03, R, z + .08, mat, 24);
-    for (let s = -R; s <= R; s += .35) for (const [x, y] of [[s, R], [s, -R], [R, s], [-R, s]]) castShadow(x, y, z, .06, 1, 0);
-  }
-  if (lvl >= 4) {
-    // barbed wire along the top
-    const wire = rampOf(DARK)[2];
-    for (let s = -R; s <= R; s += .03) {
-      const z = h + .12 + (Math.floor(s * 6) % 2 ? .05 : 0);
-      plot(s, R, z, wire); plot(s, -R, z, wire); plot(R, s, z, wire); plot(-R, s, z, wire);
+  const down = G.fenceDown, h = .75 + Math.min(lvl, 12) * .05, mat = lvl >= 8 ? METAL : WOOD, R = FENCE_R, seg = R / 5;
+  // side 0: y = +R, 1: x = +R, 2: y = -R, 3: x = -R; a point along a side is s in [-R, R]
+  const at = (side, s) => [[s, R], [R, s], [s, -R], [-R, s]][side];
+  for (let side = 0; side < 4; side++) {
+    const st = down ? 3 : G.sideStage[side];
+    for (let j = 0; j <= 10; j++) {
+      const [x, y] = at(side, -R + j * seg);
+      const snapped = down || hash(side * 11 + j, 5) < st * .22;
+      const top = snapped ? .2 + hash(side * 11 + j, 3) * .25 : h + (lvl < 8 ? hash(side * 11 + j, 4) * .08 : 0);
+      box(x - .08, y - .08, 0, x + .08, y + .08, top, mat, side * 11 + j);
+      for (let z = .2; z < top; z += .3) castShadow(x, y, z, .12, 1, 0);
+    }
+    for (let j = 0; j < 10; j++) for (const [r, z] of [[0, h * .4], [1, h * .8]]) {
+      const gone = down || hash(side * 23 + j, 7 + r) < st * (r ? .3 : .2);
+      const a = -R + j * seg, b = a + seg;
+      if (gone) {
+        // the broken rail lies in the grass outside
+        if (hash(side * 23 + j, 9 + r) < .6) {
+          const o = 1 + hash(side * 23 + j, 11) * .5, [x0, y0] = at(side, a + .1), [x1, y1] = at(side, b - .2);
+          const ox = side === 1 ? .35 * o : side === 3 ? -.35 * o : 0, oy = side === 0 ? .35 * o : side === 2 ? -.35 * o : 0;
+          box(Math.min(x0, x1) + ox - .04, Math.min(y0, y1) + oy - .04, 0, Math.max(x0, x1) + ox + .04, Math.max(y0, y1) + oy + .04, .06, mat, 40 + j);
+        }
+        continue;
+      }
+      const [x0, y0] = at(side, a), [x1, y1] = at(side, b);
+      box(Math.min(x0, x1) - .03, Math.min(y0, y1) - .03, z, Math.max(x0, x1) + .03, Math.max(y0, y1) + .03, z + .08, mat, 21 + side);
+      for (let t = 0; t <= 1; t += .4) castShadow(lerp(x0, x1, t), lerp(y0, y1, t), z, .06, 1, 0);
+    }
+    if (lvl >= 4 && st < 2 && !down) {
+      // barbed wire along the top
+      const wire = rampOf(DARK)[2];
+      for (let s = -R; s <= R; s += .03) {
+        const [x, y] = at(side, s);
+        plot(x, y, h + .12 + (Math.floor(s * 6) % 2 ? .05 : 0), wire);
+      }
     }
   }
 }
@@ -248,6 +266,44 @@ function bake() {
   bakedZ.set(zb);
 }
 
+/* ---------- particles ---------- */
+// one list for everything that flies: coins, soil, wood chips, dust, shell casings, empty magazines
+const floorAt = (x, y) => Math.abs(x) < B && Math.abs(y) < B ? ROOF_Z : 0;
+function part(x, y, z, vx, vy, vz, life, color, under, w = 1, h = 1) {
+  G.parts.push({ x, y, z, vx, vy, vz, life, color, under, w, h });
+  if (G.parts.length > 400) G.parts.shift();
+}
+function spray(x, y, z, n, speed, up, life, colors, w = 1, h = 1) {
+  for (let k = 0; k < n; k++) {
+    const a = Math.random() * 6.28, v = speed * (.4 + Math.random() * .6), c = colors[k % colors.length];
+    part(x, y, z, Math.cos(a) * v, Math.sin(a) * v, up * (.5 + Math.random() * .7), life * (.7 + Math.random() * .5), c, null, w, h);
+  }
+}
+function updateParts(dt) {
+  for (const q of G.parts) {
+    q.vz -= 13 * dt;
+    q.x += q.vx * dt; q.y += q.vy * dt; q.z += q.vz * dt;
+    const floor = floorAt(q.x, q.y);
+    if (q.z < floor && q.z > floor - .4) {
+      q.z = floor; q.vz = Math.abs(q.vz) > 1 ? -q.vz * .35 : 0; q.vx *= .55; q.vy *= .55;
+    }
+    q.life -= dt;
+  }
+  G.parts = G.parts.filter(q => q.life > 0 && q.z > -1);
+}
+function drawParts() {
+  for (const q of G.parts) {
+    const p = project(q.x, q.y, q.z), x0 = Math.round(p.sx), y0 = Math.round(p.sy);
+    for (let dy = 0; dy < q.h + (q.under ? 1 : 0); dy++) for (let dx = 0; dx < q.w; dx++) {
+      const ix = x0 + dx, iy = y0 + dy;
+      if (ix < 0 || iy < 0 || ix >= W || iy >= H) continue;
+      const i = iy * W + ix;
+      if (p.d < zb[i] - .35) continue; // tucked behind the bunker or a zombie
+      pix[i] = dy >= q.h ? q.under : q.color;
+    }
+  }
+}
+
 /* ---------- zombies ---------- */
 function spawn() {
   const r = SPAWN_R - Math.random() * .5, side = Math.floor(Math.random() * 4), s = (Math.random() * 2 - 1) * r;
@@ -265,9 +321,10 @@ function spawn() {
     speed: (.42 + Math.random() * .2 + Math.min(w, 40) * .005) * (brute ? .7 : 1),
     dps: zombieDps(w) * (brute ? 3 : 1), reward: zombieReward(w) * (brute ? 6 : 1),
     scale: brute ? .85 : .62 + Math.random() * .05, phase: Math.random() * 6.28,
-    state: 'rise', t: 0, hit: 0, sx: 0, sy: 0,
+    state: 'rise', t: 0, hit: 0, sx: 0, sy: 0, atk: Math.random() * .5,
   });
-  for (let k = 0; k < 8; k++) G.coins.push({ x, y, z: .1, vx: (Math.random() - .5) * 1.6, vy: (Math.random() - .5) * 1.6, vz: 2 + Math.random() * 2, life: .5, dirt: true });
+  const soil = rampOf(DIRT);
+  spray(x, y, .1, 10, 1.2, 3.5, .6, [soil[1], soil[3], soil[2]]);
 }
 const fenceUp = () => G.lv.wall > 0 && !G.fenceDown;
 function updateZombies(dt) {
@@ -284,22 +341,66 @@ function updateZombies(dt) {
       z.n = Math.max(Math.abs(z.x), Math.abs(z.y));
       z.state = 'walk';
     } else {
+      if (z.state === 'walk') z.atk = 0;
       z.state = atFence ? 'fence' : 'bunker';
-      if (atFence) damageFence(z.dps * dt);
-      else { G.hp -= z.dps * dt; G.hurt = .25; }
+      // wind up, then strike: damage lands on the downswing, with splinters or concrete dust
+      const every = ATTACK_EVERY * (z.brute ? 1.3 : 1), before = z.atk / every;
+      z.atk += dt;
+      if (before < STRIKE_AT && z.atk / every >= STRIKE_AT) strike(z, z.dps * every, atFence);
+      if (z.atk >= every) z.atk -= every;
     }
     z.t += dt;
   }
   G.zombies = G.zombies.filter(z => z.state !== 'dying' || z.t < .55);
 }
+const sideOf = (x, y) => Math.abs(x) >= Math.abs(y) ? (x > 0 ? 1 : 3) : (y > 0 ? 0 : 2);
+function strike(z, amount, atFence) {
+  const fx = -Math.sign(z.x) * (Math.abs(z.x) >= Math.abs(z.y)), fy = -Math.sign(z.y) * (Math.abs(z.y) > Math.abs(z.x));
+  if (atFence) {
+    const R = FENCE_R, side = sideOf(z.x, z.y);
+    const hx = side === 1 ? R : side === 3 ? -R : z.x, hy = side === 0 ? R : side === 2 ? -R : z.y;
+    const wood = rampOf(G.lv.wall >= 8 ? METAL : WOOD);
+    for (let k = 0; k < (z.brute ? 9 : 5); k++) {
+      part(hx, hy, .4 + Math.random() * .5, fx * (1 + Math.random() * 2) + (Math.random() - .5) * 2, fy * (1 + Math.random() * 2) + (Math.random() - .5) * 2, 2 + Math.random() * 3, .9, wood[2 + (k % 2)], wood[0], k % 3 ? 1 : 2, 1);
+    }
+    G.sideDmg[side] += amount;
+    G.fenceShake = .15; G.shakeSide = side;
+    sound(z.brute ? 'crack' : 'thud');
+    damageFence(amount);
+  } else {
+    const dust = rampOf(CONCRETE);
+    const hx = z.x * .86, hy = z.y * .86;
+    spray(hx, hy, .7, z.brute ? 10 : 5, 1.4, 2.5, .7, [dust[3], dust[4], dust[2]]);
+    G.hp -= amount; G.hurt = .3;
+    sound('thud');
+  }
+}
 function damageFence(amount) {
   G.fenceHp -= amount;
-  if (G.fenceHp > 0) return;
+  if (G.fenceHp > 0) { fenceStages(); return; }
   G.fenceHp = 0;
   G.fenceDown = true;
+  // the whole fence goes over: planks flying off every side
+  const R = FENCE_R, wood = rampOf(G.lv.wall >= 8 ? METAL : WOOD);
+  for (let k = 0; k < 70; k++) {
+    const side = k % 4, s = (Math.random() * 2 - 1) * R;
+    const [x, y] = [[s, R], [R, s], [s, -R], [-R, s]][side];
+    part(x, y, .3 + Math.random() * .7, (Math.random() - .5) * 3, (Math.random() - .5) * 3, 2 + Math.random() * 4, 1.6 + Math.random(), wood[1 + (k % 3)], wood[0], 2 + (k % 2), 1);
+  }
+  G.sideDmg = [0, 0, 0, 0]; G.sideStage = [0, 0, 0, 0];
   bake();
   say('울타리가 무너졌다!', true);
   sound('crash');
+}
+// each side shows its own wear: rails fall out and posts snap as that side takes hits
+function fenceStages() {
+  const max = stat('wall') || 1;
+  let changed = false;
+  for (let k = 0; k < 4; k++) {
+    const st = clamp(Math.floor(G.sideDmg[k] / (max * .22)), 0, 3);
+    if (st !== G.sideStage[k]) { G.sideStage[k] = st; changed = true; }
+  }
+  if (changed) bake();
 }
 function pickTarget() {
   let best = null;
@@ -307,12 +408,38 @@ function pickTarget() {
   return best;
 }
 function shoot(z) {
+  if (G.reload > 0 || G.ammo <= 0) return false;
+  G.ammo--;
+  // brass flips out of the right side of the gun and rattles across the roof
+  const fx = Math.cos(G.yaw), fy = Math.sin(G.yaw), brass = rgb(232, 184, 74);
+  part(G.gunTip[0] - fx * .35, G.gunTip[1] - fy * .35, G.gunTip[2], -fy * 1.6 + (Math.random() - .5) * .6, fx * 1.6 + (Math.random() - .5) * .6, 2.2 + Math.random(), 1.4, brass, rgb(150, 104, 40));
+  if (G.ammo === 0) startReload();
   z.hp -= stat('atk');
   z.hit = .08;
   G.muzzle = .06;
   G.tracers.push({ a: G.gunTip.slice(), b: [z.x, z.y, 1.05 * z.scale], life: .07 });
   sound('shot');
   if (z.hp <= 0) kill(z);
+  return true;
+}
+function startReload() {
+  G.reloadLen = reloadTime();
+  G.reload = G.reloadLen;
+  G.magOut = false; G.magIn = false;
+}
+function updateReload(dt) {
+  if (G.reload <= 0) return;
+  G.reload -= dt;
+  const t = 1 - G.reload / G.reloadLen;
+  if (!G.magOut && t > .14) {
+    // the empty magazine drops out of the gun
+    G.magOut = true;
+    const m = G.gunTip, fx = Math.cos(G.yaw), fy = Math.sin(G.yaw);
+    part(m[0] - fx * .25, m[1] - fy * .25, m[2] - .1, fx * .3, fy * .3, .5, 2.5, rgb(52, 50, 58), rgb(30, 28, 34), 2, 2);
+    sound('magout');
+  }
+  if (!G.magIn && t > .72) { G.magIn = true; sound('magin'); }
+  if (G.reload <= 0) { G.reload = 0; G.ammo = magSize(); sound('rack'); }
 }
 function kill(z) {
   z.state = 'dying'; z.t = 0;
@@ -321,7 +448,7 @@ function kill(z) {
   G.totalKills++;
   sound('kill');
   for (let k = 0; k < (z.brute ? 8 : 3); k++) {
-    G.coins.push({ x: z.x, y: z.y, z: 1, vx: (Math.random() - .5) * 2, vy: (Math.random() - .5) * 2, vz: 3 + Math.random() * 2, life: .8 });
+    part(z.x, z.y, 1, (Math.random() - .5) * 2, (Math.random() - .5) * 2, 3 + Math.random() * 2, .8, rgb(255, 214, 10), rgb(186, 132, 20), 2, 1);
   }
   const pts = [];
   for (let k = 0; k < (z.brute ? 40 : 18); k++) {
@@ -345,6 +472,7 @@ function fall() {
   G.waveKills = 0;
   G.zombies = [];
   G.hp = stat('food');
+  G.sideDmg = [0, 0, 0, 0]; G.sideStage = [0, 0, 0, 0];
   if (G.lv.wall) { G.fenceHp = stat('wall'); G.fenceDown = false; bake(); }
   G.spawnIn = 3;
 }
@@ -362,8 +490,11 @@ function update(dt) {
   G.hp = Math.min(stat('food'), G.hp + regenOf(G.lv.food) * dt);
   if (G.lv.wall) {
     const max = stat('wall');
-    G.fenceHp = Math.min(max, G.fenceHp + max * .025 * dt);
-    if (G.fenceDown && G.fenceHp >= max * .4) { G.fenceDown = false; bake(); say('울타리를 다시 세웠다'); }
+    const heal = Math.min(max - G.fenceHp, max * .025 * dt);
+    G.fenceHp += heal;
+    for (let k = 0; k < 4; k++) G.sideDmg[k] = Math.max(0, G.sideDmg[k] - heal / 2);
+    if (G.fenceDown && G.fenceHp >= max * .4) { G.fenceDown = false; G.sideDmg = [0, 0, 0, 0]; G.sideStage = [0, 0, 0, 0]; bake(); say('울타리를 다시 세웠다'); sound('hammer'); }
+    else if (!G.fenceDown && G.lv.wall) fenceStages();
   }
   if ((G.spawnIn -= dt) <= 0) {
     if (G.zombies.length < MAX_ZOMBIES) spawn();
@@ -378,14 +509,20 @@ function update(dt) {
     d = Math.atan2(Math.sin(d), Math.cos(d));
     G.yaw += d * Math.min(1, dt * 18);
     G.cool -= dt;
-    while (G.cool <= 0 && target.state !== 'dying') { shoot(target); G.cool += 1 / stat('spd'); }
-  } else G.cool = Math.max(0, G.cool - dt);
+    while (G.cool <= 0 && target.state !== 'dying' && shoot(target)) G.cool += 1 / stat('spd');
+    if (G.cool < 0) G.cool = 0;
+  } else {
+    G.cool = Math.max(0, G.cool - dt);
+    // nothing to shoot at: top up a half-empty magazine
+    if (G.reload <= 0 && G.ammo < magSize() * .5) startReload();
+  }
+  updateReload(dt);
+  G.fenceShake = Math.max(0, (G.fenceShake || 0) - dt);
   G.muzzle = Math.max(0, G.muzzle - dt);
   G.hurt = Math.max(0, G.hurt - dt);
   for (const t of G.tracers) t.life -= dt;
   G.tracers = G.tracers.filter(t => t.life > 0);
-  for (const c of G.coins) { c.vz -= 12 * dt; c.x += c.vx * dt; c.y += c.vy * dt; c.z = Math.max(.1, c.z + c.vz * dt); c.life -= dt; }
-  G.coins = G.coins.filter(c => c.life > 0);
+  updateParts(dt);
   for (const d of G.decals) d.life -= dt;
   G.decals = G.decals.filter(d => d.life > 0);
   if (G.statusT > 0 && (G.statusT -= dt) <= 0) { nodes.status.textContent = ''; G.status = ''; }
@@ -398,8 +535,11 @@ function drawZombie(z) {
   const yaw = Math.atan2(-z.y, -z.x), t = G.time * 2.6 * z.speed + z.phase;
   const pose = { scale: z.scale, lean: .22, stance: .06 + Math.abs(Math.sin(t)) * .16, armR: 1.35 + Math.sin(t) * .12, armL: 1.3 - Math.sin(t) * .12 };
   if (z.state === 'fence' || z.state === 'bunker') {
-    const swing = Math.sin(G.time * 9 + z.phase);
-    pose.armR = 1.6 + swing * .7; pose.armL = 1.6 - swing * .7; pose.stance = .14; pose.lean = .35;
+    // arms go up over the head, then come crashing down on the strike
+    const k = z.atk / (ATTACK_EVERY * (z.brute ? 1.3 : 1));
+    const raise = k < STRIKE_AT - .08 ? ease(k / (STRIKE_AT - .08)) : k < STRIKE_AT ? 1 - (k - STRIKE_AT + .08) / .08 : Math.max(0, -.15 + (k - STRIKE_AT) * .2);
+    pose.armR = 1.1 + raise * 1.9; pose.armL = 1.05 + raise * 1.85;
+    pose.lean = .1 + (1 - raise) * .4 - (k > STRIKE_AT && k < STRIKE_AT + .12 ? -.12 : 0); pose.stance = .18;
   }
   if (z.state === 'rise') {
     // clawing up out of the ground: the ground hides whatever is still below it
@@ -416,13 +556,53 @@ function drawZombie(z) {
   z.sx = chest.sx; z.sy = chest.sy;
 }
 function drawSurvivor() {
-  const recoil = G.muzzle > 0 ? -.08 : 0;
-  const hand = figure(Math.cos(G.yaw) * recoil, Math.sin(G.yaw) * recoil, G.yaw, { z: ROOF_Z, scale: .58, armR: 1.55, armL: 1.45, stance: .12, lean: .08 }, SURVIVOR, dynamicAdd);
   const fx = Math.cos(G.yaw), fy = Math.sin(G.yaw);
-  const tip = [hand[0] + fx * .42, hand[1] + fy * .42, hand[2] + .02];
-  capsule([hand[0] - fx * .18, hand[1] - fy * .18, hand[2] - .02], tip, .06, .045, () => DARK, 'solid');
+  let armR = 1.55, armL = 1.45, lean = .08, kick = 0, magHand = false;
+  if (G.reload > 0) {
+    // reload: tip the gun up, drop the mag, reach to the belt, slap a new one in, rack it
+    const t = 1 - G.reload / G.reloadLen;
+    armR = t < .15 ? lerp(1.55, 2.15, ease(t / .15)) : t < .82 ? 2.15 : lerp(2.15, 1.55, ease((t - .82) / .18));
+    if (t < .15) armL = lerp(1.45, 1.9, t / .15);
+    else if (t < .42) armL = lerp(1.9, .05, ease((t - .15) / .27));
+    else if (t < .68) armL = lerp(.05, 2.0, ease((t - .42) / .26));
+    else if (t < .76) armL = 2.0 + (t - .68) * 4;
+    else armL = lerp(2.3, 1.45, ease((t - .76) / .24));
+    magHand = t > .38 && t < .74;
+    lean = -.04;
+    if (t > .86 && t < .94) kick = -.05; // the rack
+  } else if (G.muzzle > 0) { armR = 1.72; kick = -.07; }
+  const k = .58, base = ROOF_Z, px = fx * kick, py = fy * kick;
+  const hand = figure(px, py, G.yaw, { z: base, scale: k, armR, armL, stance: .12, lean }, SURVIVOR, dynamicAdd);
+  // the gun follows the right forearm's pitch
+  const pitch = armR + .18 - Math.PI / 2, gx = fx * Math.cos(pitch), gy = fy * Math.cos(pitch), gz = Math.sin(pitch);
+  const tip = [hand[0] + gx * .42, hand[1] + gy * .42, hand[2] + gz * .42 + .02];
+  capsule([hand[0] - gx * .18, hand[1] - gy * .18, hand[2] - gz * .18 - .02], tip, .06, .045, () => DARK, 'solid');
+  if (G.reload <= 0 || !G.magOut || G.magIn) capsule([hand[0] + gx * .05, hand[1] + gy * .05, hand[2] - .04], [hand[0] + gx * .05, hand[1] + gy * .05, hand[2] - .2], .04, .035, () => [52, 50, 58], 'solid');
+  if (magHand) {
+    // the fresh magazine in the left hand (same arm maths as figure())
+    const shA = Math.sin(lean) * .95, shZ = 1.28 + Math.cos(lean) * .95;
+    const a = shA + Math.sin(armL + .2) * .9, c = shZ - .03 - Math.cos(armL + .2) * .9;
+    const hx = px + (fx * a + fy * .43) * k, hy = py + (fy * a - fx * .43) * k, hz = c * k + base;
+    capsule([hx, hy, hz + .02], [hx, hy, hz - .16], .045, .04, () => [60, 58, 66], 'solid');
+  }
   G.gunTip = tip;
-  if (G.muzzle > 0) sphere(tip[0] + fx * .1, tip[1] + fy * .1, tip[2], .12, [255, 220, 120], 'gloss');
+  if (G.muzzle > 0) sphere(tip[0] + gx * .1, tip[1] + gy * .1, tip[2], .12, [255, 220, 120], 'gloss');
+}
+// rounds left in the magazine above the survivor's head, or a reload bar
+function drawAmmo() {
+  const p = project(0, 0, ROOF_Z + 2.4), mag = magSize(), cx = Math.round(p.sx), top = Math.round(p.sy);
+  const put = (ix, iy, c) => { if (ix >= 0 && iy >= 0 && ix < W && iy < H) pix[iy * W + ix] = c; };
+  if (G.reload > 0) {
+    const w = 20, left = cx - w / 2, fill = Math.round(w * (1 - G.reload / G.reloadLen));
+    for (let x = -1; x <= w; x++) for (let y = -1; y <= 2; y++) put(left + x, top + y, x < 0 || x >= w || y < 0 || y > 1 ? INK : x < fill ? SIGNAL : rgb(70, 66, 64));
+    return;
+  }
+  const shown = Math.min(mag, 16), step = 2, left = cx - Math.round(shown * step / 2);
+  for (let k = 0; k < shown; k++) {
+    const full = k < Math.ceil(G.ammo * shown / mag);
+    for (let y = -1; y <= 3; y++) put(left + k * step, top + y, y < 0 || y > 2 ? PAPER : full ? (y === 0 ? rgb(232, 184, 74) : SIGNAL) : rgb(150, 146, 140));
+    for (let y = -1; y <= 3; y++) put(left + k * step + 1, top + y, PAPER);
+  }
 }
 // glowing eyes on the zombies' faces, so they never read as the survivor
 const EYE = rgb(255, 70, 50);
@@ -474,19 +654,15 @@ function draw() {
   for (const z of G.zombies) drawZombie(z);
   drawTufts(windT);
   flushShadows();
-  applyShadows(bakedZ);
+  applyShadows(groundZ);
   shadeEdges();
   for (const t of G.tracers) line3(t.a, t.b, SIGNAL);
-  const gold = rgb(255, 214, 10), goldDark = rgb(186, 132, 20), soil = rampOf(DIRT);
-  for (const c of G.coins) {
-    const p = project(c.x, c.y, c.z), ix = p.sx | 0, iy = p.sy | 0;
-    if (ix < 1 || iy < 1 || ix >= W - 1 || iy >= H - 1) continue;
-    if (c.dirt) { pix[iy * W + ix] = soil[c.vz > 0 ? 3 : 1]; continue; }
-    pix[iy * W + ix] = gold; pix[iy * W + ix + 1] = gold; pix[(iy + 1) * W + ix] = goldDark; pix[(iy + 1) * W + ix + 1] = goldDark;
-  }
+  drawParts();
   for (const z of G.zombies) drawEyes(z);
   drawBars();
-  ctx.putImageData(image, 0, 0);
+  drawAmmo();
+  const shake = G.hurt > .2 ? (Math.floor(G.time * 40) % 2 ? 1 : -1) : 0;
+  ctx.putImageData(image, shake, 0);
 }
 
 /* ---------- HUD ---------- */
@@ -523,7 +699,7 @@ function refreshHud(force) {
   hudIn = 6;
   nodes.money.textContent = '$' + fmt(G.money);
   nodes.wave.textContent = '웨이브 ' + G.wave + ' · ' + G.waveKills + '/' + killsNeeded(G.wave);
-  nodes.income.textContent = G.lv.res ? '자원 +$' + fmt(stat('res')) + '/초' : '';
+  nodes.income.textContent = (G.reload > 0 ? '장전 중…' : '탄창 ' + G.ammo + '/' + magSize()) + (G.lv.res ? ' · 자원 +$' + fmt(stat('res')) + '/초' : '');
   const maxHp = stat('food');
   nodes.bunkerFill.style.width = clamp(G.hp / maxHp, 0, 1) * 100 + '%';
   nodes.bunkerText.textContent = '벙커 ' + fmt(Math.max(0, G.hp)) + '/' + fmt(maxHp);
@@ -567,6 +743,7 @@ canvas.addEventListener('pointerdown', e => {
     const d = Math.hypot(z.sx - x, z.sy - y);
     if (d < bestD) { bestD = d; best = z; }
   }
+  if (G.reload > 0) { G.reload = Math.max(.01, G.reload - G.reloadLen * .12); return; } // tapping hurries the reload
   if (best) {
     G.yaw = Math.atan2(best.y, best.x);
     shoot(best);
@@ -591,6 +768,7 @@ function load() {
   }
   G.hp = stat('food');
   G.fenceHp = stat('wall');
+  G.ammo = magSize();
   if (!G.status) say('좀비가 사방에서 온다 · 좀비를 누르면 직접 쏜다');
 }
 addEventListener('beforeunload', save);
@@ -607,8 +785,8 @@ function ensureAudio() {
   const data = noiseBuffer.getChannelData(0);
   for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
 }
-function burst(type, freq, volume, length) {
-  const now = audio.currentTime, src = audio.createBufferSource(), filter = audio.createBiquadFilter(), gain = audio.createGain();
+function burst(type, freq, volume, length, delay = 0) {
+  const now = audio.currentTime + delay, src = audio.createBufferSource(), filter = audio.createBiquadFilter(), gain = audio.createGain();
   src.buffer = noiseBuffer;
   filter.type = type; filter.frequency.value = freq; filter.Q.value = .8;
   gain.gain.setValueAtTime(volume, now);
@@ -625,7 +803,13 @@ function sound(kind) {
   }
   if (kind === 'kill') burst('lowpass', 320, .09, .12);
   if (kind === 'buy') burst('bandpass', 2400, .06, .08);
-  if (kind === 'crash') burst('lowpass', 160, .3, .6);
+  if (kind === 'crash') { burst('lowpass', 160, .3, .6); burst('bandpass', 700, .12, .4, .05); }
+  if (kind === 'thud') burst('lowpass', 240, .1, .1);
+  if (kind === 'crack') { burst('lowpass', 200, .14, .14); burst('bandpass', 1100, .06, .08); }
+  if (kind === 'magout') burst('highpass', 3000, .04, .03);
+  if (kind === 'magin') burst('bandpass', 1800, .07, .04);
+  if (kind === 'rack') { burst('highpass', 2500, .06, .03); burst('highpass', 2200, .06, .03, .07); }
+  if (kind === 'hammer') for (let k = 0; k < 3; k++) burst('bandpass', 900, .08, .05, k * .15);
 }
 const muteButton = document.getElementById('mute');
 muteButton.addEventListener('click', () => {
