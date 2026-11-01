@@ -5,65 +5,65 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>벙커 – 좀비 방치형</title>
 <style>
-  :root { --bg: #17161a; --panel: #211f25; --card: #2b2931; --edge: #46424f; --text: #f1eee8; --muted: #a39fa9; --gold: #ffd84a; --bad: #ff6b57; --good: #7fd36a; --top: 76px; --bottom: 290px; }
+  /* the pixel-plays look: a picture on white paper, small monospace text, thin ink lines */
+  :root { --ink: #1c1b19; --muted: #8b877f; --paper: #fff; --line: #e4e0d8; --soft: #f6f4ef; --bad: #c0392b; --good: #2f7d32; --top: 44px; --bottom: 252px; }
   * { box-sizing: border-box; }
-  html, body { height: 100%; margin: 0; background: var(--bg); color: var(--text); }
+  html, body { height: 100%; margin: 0; background: var(--paper); color: var(--ink); }
   body { font: 13px/1.4 ui-monospace, "Cascadia Mono", Consolas, Menlo, monospace; overflow: hidden; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; }
   button { font: inherit; color: inherit; }
   canvas.ico { image-rendering: pixelated; flex: none; display: block; }
 
-  /* top bar: resources, wave, buttons */
-  #top { position: fixed; top: 0; left: 0; right: 0; height: var(--top); padding: max(8px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) 0 max(10px, env(safe-area-inset-left)); display: flex; gap: 8px; align-items: flex-start; justify-content: space-between; background: var(--panel); border-bottom: 2px solid #000; }
-  #res { display: grid; grid-template-columns: repeat(4, auto); gap: 3px 14px; align-items: center; justify-content: start; }
-  .chip { display: inline-flex; align-items: center; gap: 5px; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  /* top: one thin line, no bar */
+  #top { position: fixed; top: 0; left: 0; right: 0; height: var(--top); padding: max(6px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) 0 max(10px, env(safe-area-inset-left)); display: flex; gap: 8px; align-items: flex-start; justify-content: space-between; z-index: 3; pointer-events: none; }
+  #res { display: flex; flex-wrap: wrap; gap: 0 12px; align-items: center; min-width: 0; }
+  .chip { display: inline-flex; align-items: center; gap: 4px; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
   .rate { color: var(--muted); font-weight: 400; font-size: 11px; }
   .rate.neg { color: var(--bad); }
-  #waveLine { grid-column: 1 / -1; color: var(--muted); }
-  #waveLine b { color: var(--gold); }
-  #topBtns { display: flex; gap: 6px; flex: none; }
-  .tbtn { background: var(--card); border: 2px solid var(--edge); border-bottom-color: #000; padding: 5px 9px; cursor: pointer; min-height: 34px; white-space: nowrap; font-weight: 700; }
-  .tbtn[aria-pressed="true"] { background: var(--gold); color: #1a1814; border-color: #a8861c; }
+  #waveLine { flex-basis: 100%; color: var(--muted); font-size: 12px; }
+  #topBtns { display: flex; flex: none; pointer-events: auto; }
+  .tbtn { background: none; border: 0; color: var(--muted); padding: 6px 7px; cursor: pointer; white-space: nowrap; }
+  .tbtn:hover, .tbtn[aria-pressed="true"] { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
 
-  /* stage */
-  #stage { position: fixed; left: 0; right: 0; top: var(--top); bottom: var(--bottom); display: grid; place-items: center; overflow: hidden; background: var(--bg); }
+  #stage { position: fixed; left: 0; right: 0; top: var(--top); bottom: var(--bottom); display: grid; place-items: center; overflow: hidden; }
   canvas#c { display: block; image-rendering: pixelated; touch-action: manipulation; cursor: crosshair; outline: none; }
-  #hp { position: fixed; left: max(8px, env(safe-area-inset-left)); bottom: calc(var(--bottom) + 8px); background: rgba(23, 22, 26, .88); border: 2px solid #000; padding: 6px 8px; display: grid; grid-template-columns: auto 84px; gap: 5px 8px; align-items: center; pointer-events: none; font-size: 12px; }
+  #hp { position: fixed; left: max(8px, env(safe-area-inset-left)); bottom: calc(var(--bottom) + 6px); background: rgba(255, 255, 255, .92); border: 1px solid var(--ink); padding: 5px 7px; display: grid; grid-template-columns: auto 72px; gap: 4px 8px; align-items: center; pointer-events: none; font-size: 11px; }
   #hp .lbl { white-space: nowrap; font-variant-numeric: tabular-nums; }
-  .track { height: 9px; border: 2px solid #000; background: #3a3740; }
-  .fill { height: 100%; background: var(--good); width: 0; }
-  #fenceFill { background: #c8935a; }
-  .hurt .fill { background: var(--bad); }
-  #status { position: fixed; left: 0; right: 0; top: calc(var(--top) + 6px); text-align: center; pointer-events: none; font-weight: 700; padding: 0 12px; text-shadow: 0 1px 0 #000, 1px 0 0 #000, -1px 0 0 #000, 0 -1px 0 #000; }
-  #status.alert { color: var(--bad); }
+  .track { height: 7px; border: 1px solid var(--ink); background: #fff; }
+  .fill { height: 100%; background: #6aa64a; width: 0; }
+  #fenceFill { background: #a0784a; }
+  .hurt .fill { background: #d0503c; }
+  #status { position: fixed; left: 0; right: 0; top: calc(var(--top) + 2px); text-align: center; pointer-events: none; color: var(--muted); padding: 0 12px; text-shadow: 0 0 3px #fff, 0 0 3px #fff, 0 0 3px #fff; z-index: 2; }
+  #status.alert { color: var(--bad); font-weight: 700; }
 
-  /* bottom: list and tab bar */
-  #bottom { position: fixed; left: 0; right: 0; bottom: 0; height: var(--bottom); background: var(--panel); border-top: 2px solid #000; display: flex; flex-direction: column; padding-bottom: env(safe-area-inset-bottom); }
-  #panel { flex: 1; overflow-y: auto; padding: 8px; display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 6px; align-content: start; }
-  #tabs { display: grid; grid-template-columns: repeat(4, 1fr); flex: none; border-top: 2px solid #000; }
-  .tab { background: var(--panel); border: 0; border-right: 2px solid #000; padding: 6px 2px 7px; cursor: pointer; font-weight: 700; display: flex; flex-direction: column; align-items: center; gap: 2px; color: var(--muted); }
-  .tab:last-child { border-right: 0; }
-  .tab[aria-selected="true"] { background: var(--card); color: var(--gold); box-shadow: inset 0 3px 0 var(--gold); }
-  .card { display: grid; grid-template-columns: 40px 1fr; gap: 4px 8px; background: var(--card); border: 2px solid var(--edge); border-bottom-color: #000; padding: 7px; text-align: left; min-width: 0; }
-  .card .icon { grid-row: span 3; width: 40px; height: 40px; background: #1d1b21; border: 2px solid #000; display: grid; place-items: center; }
-  .card .head { display: flex; justify-content: space-between; gap: 6px; align-items: baseline; flex-wrap: wrap; }
+  /* bottom: a list of rows, then the tab bar */
+  #bottom { position: fixed; left: 0; right: 0; bottom: 0; height: var(--bottom); border-top: 1px solid var(--ink); background: var(--paper); display: flex; flex-direction: column; padding-bottom: env(safe-area-inset-bottom); }
+  #panel { flex: 1; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); align-content: start; }
+  #tabs { display: grid; grid-template-columns: repeat(4, 1fr); flex: none; border-top: 1px solid var(--ink); }
+  .tab { background: var(--paper); border: 0; padding: 6px 2px 7px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 2px; color: var(--muted); }
+  .tab[aria-selected="true"] { color: var(--ink); font-weight: 700; box-shadow: inset 0 2px 0 var(--ink); }
+  .card { display: grid; grid-template-columns: 34px minmax(0, 1fr) auto; gap: 2px 10px; align-items: center; padding: 8px 10px; border-bottom: 1px solid var(--line); }
+  .card .icon { grid-row: span 2; width: 34px; height: 34px; display: grid; place-items: center; background: var(--soft); border: 1px solid var(--line); align-self: start; }
+  .card .body { min-width: 0; }
+  .card .head { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
   .card .name { font-weight: 700; }
-  .card .lv { color: var(--gold); font-weight: 700; }
+  .card .lv { color: var(--muted); }
   .card .desc { color: var(--muted); font-size: 12px; overflow-wrap: anywhere; }
-  .buy { grid-column: 2; display: flex; flex-wrap: wrap; gap: 2px 10px; align-items: center; justify-content: center; background: #3d8a3a; border: 2px solid #000; box-shadow: inset 0 -3px 0 #2a6127; padding: 5px 8px 7px; cursor: pointer; font-weight: 700; font-variant-numeric: tabular-nums; color: #fff; }
-  .buy:active:not([disabled]) { box-shadow: none; transform: translateY(2px); }
-  .buy[disabled] { background: #3a3740; box-shadow: inset 0 -3px 0 #2a282f; color: var(--muted); cursor: default; }
+  .buy { min-width: 76px; display: flex; flex-direction: column; align-items: center; gap: 0; background: var(--paper); border: 1px solid var(--ink); padding: 5px 8px; cursor: pointer; font-weight: 700; font-variant-numeric: tabular-nums; font-size: 12px; }
+  .buy:hover:not([disabled]) { background: var(--ink); color: #fff; }
+  .buy:active:not([disabled]) { transform: translateY(1px); }
+  .buy[disabled] { border-color: var(--line); color: #b3afa7; cursor: default; }
   .buy .short { color: var(--bad); }
-  .row { grid-column: 2; display: flex; gap: 5px; flex-wrap: wrap; }
-  .mini { background: #3a3740; border: 2px solid #000; padding: 4px 8px; cursor: pointer; font-size: 12px; font-weight: 700; }
-  .mini[aria-pressed="true"] { background: var(--gold); color: #1a1814; }
+  .row { grid-column: 2 / -1; display: flex; gap: 4px; flex-wrap: wrap; }
+  .mini { background: var(--paper); border: 1px solid var(--line); padding: 4px 9px; cursor: pointer; font-size: 12px; }
+  .mini[aria-pressed="true"] { background: var(--ink); color: #fff; border-color: var(--ink); }
 
-  dialog { background: var(--panel); color: var(--text); border: 2px solid #000; padding: 16px; width: min(320px, calc(100vw - 32px)); font: inherit; }
-  dialog::backdrop { background: rgba(0, 0, 0, .6); }
-  dialog h2 { margin: 0 0 12px; font-size: 15px; color: var(--gold); }
-  .set { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 9px 0; border-bottom: 2px solid #000; }
-  .set input[type=range] { width: 130px; accent-color: var(--gold); }
-  .danger { background: #6a2a24; }
-  @media (max-width: 440px) { :root { --top: 80px; --bottom: 300px; } #res { grid-template-columns: repeat(2, auto); } #panel { grid-template-columns: 1fr; } .tbtn { padding: 5px 7px; } }
+  dialog { border: 1px solid var(--ink); padding: 16px; width: min(320px, calc(100vw - 32px)); font: inherit; color: var(--ink); background: var(--paper); }
+  dialog::backdrop { background: rgba(255, 255, 255, .75); }
+  dialog h2 { margin: 0 0 12px; font-size: 14px; }
+  .set { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--line); }
+  .set input[type=range] { width: 130px; accent-color: var(--ink); }
+  .danger { color: var(--bad); border-color: var(--bad); }
+  @media (max-width: 440px) { :root { --top: 68px; --bottom: 262px; } #panel { grid-template-columns: 1fr; } }
 </style>
 </head>
 <body>
@@ -77,7 +77,7 @@
   </div>
   <div id="topBtns">
     <button class="tbtn" id="viewBtn" type="button" aria-pressed="false">지하</button>
-    <button class="tbtn" id="speed" type="button" aria-pressed="false">x1</button>
+    <button class="tbtn" id="speed" type="button" aria-pressed="false">1배속</button>
     <button class="tbtn" id="settingsBtn" type="button">설정</button>
   </div>
 </div>
@@ -124,7 +124,7 @@
 /* ================= numbers ================= */
 const FENCE_R = 5.2, MAX_ZOMBIES = 40, OFFLINE_CAP = 2 * 3600, SAVE_KEY = 'bunker-idle:v2';
 const STAGES = [
-  { name: '간이 참호', half: 1.25, roof: 0, hp: 150, cost: null },
+  { name: '간이 참호', half: 1.25, roof: .32, hp: 150, cost: null },
   { name: '나무 초소', half: 1.45, roof: 1.7, hp: 400, cost: { money: 80, wood: 30 } },
   { name: '콘크리트 벙커', half: 1.9, roof: 2.1, hp: 1000, cost: { money: 400, wood: 120, mineral: 40 } },
   { name: '강화 벙커', half: 2.05, roof: 2.3, hp: 2500, cost: { money: 2500, wood: 300, mineral: 250 } },
@@ -197,7 +197,7 @@ function pay(c) { for (const [k, v] of Object.entries(c)) G[k] -= v; }
 /* ================= palette ================= */
 const CONCRETE = [176, 172, 160], BAG = [190, 166, 116], WOOD = [150, 106, 66], PLANK = [176, 132, 84], METAL = [148, 158, 166], DARK = [44, 40, 50];
 const DIRT = [152, 120, 84], TILLED = [118, 84, 58], CROP = [104, 152, 66], ROCK = [132, 130, 128], ORE = [104, 140, 196], TARP = [96, 116, 82];
-const STEP = .45 / S;
+const STEP = .45 / S, OLIVE_C = [104, 116, 78];
 const px = n => Math.max(1, Math.round(n * S / 16)); // sizes that follow the pixel grid
 
 /* ================= scene: ground ================= */
@@ -214,10 +214,14 @@ function groundColor(x, y, ix, iy) {
   const tone = noise(x * .25, y * .25) * 1.5 + noise(x * 1.1 + 4, y * 1.1) * .7;
   return [tuftLit[clamp(Math.floor(1 + tone + (bayerAt(ix, iy) - .5) * .5), 0, 4)], KIND_GRASS];
 }
-const groundPix = new Uint32Array(W * H), groundKinds = new Uint8Array(W * H), groundDepth = new Float32Array(W * H);
+const groundPix = new Uint32Array(W * H), groundKinds = new Uint8Array(W * H), groundDepth = new Float32Array(W * H), groundMask = new Uint8Array(W * H);
 function bakeGround() {
   for (let iy = 0; iy < H; iy++) for (let ix = 0; ix < W; ix++) {
     const g = unproject(ix + .5, iy + .5), [c, kind] = groundColor(g.x, g.y, ix, iy), i = iy * W + ix;
+    // the picture dissolves into the white page at its edges, like a diorama on paper
+    const edge = Math.min(ix, W - 1 - ix, iy, H - 1 - iy) / (S * .9) + (noise(ix * .05, iy * .05) - .5) * .5;
+    if (edge < 1 && bayerAt(ix, iy) * .9 + hash(ix, iy) * .3 > edge) { groundPix[i] = rgb(255, 255, 255); groundKinds[i] = 0; groundMask[i] = 0; groundDepth[i] = (g.x + g.y) / R2 * COS; continue; }
+    groundMask[i] = 1;
     groundPix[i] = c; groundKinds[i] = kind;
     groundDepth[i] = (g.x + g.y) / R2 * COS;
   }
@@ -244,14 +248,14 @@ function ladder(x, y, top) {
 function buildBunker() {
   const st = G.stage, s = STAGES[st], h = s.half, top = s.roof, dark = rampOf(DARK), steel = rampOf(METAL);
   if (st === 0) {
-    // a dugout: two rings of sandbags, a tarp strung over the back half, a crate
+    // a foxhole: two rings of sandbags, a plank platform in the middle to see over them on every side, ammo crates
     sandbagRing(h, 2);
-    for (let a = -h + .1; a <= h - .1; a += STEP) for (let b = -h + .1; b <= 0; b += STEP) {
-      plot(a, b, 1.25 + b * .35, rampOf(TARP)[Math.floor((a + 5) * 2.5) % 2 ? 3 : 2]);
-    }
-    for (const [x, y] of [[-h + .1, -h + .1], [h - .1, -h + .1], [-h + .1, 0], [h - .1, 0]]) box(x - .04, y - .04, 0, x + .04, y + .04, 1.25 + y * .35, WOOD, 3);
-    shadowBlock(-h, -h, h, 0, 1.2, .5);
-    box(-.9, .25, 0, -.45, .7, .42, PLANK, 4);
+    box(-.55, -.55, 0, .55, .55, top, PLANK, 3);
+    const planks = rampOf(PLANK);
+    for (let a = -.55; a <= .55; a += STEP) for (let b = -.55; b <= .55; b += STEP) if (Math.floor((a + 5) * 6) % 3 === 0) plot(a, b, top + .005, planks[2]);
+    box(-1.0, .55, 0, -.6, .95, .32, OLIVE_C, 4);
+    box(.6, -1.0, 0, 1.0, -.6, .32, OLIVE_C, 5);
+    shadowBlock(-.55, -.55, .55, .55, top, .3);
     return;
   }
   if (st === 1) {
@@ -395,7 +399,7 @@ function buildFence() {
   }
 }
 /* ================= particles and floating text ================= */
-const floorAt = (x, y) => { const h = stage().half; return G.stage && Math.abs(x) < h && Math.abs(y) < h ? stage().roof : 0; };
+const floorAt = (x, y) => { const h = G.stage ? stage().half : .55; return Math.abs(x) < h && Math.abs(y) < h ? stage().roof : 0; };
 let partsInto = 'parts'; // 'uparts' while spawning underground particles
 function part(x, y, z, vx, vy, vz, life, color, under, w = 1, h = 1) {
   const list = G[partsInto];
@@ -440,7 +444,8 @@ function float(x, y, z, text, color, size = 1) { G.floats.push({ x, y, z, text, 
 // characters are pixel art: flat colour bands per limb (light from the upper left), a dark outline
 // round the silhouette, and a dark line wherever one limb passes in front of another
 const FP = new Uint32Array(W * H), FZ = new Float32Array(W * H), FI = new Uint16Array(W * H), FV = new Uint8Array(W * H);
-let fx0 = W, fy0 = H, fx1 = -1, fy1 = -1, figId = 0, figShadows = true;
+let fx0 = W, fy0 = H, fx1 = -1, fy1 = -1, figId = 0, figShadows = true, figBase = 0;
+const figSegs = [];
 const OUTLINE = rgb(24, 20, 28);
 const toneCache = new Map();
 function toneOf(c) {
@@ -468,7 +473,7 @@ function fbone(a, b, r0, r1, c) {
     FP[i] = l > .38 ? t3[2] : l < -.32 ? t3[0] : t3[1];
     if (ix < fx0) fx0 = ix; if (ix > fx1) fx1 = ix; if (iy < fy0) fy0 = iy; if (iy > fy1) fy1 = iy;
   }
-  if (figShadows) pendingShadows.push(a, r0, b, r1);
+  if (figShadows) figSegs.push(a, b, Math.max(r0, r1), figBase);
 }
 // a single pixel detail (eye, mouth, buckle) on the figure's own surface, hidden when it faces away
 function fdot(p3, color, w = 1, h = 1) {
@@ -479,6 +484,33 @@ function fdot(p3, color, w = 1, h = 1) {
     const i = iy * W + ix;
     if (FI[i] === figId && p.d > FZ[i] - .06) FP[i] = color;
   }
+}
+// each limb's shadow lands on the plane the figure stands on (the ground, or a roof), thrown away from the sun
+// at the same angle as the baked shadows; it only darkens the surface that is really there at that height
+const shMark = new Uint8Array(W * H), shList = [];
+function drawFigShadows(sx, sy) {
+  for (let n = 0; n < figSegs.length; n += 4) {
+    const a = figSegs[n], b = figSegs[n + 1], r = figSegs[n + 2], base = figSegs[n + 3];
+    const steps = Math.max(1, Math.ceil(Math.hypot(b[0] - a[0], b[1] - a[1], b[2] - a[2]) / .12));
+    for (let q = 0; q <= steps; q++) {
+      const t = q / steps, x = lerp(a[0], b[0], t), y = lerp(a[1], b[1], t), h = Math.max(0, lerp(a[2], b[2], t) - base);
+      const p = project(x + sx * h, y + sy * h, base), rx = Math.max(1, r * S * .95), ry = Math.max(1, rx * .55);
+      const mark = h < .18 ? 2 : 1;
+      for (let iy = Math.max(0, Math.floor(p.sy - ry)); iy <= Math.min(H - 1, Math.ceil(p.sy + ry)); iy++)
+        for (let ix = Math.max(0, Math.floor(p.sx - rx)); ix <= Math.min(W - 1, Math.ceil(p.sx + rx)); ix++) {
+          const dx = (ix + .5 - p.sx) / rx, dy = (iy + .5 - p.sy) / ry;
+          if (dx * dx + dy * dy > 1) continue;
+          const i = iy * W + ix;
+          if (zb[i] !== bakedZ[i] || Math.abs(bakedZ[i] - p.d) > .45) continue;
+          if (shMark[i] < mark) { if (!shMark[i]) shList.push(i); shMark[i] = mark; }
+        }
+    }
+  }
+  for (const i of shList) {
+    if (shMark[i] === 2) tint(i, .5, .48, .64); else tint(i, .66, .64, .8);
+    shMark[i] = 0;
+  }
+  shList.length = 0; figSegs.length = 0;
 }
 const shadeOf = c => rgb((c & 255) * .5, (c >> 8 & 255) * .48, (c >> 16 & 255) * .58);
 function figFlush() {
@@ -545,48 +577,66 @@ function arm(P, sh, hand, l1, l2, pole, w, upper, lower, fist) {
 
 /* ================= zombies ================= */
 const ZTYPES = {
-  walker: { name: '좀비', hp: 1, hit: 1, speed: 1, reward: 1, scale: .74, every: 1.2,
+  walker: { name: '좀비', hp: 1, hit: 1, speed: 1, reward: 1, scale: .74, every: 1.2, cad: 7,
     pal: { skin: [126, 168, 96], dark: [92, 128, 70], shirt: [118, 112, 124], shirt2: [96, 90, 102], legs: [64, 72, 100], shoe: [58, 50, 46], hair: [54, 46, 40] } },
-  runner: { name: '러너', hp: .6, hit: .7, speed: 2.1, reward: 1.3, scale: .7, every: .65,
+  runner: { name: '러너', hp: .6, hit: .7, speed: 2.1, reward: 1.3, scale: .7, every: .65, cad: 4.2,
     pal: { skin: [168, 176, 170], dark: [126, 134, 132], shirt: [196, 188, 160], shirt2: [150, 58, 52], legs: [86, 74, 64], shoe: [70, 60, 52], hair: [30, 28, 30] } },
-  brute: { name: '덩치', hp: 6, hit: 4, speed: .55, reward: 5, scale: .98, every: 1.8,
+  brute: { name: '덩치', hp: 6, hit: 4, speed: .55, reward: 5, scale: .98, every: 1.8, cad: 9,
     pal: { skin: [110, 150, 84], dark: [76, 106, 60], shirt: [92, 78, 64], shirt2: [70, 62, 58], legs: [52, 54, 66], shoe: [46, 40, 38], hair: [40, 44, 34] } },
+  crawler: { name: '기는 놈', hp: .8, hit: .8, speed: .75, reward: 1.2, scale: .74, every: 1, cad: 5,
+    pal: { skin: [150, 160, 120], dark: [110, 118, 88], shirt: [84, 96, 120], shirt2: [120, 56, 50], legs: [70, 62, 56], shoe: [58, 50, 46], hair: [40, 36, 30] } },
+  bloater: { name: '부푼 놈', hp: 2.2, hit: 0, speed: .6, reward: 2, scale: .84, every: 1, cad: 8,
+    pal: { skin: [176, 186, 104], dark: [130, 140, 70], shirt: [150, 140, 100], shirt2: [120, 112, 80], legs: [80, 76, 70], shoe: [58, 50, 46], hair: [60, 60, 40], belly: [196, 200, 112] } },
 };
-const HITPAL = { skin: [255, 255, 245], dark: [240, 236, 226], shirt: [255, 255, 245], shirt2: [240, 236, 226], legs: [240, 236, 226], shoe: [230, 226, 216], hair: [240, 236, 226] };
+const HITPAL = { skin: [255, 255, 245], dark: [240, 236, 226], shirt: [255, 255, 245], shirt2: [240, 236, 226], legs: [240, 236, 226], shoe: [230, 226, 216], hair: [240, 236, 226], belly: [255, 255, 245] };
+// a step cycle with the planted foot locked to the ground: while a foot carries weight it moves back at
+// exactly the walking speed, so nothing slides; then it lifts, swings through and plants ahead
+function stepFoot(phase, side, stride, lift, hipW, drag) {
+  const p = ((phase / (2 * Math.PI)) % 1 + 1) % 1;
+  if (p < .5) return [stride * (1 - 4 * p), side * (hipW + .01), .07, 0];
+  const q = (p - .5) * 2, s = Math.sin(q * Math.PI);
+  return [-stride + 2 * stride * ease(q), side * (hipW + .01), .07 + s * lift * (drag ? .2 : 1), drag ? .55 : s * .5];
+}
 function drawZombie(z, id) {
-  figId = id;
-  const T = ZTYPES[z.type], pal = z.hit > 0 ? HITPAL : T.pal, k = z.scale, brute = z.type === 'brute', runner = z.type === 'runner';
+  figId = id; figBase = 0;
+  const T = ZTYPES[z.type], pal = z.hit > 0 ? HITPAL : T.pal, k = z.scale, type = z.type;
+  if (type === 'crawler') return drawCrawler(z, T, pal, k);
+  const brute = type === 'brute', runner = type === 'runner', bloat = type === 'bloater';
   const ph = z.walk, s1 = Math.sin(ph), c1 = Math.cos(ph);
-  let lean, twist = 0, hipZ, hipA = 0, hipB = 0, feet, hands, fall = 0, base = 0, lunge = 0, headDrop = 0;
-  const neckLen = brute ? .58 : .62, legLen = brute ? .46 : .45, hipW = brute ? .19 : .12, wide = brute ? .34 : runner ? .2 : .22;
-  const footAt = (phase, s, stride, lift, drag) => {
-    const a = Math.sin(phase) * stride, up = Math.max(0, Math.cos(phase)) * lift * (drag ? .25 : 1);
-    return [a, s * (hipW + .01), .07 + up, drag ? .55 : Math.max(0, Math.cos(phase)) * .4];
-  };
+  const stride = Math.PI / (2 * T.cad * k);
+  let lean, twist = 0, hipZ, hipB = 0, feet, fall = 0, base = 0, lunge = 0, headDrop = 0, swell = 0;
+  const neckLen = brute ? .58 : bloat ? .55 : .62, legLen = brute ? .46 : bloat ? .42 : .45, hipW = brute ? .19 : bloat ? .17 : .12;
+  const wide = brute ? .34 : bloat ? .3 : runner ? .2 : .22;
   if (z.state === 'walk') {
+    // the hips drop as each foot takes the weight and rise as the other passes
+    const bob = Math.abs(Math.cos(ph));
     if (runner) {
-      // a sprint: long stride, knees high, arms pumping with bent elbows, body pitched forward
-      lean = .62; hipZ = .86 + Math.abs(c1) * .05; twist = s1 * .25;
-      feet = [footAt(ph, 1, .4, .3), footAt(ph + Math.PI, -1, .4, .3)];
+      lean = .62; hipZ = .8 + bob * .08; twist = s1 * .25;
+      feet = [stepFoot(ph, 1, stride, .3, hipW), stepFoot(ph + Math.PI, -1, stride, .3, hipW)];
     } else if (brute) {
-      // a heavy stomp: short stride, the whole body rolls side to side
-      lean = .42; hipZ = .9 - Math.abs(s1) * .05; hipB = s1 * .06; twist = s1 * .1;
-      feet = [footAt(ph, 1, .2, .16), footAt(ph + Math.PI, -1, .2, .16)];
+      lean = .42; hipZ = .86 + bob * .04; hipB = s1 * .07; twist = s1 * .1;
+      feet = [stepFoot(ph, 1, stride, .16, hipW), stepFoot(ph + Math.PI, -1, stride, .16, hipW)];
+    } else if (bloat) {
+      // a waddle: the whole swollen body rolls from foot to foot
+      lean = .05; hipZ = .78 + bob * .03; hipB = s1 * .1; twist = s1 * .06;
+      feet = [stepFoot(ph, 1, stride, .1, hipW), stepFoot(ph + Math.PI, -1, stride, .1, hipW)];
     } else {
-      // a shamble: the right foot drags, the body lurches on every step
-      lean = .3 + Math.sin(ph * 2) * .04; hipZ = .9 - Math.abs(s1) * .035; twist = s1 * .14; hipB = s1 * .03;
-      feet = [footAt(ph, 1, .24, .15), footAt(ph + Math.PI, -1, .17, .15, true)];
+      lean = .3 + Math.sin(ph * 2) * .04; hipZ = .86 + bob * .04; twist = s1 * .14; hipB = s1 * .03;
+      feet = [stepFoot(ph, 1, stride, .15, hipW), stepFoot(ph + Math.PI, -1, stride, .15, hipW, true)];
     }
   } else if (z.state === 'strike') {
     const p = z.atk / T.every;
-    lean = brute ? .35 : .3; hipZ = .88; feet = [[.22, hipW + .02, .07], [-.16, -hipW - .02, .07]];
-    if (brute) {
-      // both fists up over the head, then down together; the knees give on the slam
+    lean = brute ? .35 : .3; hipZ = .86; feet = [[.22, hipW + .02, .07], [-.16, -hipW - .02, .07, .2]];
+    if (bloat) {
+      // swelling up before it bursts
+      swell = ease(clamp(z.atk / 1.1, 0, 1)); lean = .05 - swell * .1; hipZ = .78;
+      feet = [[.1, hipW + .02, .07], [-.1, -hipW - .02, .07]];
+      z.armUp = [swell, swell];
+    } else if (brute) {
       const up = p < .55 ? ease(p / .55) : p < .66 ? 1 - (p - .55) / .11 : 0;
-      hipZ = .9 - (p > .6 && p < .8 ? .14 : 0); lean = .2 + (1 - up) * .5 - up * .25;
+      hipZ = .88 - (p > .6 && p < .8 ? .14 : 0); lean = .2 + (1 - up) * .5 - up * .25;
       z.armUp = [up, up];
     } else {
-      // alternate claws: wind up behind the shoulder, rake down, lunge in on the hit
       const right = z.swings % 2 === 0, up = p < .52 ? ease(p / .52) : p < .64 ? 1 - (p - .52) / .12 * 1.4 : -.4 + (p - .64) / .36 * .4;
       lunge = p > .5 && p < .85 ? Math.sin((p - .5) / .35 * Math.PI) * (runner ? .18 : .24) : 0;
       lean = (runner ? .45 : .26) + lunge * 1.5; twist = (right ? 1 : -1) * up * .35;
@@ -594,31 +644,34 @@ function drawZombie(z, id) {
     }
   } else if (z.state === 'dying') {
     // the knees give first, then it goes over backwards with its arms flung up
-    const t = z.t;
-    const buckle = ease(clamp(t / .22, 0, 1));
-    hipZ = .9 - buckle * .28; lean = .3 + buckle * .3;
+    const t = z.t, buckle = ease(clamp(t / .22, 0, 1));
+    hipZ = .88 - buckle * .28; lean = .3 + buckle * .3;
     fall = -ease(clamp((t - .18) / .42, 0, 1)) * 1.48;
     base = t > 1.6 ? -(t - 1.6) * .5 : 0;
     feet = [[.18 + buckle * .1, hipW + .02, .07], [-.05 + buckle * .15, -hipW - .02, .07]];
   }
   if (z.flinch > 0) { lean -= z.flinch * 2.2; headDrop = -z.flinch; }
   const P = rig(z.x + Math.cos(z.yaw) * lunge * k, z.y + Math.sin(z.yaw) * lunge * k, z.yaw, k, base, fall);
-  const hip = [hipA, hipB, hipZ];
-  legs(P, k, hip, feet, legLen, brute ? .13 : .1, pal, hipW);
-  // spine: pelvis, belly, chest; torn shirt bands
-  const chest = [hip[0] + Math.sin(lean) * neckLen * .5, hip[1], hip[2] + Math.cos(lean) * neckLen * .5];
-  const neck = [hip[0] + Math.sin(lean) * neckLen, hip[1], hip[2] + Math.cos(lean) * neckLen];
-  const tw = (brute ? .27 : .2);
+  const hip = [0, hipB, hipZ];
+  legs(P, k, hip, feet, legLen, brute ? .13 : bloat ? .12 : .1, pal, hipW);
+  const chest = [Math.sin(lean) * neckLen * .5, hipB, hip[2] + Math.cos(lean) * neckLen * .5];
+  const neck = [Math.sin(lean) * neckLen, hipB, hip[2] + Math.cos(lean) * neckLen];
+  const tw = brute ? .27 : bloat ? .24 : .2;
   fbone(P(...hip), P(...chest), tw, tw * 1.05, pal.shirt);
   fbone(P(...chest), P(...neck), tw * 1.05, tw * (brute ? 1.05 : .95), pal.shirt2);
-  // head: hunched forward on the brute, lolling on the walker, thrust out on the runner
-  const hd = brute ? [.13, 0, .16] : runner ? [.2, 0, .1] : [.12, .07, .13];
+  if (bloat) {
+    // the swollen belly, with boils that throb
+    const r = .36 + swell * .14 + Math.sin(G.time * 5 + z.walk) * .015;
+    const belly = [chest[0] + .16, hipB, chest[2] - .06];
+    fbone(P(...belly), P(...belly), r, r, pal.belly);
+    for (const [a, b, c] of [[.3, .12, .05], [.28, -.15, -.08], [.24, .02, .18]]) fdot(P(belly[0] + a * (r / .36), belly[1] + b, belly[2] + c), rgb(214, 120, 70), 2, 2);
+  }
+  const hd = brute ? [.13, 0, .16] : runner ? [.2, 0, .1] : bloat ? [.06, 0, .15] : [.12, .07, .13];
   const head = add3(neck, [hd[0] + headDrop * .2, hd[1], hd[2] + headDrop * .1]);
-  const hr = brute ? .16 : .14;
+  const hr = brute ? .16 : bloat ? .13 : .14;
   fbone(P(...neck), P(...head), .065, .065, pal.dark);
   fbone(P(...head), P(...head), hr, hr, pal.skin);
   fbone(P(head[0] - .05, head[1] - .02, head[2] + .07), P(head[0] - .06, head[1] + .03, head[2] + .05), hr * .7, hr * .6, pal.hair);
-  // arms
   const up = z.armUp || [0, 0];
   for (const [i, s] of [[0, 1], [1, -1]]) {
     const sh = shoulder(neck, s, twist, wide, brute ? .02 : .05);
@@ -626,24 +679,63 @@ function drawZombie(z, id) {
     if (z.state === 'walk' && runner) {
       const sw = Math.sin(ph + (s > 0 ? Math.PI : 0));
       hand = add3(sh, [sw * .26 + .05, s * .04, -.32 + Math.max(0, sw) * .14]);
+    } else if (z.state === 'walk' && bloat) {
+      hand = add3(sh, [.12 + Math.sin(ph + (s > 0 ? Math.PI : 0)) * .08, s * .22, -.4]);
     } else if (z.state === 'walk') {
       hand = add3(sh, [brute ? .38 : .5, s * (brute ? .08 : .02), (brute ? -.42 : -.06) + Math.sin(ph + s) * .05]);
     } else if (z.state === 'strike') {
       const u = up[i];
-      if (brute) hand = add3(sh, [lerp(.62, -.04, u), -s * lerp(.12, .16, u), lerp(-.42, .5, u)]);
+      if (bloat) hand = add3(sh, [.1, s * lerp(.22, .4, u), lerp(-.4, .1, u)]);
+      else if (brute) hand = add3(sh, [lerp(.62, -.04, u), -s * lerp(.12, .16, u), lerp(-.42, .5, u)]);
       else hand = add3(sh, [lerp(.55, -.06, Math.max(0, u)) + Math.min(0, u) * -.2, s * lerp(.04, .2, Math.max(0, u)), lerp(-.06, .42, u)]);
     } else hand = add3(sh, [-.1, s * .2, .45]);
     const pole = runner && z.state === 'walk' ? [-1, s * .2, -.2] : [-.3, s * .5, -.85];
-    const al = brute ? .3 : .28, aw = brute ? .1 : .068;
+    const al = brute ? .3 : .28, aw = brute ? .1 : bloat ? .085 : .068;
     arm(P, sh, hand, al, al, pole, aw, i === 0 ? pal.shirt : pal.skin, pal.skin, [brute ? 1.15 : .95, pal.dark]);
   }
-  // red eyes and a dark mouth
   const fwd = hr * .92;
   fdot(P(head[0] + fwd, head[1] + .06, head[2] + .02), EYE);
   fdot(P(head[0] + fwd, head[1] - .06, head[2] + .02), EYE);
   fdot(P(head[0] + fwd * .95, head[1], head[2] - .07), MOUTH, 2, 1);
   const chestP = project(...P(...chest));
   z.sx = chestP.sx; z.sy = chestP.sy;
+}
+// legs gone useless: it drags itself along on its arms, one hand planted while the other reaches ahead
+function drawCrawler(z, T, pal, k) {
+  const ph = z.walk, stride = Math.PI / (2 * T.cad * k);
+  let reach = [stepFoot(ph, 1, stride, .14, .16), stepFoot(ph + Math.PI, -1, stride, .14, .16)], rear = 0, fall = 0, base = 0;
+  if (z.state === 'strike') {
+    // rears up on one arm and claws with the other
+    const p = z.atk / T.every, up = p < .5 ? ease(p / .5) : p < .62 ? 1 - (p - .5) / .12 : 0;
+    rear = .35 + up * .25;
+    reach = [[.42, .2, .07, 0], [lerp(.5, .2, up), -.18, lerp(.1, .75, up), 0]];
+  } else if (z.state === 'dying') {
+    fall = 0; base = z.t > 1.2 ? -(z.t - 1.2) * .4 : 0;
+    reach = [[.5, .3, .07, 0], [.45, -.32, .07, 0]];
+    rear = -ease(clamp(z.t / .3, 0, 1)) * .15;
+  }
+  if (z.flinch > 0) rear -= z.flinch;
+  const roll = Math.sin(ph) * .05;
+  const P = rig(z.x, z.y, z.yaw, k, base, fall);
+  const hip = [-.55, roll, .2], chest = [-.1, roll, .3 + rear * .4], neck = [.12, roll * .5, .36 + rear * .7];
+  // legs trailing behind, feet dragging
+  legs(P, k, hip, [[-1.3, .14, .05, -1.2], [-1.25 + Math.sin(ph) * .04, -.18, .05, -1.2]], .42, .1, pal, .12);
+  fbone(P(...hip), P(...chest), .19, .2, pal.shirt);
+  fbone(P(...chest), P(...neck), .2, .19, pal.shirt2);
+  const head = add3(neck, [.18, 0, .1 + rear * .1]);
+  fbone(P(...neck), P(...head), .06, .06, pal.dark);
+  fbone(P(...head), P(...head), .14, .14, pal.skin);
+  fbone(P(head[0] - .06, head[1], head[2] + .06), P(head[0] - .07, head[1], head[2] + .04), .1, .09, pal.hair);
+  for (const [i, s] of [[0, 1], [1, -1]]) {
+    const sh = shoulder(neck, s, 0, .2, .04), f = reach[i];
+    const hand = [neck[0] + .12 + f[0], s * (.24 + Math.abs(f[1]) * .2), f[2]];
+    arm(P, sh, hand, .3, .3, [0, s * .4, .9], .07, i === 0 ? pal.shirt : pal.skin, pal.skin, [.95, pal.dark]);
+  }
+  fdot(P(head[0] + .13, head[1] + .06, head[2] + .02), EYE);
+  fdot(P(head[0] + .13, head[1] - .06, head[2] + .02), EYE);
+  fdot(P(head[0] + .12, head[1], head[2] - .06), MOUTH, 2, 1);
+  const c = project(...P(...chest));
+  z.sx = c.sx; z.sy = c.sy;
 }
 const EYE = rgb(255, 56, 36), MOUTH = rgb(56, 18, 22);
 
@@ -678,7 +770,7 @@ function torsoAndHead(P, k, pal, hip, lean, hat, breath = 0) {
 }
 // a survivor with a rifle in both hands, along the way they face
 function drawShooter(sh, id) {
-  figId = id;
+  figId = id; figBase = sh.z;
   const pal = SPAL[sh.pal], k = .74, P = rig(sh.x, sh.y, sh.yaw, k, sh.z, 0);
   const aiming = sh.aim > 0;
   let pitch = aiming ? sh.recoil * .5 : -.45, slide = -sh.recoil * .5, lean = .06 - sh.recoil * .35, leftHand = null, magInHand = false, magInGun = true;
@@ -736,7 +828,7 @@ function showView(name) {
   if (name === 'yard') staticShadow.set(v.shadow);
 }
 function bakeYard() {
-  pix.set(groundPix); kinds.set(groundKinds); ground.fill(1); zb.set(groundDepth);
+  pix.set(groundPix); kinds.set(groundKinds); ground.set(groundMask); zb.set(groundDepth);
   shadowMask.fill(0);
   groundZ.set(zb);
   buildBunker();
@@ -781,8 +873,9 @@ function wallColor(x, z, room) {
     return rampOf(TILE)[grout ? 1 : z > 2 ? 3 : 2];
   }
   if (room === 'drill') {
-    const n = noise(x * 1.8, z * 2.2), ore = hash(x * 40 | 0, z * 40 | 0) > .97 && G.build.drill;
-    return ore ? rampOf(ORE)[3] : rampOf(STONE_W)[clamp(Math.floor(1 + n * 2.6), 0, 3)];
+    const n = noise(x * 1.8, z * 2.2), vein = noise(x * 1.1 + 4, z * 1.6) > .58 && z > .3 && z < 1.8;
+    if (vein) return rampOf(ORE)[clamp(Math.floor(2 + noise(x * 6, z * 6) * 2.4), 1, 4)];
+    return rampOf(STONE_W)[clamp(Math.floor(1 + n * 2.6), 0, 3)];
   }
   if (room === 'entry') return rampOf(CONC)[Math.floor(z * 2.5) % 2 ? 2 : 1];
   const n = noise(x * 1.3, z * 2.5), stone = noise(x * 4 + 3, z * 4) > .78;
@@ -805,7 +898,7 @@ function lamp(x) {
 }
 const LAMPS = [-7.1, -3.8, 1, 5.65];
 function bakeUnder() {
-  pix.fill(rgb(23, 22, 26)); zb.fill(-1e9); ground.fill(0); shadowMask.fill(0);
+  pix.fill(rgb(255, 255, 255)); zb.fill(-1e9); ground.fill(0); shadowMask.fill(0);
   for (let iy = 0; iy < H; iy++) for (let ix = 0; ix < W; ix++) {
     const g = unproject(ix + .5, iy + .5);
     if (g.x < UG.x0 || g.x > UG.x1 || g.y < UG.y0 || g.y > UG.y1) continue;
@@ -917,7 +1010,7 @@ function bake() { bakeYard(); bakeUnder(); storeLevel = storeOf(); }
 /* ================= workers underground ================= */
 // each job has its own motion, driven through the same joints as everyone else
 function drawWorker(w, t, id) {
-  figId = id;
+  figId = id; figBase = 0;
   const pal = SPAL[w.pal], k = .7, P = rig(w.x, w.y, w.yaw, k, 0, 0), idle = G.hungry;
   let hip = [0, 0, .9], lean = .1, feet = [[.08, .14, .07], [-.06, -.14, .07]], hands, tool = null, hat = [150, 120, 80];
   const ph = (t * .9 + w.phase) % 1;
@@ -943,11 +1036,16 @@ function drawWorker(w, t, id) {
     tool = [grip, [grip[0] + dir[0] / dl * .6, -.05, grip[2] + dir[2] / dl * .6]];
     w.strikeNow = ph > .7 && ph < .74;
   } else {
-    // working the drill's levers: lean in and push, lean back and pull
-    const pull = Math.sin(t * 2.4 + w.phase);
-    lean = .15 + pull * .12; hip = [-pull * .04, 0, .9];
-    feet = [[.18, .15, .07], [-.18, -.15, .07]];
-    hands = [[.45 + pull * .12, .14, 1], [.45 + pull * .12, -.14, 1]];
+    // pickaxe into the ore vein: lift back over the head, step the weight forward, strike, pull it free
+    const up = ph < .6 ? ease(ph / .6) : ph < .7 ? 1 - (ph - .6) / .1 : 0, down = 1 - up;
+    lean = .02 + down * .35; hip = [down * .05, 0, .88 - down * .07];
+    feet = [[.24, .15, .07], [-.16, -.16, .07, .2]];
+    const grip = [lerp(.48, -.08, up), -.04, lerp(.85, 1.8, up)];
+    hands = [grip, add3(grip, [-.06, .1, -.14])];
+    const dir = [lerp(.9, -.1, up) - grip[0], lerp(1.2, 2.3, up) - grip[2]], dl = Math.hypot(dir[0], dir[1]);
+    const hx = dir[0] / dl, hz = dir[1] / dl;
+    const tip = [grip[0] + hx * .62, -.04, grip[2] + hz * .62];
+    tool = [grip, tip, 'pick', [hz, -hx]];
     hat = [232, 196, 60];
   }
   legs(P, k, hip, feet, .45, .1, pal);
@@ -955,13 +1053,12 @@ function drawWorker(w, t, id) {
   for (const [i, s] of [[0, 1], [1, -1]]) arm(P, shoulder(neck, s, 0), hands[i], .3, .28, [-.3, s * .6, -.75], .075, pal.shirt, pal.skin, [1, pal.skin]);
   if (tool) {
     fbone(P(...tool[0]), P(...tool[1]), .03, .03, [124, 92, 60]);
-    fbone(P(...tool[1]), P(tool[1][0] - .02, -.05, tool[1][2] - .14), .07, .05, [104, 108, 118]);
+    if (tool[2] === 'pick') {
+      // a two-pointed head across the end of the handle, curving down at both ends
+      const [nx, nz] = tool[3], h = tool[1];
+      fbone(P(h[0] + nx * .2, -.04, h[2] + nz * .2), P(h[0] - nx * .22, -.04, h[2] - nz * .22), .035, .02, [104, 108, 118]);
+    } else fbone(P(...tool[1]), P(tool[1][0] - .02, -.05, tool[1][2] - .14), .07, .05, [104, 108, 118]);
   }
-  if (w.job === '광부' && !idle) {
-    // the lever itself, linked to the hands
-    fbone(P(.75, 0, .2), P(hands[0][0], 0, hands[0][2]), .035, .03, [70, 70, 78]);
-  }
-  castShadow(w.x, w.y, 0, .3, 1, 0);
 }
 function drawDrillMotion(t) {
   if (!G.build.drill || G.view !== 'under') return;
@@ -992,13 +1089,13 @@ function syncShooters() {
 }
 function syncWorkers() {
   // where each job stands in the dugout, facing its work
-  const spots = { 농부: [ROOM.farm[0] + 1.1, UG.y0 + 1.25, -Math.PI / 2, 1.15], 광부: [PIT.x - 1.25, PIT.y + .5, -.3, .5], 목재공: [.6, .55, -Math.PI / 2 - .05, .8] };
+  const spots = { 농부: [ROOM.farm[0] + 1.1, UG.y0 + 1.25, -Math.PI / 2, 1.15], 광부: [ROOM.drill[0] + .6, UG.y0 + .72, -Math.PI / 2, 1.6], 목재공: [.6, .55, -Math.PI / 2 - .05, .8] };
   const count = {};
   G.workers = [];
   G.crew.forEach((c, i) => {
     if (!c || c.job === '사수') return;
     const n = count[c.job] = (count[c.job] || 0) + 1, [x, y, yaw] = spots[c.job];
-    G.workers.push({ job: c.job, pal: i + 1, x: x + (n - 1) * spots[c.job][3], y: y + (c.job === '광부' ? (n - 1) * .7 : 0), yaw, phase: i * 1.7 });
+    G.workers.push({ job: c.job, pal: i + 1, x: x + (n - 1) * spots[c.job][3], y, yaw, phase: i * 1.7 });
   });
 }
 const damageOf = s => gunStat('atk') * (s.hero ? 1 : .6);
@@ -1058,8 +1155,10 @@ function updateShooter(s, dt) {
 /* ================= zombies ================= */
 function pickType(w) {
   const r = Math.random();
-  if (w >= 5 && r < Math.min(.12, .03 + w * .006)) return 'brute';
-  if (w >= 3 && r < Math.min(.4, .15 + w * .015)) return 'runner';
+  if (w >= 6 && r < Math.min(.1, .02 + w * .005)) return 'bloater';
+  if (w >= 5 && r < Math.min(.2, .05 + w * .008)) return 'brute';
+  if (w >= 3 && r < Math.min(.42, .14 + w * .016)) return 'runner';
+  if (w >= 2 && r < Math.min(.6, .3 + w * .016)) return 'crawler';
   return 'walker';
 }
 function spawn() {
@@ -1091,18 +1190,45 @@ function updateZombies(dt) {
       const pace = z.speed * (1 + Math.max(0, z.n - 9) * .25); // far off it hurries in, then slows to a shamble
       z.x -= z.x / d * pace * dt; z.y -= z.y / d * pace * dt;
       z.n = Math.max(Math.abs(z.x), Math.abs(z.y));
-      z.walk += dt * pace * (z.type === 'runner' ? 4.2 : z.type === 'brute' ? 9 : 7);
+      z.walk += dt * pace * ZTYPES[z.type].cad;
       z.yaw = Math.atan2(-z.y, -z.x);
       z.state = 'walk';
     } else {
       if (z.state !== 'strike') { z.state = 'strike'; z.atk = 0; }
+      if (z.type === 'bloater') {
+        // swells, then bursts against whatever stopped it
+        z.atk += dt;
+        if (z.atk >= 1.1) burst3(z, atFence);
+        continue;
+      }
       const every = ZTYPES[z.type].every, before = z.atk / every;
       z.atk += dt;
       if (before < .6 && z.atk / every >= .6) strike(z, atFence);
       if (z.atk >= every) { z.atk -= every; z.swings++; }
     }
   }
-  G.zombies = G.zombies.filter(z => z.state !== 'dying' || z.t < 2.6);
+  G.zombies = G.zombies.filter(z => !z.gone && (z.state !== 'dying' || z.t < 2.6));
+}
+function splatter(z) {
+  const goo = [rgb(176, 196, 90), rgb(120, 150, 60), rgb(210, 220, 130)];
+  spray(z.x, z.y, .7, 40, 3.2, 4, 1.1, goo, 2, 2);
+  const pts = [];
+  for (let k = 0; k < 140; k++) {
+    const a = Math.random() * 6.28, d = Math.sqrt(Math.random()) * 1.1;
+    const p = project(z.x + Math.cos(a) * d, z.y + Math.sin(a) * d, 0), ix = p.sx | 0, iy = p.sy | 0;
+    for (let q = 0; q < px(1); q++) if (ix + q >= 0 && iy >= 0 && ix + q < W && iy < H) pts.push(iy * W + ix + q);
+  }
+  G.decals.push({ pts, color: rgb(150, 170, 70), life: 14 });
+  sound('crash');
+}
+function burst3(z, atFence) {
+  // the bloater goes off: a big hit on the fence or the bunker
+  splatter(z);
+  z.gone = true;
+  const amount = zombieHit(G.wave) * 12;
+  if (atFence) { G.sideDmg[sideOf(z.x, z.y)] += amount; G.fenceHp -= amount; if (G.fenceHp <= 0) breakFence(); else fenceStages(); }
+  else { G.hp -= amount; G.hurt = .5; }
+  say('부푼 놈이 터졌다!', true);
 }
 const fenceMat = () => rampOf(G.fence >= 5 ? (G.fence === 6 ? CONCRETE : METAL) : WOOD);
 let lastAlert = -9;
@@ -1148,6 +1274,7 @@ function fenceStages() {
 }
 function kill(z) {
   z.state = 'dying'; z.t = 0;
+  if (z.type === 'bloater') { splatter(z); z.gone = true; }
   G.money += z.reward;
   G.totalKills++;
   float(z.x, z.y, 2.5 * z.scale, '+$' + fmt(z.reward), '#ffd84a');
@@ -1220,6 +1347,14 @@ function update(dt) {
           if (G.view === 'under') sound('chop');
         }
       }
+      if (w.job === '광부') {
+        const ph = (G.time * .9 + w.phase) % 1, prev = ((G.time - dt) * .9 + w.phase) % 1;
+        if (prev < .7 && ph >= .7) {
+          // the pick bites the vein: sparks, chips of rock and blue ore
+          spray(w.x + .05, UG.y0 + .1, .95, 7, 1.6, 2.2, .7, [rgb(110, 150, 214), rgb(150, 146, 140), rgb(255, 214, 120)]);
+          if (G.view === 'under') sound('clang');
+        }
+      }
       if (w.job === '농부' && Math.random() < dt * 1.5) part(w.x + (Math.random() - .5) * .6, w.y - .8, 1.2 + Math.random() * .4, 0, 0, -.2, .8, rgb(140, 210, 110), null);
     }
   });
@@ -1277,10 +1412,11 @@ function draw() {
   pendingShadows.length = 0;
   let id = 1;
   if (G.view === 'under') {
-    figShadows = false;
+    figShadows = true;
     for (const w of G.workers) drawWorker(w, G.time, id++);
+    figShadows = false;
     drawDrillMotion(G.time);
-    applyShadows(groundZ);
+    drawFigShadows(.12, .12); // lamps overhead: short shadows straight under
     figFlush();
     drawParts();
   } else {
@@ -1293,9 +1429,7 @@ function draw() {
     figShadows = true;
     for (const s of G.shooters) drawShooter(s, id++);
     for (const z of G.zombies) drawZombie(z, id++);
-    flushShadows();
-    applyShadows(groundZ);
-    shadeEdges();
+    drawFigShadows(SHADOW_X, SHADOW_Y);
     figFlush();
     for (const t of G.tracers) line3(t.a, t.b, SIGNAL, rgb(255, 250, 220));
     drawParts();
@@ -1426,9 +1560,10 @@ function renderPanel(force) {
     const el = document.createElement('div');
     el.className = 'card';
     const ic = document.createElement('div');
-    ic.className = 'icon'; ic.append(icon(c.ico, 3));
+    ic.className = 'icon'; ic.append(icon(c.ico, 2.6));
     el.append(ic);
-    el.insertAdjacentHTML('beforeend', `<div class="head"><span class="name">${c.name}</span><span class="lv">${c.lv}</span></div><div class="desc">${c.desc}</div>`);
+    el.insertAdjacentHTML('beforeend', `<div class="body"><div class="head"><span class="name">${c.name}</span><span class="lv">${c.lv}</span></div><div class="desc">${c.desc}</div></div>`);
+    if (c.locked) el.append(document.createElement('span'));
     if (c.jobs) {
       const row = document.createElement('div');
       row.className = 'row';
@@ -1444,7 +1579,7 @@ function renderPanel(force) {
       const b = document.createElement('button');
       b.type = 'button'; b.className = 'buy';
       if (c.max) { b.textContent = '완료'; b.disabled = true; }
-      else { b.innerHTML = costHtml(c.cost); b.disabled = !canPay(c.cost); b.addEventListener('click', () => act(c.id)); }
+      else { b.innerHTML = costHtml(c.cost).replace(/<\/span><span/g, '</span><span'); b.disabled = !canPay(c.cost); b.addEventListener('click', () => act(c.id)); }
       el.append(b);
     }
     nodes.panel.append(el);
@@ -1536,7 +1671,7 @@ canvas.addEventListener('pointerdown', e => {
 });
 nodes.speed.addEventListener('click', () => {
   G.speed = G.speed === 1 ? 2 : 1;
-  nodes.speed.textContent = 'x' + G.speed;
+  nodes.speed.textContent = G.speed + '배속';
   nodes.speed.setAttribute('aria-pressed', String(G.speed === 2));
 });
 
