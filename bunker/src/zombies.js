@@ -52,7 +52,7 @@ function updateZombies(dt) {
     // tricks that take over the body for a moment: a leap over the fence, diving in, coming up
     if (z.state === 'leap') {
       const L = z.leap, t = Math.min(1, (z.st += dt) / L.dur);
-      z.x = lerp(L.x0, L.x1, t); z.y = lerp(L.y0, L.y1, t); z.zh = Math.sin(t * Math.PI) * 1.7; z.n = Math.max(Math.abs(z.x), Math.abs(z.y));
+      z.x = lerp(L.x0, L.x1, t); z.y = lerp(L.y0, L.y1, t); z.n = Math.max(Math.abs(z.x), Math.abs(z.y)); // the arc is in the art
       if (t >= 1) { z.state = 'walk'; z.zh = 0; z.leapt = true; spray(z.x, z.y, .1, 8, 1.6, 1.2, .5, [rgb(120, 104, 80), rgb(150, 130, 100)]); sound('thud'); }
       continue;
     }

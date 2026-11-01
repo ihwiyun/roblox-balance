@@ -1,5 +1,6 @@
 'use strict';
-// The yard: the island, the bunker in all its levels, the props around it and the fence.
+// The yard: the island, the bunker in all its levels (ten forms of ten), the things that collect in the compound,
+// and the fence (ten forms of ten). Everything is built from boxes and pixel lines; nothing is round.
 /* ================= the yard: a diamond of land floating on white ================= */
 const CONCRETE = [176, 172, 160], BAG = [190, 166, 116], WOOD = [146, 104, 66], PLANK = [176, 132, 84], METAL = [148, 158, 166];
 const DARK = [44, 40, 50], DIRT = [152, 120, 84], CONT = [170, 72, 54], OLIVE = [104, 116, 78], STEEL = [112, 122, 132];
@@ -26,7 +27,7 @@ function bakeGround() {
     groundPix[i] = r[0]; groundKinds[i] = r[1]; groundMask[i] = 1; groundDepth[i] = (g.x + g.y) / R2 * COS;
   }
 }
-// small helpers for building out of boxes and pixel lines (no round shapes)
+// small helpers for building out of boxes and pixel lines (under.js uses these too)
 function line3(a, b, color, dense = 1) {
   const n = Math.max(1, Math.ceil(Math.hypot(b[0] - a[0], b[1] - a[1], b[2] - a[2]) / STEP * dense));
   for (let k = 0; k <= n; k++) { const t = k / n; plot(lerp(a[0], b[0], t), lerp(a[1], b[1], t), lerp(a[2], b[2], t), color); }
@@ -35,29 +36,6 @@ function faceY(x0, x1, y, z0, z1, colorAt) { for (let x = x0; x <= x1; x += STEP
 function faceX(y0, y1, x, z0, z1, colorAt) { for (let y = y0; y <= y1; y += STEP) for (let z = z0; z <= z1; z += STEP) { const c = colorAt(y, z); if (c) plot(x, y, z, c); } }
 function shadowBox(x0, y0, x1, y1, z1, r = .4) {
   for (let x = x0 + r / 2; x <= x1; x += r) for (let y = y0 + r / 2; y <= y1; y += r) for (let z = .2; z < z1; z += r) castShadow(x, y, z, r * .9);
-}
-function crate(x, y, z, s, c = PLANK, seed = 1) {
-  box(x - s, y - s, z, x + s, y + s, z + 2 * s, c, seed);
-  const d = rampOf(c)[1];
-  faceY(x - s, x + s, y + s + .005, z, z + 2 * s, (a, b) => Math.abs(a - x) < .03 || Math.abs(b - z - s) < .03 ? d : 0);
-  faceX(y - s, y + s, x + s + .005, z, z + 2 * s, (a, b) => Math.abs(a - y) < .03 || Math.abs(b - z - s) < .03 ? d : 0);
-  castShadow(x, y, z + s, s * 1.2);
-}
-function ladderY(x, y, z0, z1) {
-  // on a +y wall
-  for (const o of [-.2, .2]) box(x + o - .03, y, z0, x + o + .03, y + .08, z1, METAL, 6);
-  for (let z = z0 + .25; z < z1; z += .26) box(x - .2, y + .02, z, x + .2, y + .08, z + .04, METAL, 7);
-}
-function bagRing(h, rows) {
-  // sandbags laid like bricks: boxes, each with a lighter top
-  const n = Math.round(h * 8 / .38);
-  for (let r = 0; r < rows; r++) for (let k = 0; k < n; k++) {
-    const t = ((k + r * .5) / n) * 4, side = Math.floor(t) % 4, q = (t % 1) * 2 - 1;
-    const [x, y] = [[h, q * h], [-q * h, h], [-h, -q * h], [q * h, -h]][side];
-    const ax = side % 2 ? .1 : .17, ay = side % 2 ? .17 : .1;
-    box(x - ax, y - ay, r * .19, x + ax, y + ay, r * .19 + .17, BAG, k + r * 7);
-    if (r === 0) castShadow(x, y, .2, .2);
-  }
 }
 const SITES = []; // where the gunners stand, and the hatch down, for the current bunker
 // lit lamps glow every frame (a small warm cross that flickers); the fortress beacon also sweeps a beam
@@ -72,7 +50,10 @@ const YARD_ART = (() => {
   // a box drawn face by face with one sample per screen pixel (box() samples each pixel about eight times).
   // pat(face, a, b) changes the shade (a small number) or paints the spot (an rgb colour);
   // face 0 is the top (a = x, b = y), 1 the +y wall (a = x, b = z), 2 the +x wall (a = y, b = z)
+  // while a bunker form draws, whatever stands on its roof deck is noted, so no gunner is put inside it
+  let REC = null;
   function pbox(x0, y0, z0, x1, y1, z1, c, seed = 0, pat = null, grain = 1) {
+    if (REC && z1 > REC.z + .12 && z0 < REC.z + 1.7 && x1 > REC.x0 && x0 < REC.x1 && y1 > REC.y0 && y0 < REC.y1) REC.list.push([x0, y0, x1, y1]);
     const ramp = rampOf(c), gk = 1.3 * grain, longX = x1 - x0 >= y1 - y0;
     const ex0 = x0 - GROW, ex1 = x1 + GROW, ey0 = y0 - GROW, ey1 = y1 + GROW, ez0 = z0 - GROW, ez1 = z1 + GROW;
     const put = (i, ix, iy, d, base, gx, gy, face, a, b) => {
@@ -210,9 +191,61 @@ const YARD_ART = (() => {
     pbox(x - .21, y - .21, z + .03, x + .21, y + .21, z + .07, c, 4, (f, a, b) => f === 0 && (Math.abs(a - x) < .04 || Math.abs(b - y) < .04) ? -1.2 : 0);
     SITES.hatch = [x, y, z];
   }
-  // six gunner spots over open roof round (cx, cy): the hero in front, then left, right and a back row
-  const SPOT_UV = [[0, .62], [-.8, .18], [.8, .18], [-.42, -.4], [.42, -.4], [0, -.92]];
-  function spots(cx, cy, ax, ay, z) { SITES.length = 0; for (const [u, v] of SPOT_UV) SITES.push([cx + (u + v) * ax, cy + (v - u) * ay, z]); }
+  // the roof deck the gunners stand on (call before drawing anything on it); block() notes a thing drawn with lines
+  function deck(x0, y0, x1, y1, z, hatchColor = STEEL) { REC = { x0, y0, x1, y1, z, list: [], hatchColor }; }
+  const block = (x0, y0, x1, y1) => { if (REC) REC.list.push([x0, y0, x1, y1]); };
+  // six gunner spots spread as far apart as the open deck allows (about a body's width from edges and from
+  // everything standing on it, and where the camera sees the whole body), then the hatch where nobody stands
+  function placeCrew() {
+    const D = REC; REC = null;
+    if (!D) return;
+    const { x0, y0, x1, y1, z, list } = D, M = .3;
+    const free = (x, y, m) => x > x0 + m && x < x1 - m && y > y0 + m && y < y1 - m && !list.some(([a, b, c, d]) => x > a - m && x < c + m && y > b - m && y < d + m);
+    const seen = (x, y) => {
+      let hid = 0;
+      for (let h = .5; h <= 1.75; h += .25) for (const o of [-.16, 0, .16]) {
+        const q = project(x + o / R2, y - o / R2, z + h), ix = Math.round(q.sx), iy = Math.round(q.sy);
+        if (ix < 0 || iy < 0 || ix >= W || iy >= H || zb[iy * W + ix] > q.d + .02) hid++;
+      }
+      return hid <= 1;
+    };
+    const floorSeen = (x, y) => [[0, 0, .03], [0, 0, .1], [.15, .15, .05], [-.15, -.15, .05]].every(([dx, dy, h]) => {
+      const q = project(x + dx, y + dy, z + h), ix = Math.round(q.sx), iy = Math.round(q.sy);
+      return ix >= 0 && iy >= 0 && ix < W && iy < H && zb[iy * W + ix] <= q.d + .02;
+    });
+    const cx = [], cy = [];
+    for (let x = x0; x <= x1 + 1e-6; x += .1) for (let y = y0; y <= y1 + 1e-6; y += .1) if (free(x, y, M) && seen(x, y)) { cx.push(x); cy.push(y); }
+    const n = cx.length;
+    if (n < 6) { for (let i = n; i < 6; i++) { cx.push((x0 + x1) / 2); cy.push((y0 + y1) / 2); } }
+    const N = cx.length, X = Float64Array.from(cx), Y = Float64Array.from(cy);
+    // the squared distance from candidate c to the nearest chosen spot other than skip
+    const near = (c, pick, skip) => { let m = 1e9; for (let i = 0; i < pick.length; i++) if (i !== skip) { const dx = X[c] - X[pick[i]], dy = Y[c] - Y[pick[i]], d = dx * dx + dy * dy; if (d < m) m = d; } return m; };
+    const spread = pick => { let m = 1e9; for (let i = 0; i < 6; i++) m = Math.min(m, near(pick[i], pick, i)); return m; };
+    // several starts (the front, each corner, the middle): add the farthest candidate each time, then move each
+    // spot to where it is farthest from the rest; keep the most spread-out result
+    const starts = [[x1, y1], [x0, y0], [x1, y0], [x0, y1], [(x0 + x1) / 2, (y0 + y1) / 2]].map(([px, py]) => { let b = 0, bd = 1e9; for (let c = 0; c < N; c++) { const d = (X[c] - px) ** 2 + (Y[c] - py) ** 2; if (d < bd) { bd = d; b = c; } } return b; });
+    let best = null, bestS = -1;
+    for (const s0 of starts) {
+      const pick = [s0];
+      while (pick.length < 6) { let b = 0, bd = -1; for (let c = 0; c < N; c++) { const d = near(c, pick, -1); if (d > bd) { bd = d; b = c; } } pick.push(b); }
+      for (let pass = 0; pass < 5; pass++) for (let i = 0; i < 6; i++) {
+        let b = pick[i], bd = near(b, pick, i);
+        for (let c = 0; c < N; c++) { const d = near(c, pick, i); if (d > bd + 1e-9) { bd = d; b = c; } }
+        pick[i] = b;
+      }
+      const sp = spread(pick);
+      if (sp > bestS + 1e-9) { bestS = sp; best = pick; }
+    }
+    // the hero takes the spot nearest the camera, the hired hands the rest from front to back
+    best.sort((a, b) => (X[b] + Y[b]) - (X[a] + Y[a]));
+    SITES.length = 0;
+    for (const c of best) SITES.push([+X[c].toFixed(2), +Y[c].toFixed(2), z]);
+    // the hatch: open deck you can see, as far from everyone as possible
+    let hb = -1, hd = -1;
+    for (let c = 0; c < N; c++) { if (!floorSeen(X[c], Y[c])) continue; const d = near(c, best, -1); if (d > hd) { hd = d; hb = c; } }
+    if (hb < 0) hb = best[0];
+    hatch(X[hb], Y[hb], z, D.hatchColor);
+  }
   // a pole with a flag
   function flag(x, y, z0, len, c, w = .5) {
     post(x, y, z0, z0 + len, .025, DARK, 11);
@@ -256,11 +289,11 @@ const YARD_ART = (() => {
   const tone = (c, f, d = 0) => { const r = rampOf(c), i = (f === 0 ? 3 : f === 1 ? 2 : 1) + d; return r[i < 0 ? 0 : i > 4 ? 4 : i]; };
   // several patterns over one face: the first that paints something wins
   const pats = (...list) => (f, a, b) => { let shade = 0; for (const p of list) { if (!p) continue; const r = p(f, a, b); if (r > 255) return r; shade += r || 0; } return shade; };
-  return { tone, outline, PXA, PXZ, rep, col, pbox, shade, solid, post, bar, wire, lamp, bulb, ladder, railing, bagLine, crateAt, drum, hatch, spots, flag, textAt, pats, FONT };
+  return { deck, block, placeCrew, tone, outline, PXA, PXZ, rep, col, pbox, shade, solid, post, bar, wire, lamp, bulb, ladder, railing, bagLine, crateAt, drum, hatch, flag, textAt, pats, FONT };
 })();
 /* ================= the bunker: ten forms of ten levels; every level adds something you can see ================= */
 const BUNKER_ART = (() => {
-  const { tone, outline, PXA, PXZ, rep, col, pbox, shade, solid, post, bar, wire, lamp, bulb, ladder, railing, bagLine, crateAt, drum, hatch, spots, flag, textAt, pats } = YARD_ART;
+  const { deck, block, placeCrew, tone, outline, PXA, PXZ, rep, col, pbox, shade, solid, post, bar, wire, lamp, bulb, ladder, railing, bagLine, crateAt, drum, hatch, flag, textAt, pats } = YARD_ART;
   const RED = [190, 58, 46], YEL = [226, 184, 52], WHITE = [226, 224, 214], BLACK = [40, 38, 44], RUST = [150, 86, 54];
   // planks running along y, seams every .3 along x, a few dark knots
   const plankTop = (w = .3) => (f, a, b) => f === 0 ? (rep(a, w) < PXA * 1.1 ? -1.3 : hash(Math.floor(a / w), Math.floor(b * 2)) > .9 ? -.5 : 0) : 0;
@@ -272,6 +305,7 @@ const BUNKER_ART = (() => {
   /* ---- 1. a foxhole: a plank floor ringed with sandbags ---- */
   function foxhole(k, I) {
     const h = I.half, d = I.deck, top = I.roof, has = n => k >= n, r = h - .15;
+    deck(-d, -d, d, d, top, [150, 112, 72]);
     solid(-d, -d, 0, d, d, top, PLANK, 3, plankTop(.32));
     // the dug-out soil heaped behind
     for (const [x0, y0, x1, y1, z] of [[-h - .5, -h - .5, h - .3, -h - .05, .22], [-h - .5, -h - .05, -h - .05, h - .3, .22], [-h - .35, -h - .35, -.2, -h - .1, .38], [-h - .35, -h - .1, -h - .1, -.2, .38]]) solid(x0, y0, 0, x1, y1, z, DIRT, 8, null, 1.4);
@@ -337,13 +371,12 @@ const BUNKER_ART = (() => {
       }
     }
     if (has(9)) flag(-r - .05, -r - .05, .95, 1.5, [196, 60, 48]);
-    spots(.08, .08, d - .26, d - .26, top);
-    hatch(.04, .04, top, [150, 112, 72]);
   }
 
   /* ---- 2. a wooden watchtower ---- */
   function watchtower(k, I) {
     const h = I.half, top = I.roof, p = 1.12, has = n => k >= n, logs = [118, 84, 54];
+    deck(-h, -h, h, h, top, [150, 112, 72]);
     for (const [x, y] of [[-p, -p], [p, -p], [-p, p], [p, p]]) post(x, y, 0, top - .14, .11, logs, 1, logPat);
     if (has(1)) { // X braces between the posts on every side
       const br = rampOf(WOOD);
@@ -396,9 +429,6 @@ const BUNKER_ART = (() => {
       crateAt(x1 - .05, y, .42, .19, .19, .38, PLANK, 16, -1.2);
       wire([x1 - .05, y, .8], [x1 - .2, y - .15, .8], rampOf(ROPE)[2], 1, false); wire([x1 - .05, y, .8], [x1 + .1, y + .15, .8], rampOf(ROPE)[2], 1, false);
     }
-    // gunners stay in front of the hut
-    spots(.3, .3, h - .62, h - .62, top);
-    hatch(.27, .27, top, [150, 112, 72]);
   }
 
   /* ---- 3. a container post: two shipping containers side by side, later a third stacked on top ---- */
@@ -419,6 +449,7 @@ const BUNKER_ART = (() => {
   const dents = (a) => rep(a, .3) < PXA ? -.6 : 0;
   function containers(k, I) {
     const hx = I.half, hy = I.half - .2, top = I.roof, has = n => k >= n, white = col(232, 230, 220);
+    deck(-hx, -hy, hx, hy, top);
     const ORANGE = [178, 86, 52], BLUE = [62, 104, 138], GREEN = [88, 116, 74];
     const marks = has(1) ? (f, a, b) => f === 1 ? (b > 1.6 && b < 1.68 ? white : textAt('27', -.2, 1.48, white, 1, 2)(a, b)) : 0 : null;
     const win = has(3) ? (f, a, b) => f === 1 && a > -.95 && a < -.42 && b > .82 && b < 1.3 ? (a < -.9 || a > -.47 || b < .87 || b > 1.25 ? col(64, 60, 62) : col(34, 30, 38)) : 0 : null;
@@ -463,9 +494,6 @@ const BUNKER_ART = (() => {
       pbox(x + .2, y - .15, zt + .36, x + .23, y + .15, zt + .62, [255, 250, 220], 12, null, 0); pbox(x - .15, y + .2, zt + .36, x + .15, y + .23, zt + .62, [255, 250, 220], 12, null, 0);
       glow(x + .23, y, zt + .49, [255, 250, 220]); glow(x, y + .23, zt + .49, [255, 250, 220]);
     }
-    const ox = -hx + 1.25;
-    if (has(5)) spots((ox + hx) / 2, 0, (hx - ox) / 2 - .28, hy - .3, top); else spots(.15, .15, hx - .35, hy - .35, top);
-    hatch(has(5) ? (ox + hx) / 2 - .05 : .1, has(5) ? -.05 : .1, top);
   }
 
   /* ---- 4. a fort of corrugated iron on a timber frame ---- */
@@ -480,6 +508,7 @@ const BUNKER_ART = (() => {
   };
   function shack(k, I) {
     const m = 1.5, top = I.roof, has = n => k >= n, timber = [96, 72, 52];
+    deck(-m, -m, m, m, top, [150, 112, 72]);
     solid(-m, -m, 0, m, m, top, [150, 116, 80], 3, plankTop(.28));
     // the sheets on the two walls you can see: each its own colour, a little uneven
     for (let i = 0; i < 6; i++) {
@@ -550,8 +579,6 @@ const BUNKER_ART = (() => {
       if (!has(6)) post(nx, nx, top, top + 1.55, .03, DARK);
       for (const [x, y] of [[-m + .1, m - .05], [m - .05, -m + .1], [m - .05, m - .05]]) post(x, y, top, top + .42, .025, DARK, 13);
     }
-    spots(.3, .3, .8, .8, top);
-    hatch(.26, .26, top);
   }
 
   /* ---- shared parts for the heavier forms ---- */
@@ -589,6 +616,7 @@ const BUNKER_ART = (() => {
   // a lattice mast tapering up, with cross bracing and a red light on top
   function lattice(x, y, z0, h, w, c = [170, 60, 50]) {
     const r = rampOf(c);
+    block(x - w, y - w, x + w, y + w);
     for (const [dx, dy] of [[-w, -w], [w, -w], [-w, w], [w, w]]) line3([x + dx, y + dy, z0], [x + dx * .35, y + dy * .35, z0 + h], r[2]);
     for (let z = z0 + .25, i = 0; z < z0 + h - .15; z += .3, i++) {
       const k = 1 - (z - z0) / h * .65, k2 = 1 - (z + .3 - z0) / h * .65;
@@ -620,6 +648,7 @@ const BUNKER_ART = (() => {
   /* ---- 5. a concrete pillbox ---- */
   function pillbox(k, I) {
     const m = k >= 4 ? 1.62 : 1.5, top = I.roof, has = n => k >= n, pl = m + .12;
+    deck(-m + .06, -m + .06, m - .06, m - .06, top);
     const camo = has(9) ? camoPat(1.2) : null;
     const pil = has(4) ? (f, a, b) => f && b > .25 && b < top - .1 && Math.abs(rep(a, 1.08, .32) - .54) > .47 ? -.9 : 0 : null;
     const door = has(1) ? (f, a, b) => f === 1 && Math.abs(a + .05) < .38 && b > .22 && b < 1.3 ? (Math.abs(a + .05) > .33 || b > 1.25 ? col(52, 54, 60) : Math.abs(b - .55) < .04 || Math.abs(b - .95) < .04 ? col(84, 88, 96) : Math.abs(a - .2) < .03 && Math.abs(b - .78) < .1 ? col(220, 200, 120) : col(118, 124, 132)) : 0 : null;
@@ -663,16 +692,15 @@ const BUNKER_ART = (() => {
     if (has(8)) { // a long-range radio mast with guy wires
       const x = -m + .35, y = -m + .35;
       lattice(x, y, top, 2.5, .14);
-      for (const [gx, gy] of [[m - .2, -m + .2], [-m + .2, m - .2]]) line3([x, y, top + 1.7], [gx, gy, top + .02], rampOf(METAL)[2], .6);
+      for (const [gx, gy] of [[m - .2, -m + .2], [-m + .2, m - .2]]) { line3([x, y, top + 1.7], [gx, gy, top + .02], rampOf(METAL)[2], .6); block(gx - .25, gy - .25, gx + .25, gy + .25); }
       for (const z of [top + .9, top + 1.6]) { pbox(x - .03, y + .1, z, x + .03, y + .45, z + .05, DARK, 41); }
     }
-    spots(.22, .22, m - .55, m - .55, top);
-    hatch(.17, .17, top);
   }
 
   /* ---- 6. a reinforced bunker: concrete in bolted steel plate ---- */
   function reinforced(k, I) {
     const m = k >= 4 ? 1.66 : 1.55, top = I.roof, has = n => k >= n, OD = [112, 118, 92], PL = [120, 128, 136];
+    deck(-m + .05, -m + .05, m - .05, m - .05, top);
     const camo = camoPat(1.1), star = has(9) ? (f, a, b) => {
       if (f !== 1) return 0;
       const cx = .55, cz = 1.6, dx = (a - cx) / .36, dz = (b - cz) / .36;
@@ -683,7 +711,7 @@ const BUNKER_ART = (() => {
     } : null;
     const num = has(9) ? (f, a, b) => f === 1 ? textAt('51', -1.2, 1.78, col(236, 232, 220), 1, 2)(a, b) : 0 : null;
     solid(-m - .1, -m - .1, 0, m + .1, m + .1, .2, [120, 122, 112], 1, has(3) ? (f, a, b) => f ? hazard(a, b, f) : 0 : concrete());
-    solid(-m, -m, 0, m, m, top - .08, OD, 2, pats(star, num, slits([], [], 0, 0), camo, concrete(.4)), .5);
+    solid(-m, -m, 0, m, m, top - .08, OD, 2, pats(star, num, camo, concrete(.4)), .5);
     // steel plates over the lower walls
     pbox(-m, m, .2, m, m + .05, 1.3, PL, 3, platePat(.62, .2, 1.3)); pbox(m, -m, .2, m + .05, m, 1.3, PL, 4, platePat(.62, .2, 1.3));
     pbox(-m + .05, -m + .05, top - .08, m - .05, m - .05, top, [104, 110, 88], 5, concrete());
@@ -718,13 +746,12 @@ const BUNKER_ART = (() => {
       coil(-m + .05, m - .06, m - .05, m - .06, top + .24); coil(m - .06, -m + .05, m - .06, m - .05, top + .24);
       coil(-m + .05, -m + .06, m - .05, -m + .06, top + .36); coil(-m + .06, -m + .05, -m + .06, m - .05, top + .36);
     }
-    spots(.45, .45, .92, .92, top);
-    hatch(.4, .4, top);
   }
 
   /* ---- 7. a command bunker: a control cabin, radar, antennas ---- */
   function command(k, I) {
     const m = k >= 4 ? 1.72 : 1.62, top = I.roof, has = n => k >= n, GR = [198, 198, 190], BAND = [82, 88, 98], c1 = -m + 1.12, ct = top + 1.15;
+    deck(-m, -m, m, m, top);
     const ops = has(3) ? (f, a, b) => f && b > 1.32 && b < 1.72 && Math.abs(a) < m - .3 && rep(a, .55, .1) < .45 ? (b < 1.36 || b > 1.68 || rep(a, .55, .1) < .03 ? col(60, 66, 78) : hash(Math.floor(a * 14), Math.floor(b * 12)) > .7 ? col(170, 240, 255) : col(60, 150, 190)) : 0 : null;
     const banner = has(8) ? (f, a, b) => {
       if (f !== 1) return 0;
@@ -771,8 +798,6 @@ const BUNKER_ART = (() => {
       for (let t = -m + .2; t <= m - .1; t += .42) { bulb(t, m + .01, top - .1, [120, 255, 140]); bulb(m + .01, t, top - .1, [120, 255, 140]); }
       for (const [x, y] of [[m, m], [-m, m], [m, -m]]) lamp(x - .05, y - .05, top + .4, [255, 255, 255], .06);
     }
-    spots(.5, .5, .9, .9, top);
-    hatch(.45, .45, top);
   }
 
   // dressed stone: courses .36 high, blocks .7 long, each a little different
@@ -821,6 +846,7 @@ const BUNKER_ART = (() => {
   /* ---- 8. a fortress of dressed stone: battlements, turrets, missiles ---- */
   function turretFort(k, I) {
     const m = k >= 4 ? 1.75 : 1.7, top = I.roof, has = n => k >= n, ST_ = [164, 154, 138], ARM = [92, 100, 104];
+    deck(-m, -m, m, m, top);
     solid(-m - .12, -m - .12, 0, m + .12, m + .12, .3, [128, 120, 108], 1, stone);
     solid(-m, -m, 0, m, m, top, ST_, 2, pats(slits([[-1.1, -.7], [.6, 1.0]], [[-1.1, -.7], [.5, .9]], 1.6, 1.85), stone), .4);
     if (has(3)) { // armour skirts round the foot of the walls
@@ -862,14 +888,13 @@ const BUNKER_ART = (() => {
       pbox(x - .16, y - .16, z + .2, x + .16, y + .16, z + .38, [96, 108, 84], 41);
       for (const [o1, o2] of [[-.07, -.07], [.07, -.07], [-.07, .07], [.07, .07]]) for (const w of [0, .02]) line3([x + o1 + w, y + o2, z + .32], [x + o1 + .42 + w, y + o2 + .42, z + .95], rampOf(DARK)[w ? 0 : 2]);
     }
-    spots(.45, .45, .92, .92, top);
-    hatch(.4, .4, top);
   }
 
   /* ---- 9. a high-tech armoured citadel: gunmetal hull, white plates, cyan light ---- */
   const CY = [120, 230, 255];
   function citadel(k, I) {
     const m = k >= 4 ? 1.84 : 1.78, top = I.roof, has = n => k >= n, HULL = [74, 82, 98], PLT = [212, 218, 224];
+    deck(-m + .08, -m + .08, m - .08, m - .08, top, [90, 98, 112]);
     const core = has(3) ? (f, a, b) => f === 1 && Math.abs(a - .1) < .3 && b > .5 && b < top - .7 ? (Math.abs(a - .1) > .25 || b < .55 || b > top - .75 ? col(40, 46, 56) : rgb(...[[150, 240, 255], [190, 250, 255], [120, 220, 255]][Math.floor((b * 9 + Math.abs(a - .1) * 20)) % 3])) : 0 : null;
     const hull = (f, a, b) => {
       if (!f) return rep(a, .5) < PXA || rep(b, .5) < PXA ? -.6 : 0;
@@ -937,14 +962,13 @@ const BUNKER_ART = (() => {
       pbox(x - .14, y - .14, 0, x + .14, y + .14, .25, HULL, 21);
       pbox(x - .1, y - .1, 2.3, x + .1, y + .1, 2.55, CY, 22, null, .3); glow(x + .1, y + .1, 2.42, CY);
     }
-    spots(.45, .45, .92, .92, top);
-    hatch(.4, .4, top, [90, 98, 112]);
   }
 
   /* ---- 10. the final fortress: black armour, gold, a keep with a spire ---- */
   const GOLD = [226, 182, 66];
   function finalFort(k, I) {
     const m = 1.85, top = I.roof, has = n => k >= n, BLK = [62, 58, 70], RED = [176, 40, 40], kx = -m + 1.15, kt = top + 1.5;
+    deck(-m, -m, m, m, top, [92, 86, 100]);
     const emblem = has(1) ? (f, a, b) => {
       if (f !== 1 && f !== 2) return 0;
       // a shield with spread wings
@@ -1011,20 +1035,11 @@ const BUNKER_ART = (() => {
       glow(x, y, .95, [255, 190, 90]);
     }
     if (has(9)) for (const [x, y] of [[m - .08, m - .08], [-m + .08, m - .08], [m - .08, -m + .08]]) pbox(x - .1, y - .1, top + .3, x + .1, y + .1, top + .55, GOLD, 26, (f, a, b) => f && b > top + .48 ? 1 : 0);
-    spots(.45, .45, .95, .95, top);
-    hatch(.4, .4, top, [92, 86, 100]);
   }
 
-  // forms not drawn yet: a plain block
-  function placeholder(k, I) {
-    const h = I.half, top = I.roof;
-    solid(-h, -h, 0, h, h, top, CONCRETE, 1);
-    spots(0, 0, I.deck - .35, I.deck - .35, top);
-    hatch(-.1, -.1, top);
-  }
   YARD_ART.radar = radar; YARD_ART.lattice = lattice; YARD_ART.dish = dish;
   const FORMS = [foxhole, watchtower, containers, shack, pillbox, reinforced, command, turretFort, citadel, finalFort];
-  return { build() { const I = bunkerInfo(); SITES.length = 0; FORMS[I.form](I.sub, I); outline(); } };
+  return { build() { const I = bunkerInfo(); SITES.length = 0; FORMS[I.form](I.sub, I); placeCrew(); outline(); } };
 })();
 function buildBunker() { BUNKER_ART.build(); }
 /* ================= the compound: things that collect inside the fence as the bunker levels up =================
@@ -1536,7 +1551,7 @@ const FENCE_ART = (() => {
     },
     // 10. an energy barrier between emitter posts
     c => {
-      const { j, key, broken, has, P, seg, pst, strand, sign, debrisAt } = c;
+      const { j, key, broken, has, P, seg, pst, strand, sign, debrisAt, len } = c;
       const gold = has(9), pc = [58, 64, 80];
       pst(j, 0, .05, 0, broken ? .22 : .6, pc, 47, (f, a, b) => gold && f && b > .5 ? tone([226, 182, 66], f, 1) : f && Math.abs(b - .52) < .03 ? col(...CY) : 0);
       if (has(1) && j % 2 === 0) { const [x, y] = P(j, 0); pbox(x - .09, y - .09, 0, x + .09, y + .09, .2, gold ? [226, 182, 66] : [70, 78, 96], 48); }

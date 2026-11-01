@@ -129,10 +129,15 @@ function zombieFrame(z, T, set) {
   }
   if (z.hit > .03 && set.anims.hit) return ['hit', 0];
   if (z.healing && set.anims.regen) return loopAt('regen', z.t);
-  // one walk cycle per stride: the frame follows the distance walked, so the feet stay planted
+  // the frame follows the distance walked: one frame per foot-step of the art, so the planted foot stays put
+  // whatever the island size, a scream's rage or the sprint in from the edge
   const a = set.anims.walk;
-  return ['walk', Math.floor(z.walkDist / Math.max(.05, z.speed) * a.fps) % a.F.length];
+  return ['walk', Math.floor(z.walkDist / strideOf(z.type)) % a.F.length];
 }
+// how far a zombie's planted foot slides back per walk frame in its art, in screen pixels across; one world
+// unit along the ground is S / R2 pixels across the screen
+const STRIDE_PX = { runner: 1.3, screamer: 1.25, burrower: 1.25, giant: 1.25, boss: 1.25, leaper: 1.5, regenerator: 1.5 };
+const strideOf = type => (STRIDE_PX[type] || 1) / (S / R2);
 function drawZombie(z) {
   const T = ZTYPES[z.type], set = SPR[z.type];
   // underground: only a mound of earth moves, and nobody can shoot it

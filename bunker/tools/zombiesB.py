@@ -8,13 +8,18 @@ How a frame is made
   screen pixel). The game's camera is the 2:1 3/4 view from 30 degrees above:  screen x = f - n,  screen y = f/2 + n/2 - z
   for F (facing down-right); B (facing up-left, seen from behind) is the same with f negated. The camera-near side is at
   the screen lower left in both views; the runtime mirrors F for down-left and B for up-right.
-- Torso, head and other big masses are sculpted from overlapping ellipsoids and boxes (ribcage, pecs, deltoids, belly,
-  shoulder blades, skull, jaw ...) and ray-cast with that camera, so F, B, leaning, falling and leaping stay consistent.
-  Material maps on the sculpt give torn clothes, ribs, plates, wounds.
-- Arms and legs are tapered brush strokes with anatomical width profiles (deltoid, forearm, calf bulges, knobbly knees and
-  elbows); hands, claws, toes, teeth, hair and drool are drawn pixel by pixel at projected points.
+- Torso and head are hand-painted bitmaps per view (Mutant.T / Mutant.H, letters per type legend) with named anchors
+  (hip, neck, shoulders, hip joints ...). They are only translated by whole pixels in walks; leans, falls and the lying
+  corpse rotate them with RotSprite (Scale2x x3, rotate, sample) and squash lying bodies onto the ground plane.
+- Arms and legs are composed 3D muscle volumes (deltoid, biceps, triceps, forearm mass, kneecap, calf, shin) ray-cast with
+  the camera, with darker grooves where one mass overlaps another; the throat sac and the concrete slab are volumes too.
+  Hands, claws, toes, teeth, hair, drool, spikes and effects are drawn pixel by pixel at projected points.
 - Light comes from the upper left; every material has a 5-tone ramp whose shadows drift to violet and lights to warm.
-- Everything is z-buffered; a dark seam separates a part from one in front of it; then cleanup and a 1 px outline.
+- Everything is z-buffered; a dark seam separates a part from one in front of it; then cleanup, despeckle and a 1 px
+  outline in (30, 24, 26). Effects (sound arcs, sparks, dust) are drawn after the outline without one.
+- Walk cycles: each foot is planted for frames 0-4 of its half and slides back exactly `step` units per frame along the
+  facing diagonal (screen (step, step/2) in F, (-step, -step/2) in B), so the runtime should move the sprite by that much
+  per walk frame for the feet to stay put on the ground.
 """
 import colorsys
 import json
@@ -134,12 +139,6 @@ class Blob:
     __slots__ = ('c', 'r', 'mat', 'rot', 'kind', 'groove', 'tex', 'bias', 'name')
     def __init__(s, c, r, mat, rot=None, kind='e', groove=True, tex=None, bias=0.0, name=''):
         s.c, s.r, s.mat, s.rot, s.kind, s.groove, s.tex, s.bias, s.name = c, r, mat, rot or I3, kind, groove, tex, bias, name
-
-def surf(b, n, z, back=False):
-    """point on the front (or back) surface of an axis-aligned ellipsoid blob at given n, z"""
-    q = 1 - ((n - b.c[1]) / b.r[1]) ** 2 - ((z - b.c[2]) / b.r[2]) ** 2
-    f = b.r[0] * math.sqrt(max(0.0, q))
-    return (b.c[0] - f if back else b.c[0] + f, n, z)
 
 def snap_T(T, view, A):
     """move T so its projection lands on a whole pixel (keeps parts from wobbling between frames)"""
@@ -361,12 +360,6 @@ def stroke(cv, A, B, wprof, dA, dB, part, mat, side=None, bulge=(), detail=None,
         out[(x, y)] = (t, s)
     return out
 
-def dot_px(cv, p, key, depth, part, w=1, root=False):
-    if w == 1:
-        return cv.put(int(round(p[0])), int(round(p[1])), key, depth, part, root=root)
-    for (ox, oy) in BRUSH[w]:
-        cv.put(int(math.floor(p[0] + .5)) + ox, int(math.floor(p[1] + .5)) + oy, key, depth, part, root=root)
-
 def line_px(cv, A, B, key, depth, part, dB=None, root=False):
     n = max(1, int(math.ceil(max(abs(B[0] - A[0]), abs(B[1] - A[1])))))
     pts = []
@@ -433,6 +426,29 @@ def seams(cv, thr=1.2, join=(), soft=()):
         else:
             px[(x, y)] = ['o', v[1], v[2], v[3]]
 
+def despeckle(cv):
+    """a pixel cut off from all other colour pixels by seam lines becomes part of the seam (no 1-px islands)"""
+    px = cv.px
+    for _ in range(2):
+        iso = []
+        for (x, y), v in px.items():
+            if v[0] == 'o':
+                continue
+            alone = True
+            for dx in (-1, 0, 1):
+                for dy in (-1, 0, 1):
+                    if (dx or dy):
+                        w = px.get((x + dx, y + dy))
+                        if w is not None and w[0] != 'o':
+                            alone = False
+            if alone:
+                iso.append((x, y))
+        for q in iso:
+            if any(px.get(n) is not None for n in nb4(*q)):
+                px[q][0] = 'o'
+            else:
+                del px[q]
+
 def outline(cv, skip=()):
     px = cv.px
     add = set()
@@ -496,7 +512,7 @@ class Mutant:
     name = '?'
     w = h = 32
     ax, ay = 15, 28
-    fine = ('claw', 'hair', 'fx', 'drool', 'spike', 'tooth')
+    fine = ('claw', 'claw2', 'claw3', 'hair', 'fx', 'drool', 'spike', 'tooth')
     soft = ()
     join = ()
     ANIMS = {}           # name -> (frames, fps, loop)
@@ -505,6 +521,9 @@ class Mutant:
     grad = .25
     pf, pz = 0.0, 0.0     # per-type pelvis offset (keeps the body centred over the feet / inside the frame)
     lay_shift = (0, 0)    # screen offset for the falling / lying frames of 'die' so the corpse sits inside the frame
+    claw_m = 4            # how far hands stay inside the frame edge (room for claws and outline)
+    foot_m = 3
+    elbow_m = 2
 
     def __init__(self):
         self.mats = {}
@@ -532,6 +551,8 @@ class Mutant:
         cv = Canvas(self.w, self.h)
         P = self.pose(anim, i, view)
         P['_anim'], P['_i'], P['_view'] = anim, i, view
+        P['pel'] = (P['pel'][0] + self.pf, P['pel'][1], P['pel'][2] + self.pz)
+        P['_shifted'] = True
         if 'pel2' in P and anim == 'die' and 'squash' not in P:
             P['squash'] = {2: .88, 3: .72, 4: .68, 5: .68}.get(i, 1.0)
         if 'pel2' in P and anim == 'die' and self.lay_shift != (0, 0):
@@ -542,6 +563,11 @@ class Mutant:
                     if k in g:
                         g[k] = (g[k][0] + dx, g[k][1] + dy)
         meta = self.draw(cv, P, view) or {}
+        if P.get('remap'):
+            rm = P['remap']
+            for v in cv.px.values():
+                if isinstance(v[0], tuple):
+                    v[0] = rm(v[0])
         self.post(cv, P, view)
         self.after(cv, P, view, meta)
         return cv, meta
@@ -549,6 +575,7 @@ class Mutant:
     def post(self, cv, P, view):
         cleanup(cv, self.fine)
         seams(cv, thr=.3, join=self.join, soft=self.soft)
+        despeckle(cv)
         outline(cv, skip=('fx',))
 
     def after(self, cv, P, view, meta):
@@ -571,7 +598,7 @@ class Mutant:
         P = dict(pel=(0, 0, 3), pel2=({2: cx - 2, 3: cx, 4: cx, 5: cx}[i], {2: -int(Ll * .55) - cy // 2, 3: -cy - 1, 4: -cy, 5: -cy}[i]),
                  roll=roll, hroll={2: -6, 3: -10, 4: -12, 5: -12}[i], head='dead' if 'dead' in self.H else 'base')
         up = {2: 2.0, 3: 1.0, 4: 0.0, 5: 0.0}[i]
-        P['arms'] = {'N': dict(ha2=(La * .45, .4 - up), bend2=(0, 1)),
+        P['arms'] = {'N': dict(ha2=(La * .72, .2 - up), bend2=(0, -1)),
                      'F': dict(ha2=(-La * .22, -min(La * .3, 2.4 + up * 1.5)), bend2=(1, -1))}
         if i == 2:
             P['arms'] = {'N': dict(ha2=(-La * .5, -La * .2), bend2=(1, 1)), 'F': dict(ha2=(-La * .45, -La * .55), bend2=(1, -1))}
@@ -581,6 +608,10 @@ class Mutant:
         if extra:
             P.update(extra)
         return P
+
+    def keep_in(self, p2, m=4):
+        """pull a limb end point inside the frame so claws and outline never get cut off"""
+        return (min(max(p2[0], m), self.w - 1 - m), min(max(p2[1], m), self.h - 1 - m))
 
     def tdeg(self, P, view):
         sf = 1 if view == 'F' else -1
@@ -594,20 +625,21 @@ class Mutant:
             P['_shifted'] = True
         pel3 = P['pel']
         p2 = self.S(pel3, view) if 'pel2' not in P else (self.ax + P['pel2'][0], self.ay + P['pel2'][1])
-        hip2 = (int(round(p2[0])), int(round(p2[1])))
+        hip2 = (int(round(p2[0])) + P.get('sway2', 0) * sf, int(round(p2[1])))
         Dt = self.D(pel3, view)
         tdeg = self.tdeg(P, view)
         tb = self.T[P.get('torso', 'base')][view]
-        tm = stamp(cv, tb, self.L, hip2, Dt, 'torso', 'hip', tdeg, grad=self.grad, remap=P.get('remap'), squash=P.get('squash', 1.0))
+        tm = stamp(cv, tb, self.L, hip2, Dt, 'torso', 'hip', tdeg, grad=self.grad, squash=P.get('squash', 1.0))
         J = {k: tm(k) for k in tb.a}
         J['_tm'], J['_Dt'], J['_tdeg'] = tm, Dt, tdeg
         if P.get('head', 'base') is not None:
             hb = self.H[P.get('head', 'base')][view]
             ho = proj(P.get('hoff', (0, 0, 0)), view)
             hdeg = tdeg + P.get('hlean', 0) * sf + P.get('hroll', 0)
-            hpos = (int(round(J['neck'][0] + ho[0])), int(round(J['neck'][1] + ho[1])))
+            hbob = P.get('hb2', (0, 0))
+            hpos = (int(round(J['neck'][0] + ho[0])) + hbob[0] * sf, int(round(J['neck'][1] + ho[1])) + hbob[1])
             hz = Dt + P.get('hdz', self.hdz[view])
-            hm = stamp(cv, hb, self.L, hpos, hz, 'head', 'neck', hdeg, remap=P.get('remap'), squash=P.get('squash', 1.0))
+            hm = stamp(cv, hb, self.L, hpos, hz, 'head', 'neck', hdeg, squash=P.get('squash', 1.0))
             J['_hm'], J['_hz'] = hm, hz
             if 'top' in hb.a:
                 t = hm('top')
@@ -632,14 +664,20 @@ class Mutant:
             off = a.get('goff', (1.0, -1.0))
             a = dict(a, ha2=(g2[0] + off[0] - sh2[0], g2[1] + off[1] - sh2[1]), bend2=a.get('bend2', (1, 1)))
         if 'ha2' in a:
-            h2 = vadd(sh2, a['ha2'])
+            h2 = self.keep_in(vadd(sh2, a['ha2']), self.claw_m)
             e2 = vadd(sh2, a['el2']) if 'el2' in a else ik2(sh2, h2, spec['up'], spec['fore'], a.get('bend2', (-1, 0)))
+            e2 = self.keep_in(e2, self.elbow_m)
             ed = hd = shd
         else:
             ha = a['ha']
             el = a['el'] if 'el' in a else ik3((0, 0, 0), ha, spec['up'], spec['fore'], a.get('bend', (-1.0, .7 * sgn, -.3)))
             e2 = vadd(sh2, proj(el, view))
             h2 = vadd(sh2, proj(ha, view))
+            hc = self.keep_in(h2, self.claw_m)
+            if hc != h2:
+                h2 = hc
+                e2 = ik2(sh2, h2, spec['up'], spec['fore'], (e2[0] - (sh2[0] + h2[0]) / 2, e2[1] - (sh2[1] + h2[1]) / 2))
+            e2 = self.keep_in(e2, self.elbow_m)
             ed, hd = shd + dep(el, view), shd + dep(ha, view)
         part = 'arm' + side
         back = side_vec(view, (-1, 0, 0))
@@ -670,7 +708,7 @@ class Mutant:
             g['an2'] = (hp2[0] + g['an2r'][0] - self.ax, hp2[1] + g['an2r'][1] - self.ay)
             g['kn2'] = (hp2[0] + g['kn2r'][0] - self.ax, hp2[1] + g['kn2r'][1] - self.ay)
         if 'an2' in g:
-            a2 = (self.ax + g['an2'][0], self.ay + g['an2'][1])
+            a2 = self.keep_in((self.ax + g['an2'][0], self.ay + g['an2'][1]), self.foot_m)
             k2 = (self.ax + g['kn2'][0], self.ay + g['kn2'][1]) if 'kn2' in g else ik2(hp2, a2, spec['th'], spec['sh'], g.get('bend2', side_vec(view, (1, 0, 0))))
             kd = ad = hpd + g.get('dz', 0)
             ft = g.get('ft', (0, 0, 0))
@@ -1077,30 +1115,7 @@ def stamp(cv, bmp, legend, dst, depth, part, src='hip', deg=0.0, grad=0.0, remap
         return (v[0] + dc[0] - .5, v[1] * squash + dc[1] - .5)
     return amap
 
-# ============================================================== sculpt -> ASCII (authoring aid)
-def sculpt_ascii(blobs, view, chars, joints=None, R=I3, title=''):
-    """render a 3D sculpt in the given view and print it as legend letters, with joint anchors, as a starting point
-    for hand painting. chars: {material: 'tones 0..4 letters'}"""
-    cv = Canvas(64, 64)
-    A = (32, 40)
-    res = render_volume(cv, blobs, (0, 0, 0), R, view, 'x', A)
-    xs = [p[0] for p in cv.px]
-    ys = [p[1] for p in cv.px]
-    x0, x1, y0, y1 = min(xs), max(xs), min(ys), max(ys)
-    print(f'--- {title} view {view}  size {x1 - x0 + 1}x{y1 - y0 + 1}')
-    for y in range(y0, y1 + 1):
-        row = ''
-        for x in range(x0, x1 + 1):
-            v = cv.px.get((x, y))
-            row += '.' if v is None else chars[v[0][0]][v[0][1]]
-        print('    ' + row)
-    if joints:
-        out = {}
-        for k, j in joints.items():
-            p = proj(mvec(R, j), view)
-            out[k] = (int(round(A[0] + p[0] - x0)), int(round(A[1] + p[1] - y0)))
-        print('   ', ', '.join(f'{k}={v}' for k, v in out.items()))
-
+# ============================================================== authoring aids (not used by the build)
 def parts_sheet(mut, path, scale=14, extra=()):
     """every hand-painted bitmap of a type, enlarged, with its anchors marked (authoring aid)"""
     from PIL import Image, ImageDraw
@@ -1268,6 +1283,7 @@ class Regenerator(Mutant):
 
     pz = -1.5
     lay_shift = (2, -2)
+    claw_m = 5
     def setup(self):
         self.mats = {
             'mus': ramp((176, 50, 62)),
@@ -1291,22 +1307,22 @@ class Regenerator(Mutant):
                 454v44323332
                 44v233223221
                 33212211211.
-                .W32mmm211..
-                .3W2sSs321..
-                .W32mmm321..
+                .W32ms3211..
+                .3W2sm3321..
+                .W321ms321..
                 ..cdcbcbba..
                 ..bccbabba..
             """, hip=(5, 9), neck=(6, 0), shN=(1, 4), shF=(10, 3), hpN=(4, 10), hpF=(7, 9)),
             'B': Bmp("""
                 ....433.....
                 ..45544332..
-                .4554W33432.
-                45324w233322
-                443v3W232221
-                33222w22121.
-                .4332W2221..
-                .3432w1211..
-                .3323W121...
+                .4554y33432.
+                45321w233322
+                443v2y232221
+                33221w22121.
+                .4331y2221..
+                .3431w1211..
+                .3321y121...
                 ..cdcbcbba..
                 ..bccbabba..
             """, hip=(5, 9), neck=(5, 0), shN=(1, 4), shF=(10, 3), hpN=(4, 10), hpF=(7, 9)),
@@ -1536,7 +1552,7 @@ class Spitter(Mutant):
             fN, fF = walk8(i, step=1.0, lift=(.6, 1.2, .6), spread=1.2)
             bob = cyc([0, 1, 0, 0, 0, 1, 0, 0], i)
             sw = cyc([-1, -.5, 0, .5, 1, .5, 0, -.5], i)
-            return dict(pel=(-.4, 0, 10.2 - bob), hlean=cyc([0, 6, 3, 0, 0, 6, 3, 0], i),
+            return dict(pel=(-.4, 0, 10.2 - bob), hb2=cyc([(0, 0), (0, 1), (1, 1), (0, 0), (0, 0), (0, 1), (1, 1), (0, 0)], i),
                         sac=1.0, sway=cyc([0, 1, 1, 0, 0, -1, -1, 0], i), drool=i,
                         arms={'N': dict(ha=(2.4 + .9 * sw, .6, -5.6)), 'F': dict(ha=(2.2 - .9 * sw, -.4, -5.4))},
                         legs={'N': dict(ft=fN[:3], heel=fN[3]), 'F': dict(ft=fF[:3], heel=fF[3])})
@@ -1643,6 +1659,7 @@ class Screamer(Mutant):
 
     pz = -2.8
     lay_shift = (1, -2)
+    claw_m = 6
     def setup(self):
         self.mats = {
             'skn': ramp((184, 188, 174), cool=(66, 62, 118)),
@@ -1710,7 +1727,6 @@ class Screamer(Mutant):
         }
         self.H['scream'] = {
             'F': Bmp("""
-                hhihhihhhh..
                 .hijjiiihhh.
                 hhijii3443h.
                 .hii2E34E2.h
@@ -1721,7 +1737,7 @@ class Screamer(Mutant):
                 ...2WMMMMW..
                 ....2MMMM2..
                 .....2112...
-            """, neck=(5, 10), top=(6, 0), mouth=(7, 6)),
+            """, neck=(5, 9), top=(6, 0), mouth=(7, 5)),
             'B': self.H['base']['B'],
         }
         self.H['dead'] = {
@@ -1762,20 +1778,21 @@ class Screamer(Mutant):
             fN, fF = walk8(i, step=1.25, lift=(.8, 1.6, .8), spread=1.0)
             bob = cyc([0, 1, 1, 0, 0, 1, 0, 0], i)
             sw = cyc([-1, -.5, 0, .5, 1, .5, 0, -.5], i)
-            return dict(pel=(.2, 0, 10.6 - bob), lean=6, roll=cyc([-3, -2, 0, 2, 3, 2, 0, -2], i), hlean=cyc([8, 10, 6, 4, 8, 12, 8, 4], i),
+            return dict(pel=(.2, 0, 10.6 - bob), sway2=cyc([-1, -1, 0, 1, 1, 1, 0, -1], i),
+                        hb2=cyc([(0, 0), (1, 1), (1, 1), (0, 0), (0, 0), (-1, 1), (0, 1), (0, 0)], i),
                         arms={'N': dict(ha=(1.2 + 2.6 * sw, 1.2, -8.8)), 'F': dict(ha=(1.2 - 2.6 * sw, -1.0, -8.8))},
                         legs={'N': dict(ft=fN[:3], heel=fN[3]), 'F': dict(ft=fF[:3], heel=fF[3])})
         stance = {'N': dict(ft=(1.6, 1.1, 0)), 'F': dict(ft=(-1.2, -1.1, 0))}
         if anim == 'attack':
             # both endless arms rise high and rake down in front
-            return dict(pel=(-.4 + [0, -.4, .6, .8, .4][i], 0, [10.2, 10.4, 9.8, 9.4, 10.2][i]), lean=[-4, -10, 14, 18, 8][i],
+            return dict(pel=(-.4 + [0, -.4, .6, .8, .4][i], 0, [10.0, 9.6, 9.6, 9.4, 10.0][i]), lean=[-4, -8, 14, 18, 8][i],
                         hlean=[0, -8, 10, 14, 6][i], head=['base', 'scream', 'scream', 'base', 'base'][i],
                         arms={'N': dict(ha=[(-1.6, 1.8, 4.0), (-3.2, 1.6, 4.6), (6.0, .6, .6), (6.0, .4, -4.0), (3.2, .8, -7.4)][i]),
                               'F': dict(ha=[(-1.2, -1.6, 4.4), (-2.8, -1.4, 4.8), (6.2, -.2, 1.4), (6.2, -.2, -3.4), (2.8, -.6, -7.6)][i])},
                         legs={'N': dict(ft=(2.2, 1.1, 0)), 'F': dict(ft=(-1.4, -1.1, 0))})
         if anim == 'scream':
             k = i
-            return dict(pel=(-.2, 0, 9.4 + (.4 if k in (1, 2) else 0)), lean=[-6, -10, -6, -6][k], hlean=[-12, -20, -12, -12][k],
+            return dict(pel=(-.2, 0, 8.2 + (.2 if k in (1, 2) else 0)), lean=[-6, -10, -6, -6][k], hlean=[-12, -18, -10, -10][k],
                         head=['base', 'scream', 'scream', 'scream'][k], rings=[0, 1, 2, 3][k], shake=[0, 0, 1, -1][k],
                         arms={'N': dict(ha=[(-1.4, 3.6, -6.4), (-1.0, 5.4, -3.2), (-.6, 6.2, -2.0), (-.6, 6.2, -1.6)][k]),
                               'F': dict(ha=[(-1.4, -3.4, -6.4), (-1.0, -5.2, -3.0), (-.6, -6.0, -1.8), (-.6, -6.0, -1.4)][k])},
@@ -1817,7 +1834,7 @@ class Screamer(Mutant):
                 if q == prev or abs(st) in (3,) and k > 1:
                     continue
                 prev = q
-                if q not in cv.px and 0 <= q[0] < cv.w and 0 <= q[1] < cv.h:
+                if q not in cv.px and 1 <= q[0] < cv.w - 1 and 1 <= q[1] < cv.h - 1:
                     cv.fx[q] = ('ring', 2)
 
     def extras(self, cv, P, view, J, meta):
@@ -1840,9 +1857,10 @@ class Leaper(Mutant):
 
     pf = -3.0
     lay_shift = (2, -2)
+    claw_m = 7
     def setup(self):
         self.mats = {
-            'skn': ramp((132, 112, 148), cool=(40, 34, 90)),
+            'skn': ramp((142, 122, 158), cool=(40, 34, 90)),
             'bone': ramp((228, 220, 194)),
             'eye': flat((255, 222, 60)),
             'mouth': ramp((70, 28, 44)),
@@ -1958,7 +1976,7 @@ class Leaper(Mutant):
             fN, fF = walk8(i, step=1.5, lift=(1.2, 2.2, 1.2), spread=1.4)
             bob = cyc([0, 1, 1, 0, 0, 1, 1, 0], i)
             sw = cyc([-1, -.5, 0, .5, 1, .5, 0, -.5], i)
-            return dict(pel=(-2.4, 0, 9.4 - bob), hlean=cyc([0, 4, 2, 0, 0, 4, 2, 0], i),
+            return dict(pel=(-2.4, 0, 9.4 - bob), hb2=cyc([(0, 0), (0, 1), (0, 1), (0, 0), (0, 0), (0, 1), (0, 1), (0, 0)], i),
                         arms={'N': dict(ha=(3.6 + 1.6 * sw, .6, -5.0 - 1.0 * max(0, -sw))), 'F': dict(ha=(3.4 - 1.6 * sw, -.6, -5.0 - 1.0 * max(0, sw)))},
                         legs={'N': dict(ft=fN[:3]), 'F': dict(ft=fF[:3])})
         stance = {'N': dict(ft=(1.6, 1.4, 0)), 'F': dict(ft=(-1.4, -1.4, 0))}
@@ -2035,12 +2053,13 @@ class Burrower(Mutant):
 
     pf = -3.0
     lay_shift = (1, -2)
+    claw_m = 6
     def setup(self):
         self.mats = {
             'skn': ramp((112, 122, 96)),
             'mud': ramp((92, 68, 50), cool=(40, 30, 50), warm=(200, 160, 110)),
             'rock': ramp((150, 146, 140)),
-            'clw': ramp((232, 212, 156), cool=(110, 80, 70)),
+            'clw': ramp((218, 198, 146), cool=(110, 80, 70)),
             'nose': ramp((214, 140, 142)),
             'eye': flat((236, 56, 46)),
             'mouth': ramp((60, 30, 34)),
@@ -2125,7 +2144,7 @@ class Burrower(Mutant):
             b0 = (c[0] + d[0] * 1.2, c[1] + d[1] * 1.2)
             curl = a.get('curl', .5)
             tip = (b0[0] + d[0] * 3.2 - d[1] * curl, b0[1] + d[1] * 3.2 + d[0] * curl + .6)
-            stroke(cv, b0, tip, [(0, 2), (.6, 2), (1, 1)], depth + .4, depth + .6, 'claw', 'clw', rad=.3, bias=.05)
+            stroke(cv, b0, tip, [(0, 2), (.6, 2), (1, 1)], depth + .4 + .6 * k, depth + .6 + .6 * k, ('claw', 'claw2', 'claw3')[k], 'clw', rad=.3, bias=.05)
 
     def foot(self, cv, P, view, side, a2, k2, g, part, spec, depth):
         self.simple_foot(cv, P, view, a2, g, part, depth, 'skn', toe='clw', length=1.8, width=3)
@@ -2135,7 +2154,7 @@ class Burrower(Mutant):
             fN, fF = walk8(i, step=1.25, lift=(.8, 1.4, .8), spread=1.4)
             bob = cyc([0, 1, 0, 0, 0, 1, 0, 0], i)
             sw = cyc([-1, -.5, 0, .5, 1, .5, 0, -.5], i)
-            return dict(pel=(-.6, 0, 7.4 - bob), roll=cyc([-3, -2, 0, 2, 3, 2, 0, -2], i),
+            return dict(pel=(-.6, 0, 7.4 - bob), sway2=cyc([-1, -1, 0, 1, 1, 1, 0, -1], i),
                         arms={'N': dict(ha=(3.0 + 1.6 * sw, .8, -2.8 - .8 * max(0, sw))), 'F': dict(ha=(3.0 - 1.6 * sw, -.6, -2.8 - .8 * max(0, -sw)))},
                         legs={'N': dict(ft=fN[:3], heel=fN[3]), 'F': dict(ft=fF[:3], heel=fF[3])})
         stance = {'N': dict(ft=(1.0, 1.8, 0)), 'F': dict(ft=(-1.0, -1.8, 0))}
@@ -2185,8 +2204,10 @@ class Burrower(Mutant):
                 # everything below the ground in the hole is hidden
                 for q in [q for q in cv.px if q[1] > self.ay - 1]:
                     del cv.px[q]
-                if 'head' in meta and meta['head'][1] > self.ay - 1:
-                    del meta['head']
+                if 'head' not in meta or meta['head'][1] > self.ay - 1:
+                    meta['head'] = [self.ax, self.ay - 2]
+        else:
+            meta['head'] = [self.ax, self.ay - 2]
         return meta
 
     DIRT = [(-6, -3), (5, -4), (-3, -7), (7, -8), (-8, -9), (2, -11), (-5, -13), (6, -14), (-1, -16), (3, -6)]
@@ -2266,6 +2287,9 @@ class Giant(Mutant):
     grad = .2
 
     lay_shift = (2, -2)
+    claw_m, foot_m = 5, 5
+    elbow_m = 5
+    pz = 2.8
     def setup(self):
         self.mats = {
             'hide': ramp((132, 132, 126), cool=(50, 46, 80)),
@@ -2388,7 +2412,7 @@ class Giant(Mutant):
         def shin(t, s, ss, tone):
             hem = .22 + (.12 if int((s + 1) * 2.5) % 2 else 0)
             return ('pnt', max(0, tone - 1)) if t < hem else ('hide', tone)
-        return dict(th=8.4, sh=8.0, ankle=2.0, mat_t='hide', mat_s='hide', rad=2.6,
+        return dict(th=9.8, sh=9.4, ankle=2.0, mat_t='hide', mat_s='hide', rad=2.6,
                     vol=([(.28, 3.3, .3, -.2, 'pnt'), (.62, 2.8, .3, -.1), (.97, 2.1, .14, -.5, 'plate')],
                          [(.3, 2.6, .3, .8), (.48, 1.8, .4, -.4, 'plate'), (.93, 1.9, .14, 0.0)]))
 
@@ -2403,7 +2427,7 @@ class Giant(Mutant):
             fN, fF = walk8(i, step=1.25, lift=(1.4, 2.6, 1.4), spread=1.8)
             bob = cyc([0, 2, 1, 0, 0, 2, 1, 0], i)
             sw = cyc([-1, -.5, 0, .5, 1, .5, 0, -.5], i)
-            return dict(pel=(-.4, 0, 17.6 - bob), roll=cyc([-2, -2, 0, 1, 2, 2, 0, -1], i),
+            return dict(pel=(-.4, 0, 17.6 - bob), sway2=cyc([-1, -1, 0, 0, 1, 1, 0, 0], i),
                         arms={'N': dict(ha=(-1.2 + .6 * sw, 2.4, -15.0)), 'F': dict(ha=(2.0 - 2.4 * sw, -1.2, -14.4))},
                         legs={'N': dict(ft=fN[:3], heel=fN[3]), 'F': dict(ft=fF[:3], heel=fF[3])}, slab=('drag', i))
         stance = {'N': dict(ft=(2.6, 2.6, 0)), 'F': dict(ft=(-2.0, -2.6, 0))}
@@ -2414,20 +2438,28 @@ class Giant(Mutant):
             P = dict(pel=(-1.6 + [-.4, -.6, .4, .6, 0][i], 0, pz), lean=[-4, -8, 10, 14, 4][i], hlean=[-6, -12, 8, 12, 2][i],
                      legs={'N': dict(ft=(2.8, 1.8, 0)), 'F': dict(ft=(-2.2, -1.8, 0))}, slab=('atk', i), dust=(i == 3))
             hands = [(1.2, -1.6, 2.6), (1.4, -2.6, 5.4), (6.4, -1.4, -3.0), (6.8, -1.2, -6.0), (3.8, -.6, -9.0)][i]
+            if view == 'B':
+                hands = (hands[0] * .6, hands[1], hands[2])
             P['arms'] = {'N': dict(ha=hands), 'F': dict(grip='N', goff=(1.5, -.5))}
             return P
         if anim == 'hit':
-            return dict(pel=(-1.2, 0, 17.2), lean=-10, hlean=-14, slab=('drag', 0),
+            return dict(pel=(-1.2, 0, 16.0), lean=-10, hlean=-10, slab=('drag', 0),
                         arms={'N': dict(ha=(-2.2, 2.6, -14.4)), 'F': dict(ha=(-1.6, -2.4, -14.0))}, legs=stance)
         if anim == 'die':
             if i == 0:
-                return dict(pel=(-1.0, 0, 17.0), lean=-12, hlean=-18, slab=('drop', 0),
+                return dict(pel=(-1.0, 0, 15.8), lean=-12, hlean=-12, slab=('drop', 0),
                             arms={'N': dict(ha=(-1.6, 3.6, -12.0)), 'F': dict(ha=(-1.4, -3.2, -12.4))}, legs=stance)
             if i == 1:
                 return dict(pel=(-.6, 0, 12.4), lean=10, hlean=10, head='dead', slab=('drop', 1),
                             arms={'N': dict(ha=(3.0, 3.6, -9.6)), 'F': dict(ha=(3.4, -3.0, -9.6))},
                             legs={'N': dict(ft=(2.6, 2.6, 0)), 'F': dict(ft=(1.0, -2.6, 0))})
             return self.corpse(i, view, dict(slab=('drop', i)))
+
+    def draw(self, cv, P, view):
+        if view == 'B' and 'pel2' not in P:
+            # seen from behind the head sits on top of the hump; keep it tucked in so the frame stays inside 48 px
+            P['hoff'] = vadd(P.get('hoff', (0, 0, 0)), (0, 0, -3.6))
+        return Mutant.draw(self, cv, P, view)
 
     def slab(self, cv, view, grip2, gd, dirv, part='slab'):
         """broken concrete slab with rebar rods sticking out of the gripped end"""
@@ -2461,9 +2493,11 @@ class Giant(Mutant):
                 return
         kind, i = sl
         if kind == 'drag':
-            self.slab(cv, view, J['ha2N'], J['hadN'], (-.62, .32, -.72) if view == 'F' else (-.25, .55, -.8))
+            self.slab(cv, view, J['ha2N'], J['hadN'], (-.62, .32, -.72) if view == 'F' else (.18, .58, -.8))
         elif kind == 'atk':
             d = [(-.5, .2, .85), (-.95, .15, .3), (.86, .1, -.5), (.9, .1, -.44), (.5, .2, -.85)][i]
+            if view == 'B' and i in (2, 3):
+                d = (.25, .15, -.95)
             self.slab(cv, view, J['ha2N'], J['hadN'] + (0 if i < 2 else 1.0), d)
             if P.get('dust'):
                 end = vadd(J['ha2N'], proj(vmul(vnorm(d), 11.0), view))
@@ -2487,7 +2521,10 @@ class Boss(Mutant):
     sh_dz, hp_dz, hip_w = 4.4, 2.6, 3.0
     grad = .2
 
-    lay_shift = (2, -2)
+    lay_shift = (1, -1)
+    pf = -0.8
+    claw_m, foot_m = 9, 6
+    elbow_m = 6
     def setup(self):
         self.mats = {
             'fl': ramp((128, 98, 124), cool=(44, 30, 80)),
@@ -2624,41 +2661,41 @@ class Boss(Mutant):
             fN, fF = walk8(i, step=1.25, lift=(1.4, 2.4, 1.4), spread=2.0)
             bob = cyc([0, 2, 1, 0, 0, 2, 1, 0], i)
             sw = cyc([-1, -.5, 0, .5, 1, .5, 0, -.5], i)
-            return dict(pel=(-.2, 0, 13.6 - bob), roll=cyc([-3, -2, 0, 2, 3, 2, 0, -2], i), pulse=i % 4,
+            return dict(pel=(-.2, 0, 13.6 - bob), sway2=cyc([-1, -1, 0, 1, 1, 1, 0, -1], i), pulse=i % 4,
                         arms={'N': dict(ha=(2.6 + 2.0 * sw, 2.6, -14.0)), 'F': dict(ha=(2.4 - 2.0 * sw, -2.2, -14.0))},
                         xarms={1: (2.4 - 1.2 * sw, 1.4, -5.0), 2: (1.6 + 1.0 * sw, -2.0, 4.0 + sw)},
                         legs={'N': dict(ft=fN[:3], heel=fN[3]), 'F': dict(ft=fF[:3], heel=fF[3])})
         stance = {'N': dict(ft=(2.0, 2.0, 0)), 'F': dict(ft=(-1.6, -2.0, 0))}
         if anim == 'attack':
             # both main arms come down together, the small arms flail
-            hz = [3.6, 5.6, -4.0, -8.4, -11.4][i]
-            hf = [0.0, -1.0, 6.4, 7.0, 4.0][i]
+            hz = [3.0, 4.6, -4.0, -8.4, -11.4][i]
+            hf = [.6, .4, 5.0, 5.4, 3.4][i]
             return dict(pel=(-.8 + [-.4, -.6, .4, .6, .2][i], 0, [13.0, 13.4, 12.2, 11.8, 12.8][i]), lean=[-4, -8, 8, 12, 4][i],
                         hlean=[-8, -14, 8, 12, 2][i], pulse=[1, 2, 3, 3, 1][i], dust=(i == 3),
-                        arms={'N': dict(ha=(hf, 1.6, hz)), 'F': dict(ha=(hf + .4, -1.6, hz + .4))},
+                        arms={'N': dict(ha=(hf, [.6, .6, 1.6, 1.6, 1.6][i], hz)), 'F': dict(ha=(hf + .4, [-.6, -.6, -1.6, -1.6, -1.6][i], hz + .4))},
                         xarms={1: [(1.0, 2.6, 1.0), (.6, 3.0, 3.0), (4.4, 1.6, -3.0), (4.6, 1.6, -4.6), (3.0, 1.6, -5.0)][i],
                                2: [(-1.0, -2.6, 5.0), (-1.6, -2.8, 6.4), (2.4, -2.2, 2.0), (2.8, -2.0, 0.0), (1.6, -2.0, 3.0)][i]},
                         legs={'N': dict(ft=(2.4, 2.0, 0)), 'F': dict(ft=(-1.8, -2.0, 0))})
         if anim == 'stomp':
             # crouch, rear up on the far leg with the near foot lifted high and all arms raised, slam it down, the ground
             # shakes, recover
-            pz = [11.6, 14.6, 15.6, 11.2, 10.8, 12.6][i]
+            pz = [11.6, 13.4, 13.6, 11.2, 10.8, 12.6][i]
             lift = [0.0, 6.0, 9.0, 0.0, 0.0, 0.0][i]
             fz = [(2.0, 2.0, 0), (3.0, 2.0, lift), (3.6, 2.0, lift), (2.8, 2.0, 0), (2.8, 2.0, 0), (2.2, 2.0, 0)][i]
-            return dict(pel=(-1.4, 0, pz), lean=[6, -14, -20, 14, 16, 4][i], hlean=[0, -14, -20, 12, 14, 2][i], pulse=[1, 3, 4, 4, 3, 2][i],
+            return dict(pel=(-1.0 + [0, .8, 1.0, -.4, -.4, 0][i], 0, pz), lean=[6, -9, -12, 10, 12, 4][i], hlean=[0, -10, -14, 8, 10, 2][i], pulse=[1, 3, 4, 4, 3, 2][i],
                         quake=[0, 0, 0, 1, 2, 0][i],
-                        arms={'N': dict(ha=[(2.0, 2.0, -12.0), (-1.4, 3.0, 3.0), (-2.0, 3.2, 5.0), (5.0, 2.6, -11.0), (5.4, 2.6, -12.0), (2.6, 2.0, -12.6)][i]),
-                              'F': dict(ha=[(2.0, -2.0, -12.0), (-1.4, -2.8, 3.4), (-1.8, -3.0, 5.4), (5.2, -2.4, -10.6), (5.6, -2.4, -11.6), (2.6, -2.0, -12.6)][i])},
-                        xarms={1: (1.6, 2.4, [-4.0, 2.0, 4.0, -3.0, -5.0, -5.0][i]), 2: (0.0, -2.6, [4.0, 6.4, 7.0, 3.0, 2.0, 3.6][i])},
+                        arms={'N': dict(ha=[(2.0, 2.0, -12.0), (-.6, 2.4, 2.0), (-1.0, 2.4, 3.4), (4.4, 2.2, -11.0), (4.6, 2.2, -12.0), (2.6, 2.0, -12.6)][i]),
+                              'F': dict(ha=[(2.0, -2.0, -12.0), (-.2, -1.4, 2.4), (-.2, -1.2, 3.8), (4.4, -2.0, -10.6), (4.8, -2.0, -11.6), (2.6, -2.0, -12.6)][i])},
+                        xarms={1: (1.6, 2.0, [-4.0, 1.0, 2.6, -3.0, -5.0, -5.0][i]), 2: (0.0, -2.2, [4.0, 5.0, 5.4, 3.0, 2.0, 3.6][i])},
                         legs={'N': dict(ft=fz), 'F': dict(ft=(-1.8, -2.0, 0))})
         if anim == 'hit':
             return dict(pel=(-1.0, 0, 13.4), lean=-10, hlean=-14, pulse=4,
-                        arms={'N': dict(ha=(-2.0, 3.4, -13.0)), 'F': dict(ha=(-1.6, -3.0, -13.0))},
+                        arms={'N': dict(ha=(-.8, 2.4, -13.0)), 'F': dict(ha=(-.6, -2.2, -13.0))},
                         xarms={1: (-1.0, 2.0, -3.0), 2: (-1.6, -2.4, 6.0)}, legs=stance)
         if anim == 'die':
             if i == 0:
-                return dict(pel=(-.8, 0, 13.4), lean=-12, hlean=-18, pulse=4,
-                            arms={'N': dict(ha=(-1.4, 4.4, -8.0)), 'F': dict(ha=(-1.2, -4.0, -8.0))},
+                return dict(pel=(-.4, 0, 13.0), lean=-10, hlean=-16, pulse=4,
+                            arms={'N': dict(ha=(.2, 2.4, -8.4)), 'F': dict(ha=(.6, -1.2, -8.4))},
                             xarms={1: (-1.0, 2.6, 2.0), 2: (-1.6, -2.6, 7.0)}, legs=stance)
             if i == 1:
                 return dict(pel=(-.4, 0, 10.0), lean=8, hlean=12, head='dead', pulse=2,
@@ -2689,6 +2726,8 @@ class Boss(Mutant):
         for nm, (dv, ln) in self.SPIKES[view].items():
             a = tm(nm)
             d = rot2(unit2(dv), tdeg)
+            if P.get('_anim') == 'die' and P.get('_i', 0) >= 2:
+                ln = ln * .6
             b = (a[0] + d[0] * ln, a[1] + d[1] * ln)
             dz = -1.5 if view == 'F' else 2.0
             stroke(cv, a, b, [(0, 3), (.55, 2), (1, 1)], Dt + dz, Dt + dz, 'spike', 'bone', rad=.4)
@@ -2697,13 +2736,13 @@ class Boss(Mutant):
             sh2 = tm(anc)
             shd = Dt + (2.6 if sgn > 0 else -3.0)
             if 'xarms2' in P:
-                h2 = vadd(sh2, P['xarms2'][k])
+                h2 = self.keep_in(vadd(sh2, P['xarms2'][k]), 4)
                 e2 = ik2(sh2, h2, 5.4, 5.4, (1, -1))
                 ed = hd = shd
             elif 'xarms' in P:
                 ha = P['xarms'][k]
                 el = ik3((0, 0, 0), ha, 5.4, 5.4, (-1.0, .6 * sgn, -.2))
-                e2, h2 = vadd(sh2, proj(el, view)), vadd(sh2, proj(ha, view))
+                e2, h2 = vadd(sh2, proj(el, view)), self.keep_in(vadd(sh2, proj(ha, view)), 4)
                 ed, hd = shd + dep(el, view), shd + dep(ha, view)
             else:
                 continue

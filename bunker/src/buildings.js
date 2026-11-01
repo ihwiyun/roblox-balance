@@ -13,7 +13,7 @@ const fenceSub = (L = G.fence) => L - FENCE_FORM_AT[fenceForm(L)];
 // deck: half the roof area where debris lands; material: the colour of the dust when it is hit.
 // These are the values on a form's first level; grow lists [levels into the form, half, roof, deck] where it grows
 const BUNKER_FORMS = [
-  { name: '간이 참호', half: 1.45, roof: .2, deck: 1.15, material: [190, 166, 116], grow: [[4, 1.62, .2, 1.32]] },
+  { name: '간이 참호', half: 1.55, roof: .2, deck: 1.25, material: [190, 166, 116], grow: [[4, 1.7, .2, 1.4]] },
   { name: '나무 망루', half: 1.3, roof: 1.8, deck: 1.3, material: [146, 104, 66], grow: [[4, 1.45, 1.8, 1.45]] },
   { name: '컨테이너 초소', half: 1.5, roof: 1.9, deck: 1.3, material: [170, 72, 54], grow: [[5, 1.62, 1.9, 1.42]] },
   { name: '함석 요새', half: 1.5, roof: 2.0, deck: 1.4, material: [150, 120, 96], grow: [[4, 1.9, 2.0, 1.4]] },

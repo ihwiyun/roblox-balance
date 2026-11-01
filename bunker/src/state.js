@@ -32,7 +32,7 @@ function save() {
     localStorage.setItem(SAVE_KEY, JSON.stringify({
       money: G.money, food: G.food, mineral: G.mineral, lv: G.lv, bunker: G.bunker, fence: G.fence, live: G.live, farm: G.farm, mine: G.mine,
       crew: G.crew.map(c => c && { job: c.job, fatigue: c.fatigue }), wave: G.wave, waveKills: G.waveKills, totalKills: G.totalKills, at: Date.now(),
-      hp: G.hp, fenceHp: G.fenceHp, fenceDown: G.fenceDown,
+      hp: G.hp, fenceHp: G.fenceHp, fenceDown: G.fenceDown, ver: 4,
     }));
   } catch { /* saving is a convenience */ }
 }
@@ -43,7 +43,9 @@ function load() {
     for (const k of ['money', 'food', 'mineral', 'waveKills', 'totalKills']) G[k] = +d[k] || 0;
     G.wave = Math.max(1, +d.wave || 1);
     for (const k of Object.keys(G.lv)) G.lv[k] = clamp(+d.lv[k] || 0, 0, GUN[k].max);
-    G.bunker = clamp(+d.bunker || 1, 1, MAX_BUNKER); G.fence = clamp(+d.fence || 0, 0, MAX_FENCE);
+    // saves from before the 100-level buildings (40 levels): the same strength sits at a higher level now
+    const old = !(d.ver >= 4), up = L => L > 0 ? 1 + Math.round((L - 1) / LEVEL_STRETCH) : 0;
+    G.bunker = clamp(old ? up(+d.bunker || 1) : +d.bunker || 1, 1, MAX_BUNKER); G.fence = clamp(old ? up(+d.fence || 0) : +d.fence || 0, 0, MAX_FENCE);
     G.live = clamp(+d.live || 0, 0, LIVE.max); G.farm = clamp(+d.farm || 0, 0, FARM.max); G.mine = clamp(+d.mine || 0, 0, MINE.max);
     if (Array.isArray(d.crew)) d.crew.forEach((c, i) => { if (c && i < bedsOf(G.live) && JOBS.includes(c.job)) { const p = makePerson(i); p.job = c.job; p.fatigue = clamp(+c.fatigue || 0, 0, 99); G.crew[i] = p; } });
     G.hp = Number.isFinite(+d.hp) && d.hp > 0 ? Math.min(+d.hp, bunkerHp(G.bunker)) : bunkerHp(G.bunker);

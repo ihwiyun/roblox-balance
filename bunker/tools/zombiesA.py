@@ -2,21 +2,35 @@
 """Zombie set A: walker, crawler, runner, brute, bloater, armored, plus the dirt mound.
 
 Run from bunker/tools:
-    python3 zombiesA.py             writes ../art/zombiesA.js
-    python3 zombiesA.py --preview   also renders checking sheets into /tmp/claude-0/zombiesA/
+    python3 zombiesA.py             writes ../art/zombiesA.js  (window.ART_ZOMBIES_A)
+    python3 zombiesA.py --preview   also renders sheets and a 1x/3x lineup into /tmp/claude-0/zombiesA/ (needs PIL)
 
 How a frame is made
-  Every pose lives in body space: f forward, s towards the character's right, z up, measured in screen
-  pixels of height. A pose places the pelvis, leans the torso and puts hands and feet; two-bone IK finds
-  elbows and knees. The same pose is projected for both base views of the game's 2:1 camera:
+  Every pose lives in body space: f forward, s towards the character's right, z up, in screen pixels of
+  height. A pose places the pelvis, leans the torso and puts hands and feet; two-bone IK finds elbows and
+  knees. The same pose is projected for both base views of the game's 2:1 camera (S=16, 30 degrees):
     F faces down-right (towards the viewer)  sx = KX(f-s), sy = KY(f+s) - z
     B faces up-left (away from the viewer)   sx = -KX(f-s), sy = -KY(f+s) - z
-  so B is the same body seen from the other side: mirrored, with near and far swapped.
-  Parts go into a depth buffer: hand-drawn torso, head, hand and foot bitmaps (the torso follows the
-  spine with a pixel-art rotation when the body tips over), and limbs drawn as shaped strokes with a
-  width profile (thigh, knee, calf, ankle; deltoid, elbow, forearm, wrist), cloth that ends in ragged hems
-  and far-side limbs one shade darker. A 1 px outline goes round the result, plus dark seams where an arm
-  or leg crosses in front of the body.
+  so B is the same body seen from the other side: mirrored, near and far swapped. Points that land on the
+  same pixel are ordered by f+s (exact for this projection), which is the depth buffer.
+  Parts drawn into it:
+    - hand-drawn chest, hips and head bitmaps per view; a chest is picked by lean angle and sheared for the
+      rest, the head carries the face (glowing eyes, slack jaw) and expressions idle/bite/hurt/dead;
+    - limbs as runs of pixels across the bone with an anatomical width profile (deltoid, bicep, elbow,
+      forearm, wrist; thigh, knee, calf, ankle), lit from the upper left both across the limb and along it
+      (where a muscle swells or tapers), creases and veins, cloth that ends in a ragged hem, far-side limbs a
+      shade darker;
+    - hands drawn for five directions (mirrored for the rest) so fingers and claws stay crisp; feet and
+      shoes per view and state;
+    - bodies that swell or crawl (the bloater's belly, the crawler's trunk, the mound) are ray-cast from
+      ellipsoids into 4 tones and cleaned into clusters; dying bodies end on a hand-drawn lying body.
+  Finish: lone pixels removed, a seam in the back part's darkest tone where a part of the same colour
+  passes in front of it, then the 1 px outline in rgb(30,24,26) round the silhouette.
+
+Walk cycles move the planted foot back a fixed 0.0884 world units per frame (1 px across, 0.5 px down on
+screen; the runner 0.1155). The game advances walk frames by time walked x fps, so each walk fps is the
+zombie's speed / step (walker .55, crawler .42, runner 1.15, brute .32, bloater .34, armored .45 from
+src/config.js) and the planted foot stays put on the ground. If a speed changes, rescale that fps.
 """
 import math, json, os, sys
 
@@ -314,7 +328,12 @@ def render_biped(T, pose, view):
     rig = T.rig
     cv = Canvas(T.w, T.h)
     J = rig.joints(pose)
-    base = rig.joints({**pose, 'lean': rig.lean0, 'roll': 0, 'twist': 0, 'yaw': 0})
+    # chest bitmaps are drawn for given lean angles: take the closest and only shear the difference
+    chest_set, chest_lean = getattr(T, 'chest', None), rig.lean0
+    if getattr(T, 'chests', None):
+        lean_now = pose.get('lean', rig.lean0)
+        chest_lean, chest_set = min(T.chests, key=lambda c: abs(c[0] - lean_now))
+    base = rig.joints({**pose, 'lean': chest_lean, 'roll': 0, 'twist': 0, 'yaw': 0})
     P = {k: (T.ax + proj(view, v)[0], T.ay + proj(view, v)[1]) for k, v in J.items()}
     D = {k: depth(view, v) for k, v in J.items()}
     near = 'R' if view == 'F' else 'L'
@@ -327,7 +346,7 @@ def render_biped(T, pose, view):
     HMx = pose['hips_M'](view) if pose.get('hips_M') else None
     stamp(cv, hb, 'pel', pel2, D['pel'] + rig.hips_depth, 'hips', HMx)
     hip_anc = lambda name: add(pel2, apply2(HMx or ((1, 0), (0, 1)), sub(hb.a[name], hb.a['pel'])))
-    tb = pose.get('chest', T.chest)[view]
+    tb = pose.get('chest', chest_set)[view]
     # the chest follows the projected spine: a row shear for small tilts (keeps the drawing intact),
     # a pixel-art rotation for big ones (falling), shortened along the spine when it points into the screen
     s0, s1 = pv(base, 'waist', 'neck'), pv(J, 'waist', 'neck')
@@ -366,8 +385,7 @@ def render_biped(T, pose, view):
     return cv, (rnd(top[0]), rnd(top[1]))
 
 # ------------------------------------------------------------------ finishing passes
-SEAMS = {('armN', 'torso'), ('armN', 'legN'), ('armN', 'legF'), ('armN', 'hips'), ('legN', 'legF'), ('armF', 'legF'),
-         ('torso', 'armF'), ('head', 'armF'), ('hips', 'armF'), ('legN', 'armF'), ('armN', 'armF'), ('armN', 'head')}
+SEAMS = {('armN', 'torso'), ('armN', 'hips'), ('armN', 'head'), ('legN', 'legF'), ('head', 'torso'), ('armN', 'armF')}
 
 def deep_map(far_remap):
     """each letter's darkest relative along its ramp (used for seams inside the figure)"""
@@ -394,8 +412,7 @@ def finish(cv, seams=SEAMS, keep=(), deep=None):
     out = dict(c)
     for k in seam:
         ch = c[k]
-        out[k] = deep.get(ch, 'o') if deep else 'o'
-        if out[k] == ch: out[k] = 'o'
+        out[k] = deep.get(ch, ch) if deep else 'o'
     for (x, y) in list(c):
         for dx, dy in N4:
             q = (x + dx, y + dy)
@@ -452,8 +469,6 @@ def cloth_paint(ramp, dark, folds=(), allow_hi=True):
         return shade(ramp, n, lit, dk, allow_hi)
     return paint
 
-def frame_rows(cv): return cv.rows()
-
 # ------------------------------------------------------------------ preview helpers (only with --preview)
 def save_sheet(path, rows_list, pal, sc=6, cols=None, bg=(236, 232, 222), labels=None, gap=2):
     from PIL import Image
@@ -502,15 +517,15 @@ def walker_type():
     """, pel=(4, 2), hpR=(5.31, 1.92), hpL=(2.86, 3.14))
     chestF = Bmp("""
         ........WCc.
-        .....WWxCCcx
-        ...WWCqxBCcx
-        .WWCCCxbBCcx
-        WWCCCCCxbCcx
-        WCCCCCxkSxcx
-        WCCCCxkIsqc.
-        .CCCCxIsqxc.
-        .CCCCCxxCcc.
-        .CcxCCcxCcx.
+        .....WWcCCcx
+        ...WWCqcBCcx
+        .WWCCCcbBCcc
+        WWCCCCCcbCcx
+        WCCCCCckScxx
+        WCCCCckIsqcx
+        .CCCCcIsqcc.
+        .CCCCCccCcc.
+        .CcCCCcCcCc.
     """, waist=(5, 8), neck=(6.53, 2.23), shR=(2.28, 4.6), shL=(9.3, 1.09))
     chestB = Bmp("""
         ....sSWCc...
@@ -704,25 +719,16 @@ def walker_type():
     footF = {k: bare(b) for k, b in shoeF.items()}
     footB = {k: bare(b) for k, b in shoeB.items()}
 
-    def hem_paint(cloth, skin, hem, dark, folds=()):
-        def paint(t, c, n, k, x, y, lit):
-            jag = hem + 0.1 * (((x * 5 + y * 3) % 3) - 1)
-            if t < jag:
-                dk = dark + (1 if any(abs(t - f) < .09 and c > -.2 for f in folds) else 0)
-                if t > jag - .12: dk += 1
-                return shade(cloth, n, lit, dk)
-            return shade(skin, n, lit, dark, allow_hi=False)
-        return paint
     def leg_style(hem, foot):
         return {'thigh_prof': lambda t: (lerp(1.9, 1.55, t), 0.3 * (1 - t), 0.2 * bump(t, 0.4, 0.5)),
                 'thigh_paint': lambda dark: cloth_paint(JEANS, dark, folds=(0.85,)),
                 'shin_prof': lambda t: ((1.6 + 0.15 * t) if t < hem else lerp(1.0, 0.75, (t - hem) / max(.01, 1 - hem)),
                                         0.35 * bump(t, 0.35, 0.3) if t >= hem else 0, 0),
-                'shin_paint': lambda dark: hem_paint(JEANS, SKIN, hem, dark),
+                'shin_paint': lambda dark: hem_paint_of(JEANS, SKIN, hem, dark),
                 'foot': foot}
     def arm_style(sleeve):
         return {'upper_prof': lambda t: (lerp(1.25, 1.0, t), 0.1, 0.2 * bump(t, 0.5, 0.4)),
-                'upper_paint': lambda dark: hem_paint(SHIRT, SKIN, sleeve, dark),
+                'upper_paint': lambda dark: hem_paint_of(SHIRT, SKIN, sleeve, dark),
                 'fore_prof': lambda t: (lerp(0.9, 0.6, t), 0.2 * bump(t, 0.25, 0.3), 0),
                 'fore_paint': lambda dark: (lambda t, c, n, k, x, y, lit: shade(SKIN, n, lit, dark, allow_hi=False))}
     return Biped(name='walker', w=32, h=32, ax=17, ay=28, pal=WALKER_PAL, rig=rig,
@@ -734,7 +740,7 @@ def walker_type():
                  legs={'R': leg_style(0.32, 'bare'), 'L': leg_style(0.95, 'shoe')},
                  arms={'R': arm_style(0.5), 'L': arm_style(0.42)},
                  far_remap=far_remap_of(['kSsq', 'WCcx', 'UPpu', 'GFfg', 'Hh', 'RBb', 'Ii']),
-                 anims={'walk': (7, True, walker_walk), 'attack': (10, False, walker_attack),
+                 anims={'walk': (6.2, True, walker_walk), 'attack': (10, False, walker_attack),
                         'die': (9, False, walker_die), 'hit': (8, False, walker_hit)})
 
 def gait_feet(k, n, h, side_s, ankle, lift, duty_frames, drag=False, phase0=0):
@@ -848,7 +854,7 @@ def bake_biped(T):
             deep = deep_map(T.far_remap)
             for p in poses:
                 cv, top = render_biped(T, p, view)
-                finish(cv, deep=deep, keep=('fx', 'gore'))
+                finish(cv, deep=deep, keep=('gore',))
                 frames.append({'rows': cv.rows(), 'head': [top[0], top[1]]})
             anims[name][view] = frames
     return {'w': T.w, 'h': T.h, 'ax': T.ax, 'ay': T.ay, 'pal': {k: list(v) for k, v in T.pal.items()}, 'anims': anims}
@@ -945,6 +951,29 @@ def runner_type():
         ...aAAa.
         ....aAa.
     """, waist=(6, 8), neck=(2.54, 1.21), shR=(6.25, 0.64), shL=(0.37, 3.58))
+    chestF_up = Bmp("""
+        .......kS.
+        .....kSSSs
+        ...kSSYAs.
+        ..kSYAAAas
+        .kSYAWWWa.
+        .SsAAWnWa.
+        ..sAAwWwa.
+        ..aAAAAaa.
+        ..aAaAaa..
+        ...aAxa...
+    """, waist=(4, 8), neck=(5.12, 2.1), shR=(1.69, 4.22), shL=(7.57, 1.29))
+    chestB_up = Bmp("""
+        ...kSk.kS.
+        ..kSSASSs.
+        .kSSYAAASs
+        .SsYAAAAa.
+        ..sAAAAaa.
+        ..aAAAAaa.
+        ..aAAAAa..
+        ..aAAAaa..
+        ...aAxa...
+    """, waist=(5, 8), neck=(3.88, 0.98), shR=(7.31, 0.65), shL=(1.43, 3.59))
     headF = Bmp("""
         ....hHHh.
         ...hHHkSS
@@ -1072,13 +1101,14 @@ def runner_type():
                 'fore_paint': skin_paint(RSKIN)}
     return Biped(name='runner', w=32, h=32, ax=16, ay=28, pal=RUNNER_PAL, rig=rig,
                  hips={'F': hipsF, 'B': hipsB}, chest={'F': chestF, 'B': chestB},
+                 chests=[(40, {'F': chestF, 'B': chestB}), (12, {'F': chestF_up, 'B': chestB_up})],
                  head={'F': {'idle': headF, 'bite': headF_bite, 'hurt': headF_hurt, 'dead': headF_dead},
                        'B': {'idle': headB, 'bite': headB, 'hurt': headB, 'dead': headB}},
                  hands=hands, corpse={'F': corpseF, 'B': corpseB}, corpse_off=(2, 13),
                  feet={'F': {'shoe': shoeF}, 'B': {'shoe': shoeB}},
                  legs=leg_style(), arms=arm_style(),
                  far_remap=far_remap_of(['kSsq', 'YAax', 'Ww', 'UPpu', 'GFfg', 'JHh', 'RBb', 'Ii']),
-                 anims={'walk': (12, True, runner_run), 'attack': (12, False, runner_attack),
+                 anims={'walk': (10, True, runner_run), 'attack': (12, False, runner_attack),
                         'die': (10, False, runner_die), 'hit': (8, False, runner_hit)})
 
 def runner_run(T):
@@ -1122,9 +1152,9 @@ def runner_hit(T):
 def runner_die(T, view):
     sg = -1 if view == 'F' else 1
     fr = []
-    fr.append({'pel': (-0.4, 0, 12.6), 'lean': 10, 'expr': 'hurt', 'head': (-0.6, 0, 0.2), 'head_rot': -14,
+    fr.append({'pel': (-0.4, 0, 12.2), 'lean': 12, 'expr': 'hurt', 'head': (-0.6, 0, -0.6), 'head_rot': -14,
                'foot': {'R': ((1.6, 1.2, 1.4), 'flat'), 'L': ((-1.6, -1.2, 1.4), 'toe')},
-               'hand': {'R': ((0.5, 6.0, 18.0), 'claw', (-1, 1, 0)), 'L': ((2.0, -6.0, 20.0), 'claw', (0, -1, -1))}})
+               'hand': {'R': ((0.5, 6.0, 16.0), 'claw', (-1, 1, 0)), 'L': ((2.0, -6.0, 17.5), 'claw', (0, -1, -1))}})
     fr.append(hands_from_shoulders(T, {'pel': (sg * 0.8, 0, 10.4), 'lean': 28 + sg * 14, 'expr': 'hurt',
                'head': (sg * 0.6, 0, -0.4), 'head_rot': -8,
                'foot': {'R': ((1.6, 1.3, 1.4), 'flat'), 'L': ((-0.8, -1.3, 1.4), 'toe')}},
@@ -1331,7 +1361,7 @@ def armored_type():
                  hands=hands, corpse={'F': corpseF, 'B': corpseB}, corpse_off=(2, 14),
                  feet={'F': {'boot': bootF}, 'B': {'boot': bootB}}, legs=legs, arms=arms,
                  far_remap=far_remap_of(['kSsq', 'AVvx', 'UPpu', 'GFfg', 'Ww', 'Zz', 'RBb']),
-                 anims={'walk': (7, True, armored_walk), 'attack': (10, False, armored_attack),
+                 anims={'walk': (5.1, True, armored_walk), 'attack': (10, False, armored_attack),
                         'die': (9, False, armored_die), 'hit': (8, False, armored_hit)})
 
 def armored_walk(T):
@@ -1437,7 +1467,7 @@ def brute_type():
         ....SSSqSsss......
         ....SSsSsssss.....
         .....SSssssss.....
-    """, waist=(9, 12), neck=(6.97, 4.34), shR=(13.53, 2.31), shL=(2.75, 7.7))
+    """, waist=(9, 12), neck=(6.97, 3.34), shR=(13.53, 2.31), shL=(2.75, 7.7))
     headF = Bmp("""
         ..kSSs.
         .kSSSSs
@@ -1468,10 +1498,10 @@ def brute_type():
     """, neck=(3, 6), top=(3, 0))
     headB = Bmp("""
         ..kSSs.
-        .kSSSSs
-        kSSSsSs
-        SkSSsSs
-        sSSsSsq
+        .knSnSs
+        kSSnSsq
+        SknSnSs
+        sSSnSsq
         .sSssq.
         ..qsq..
     """, neck=(3, 6), top=(3, 0))
@@ -1595,7 +1625,7 @@ def brute_type():
                  hands={'fist': fist, 'limp': fist, 'claw': fist}, feet={'F': {'bare': feetF}, 'B': {'bare': feetB}},
                  corpse={'F': corpseF, 'B': corpseB}, corpse_off=(1, 19),
                  legs=legs, arms=arms, far_remap=far_remap_of(['kSsq', 'Vv', 'UPpu', 'Ll', 'RBb']),
-                 anims={'walk': (5, True, brute_walk), 'attack': (8, False, brute_attack),
+                 anims={'walk': (3.6, True, brute_walk), 'attack': (8, False, brute_attack),
                         'die': (8, False, brute_die), 'hit': (8, False, brute_hit)})
 
 def brute_walk(T):
@@ -1653,7 +1683,7 @@ def brute_die(T, view):
     def limbs(k):
         lift = [2.5, 1.0, 0.0][k]
         near, far = ('R', 'L') if view == 'F' else ('L', 'R')
-        return {'arm' + near: ((3, 30 - lift), (5, 33.5 - lift * 1.2), 'fist'), 'arm' + far: ((21, 18 - lift), (27, 18 - lift * .5), 'fist'),
+        return {'arm' + near: ((3, 30 - lift), (5, 33.5 - lift * 1.2), 'fist'), 'arm' + far: ((20, 22 - lift), (26, 23 - lift * .5), 'fist'),
                 'leg' + near: ((19, 33 - lift * 1.5), (25, 34 - lift), 'flat' if k else 'air'),
                 'leg' + far: ((27, 29 - lift * 1.5), (31, 32 - lift), 'flat' if k else 'air')}
     for k in range(3):
@@ -1899,7 +1929,7 @@ def bloater_type():
             'shin_prof': lambda t: (lerp(1.7, 1.3, t), 0.5 * bump(t, 0.35, 0.35), 0.1),
             'shin_paint': skin_paint(BLSKIN, (0.0, 0.15)), 'foot': 'bare'}
     arms = {'upper_prof': lambda t: (lerp(1.5, 1.15, t), 0.15, 0.25 * bump(t, 0.45, 0.4)),
-            'upper_paint': lambda dark: hem_paint_of(BLSHIRT, BLSKIN, 0.3, dark, ragged=0.08),
+            'upper_paint': skin_paint(BLSKIN, (0.0, 0.3)),
             'fore_prof': lambda t: (lerp(1.15, 0.8, t), 0.25 * bump(t, 0.25, 0.3), 0),
             'fore_paint': skin_paint(BLSKIN)}
     return Biped(name='bloater', w=40, h=40, ax=19, ay=36, pal=BLOATER_PAL, rig=rig, body_fn=bloater_body, keep_letters='GE',
@@ -1908,24 +1938,24 @@ def bloater_type():
                  hands=hands, feet={'F': {'bare': feetF}, 'B': {'bare': feetB}}, legs=legs, arms=arms,
                  corpse={'F': corpseF, 'B': corpseB}, corpse_off=(3, 20),
                  far_remap=far_remap_of(['kSsq', 'WCcx', 'UPpu', 'Vv', 'RBb']),
-                 anims={'walk': (6, True, bloater_walk), 'attack': (9, False, bloater_attack),
+                 anims={'walk': (3.8, True, bloater_walk), 'attack': (9, False, bloater_attack),
                         'die': (10, False, bloater_die), 'hit': (8, False, bloater_hit)})
 
 def bloater_walk(T):
     """a waddle: short wide steps, the whole body rolls over each foot, arms held out by the belly"""
     P = []
-    n, h = 8, 1.85
+    n, h = 8, 2.45
     for k in range(n):
         ph = k / n
         fR = gait_feet(k, n, h, 2.9, 1.8, 1.4, 4)
         fL = gait_feet(k, n, h, -2.9, 1.8, 1.4, 4, phase0=4)
         z = [9.6, 9.9, 10.1, 9.9, 9.6, 9.9, 10.1, 9.9][k]
-        sway = 0.9 * math.sin(2 * math.pi * ph)
-        rl = 7 * math.sin(2 * math.pi * ph)
+        sway = 0.6 * math.sin(2 * math.pi * ph)
+        rl = 4.5 * math.sin(2 * math.pi * ph)
         sw = math.cos(2 * math.pi * ph)
-        base = {'pel': (0, sway, z), 'roll': rl, 'foot': {'R': fR, 'L': fL}, 'head': (0.6, 0, -0.6)}
-        P.append(hands_from_shoulders(T, base, {'R': ((0.6 - 0.8 * sw, 4.8, -6.6), 'limp', (-0.6, 1, 0)),
-                                               'L': ((0.6 + 0.8 * sw, -4.8, -6.6), 'limp', (-0.6, -1, 0))}))
+        base = {'pel': (0, sway, z), 'roll': rl, 'foot': {'R': fR, 'L': fL}, 'head': (0.6, -0.3 * math.sin(2 * math.pi * ph), -0.6)}
+        P.append(hands_from_shoulders(T, base, {'R': ((0.2 - 0.8 * sw, 6.4, -6.0), 'limp', (-0.6, 1, 0.3)),
+                                               'L': ((0.2 + 0.8 * sw, -6.4, -6.0), 'limp', (-0.6, -1, 0.3))}))
     return P
 
 def bloater_attack(T):
@@ -1972,7 +2002,7 @@ def splat(cv, cx, cy, R, seed, d, ring=False, drops=10, gore=True, squash=1.0):
         x, y = rnd(cx + math.cos(a) * r), rnd(cy + math.sin(a) * r * squash)
         ch = 'g' if k % 3 else 'B'
         cv.put(x, y, ch, d, 'fx')
-        if k % 2 == 0: cv.put(x, y + 1, 'j' if ch == 'g' else 'b', d, 'fx')
+        cv.put(x, y + 1, 'j' if ch == 'g' else 'b', d, 'fx')
 
 def puddle(cv, cx, cy, rx, ry, seed, d=-50):
     """goo spread on the ground (an uneven 2:1 ellipse) under the remains"""
@@ -2087,7 +2117,7 @@ def crawler_type():
                  head={'F': {'idle': headF, 'bite': headF_bite, 'hurt': headF_hurt, 'dead': headF_dead},
                        'B': {'idle': headB, 'bite': headB, 'hurt': headB, 'dead': headB}},
                  hands=hands, arms=arms, upper=4.4, fore=4.2, far_remap=far_remap_of(['kSsq', 'WCcx', 'Zz', 'RBb', 'Ii']),
-                 anims={'walk': (7, True, crawler_crawl), 'attack': (10, False, crawler_attack),
+                 anims={'walk': (4.8, True, crawler_crawl), 'attack': (10, False, crawler_attack),
                         'die': (8, False, crawler_die), 'hit': (8, False, crawler_hit)})
 
 def render_crawler(T, pose, view):
@@ -2161,16 +2191,16 @@ def render_crawler(T, pose, view):
 def crawler_crawl(T):
     """hand over hand: one arm reaches and plants while the other pulls the trunk forward; the stump drags"""
     P = []
-    st = 0.9                                    # planted hand slides back this much per frame
+    st = 1.225                                  # planted hand slides back 1 px per frame on screen
     for k in range(8):
         hands = {}
         for side, sg, ph0 in (('R', 1, 0), ('L', -1, 4)):
             j = (k - ph0) % 8
             if j < 5:
-                f = 7.4 - st * j; z = 0.8
+                f = 7.6 - st * j; z = 0.8
             else:
                 u = (j - 4) / 4
-                f = lerp(7.4 - st * 4, 7.4, smooth(u)); z = 0.8 + 2.2 * math.sin(math.pi * u)
+                f = lerp(7.6 - st * 4, 7.6, smooth(u)); z = 0.8 + 2.2 * math.sin(math.pi * u)
             hands[side] = ((f, sg * (5.6 + 0.4 * (j >= 5)), z), 'claw')
         surge = 0.2 * math.sin(2 * math.pi * k / 4)
         P.append({'body': (0.0, 0.2 * math.sin(2 * math.pi * k / 8), 2.0 + surge), 'pitch': 10 + 2 * math.sin(2 * math.pi * k / 4),
@@ -2209,32 +2239,33 @@ MOUND_PAL = {
     'r': (146, 140, 132), 'R': (104, 100, 98), 'g': (98, 134, 62), 'o': OUTLINE,
 }
 def mound_frames():
-    """a small heap of dirt that heaves; clods hop off it"""
+    """a low heap of freshly dug earth that heaves as something tunnels under it; clods hop off and roll down"""
     frames = []
-    clods = [[(-4, -6), (3, -8)], [(-5, -9), (4, -11), (0, -7)], [(-6, -7), (5, -9), (1, -11)], [(-2, -6), (6, -6)]]
-    heave = [0.0, 0.6, 0.3, -0.2]
+    clods = [[(-3, -10), (4, -9)], [(-5, -13), (5, -12), (0, -11)], [(-7, -9), (7, -9), (1, -14)], [(-10, 0), (9, 1), (2, -12)]]
+    heave = [0.0, 0.7, 0.4, -0.2]
+    lumps = [[(1.5, -1.0, 2.6), (-2.5, 1.5, 2.0), (3.0, 2.5, 1.2)], [(1.0, -1.5, 3.2), (-2.0, 2.0, 2.4), (3.5, 2.0, 1.6)],
+             [(2.0, -0.5, 2.9), (-2.8, 1.0, 2.2), (2.5, 3.0, 1.4)], [(1.5, -1.2, 2.4), (-2.4, 1.8, 1.8), (3.2, 2.6, 1.0)]]
     W, H, ax, ay = 32, 32, 16, 24
     for k in range(4):
         cv = Canvas(W, H)
-        sw = (k % 2) * 0.3 - 0.15
+        sw = (k % 2) * 0.4 - 0.2
         def dirt(p, n, tone):
             if p[2] < -0.05: return None
-            h = (int(p[0] * 2.3 + 7) * 31 + int(p[1] * 2.3 + 7) * 17) % 23
+            h = (int(p[0] * 2.1 + 9) * 31 + int(p[1] * 2.1 + 9) * 17) % 19
             if h == 0 and tone < 3: return 'r' if tone < 2 else 'R'
-            if h in (5, 11) and tone < 2: return 'd'
-            if abs(p[1] - 0.6 * math.sin(p[0] * 1.3)) < 0.35 and p[2] > 2.2: return 'q'     # crack along the top
+            if h in (4, 9) and tone < 2: return 'd'
+            if abs(p[1] - 0.7 * math.sin(p[0] * 1.2 + k)) < 0.3 and p[2] > 2.6 + heave[k] and abs(p[0]) < 4: return 'q'   # crack along the crest
             return 'kDdq'[tone]
-        ells = [Ellipsoid((sw, 0, -0.6), (6.4, 6.0, 4.2 + heave[k]), paint=dirt, prio=1),
-                Ellipsoid((2.6 + sw, -2.0, -0.4), (2.6, 2.4, 2.6 + heave[k] * .6), paint=dirt, prio=0),
-                Ellipsoid((-3.2 + sw, 2.4, -0.4), (2.2, 2.6, 2.2), paint=dirt, prio=0)]
+        ells = [Ellipsoid((sw, 0, -0.8), (7.6, 7.0, 3.6 + heave[k]), paint=dirt, prio=1)]
+        for (lf, ls, lz) in lumps[k]:
+            ells.append(Ellipsoid((lf + sw, ls, lz - 0.9 + heave[k] * 0.5), (2.3, 2.1, 1.7), paint=dirt, prio=2))
         render_ells(cv, ells, 'F', ax, ay, keep='rRq')
         for (cx, cy) in clods[k]:
             stamp(cv, Bmp(['kD', 'dq']), (0, 0), (ax + cx, ay + cy), 99, 'fx')
-        # a couple of grass blades flattened at the foot of the heap
-        for gx, gy in ((-7, 1), (6, 2)):
-            cv.put(ax + gx, ay + gy, 'g', -99, 'fx'); cv.put(ax + gx + 1, ay + gy - 1, 'g', -99, 'fx')
+        for gx, gy in ((-8, 2), (7, 3)):          # flattened grass blades at the foot of the heap
+            for dx, dy in ((0, 0), (0, -1), (1, -1)): cv.put(ax + gx + dx, ay + gy + dy, 'g', -99, 'fx')
         finish(cv, keep=('fx',))
-        frames.append({'rows': cv.rows(), 'head': [ax, ay - 10]})
+        frames.append({'rows': cv.rows(), 'head': [ax, ay - 8]})
     return {'w': W, 'h': H, 'ax': ax, 'ay': ay, 'pal': {k: list(v) for k, v in MOUND_PAL.items()},
             'anims': {'walk': {'fps': 8, 'loop': True, 'F': frames, 'B': frames}}}
 
