@@ -260,7 +260,8 @@ const off = text => `<button class="mini" type="button" disabled>${text}</button
 const slot = (cls, inner = '') => `<div class="slot ${cls}">${inner}</div>`;
 const grid = (cols, cells) => `<div class="grid c${cols}">${cells.join('')}</div>`;
 const ph = (w, h, inner = '') => `<span class="ph" style="width:${w};height:${h}">${inner}</span>`;
-const bulkHtml = () => `<div class="bulk">${BULK.map(n => `<button class="mini" type="button" data-bulk="${n}" aria-pressed="${ui.bulk === n}">${n ? 'x' + n : 'MAX'}</button>`).join('')}</div>`;
+// levels bought per tap: a small chip group at the top right of the list
+const bulkHtml = () => `<div class="tool"><div class="chipset">${BULK.map(n => `<button class="fchip tap" type="button" data-bulk="${n}" aria-pressed="${ui.bulk === n}">${n ? 'x' + n : 'MAX'}</button>`).join('')}</div></div>`;
 // an upgrade: a picture, the name and level, progress to the top level, and the price of what one tap buys
 function cardHtml(c) {
   const plan = c.max ? null : planOf(c.id), lv = c.lv + (plan && isBreak(c.id) ? ' · 돌파' : '');
@@ -475,8 +476,9 @@ function refreshTop() {
 }
 // the picture keeps the scale of the main screen's stage (a sheet only moves it up). The camera sits one whole step
 // closer than the stage fits, so the ground fills the width and its tips crop; every era the base has grown into
-// (a bigger building and map, buildings.js) pulls it back a step. Below ground one step closer than the stage fits
-const erasPassed = () => { const b = lookTier(G.bunker); return typeof eraOf === 'function' ? eraOf(b) : Math.floor(b / LOOK_ERA); };
+// (a bigger building and map, buildings.js; read from the building's own look, the one the drawing uses) pulls it
+// back a step. Below ground one step closer than the stage fits
+const erasPassed = () => { const lk = bunkerInfo().look; return (lk.era || 0) + (lk.eraGrade || 0); };
 function fitStage() {
   const dpr = window.devicePixelRatio || 1, f = Math.min(nodes.app.clientWidth / W, (nodes.app.clientHeight - nodes.tabs.offsetHeight) / H);
   // whole device pixels per game pixel

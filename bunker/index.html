@@ -106,15 +106,16 @@
   #menuClose:active { background: var(--soft); }
   #menuTabs { display: flex; flex: none; border-bottom: 1px solid var(--line); }
   #menuTabs:empty { display: none; }
-  #menuTabs button { flex: 1; min-width: 0; min-height: 44px; padding: 0 2px; border: 0; background: none; color: var(--muted); cursor: pointer; white-space: nowrap; }
+  #menuTabs button { flex: 1; min-width: 0; min-height: 48px; padding: 0 2px; border: 0; background: none; color: var(--muted); cursor: pointer; white-space: nowrap; }
   #menuTabs button[aria-selected="true"] { color: var(--ink); font-weight: 700; box-shadow: inset 0 -2px 0 var(--ink); }
-  #panel { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 8px 10px; }
+  #panel { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 8px 12px; }
   #menuFoot { flex: none; display: flex; gap: 6px; align-items: center; padding: 8px 10px; border-top: 1px solid var(--ink); background: var(--paper); }
   #menuFoot:empty { display: none; }
   #menuFoot .btn { flex: 1; }
 
   /* what the menus are made of */
-  .sec { display: flex; justify-content: space-between; gap: 8px; margin: 10px 0 4px; font-weight: 700; }
+  .sec { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin: 12px 0 8px; font-weight: 700; }
+  .sec > span:last-child { font-size: 11px; color: var(--muted); }
   #panel > .sec:first-child { margin-top: 2px; }
   .grid { display: grid; gap: 5px; }
   .c2 { grid-template-columns: repeat(2, minmax(0, 1fr)); } .c3 { grid-template-columns: repeat(3, minmax(0, 1fr)); } .c4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
@@ -139,23 +140,28 @@
   .chip { min-width: 0; min-height: 44px; padding: 0 2px; border: 1px solid var(--line); background: var(--paper); font-size: 12px; cursor: pointer; white-space: nowrap; }
   .chip[aria-pressed="true"] { border-color: var(--ink); font-weight: 700; }
   .chip[disabled] { opacity: .45; cursor: default; }
-  .bulk { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; margin: 0 0 6px; }
+  /* chips: small (28 tall, 48 to press), the picked one filled; a group sits at the top right of its list */
+  .tool { display: flex; justify-content: flex-end; padding: 4px 0 8px; }
+  .chipset { display: flex; gap: 8px; }
+  .fchip { flex: none; height: 28px; min-width: 40px; padding: 0 8px; border: 1px solid var(--line); background: var(--paper); color: var(--g, var(--ink)); font-size: 13px; white-space: nowrap; cursor: pointer; }
+  .fchip[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: #fff; font-weight: 700; }
+  .fchip:active:not([aria-pressed="true"]) { background: var(--soft); }
+  .fchip[disabled] { color: #b3afa7; cursor: default; }
   /* an upgrade: picture, name and level, progress, and the price to pay */
-  .ucard { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; padding: 6px; border: 1px solid var(--line); }
+  .ucard { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; padding: 8px; border: 1px solid var(--line); }
   .ucard .body { flex: 1; min-width: 0; }
   .ucard .name { font-weight: 700; }
-  .ucard .sub { color: var(--muted); }
+  .ucard .sub { color: var(--muted); font-size: 11px; font-weight: 700; }
   .pic { flex: none; } .pic.lg { width: 72px; height: 56px; } .pic.md { width: 72px; height: 44px; } .pic.sm { width: 40px; height: 40px; }
-  .prog { width: 120px; max-width: 100%; height: 4px; margin-top: 3px; background: var(--line); }
+  .prog { width: 120px; max-width: 100%; height: 4px; margin-top: 8px; background: var(--line); }
   .prog i { display: block; height: 100%; background: var(--ink); }
   .tired { width: 120px; max-width: 100%; height: 4px; margin-top: 3px; background: var(--line); }
   .tired span { display: block; height: 100%; background: #c8935a; }
   /* prices on the buy buttons: a resource icon and the amount, red when short */
   .cost { display: inline-flex; align-items: center; gap: 3px; white-space: nowrap; }
-  .cost .ci { width: 12px; height: 12px; background-size: 12px 12px; image-rendering: pixelated; flex: none; }
-  .buy { flex: none; min-width: 76px; min-height: 44px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; background: var(--paper); border: 1px solid var(--ink); padding: 5px 8px; cursor: pointer; font-weight: 700; font-variant-numeric: tabular-nums; font-size: 12px; }
-  .buy:hover:not([disabled]) { background: var(--ink); color: #fff; }
-  .buy:active:not([disabled]) { transform: translateY(1px); }
+  .cost .ci { width: 16px; height: 16px; background-size: 16px 16px; image-rendering: pixelated; flex: none; }
+  .buy { flex: none; min-width: 80px; height: 36px; display: flex; align-items: center; justify-content: center; gap: 8px; background: var(--paper); border: 1px solid var(--ink); padding: 0 12px; cursor: pointer; font-weight: 700; font-variant-numeric: tabular-nums; font-size: 14px; }
+  .buy:active:not([disabled]) { transform: translateY(1px); background: var(--soft); }
   .buy[disabled] { border-color: var(--line); color: #b3afa7; cursor: default; }
   .buy .short { color: var(--bad); }
   .btn { min-height: 44px; display: inline-flex; align-items: center; justify-content: center; gap: 4px; padding: 6px 8px; border: 1px solid var(--ink); background: var(--paper); font-weight: 700; text-align: center; cursor: pointer; }

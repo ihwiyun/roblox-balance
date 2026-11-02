@@ -208,8 +208,10 @@ export function run(opts = {}) {
     const roof = cost('roof');
     if (roof && roof.ore <= st.ore + S.prod.ore * 5400) out.push('roof');
     for (const [res, sec] of Object.entries(PRODUCER)) {
-      const c = cost(sec);
-      if (c && (st.sec[sec].tier < SLOT_TIERS[sec] || short[res])) out.push(sec);
+      // a floor's tier is worth it for a worker slot someone can fill, or when its output is short
+      const c = cost(sec), slots = L.SECTIONS[sec].slots, filled = (st.crew.assign[sec] || []).length;
+      const waiting = Object.keys(st.crew.cards).length - 1 > L.members(st.crew).length - 1 || filled >= slots(st.sec[sec].tier);
+      if (c && ((st.sec[sec].tier < SLOT_TIERS[sec] && waiting && filled >= slots(st.sec[sec].tier)) || short[res])) out.push(sec);
     }
     const crewN = Object.keys(st.crew.cards).length, bed = cost('bed');
     if (bed && (L.beds(st.sec.bed.tier) < crewN + 1 || Object.values(bed)[0] <= 0.25 * st.food)) out.push('bed');
@@ -245,6 +247,11 @@ export function run(opts = {}) {
     // the kitchen trims upkeep: a small steady share
     const kc = L.price(st, 'sec:bed:lv'); if (kc && !isBt(kc) && goldOf(kc) < 0.05 * st.gold) buy('sec:bed:lv');
     for (const i of st.equipW) if (i >= 0) { const c = L.price(st, 'enh:w:' + i); if (isBt(c)) buy('enh:w:' + i); }
+    // a full parts box: enhance the rest of the collection (the owned effect), best weapons first
+    if (st.parts > 0.5 * S.caps.parts) for (let i = st.weapons.owned.length - 1; i >= 0 && st.parts > 0.35 * S.caps.parts; i--) {
+      if (!st.weapons.owned[i] || st.equipW.includes(i)) continue;
+      for (let n = 0; n < 20; n++) { const c = L.price(st, 'enh:w:' + i); if (!c || goldOf(c) > 0.05 * st.gold || !buy('enh:w:' + i)) break; }
+    }
   }
 
   /* ---- defense: the fence and the bunker, each on its own, when the last stage bit or they are cheap ---- */
