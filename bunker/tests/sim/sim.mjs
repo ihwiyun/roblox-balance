@@ -362,7 +362,7 @@ export function run(opts = {}) {
       if (boosts > 0) { L.watchAdBoost(st); boosts--; }
       const len = (sessionMin + (human ? rng.range(-6, 6) : 0)) * 60;
       const end = st.t + len;
-      while (st.t < end) {
+      while (end - st.t > 1e-6) {          // advance() may stop a hair short of `end`; never loop on the crumb
         const dt = Math.min(end - st.t, human ? rng.range(30, 120) : 30);
         L.advance(st, dt);
         trackFull(dt);

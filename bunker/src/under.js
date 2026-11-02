@@ -173,7 +173,7 @@ function footShadow(x0, y0, x1, y1, z1, r = .35) {
 
 /* ---------- light ---------- */
 // lamps light warm pools on the walls and the floor; the light only depends on the screen spot. Each floor keeps
-// its own lamps (more come with its levels) and its own base brightness; what glows is left as it is
+// its own lamps (more come with its lighting stages) and its own base brightness; what glows is left as it is
 const LIGHTS = [[], [], []], AMB = [.62, .62, .62];
 let lampPts = LIGHTS[0];
 function lamp(k, x, y, z, rx = 4.2, ry = 2.8, tint = WARM_T) {
@@ -199,7 +199,7 @@ function applyHalos() {
   }
   HALOS.length = 0;
 }
-const WARM_T = [12, 6, 0], PINK_T = [26, -6, 30], CYAN_T = [-6, 18, 30], FIRE_T = [34, 10, -8], WHITE_T = [10, 10, 8], GREEN_T = [-4, 22, 6];
+const WARM_T = [12, 6, 0], FIRE_T = [34, 10, -8], WHITE_T = [10, 10, 8];
 function underLight(ix, iy, c, k) {
   const list = k == null ? lampPts : LIGHTS[k], amb = k == null ? .62 : AMB[k];
   let light = 0, tr = 12, tg = 6, tb = 0;
@@ -213,7 +213,7 @@ function underLight(ix, iy, c, k) {
 }
 
 /* ---------- baking the floors ---------- */
-const PLASTER = [170, 164, 150], SOIL = [118, 88, 62], SOIL_D = [84, 62, 46], STONE_W = [118, 114, 110], TILE = [208, 212, 204], PLANKS = [150, 112, 74], ORE = [104, 140, 196];
+const SOIL = [118, 88, 62], SOIL_D = [84, 62, 46], STONE_W = [118, 114, 110], PLANKS = [150, 112, 74], ORE = [104, 140, 196];
 const UNDER_GROUND = new Uint8Array(W * H), UNDER_GZ = new Float32Array(W * H), underPix = new Uint32Array(W * H), underZ = new Float32Array(W * H);
 // storage: what you hold piles up in each floor's store, one step about every 0.6 of a power of ten (0..20)
 const stockLevel = v => Math.max(0, Math.min(20, Math.floor(Math.log10(1 + Math.max(0, v)) * 5 / 3)));
@@ -393,8 +393,8 @@ function showUnder() { bakedVersion++; bakedPix.set(underPix); bakedZ.set(underZ
 /* ================= materials: floors and walls ================= */
 const nz = noise;
 function pick(ramp, v, ix, iy, spread = .5) { const t = Math.floor(v + bay(ix, iy) * spread); return ramp[t < 0 ? 0 : t > 4 ? 4 : t]; }
-const WOOD_D = [104, 72, 48], CREAM = [228, 222, 206], RED_F = [168, 62, 54], TEAL = [70, 120, 112], GOLD = [226, 180, 60], OLIVE_L = [92, 112, 86];
-const R_SOIL = rampOf(SOIL), R_SOILD = rampOf(SOIL_D), R_STONE = rampOf(STONE_W), R_WOOD = rampOf(WOOD), R_PLANKS = rampOf(PLANKS), R_WOODL = rampOf(PLANK), R_WOODD = rampOf(WOOD_D);
+const WOOD_D = [104, 72, 48];
+const R_SOIL = rampOf(SOIL), R_SOILD = rampOf(SOIL_D), R_STONE = rampOf(STONE_W), R_WOOD = rampOf(WOOD), R_PLANKS = rampOf(PLANKS);
 // packed earth, with pebbles
 function dirtAt(a, b, ix, iy, ramp = R_SOIL) {
   const h = hash(ix, iy);
@@ -416,20 +416,6 @@ function planksAt(a, b, ix, iy, ramp = R_PLANKS, w = .36) {
   if (f < .09 || s - seg < .018) return ramp[1];
   return pick(ramp, 2.55 + (hash(row, seg) > .55 ? .5 : 0) + (nz(a * 2, row * 7) - .5) * .5 + (f > .8 ? .35 : 0), ix, iy, .25);
 }
-// parquet: blocks of three slats, turned a quarter each block
-const PARQ = [[176, 126, 78], [162, 112, 68], [188, 138, 86]].map(rampOf), PARQ_SEAM = rgb(124, 84, 52);
-function parquetAt(a, b, ix, iy) {
-  const s = .6, ba = Math.floor(a / s), bb = Math.floor(b / s), turn = (ba + bb) & 1, ra = a / s - ba, rb = b / s - bb;
-  const t = turn ? ra : rb, slat = Math.floor(t * 3), f = t * 3 - slat;
-  if (f < .09 || (turn ? rb : ra) < .03) return PARQ_SEAM;
-  return PARQ[((slat + ba + bb * 2) % 3 + 3) % 3][f > .82 ? 4 : 3];
-}
-function tileAt(a, b, ix, iy, ramp, size = .4, grout = 0) {
-  const ta = a / size, tb = b / size;
-  if (ta - Math.floor(ta) < .08 || tb - Math.floor(tb) < .08) return grout || ramp[1];
-  const h = hash(Math.floor(ta), Math.floor(tb));
-  return ramp[h > .85 ? 4 : h < .12 ? 2 : 3];
-}
 // steel floor plate with raised diamonds
 const R_PLATE = rampOf([118, 126, 134]);
 function plateAt(a, b, ix, iy) {
@@ -439,14 +425,6 @@ function plateAt(a, b, ix, iy) {
 }
 const HZ_Y = rgb(226, 180, 40), HZ_K = rgb(44, 40, 44);
 const hazard = (a, b) => (Math.floor((a + b) * 5) & 1) ? HZ_Y : HZ_K;
-// steel wall plates with rivets
-const R_STEELW = rampOf([130, 138, 146]), STEEL_SEAM = rgb(70, 74, 82), RIVET = rgb(196, 204, 210);
-function steelWall(a, z, ix, iy) {
-  const pa = a / 1.05, pz = z / .62, fa = pa - Math.floor(pa), fz = pz - Math.floor(pz);
-  if (fa < .03 || fz < .05) return STEEL_SEAM;
-  if ((Math.abs(fa - .08) < .025 || Math.abs(fa - .92) < .025) && Math.abs(fz - .5) < .08) return RIVET;
-  return pick(R_STEELW, 2.2 + nz(a * 2, z * 3) * .7 + (fz > .85 ? .6 : 0), ix, iy, .4);
-}
 
 /* ================= how the floors grow: parts × stages ================= */
 // facLook (facilities.js) gives a floor's era and each part's stage and material grade; each floor lists its parts'
@@ -470,15 +448,13 @@ function drawPart(art, k, look, fz) {
 }
 
 /* ================= B1: the living floor ================= */
-// a square room: the dorm along the back wall (three beds, two more in a second row, the aisle between them for
-// walking in), the kitchen at the far end of the back wall, the lounge along the left wall, the mess table and the
-// games in the middle, the shower in the left corner, the vault caged off in the front corner
+// a square room: the dorm along the back wall (three beds, two more in a second row, or bunks from the military
+// era, the aisle in front of them for walking in), the kitchen at the far end of the back wall, the lounge along the
+// left wall, the table in the middle, the shower in the left corner, the vault caged off in the front corner. What
+// stands where comes from each part's stage: LIVE_ART
 // K: where the kitchen starts along the back wall; LB: where the lounge starts along the left wall
 const kitA = () => Math.max(7.95, RL() - 4.2), loungeB = () => Math.min(RL() - 4.6, 5.3);
-const R_RUGR = rampOf([168, 64, 54]), R_RUGC = rampOf([214, 196, 156]), R_RUGB = rampOf([60, 74, 120]), R_MAT = rampOf([118, 92, 60]);
-const R_WAIN = rampOf([70, 120, 112]), R_PAINT = rampOf([218, 204, 172]), TRIM = rgb(236, 230, 214);
-const R_TILE_T = rampOf([66, 118, 116]), R_TILE_G = rampOf([214, 176, 72]), R_TILE_W = rampOf([228, 226, 216]), R_TILE_S = rampOf([120, 170, 196]);
-const GROUT_T = rgb(46, 70, 70), GROUT_G = rgb(120, 96, 50), GROUT_W = rgb(176, 172, 164), R_PLANKW = rampOf([160, 120, 80]);
+const R_PLANKW = rampOf([160, 120, 80]);
 // earth and dirt at first, then a plank floor (decor 1) and plank walls (decor 2); from the military era painted
 // concrete like the other floors, a concrete floor
 function livingPaint(L, fz, look) {
@@ -510,25 +486,17 @@ function livingPaint(L, fz, look) {
     cap: wallMat >= 2 ? rampOf([200, 196, 186])[2] : wallMat === 1 ? R_WOOD[2] : R_SOILD[2],
   };
 }
-// the beds: each a different find, all with the mattress top 0.4 above the floor and the pillow at the -x end;
-// each blanket is its sleeper's colour
+// the beds: a cot (canvas on a low frame), then a wooden bed with a tall headboard on posts; all with the mattress
+// top 0.4 above the floor and the pillow at the -x end; each blanket is its sleeper's colour. A top bunk (top) has no
+// legs or shadow of its own
 const BLANKET_EMPTY = [150, 142, 128], SHEET = [222, 214, 196], PILLOW = [244, 240, 230];
-const BED_STYLE = [
-  { frame: [104, 116, 78], legs: WOOD, head: 0, foot: 0, canvas: true },
-  { frame: [128, 136, 146], legs: [128, 136, 146], head: .82, foot: .62, bars: true },
-  { frame: WOOD, legs: WOOD_D, head: .72, foot: .55 },
-  { frame: [176, 182, 190], legs: [150, 156, 164], head: .6, foot: 0, stripes: true },
-  { frame: [112, 76, 50], legs: [92, 60, 40], head: 1.05, foot: .62, carved: true },
-];
-function bed(i, fz, st = BED_STYLE[i], top = false) {
+const COT = { frame: [104, 116, 78], legs: WOOD, head: 0, foot: 0, canvas: true }, WOOD_BED = { frame: WOOD, legs: WOOD_D, head: .95, foot: .55, posts: true };
+function bed(i, fz, st, top = false) {
   const bx = BED_X(i), [y0, y1] = bedY(i), L = BED_L, x1 = bx + L;
   if (!top) for (const [x, y] of [[bx + .03, y0 + .03], [x1 - .1, y0 + .03], [bx + .03, y1 - .1], [x1 - .1, y1 - .1]]) fbox(x, y, fz, x + .07, y + .07, fz + .22, st.legs, 50 + i);
   fbox(bx, y0, fz + .18, x1, y1, fz + .26, st.frame, 52 + i);
   if (st.canvas) { fbox(bx, y0, fz + .26, x1, y1, fz + .34, [104, 116, 78], 53); fbox(bx + .06, y0 + .06, fz + .34, x1 - .06, y1 - .06, fz + .4, [138, 146, 110], 54); }
-  else {
-    fbox(bx + .04, y0 + .04, fz + .26, x1 - .04, y1 - .04, fz + .4, st.stripes ? [214, 226, 236] : SHEET, 55 + i);
-    if (st.stripes) onY(y1 - .04, bx + .04, x1 - .04, fz + .26, fz + .4, x => (Math.floor((x - bx) * 9) & 1) ? rgb(80, 110, 170) : 0);
-  }
+  else fbox(bx + .04, y0 + .04, fz + .26, x1 - .04, y1 - .04, fz + .4, SHEET, 55 + i);
   const c = G.crew[i] ? LOOKS[i + 1].shirt : BLANKET_EMPTY, band = shade(rgb(...c), .78);
   fbox(bx + .62, y0 + .02, fz + .38, x1 - .03, y1 - .02, fz + .44, c, 60 + i);
   onZ(fz + .44, bx + .62, y0 + .02, x1 - .03, y1 - .02, x => (Math.floor((x - bx) * 5) % 3 === 0) ? band : 0);
@@ -536,8 +504,6 @@ function bed(i, fz, st = BED_STYLE[i], top = false) {
   if (st.head) {
     fbox(bx - .04, y0, fz, bx + .04, y1, fz + st.head, st.frame, 70 + i);
     if (st.posts) for (const y of [y0, y1 - .09]) { fbox(bx - .06, y, fz, bx + .06, y + .09, fz + st.head + .08, st.frame, 76 + i); fbox(bx - .045, y + .015, fz + st.head + .08, bx + .045, y + .075, fz + st.head + .14, [150, 108, 70], 78 + i); }
-    if (st.bars) onX(bx + .04, y0 + .06, y1 - .06, fz + .3, fz + st.head - .08, y => ((y - y0) % .14) < .05 ? rgb(90, 96, 104) : 0);
-    if (st.carved) { fbox(bx - .05, y0 - .02, fz + st.head, bx + .05, y1 + .02, fz + st.head + .06, [140, 98, 64], 75); onX(bx + .04, y0 + .1, y1 - .1, fz + .55, fz + .95, (y, z) => Math.abs((y - (y0 + y1) / 2) * 2) + Math.abs(z - fz - .75) * 2.6 < .32 ? rgb(150, 108, 70) : 0); }
   }
   if (st.foot) fbox(x1 - .06, y0, fz, x1 + .02, y1, fz + st.foot, st.frame, 80 + i);
   if (!top) footShadow(bx, y0, x1, y1, .45);
@@ -593,51 +559,6 @@ function wallLampX(y, x0, z, c = [176, 140, 70]) {
   EM = 1; fbox(x0 + .12, y - .07, z, x0 + .26, y + .07, z + .14, [255, 232, 160], 114); EM = 0;
   fbox(x0 + .1, y - .09, z + .14, x0 + .28, y + .09, z + .18, c, 115);
 }
-const BOOK_R = [[150, 50, 44], [52, 92, 140], [196, 160, 64], [70, 120, 70], [120, 70, 120], [210, 200, 180], [60, 60, 66]].map(rampOf);
-const SHELF_BACK = rgb(46, 34, 30);
-function bookshelf(fz) {
-  // book shelves on the wall over the first two beds
-  for (const a0 of [0, 1]) {
-    const x0 = BED_X(a0) + .1, x1 = x0 + 1.5, y0 = UG.y0;
-    for (const z of [.98, 1.26]) {
-      fbox(x0, y0, fz + z - .04, x1, y0 + .26, fz + z, WOOD_D, 100 + z);
-      for (const x of [x0 + .08, x1 - .14]) fbox(x, y0, fz + z - .16, x + .05, y0 + .22, fz + z - .04, DARK, 101);
-      let x = x0 + .04, k = 0;
-      while (x < x1 - .1) {
-        const w = .06 + hash(k, a0 + z) * .05, h = .17 + hash(a0, k + z * 9) * .1, lean = hash(k + 3, z) > .9;
-        if (hash(k, z * 7 + a0) > .86) { x += .1; k++; continue; }
-        fbox(x, y0 + .04, fz + z, x + w, y0 + .22, fz + z + (lean ? h * .7 : h), [[150, 50, 44], [52, 92, 140], [196, 160, 64], [70, 120, 70], [120, 70, 120], [210, 200, 180], [60, 60, 66]][Math.floor(hash(a0 + k, z) * 7)], 102 + k, .5);
-        x += w + .012; k++;
-      }
-    }
-  }
-}
-// the radio, then the TV, on a low cabinet against the left wall, facing into the room
-function tvCabinet(fz, tv) {
-  const lb = loungeB(), x0 = UG.x0 + .06, x1 = x0 + .46, y0 = yb(lb + .8), y1 = y0 + 1.0;
-  fbox(x0, y0, fz, x1, y1, fz + .5, [128, 88, 56], 120);
-  onX(x1, y0 + .04, y1 - .04, fz + .06, fz + .44, (y, z) => { const f = (y - y0) / 1.0; return Math.abs(f - .5) < .012 || z - fz < .085 || z - fz > .42 ? rgb(84, 56, 38) : (Math.abs(f - .44) < .02 || Math.abs(f - .56) < .02) && Math.abs(z - fz - .27) < .03 ? rgb(220, 200, 140) : 0; });
-  // the radio: grille, a lit dial, an aerial
-  const ry = tv ? y0 + .3 : y1 - .44, rz = tv ? fz + 1.22 : fz + .5;
-  fbox(x0 + .06, ry, rz, x0 + .32, ry + .38, rz + .28, [96, 104, 74], 121);
-  onX(x0 + .32, ry + .03, ry + .2, rz + .04, rz + .24, (y, z) => (Math.floor((z - rz) * 30) & 1) ? rgb(52, 56, 42) : 0);
-  onX(x0 + .32, ry + .23, ry + .35, rz + .1, rz + .2, lit(rgb(255, 196, 90)));
-  pt(x0 + .33, ry + .32, rz + .06, lit(rgb(120, 255, 120)));
-  ln([x0 + .2, ry + .3, rz + .28], [x0 + .14, ry + .42, rz + .7], rgb(60, 60, 66));
-  if (tv) {
-    const ty = y0 + .07;
-    fbox(x0 + .12, ty + .3, fz + .5, x0 + .3, ty + .56, fz + .58, DARK, 122);
-    fbox(x0 + .1, ty, fz + .58, x0 + .22, ty + .86, fz + 1.2, [36, 36, 44], 123);
-    onX(x0 + .22, ty + .04, ty + .82, fz + .62, fz + 1.16, (y, z) => {
-      const u = (y - ty - .04) / .78, v = (z - fz - .62) / .54;
-      if (v < .35 + Math.sin(u * 6) * .06) return lit(rgb(90, 170, 90));
-      if (Math.abs(u - .7) < .1 && Math.abs(v - .75) < .1) return lit(rgb(255, 230, 120));
-      return lit(rgb(110, 170, 230 - v * 40));
-    });
-    lamp(0, x0 + 1.0, ty + .43, fz + .2, 1.5, 1.0, CYAN_T);
-  }
-  footShadow(x0, y0, x1, y1, .5);
-}
 function stove(fz) {
   const x0 = XA(kitA() + 2.3), x1 = x0 + .7, y0 = yb(.1), y1 = yb(.68), iron = [72, 66, 68];
   for (const [x, y] of [[x0 + .04, y0 + .04], [x1 - .1, y0 + .04], [x0 + .04, y1 - .1], [x1 - .1, y1 - .1]]) fbox(x, y, fz, x + .06, y + .06, fz + .1, iron, 130);
@@ -652,281 +573,6 @@ function stove(fz) {
   fbox(x0 + .18, y0, fz + 1.6, x0 + .38, y0 + .2, fz + 1.66, [90, 88, 92], 134);
   lamp(0, x0 + .35, y1 + .5, fz, 1.6, 1.1, FIRE_T);
   footShadow(x0, y0, x1, y1, .7);
-}
-function lockers(fz) {
-  const x0 = UG.x0 + .02, x1 = UG.x0 + .48, y0 = yb(1.62), y1 = yb(2.52), top = 1.85;
-  fbox(x0, y0, fz, x1, y1, fz + top, OLIVE_L, 140);
-  onX(x1, y0, y1, fz + .04, fz + top - .04, (y, z) => {
-    const f = (y - y0) / .3, n = Math.floor(f), d = f - n, zz = z - fz;
-    if (d < .06) return rgb(50, 62, 50);
-    if (zz > 1.45 && zz < 1.62 && (Math.floor(zz * 40) & 1) && d > .25 && d < .75) return rgb(50, 62, 50);
-    if (zz > 1.25 && zz < 1.35 && d > .3 && d < .7) return rgb(214, 210, 190);
-    if (Math.abs(zz - .95) < .05 && d > .78 && d < .9) return rgb(200, 204, 196);
-    return 0;
-  });
-  footShadow(x0, y0, x1, y1, top);
-}
-function counter(fz) {
-  const x0 = XA(kitA()), x1 = x0 + 1.35, y0 = yb(.06), y1 = yb(.64);
-  fbox(x0, y0, fz, x1, y1, fz + .84, [150, 110, 70], 150);
-  onY(y1, x0 + .03, x1 - .03, fz + .08, fz + .8, (x, z) => { const f = (x - x0) / .35, d = f - Math.floor(f), zz = z - fz; return d < .05 || zz < .1 ? rgb(96, 68, 44) : d > .82 && d < .9 && Math.abs(zz - .62) < .06 ? rgb(220, 206, 160) : 0; });
-  fbox(x0 - .02, y0, fz + .84, x1 + .02, y1 + .03, fz + .9, [196, 190, 178], 151, .6);
-  onZ(fz + .9, x0 + .5, y0 + .12, x0 + .95, y1 - .1, (x, y) => x < x0 + .54 || x > x0 + .91 || y < y0 + .16 || y > y1 - .14 ? rgb(150, 156, 162) : rgb(70, 76, 84));
-  fbox(x0 + .7, y0 + .04, fz + .9, x0 + .76, y0 + .1, fz + 1.12, METAL, 152); fbox(x0 + .7, y0 + .04, fz + 1.08, x0 + .76, y0 + .28, fz + 1.12, METAL, 153);
-  fbox(x0 + .12, y0 + .14, fz + .9, x0 + .38, y0 + .4, fz + .94, [150, 110, 70], 154);
-  fbox(x0 + .16, y0 + .18, fz + .94, x0 + .24, y0 + .3, fz + 1.02, [210, 80, 60], 155);
-  footShadow(x0, y0, x1, y1, .9);
-}
-function fridge(fz) {
-  const x0 = XA(kitA() + 1.45), x1 = x0 + .72, y0 = yb(.06), y1 = yb(.7), top = 1.78;
-  sbox(x0, y0, fz, x1, y1, fz + top, [226, 224, 214], 160);
-  onY(y1, x0 + .02, x1 - .02, fz + .04, fz + top - .04, (x, z) => {
-    const zz = z - fz, f = (x - x0) / .72;
-    if (Math.abs(zz - 1.16) < .02) return rgb(150, 150, 146);
-    if (f > .82 && f < .88 && ((zz > .7 && zz < 1.05) || (zz > 1.25 && zz < 1.5))) return rgb(120, 122, 126);
-    if (Math.abs(f - .3) < .05 && Math.abs(zz - 1.35) < .05) return rgb(210, 60, 50);
-    if (Math.abs(f - .5) < .05 && Math.abs(zz - 1.45) < .05) return rgb(60, 140, 210);
-    if (f > .2 && f < .48 && zz > .8 && zz < 1.0) return rgb(250, 246, 200);
-    return 0;
-  });
-  footShadow(x0, y0, x1, y1, top);
-}
-function diningTable(fz, dressed) {
-  const x0 = XA(RL() * .43), x1 = x0 + 1.7, y0 = yb(RL() * .39), y1 = y0 + .7, tz = .72, wood = [158, 116, 72];
-  const chair = (x, y, back) => {
-    fbox(x - .17, y - .17, fz + .38, x + .17, y + .17, fz + .44, wood, 170);
-    for (const [dx, dy] of [[-.15, -.15], [.11, -.15], [-.15, .11], [.11, .11]]) fbox(x + dx, y + dy, fz, x + dx + .04, y + dy + .04, fz + .38, WOOD_D, 171);
-    if (back === 'y') fbox(x - .17, y + .13, fz + .44, x + .17, y + .17, fz + .88, wood, 172);
-    if (back === 'y-') fbox(x - .17, y - .17, fz + .44, x + .17, y - .13, fz + .88, wood, 172);
-    if (back === 'x-') fbox(x - .17, y - .17, fz + .44, x - .13, y + .17, fz + .88, wood, 173);
-    if (back === 'x+') fbox(x + .13, y - .17, fz + .44, x + .17, y + .17, fz + .88, wood, 174);
-    footShadow(x - .17, y - .17, x + .17, y + .17, .44);
-  };
-  if (dressed) { chair(x0 - .25, (y0 + y1) / 2, 'x-'); chair(x1 + .25, (y0 + y1) / 2, 'x+'); for (const x of [x0 + .4, x1 - .4]) { chair(x, y1 + .3, 'y'); chair(x, y0 - .3, 'y-'); } }
-  else { for (const [x, y] of [[x0 - .25, (y0 + y1) / 2], [x1 + .25, (y0 + y1) / 2], [x0 + .6, y1 + .28], [x1 - .6, y0 - .28]]) { fbox(x - .16, y - .16, fz, x + .16, y + .16, fz + .42, WOOD, 175); footShadow(x - .16, y - .16, x + .16, y + .16, .4); } }
-  for (const [x, y] of [[x0 + .04, y0 + .04], [x1 - .1, y0 + .04], [x0 + .04, y1 - .1], [x1 - .1, y1 - .1]]) fbox(x, y, fz, x + .06, y + .06, fz + tz, WOOD_D, 176);
-  fbox(x0, y0, fz + tz, x1, y1, fz + tz + .06, wood, 177);
-  if (dressed) {
-    const cl = (x, y) => ((Math.floor((x - x0) * 7) + Math.floor((y - y0) * 7)) & 1) ? rgb(200, 56, 50) : rgb(240, 232, 220);
-    onZ(fz + tz + .06, x0 - .04, y0 - .04, x1 + .04, y1 + .04, cl);
-    onY(y1 + .04, x0 - .04, x1 + .04, fz + tz - .12, fz + tz + .06, (x, z) => cl(x, y1 + (fz + tz + .06 - z)));
-    for (const [x, y] of [[x0 + .4, y0 + .18], [x1 - .4, y0 + .18], [x0 + .4, y1 - .18], [x1 - .4, y1 - .18]]) fbox(x - .1, y - .1, fz + tz + .06, x + .1, y + .1, fz + tz + .08, [236, 236, 232], 178);
-    fbox(x0 + .82, y0 + .3, fz + tz + .06, x0 + .9, y0 + .38, fz + tz + .22, [236, 230, 200], 179);
-    pt(x0 + .86, y0 + .34, fz + tz + .26, lit(rgb(255, 200, 80)));
-  } else { fbox(x0 + .45, y0 + .25, fz + tz + .06, x0 + .65, y0 + .4, fz + tz + .16, [200, 190, 170], 180); fbox(x1 - .6, y0 + .3, fz + tz + .06, x1 - .45, y0 + .42, fz + tz + .14, [150, 110, 70], 181); }
-  footShadow(x0, y0, x1, y1, tz);
-}
-// the sofa faces the TV on the left wall: its back to the room
-function sofa(fz) {
-  const lb = loungeB(), x0 = XA(2.6), x1 = x0 + .65, y0 = yb(lb + .5), y1 = y0 + 1.6, c = [150, 66, 58];
-  fbox(x0, y0, fz, x1, y1, fz + .38, c, 190);
-  fbox(x0 + .04, y0 + .16, fz + .38, x1 - .2, y1 - .16, fz + .46, [172, 80, 68], 191);
-  onZ(fz + .46, x0 + .04, y0 + .16, x1 - .2, y1 - .16, (x, y) => Math.abs(y - (y0 + y1) / 2) < .02 ? rgb(120, 50, 44) : 0);
-  fbox(x1 - .2, y0, fz + .38, x1, y1, fz + .84, c, 192);
-  fbox(x0, y0, fz + .38, x1 - .2, y0 + .16, fz + .6, c, 193); fbox(x0, y1 - .16, fz + .38, x1 - .2, y1, fz + .6, c, 194);
-  fbox(x1 - .3, y0 + .24, fz + .46, x1 - .2, y0 + .5, fz + .7, [226, 196, 110], 195);
-  footShadow(x0, y0, x1, y1, .84);
-}
-function plants(fz) {
-  const lb = loungeB();
-  for (const [a, b, s] of [[3.85, lb + 2.5, 1.1], [.72, 3.35, 1], [RL() * .43 + 2.2, RL() * .39 + .35, .9]]) potPlant(XA(a), yb(b), fz, s, a * 7);
-  potPlant(XA(kitA() + 1.45) + .36, yb(.38), fz + 1.78, .55, 33);
-}
-function potPlant(x, y, fz, s, seed) {
-  const r = .16 * s;
-  fbox(x - r, y - r, fz, x + r, y + r, fz + .3 * s, [176, 92, 62], seed);
-  fbox(x - r - .02, y - r - .02, fz + .3 * s, x + r + .02, y + r + .02, fz + .34 * s, [196, 108, 72], seed + 1);
-  onZ(fz + .34 * s, x - r, y - r, x + r, y + r, rgb(70, 50, 36));
-  const G1 = [[60, 120, 60], [84, 150, 70], [110, 176, 84]];
-  for (let k = 0; k < 9; k++) {
-    const a = hash(k, seed) * 6.28, d = hash(seed, k) * .18 * s, h = (.4 + hash(k + 3, seed) * .45) * s;
-    const lx = x + Math.cos(a) * d, ly = y + Math.sin(a) * d * .8, w = .06 * s;
-    fbox(lx - w, ly - w, fz + .3 * s + h * .5, lx + w, ly + w, fz + .3 * s + h, G1[k % 3], seed + k);
-  }
-  footShadow(x - r, y - r, x + r, y + r, .5 * s);
-}
-const POSTER = [
-  (u, v) => v < .15 || v > .85 || u < .1 || u > .9 ? rgb(40, 36, 40) : (Math.abs(u - .5) < .12 && v > .3 && v < .8) || (Math.abs(v - .45) < .07 && u > .28 && u < .72) ? rgb(120, 190, 90) : rgb(140, 40, 44),
-  (u, v) => v > .62 ? (Math.abs(u - .7) < .1 && Math.abs(v - .78) < .1 ? rgb(255, 210, 90) : rgb(120, 180, 226)) : v > .32 + Math.abs(u - .4) * .6 ? rgb(70, 130, 80) : v > .3 ? rgb(240, 240, 240) : rgb(90, 110, 120),
-  (u, v) => (Math.floor((u + v) * 6) & 1) ? rgb(232, 186, 50) : rgb(36, 34, 38),
-];
-function posters(fz) {
-  [[BED_X(0) + .05, .78, 0], [BED_X(0) + 1.05, .7, 2], [BED_X(1) + .75, .8, 1]].forEach(([x, w, k]) => {
-    const y = UG.y0;
-    onY(y + .01, x, x + w, fz + 1.58, fz + 2.08, (xx, z) => { const u = (xx - x) / w, v = (z - fz - 1.58) / .5; return u < .04 || u > .96 || v < .05 || v > .95 ? rgb(236, 232, 220) : POSTER[k](u, v); });
-  });
-}
-function stringLights(fz) {
-  const y = UG.y0 + .03, cols = [rgb(255, 90, 80), rgb(255, 210, 90), rgb(110, 220, 120), rgb(110, 170, 255)];
-  const a0 = XA(1.1), a1 = UG.x1 - .3, seg = 1.25, xw = UG.x0 + .03, b0 = yb(1.1), b1 = UG.y1 - .3;
-  let n = 0;
-  // along the back wall, then along the left wall
-  for (let x = a0; x < a1; x += STEP * 2) pt(x, y, fz + UG.h - .1 - Math.sin(((x - a0) % seg) / seg * Math.PI) * .16, rgb(40, 36, 40));
-  for (let v = b0; v < b1; v += STEP * 2) pt(xw, v, fz + UG.h - .1 - Math.sin(((v - b0) % seg) / seg * Math.PI) * .16, rgb(40, 36, 40));
-  for (let x = a0 + .18; x < a1; x += .32) {
-    const z = UG.h - .14 - Math.sin(((x - a0) % seg) / seg * Math.PI) * .16, c = lit(cols[n++ % 4]);
-    pt(x, y, fz + z, c); pt(x + .05, y, fz + z, c); pt(x, y, fz + z - .06, c);
-  }
-  for (let v = b0 + .18; v < b1; v += .32) {
-    const z = UG.h - .14 - Math.sin(((v - b0) % seg) / seg * Math.PI) * .16, c = lit(cols[n++ % 4]);
-    pt(xw, v, fz + z, c); pt(xw, v + .05, fz + z, c); pt(xw, v, fz + z - .06, c);
-  }
-}
-function armchair(fz) {
-  const x0 = UG.x0 + .12, x1 = x0 + .7, y0 = yb(loungeB() + 2.45), y1 = y0 + .7, c = [190, 146, 64];
-  fbox(x0, y0, fz, x1, y1, fz + .36, c, 200);
-  fbox(x0, y0, fz + .36, x0 + .18, y1, fz + .86, c, 201);
-  fbox(x0 + .18, y0, fz + .36, x1, y0 + .14, fz + .56, c, 202); fbox(x0 + .18, y1 - .14, fz + .36, x1, y1, fz + .56, c, 203);
-  fbox(x0 + .2, y0 + .16, fz + .36, x1 - .04, y1 - .16, fz + .44, [206, 164, 84], 204);
-  footShadow(x0, y0, x1, y1, .86);
-}
-// a punching bag hung from the ceiling on a chain
-function punchingBag(fz) {
-  const x = XA(RL() - .9), y = yb(3.3);
-  ln([x, y, fz + UG.h], [x, y, fz + 1.42], rgb(150, 156, 164));
-  fbox(x - .1, y - .1, fz + 1.36, x + .1, y + .1, fz + 1.42, DARK, 210);
-  fbox(x - .22, y - .22, fz + .36, x + .22, y + .22, fz + 1.36, [200, 46, 40], 211);
-  onY(y + .22, x - .22, x + .22, fz + .36, fz + 1.36, (xx, z) => Math.abs(z - fz - 1.24) < .04 || Math.abs(z - fz - .48) < .04 ? rgb(40, 36, 40) : Math.abs(xx - x) < .1 && Math.abs(z - fz - .9) < .14 ? rgb(244, 238, 222) : 0);
-  onX(x + .22, y - .22, y + .22, fz + .36, fz + 1.36, (yy, z) => Math.abs(z - fz - 1.24) < .04 || Math.abs(z - fz - .48) < .04 ? rgb(30, 26, 30) : 0);
-  for (let k = 0; k < 4; k++) castShadow(x + .05, y, .6 + k * .2, .18);
-}
-function wallShelves(fz) {
-  const x0 = BED_X(2) + .15, x1 = x0 + 1.35, y0 = UG.y0;
-  for (const z of [1.3, 1.82]) {
-    fbox(x0, y0, fz + z - .04, x1, y0 + .24, fz + z, WOOD, 220 + z);
-    for (const x of [x0 + .1, x1 - .16]) fbox(x, y0, fz + z - .16, x + .04, y0 + .2, fz + z - .04, DARK, 222);
-  }
-  const jar = (x, z, c, h = .2) => { sbox(x, y0 + .05, fz + z, x + .14, y0 + .19, fz + z + h, c, 223); fbox(x, y0 + .05, fz + z + h, x + .14, y0 + .19, fz + z + h + .04, [200, 60, 50], 224); };
-  jar(x0 + .1, 1.3, [200, 150, 60]); jar(x0 + .3, 1.3, [120, 170, 90], .16); jar(x0 + .5, 1.3, [210, 120, 60], .24);
-  for (let k = 0; k < 5; k++) fbox(x0 + .8 + k * .07, y0 + .03, fz + 1.3, x0 + .86 + k * .07, y0 + .2, fz + 1.5 + hash(k, 2) * .08, BOOK_R ? [[150, 50, 44], [52, 92, 140], [196, 160, 64], [70, 120, 70], [120, 70, 120]][k] : WOOD, 225 + k);
-  fbox(x0 + .15, y0 + .04, fz + 1.82, x0 + .5, y0 + .2, fz + 2.02, [176, 132, 84], 230);
-  fbox(x0 + .6, y0 + .02, fz + 1.82, x0 + .9, y0 + .06, fz + 2.12, [60, 50, 40], 231);
-  onY(y0 + .06, x0 + .63, x0 + .87, fz + 1.86, fz + 2.08, (x, z) => z - fz > 1.98 ? rgb(130, 180, 230) : rgb(90, 140, 80));
-  potPlant(x1 - .2, y0 + .12, fz + 1.82, .55, 41);
-}
-function medCabinet(fz) {
-  const x0 = XA(kitA()) + .02, x1 = x0 + .88, y0 = UG.y0;
-  sbox(x0, y0, fz + 1.12, x1, y0 + .22, fz + 1.98, [240, 240, 236], 240);
-  onY(y0 + .22, x0 + .03, x1 - .03, fz + 1.15, fz + 1.95, (x, z) => { const u = (x - x0) / .88 - .5, v = (z - fz - 1.55) / .8; if (Math.abs(u) > .44 || Math.abs(v) > .44) return rgb(200, 40, 40); return (Math.abs(u) < .1 && Math.abs(v) < .3) || (Math.abs(v) < .1 && Math.abs(u) < .3) ? rgb(220, 36, 36) : 0; });
-}
-function shower(fz) {
-  const x0 = UG.x0, x1 = x0 + .92, y0 = UG.y1 - .97, y1 = UG.y1 - .02;
-  sbox(x0 + .02, y0, fz, x1, y1, fz + .1, [236, 236, 232], 250);
-  onZ(fz + .1, x0 + .1, y0 + .08, x1 - .08, y1 - .08, (x, y) => Math.abs(x - (x0 + x1) / 2) < .05 && Math.abs(y - (y0 + y1) / 2) < .05 ? rgb(90, 96, 104) : rgb(200, 220, 230));
-  fbox(x1 - .02, y0, fz + 2.0, x1 + .02, y1, fz + 2.04, METAL, 251);
-  fbox(x1 - .03, y0, fz + .2, x1, y0 + .55, fz + 2.0, [214, 226, 236], 252);
-  onX(x1, y0, y0 + .55, fz + .2, fz + 2.0, y => (Math.floor((y - y0) * 22) & 1) ? rgb(150, 190, 220) : 0);
-  fbox(x0, y0 + .4, fz + 1.86, x0 + .3, y0 + .46, fz + 1.9, METAL, 253);
-  fbox(x0 + .24, y0 + .34, fz + 1.76, x0 + .34, y0 + .52, fz + 1.86, METAL, 254);
-  fbox(x0 + .04, y1 - .3, fz + 1.1, x0 + .1, y1 - .06, fz + 1.5, [220, 120, 90], 255);
-}
-function pingPong(fz) {
-  const x0 = XA(RL() - 3.45), x1 = x0 + 1.7, y0 = yb(RL() * .39 + .1), y1 = y0 + .95, tz = .74;
-  for (const [x, y] of [[x0 + .1, y0 + .1], [x1 - .18, y0 + .1], [x0 + .1, y1 - .18], [x1 - .18, y1 - .18]]) fbox(x, y, fz, x + .08, y + .08, fz + tz, DARK, 260);
-  fbox(x0, y0, fz + tz, x1, y1, fz + tz + .05, [40, 112, 74], 261, .6);
-  onZ(fz + tz + .05, x0, y0, x1, y1, (x, y) => x < x0 + .03 || x > x1 - .03 || y < y0 + .03 || y > y1 - .03 || Math.abs(y - (y0 + y1) / 2) < .012 ? rgb(240, 240, 236) : 0);
-  const mx = (x0 + x1) / 2;
-  fbox(mx - .015, y0 - .04, fz + tz + .05, mx + .015, y1 + .04, fz + tz + .2, [230, 230, 226], 262, .4);
-  for (const [x, y, c] of [[x0 + .35, y0 + .3, [200, 50, 44]], [x1 - .5, y1 - .4, [40, 40, 46]]]) { fbox(x, y, fz + tz + .05, x + .14, y + .14, fz + tz + .08, c, 263); fbox(x + .14, y + .05, fz + tz + .05, x + .26, y + .09, fz + tz + .08, WOOD, 264); }
-  pt(mx + .4, y0 + .5, fz + tz + .12, rgb(255, 255, 250));
-  footShadow(x0, y0, x1, y1, tz);
-}
-// a map of the area, pinned up on the left wall over the TV
-function mapWall(fz) {
-  const lb = loungeB(), y0 = yb(lb + .6), y1 = y0 + 1.4, x = UG.x0, z0 = fz + 1.42, z1 = fz + 2.2;
-  fbox(x, y0 - .06, z0 - .06, x + .04, y1 + .06, z1 + .06, [86, 56, 36], 270);
-  onX(x + .04, y0, y1, z0, z1, (y, z, ix, iy) => {
-    const u = (y - y0) / 1.4, v = (z - z0) / .78, land = nz(u * 4 + 7, v * 4) + (u - .5) * .3 > .55;
-    if (Math.abs((u * 6) % 1) < .06 || Math.abs((v * 5) % 1) < .06) return rgb(120, 140, 150);
-    return land ? pick(rampOf([120, 170, 80]), 2.6 + nz(u * 12, v * 12), ix, iy) : pick(rampOf([70, 140, 210]), 2.8, ix, iy);
-  });
-  const pins = [[.2, .7], [.45, .4], [.7, .62], [.82, .25], [.3, .2]], P = pins.map(([u, v]) => [y0 + u * 1.4, z0 + v * .78]);
-  for (let k = 0; k < P.length - 1; k++) ln([x + .05, P[k][0], P[k][1]], [x + .05, P[k + 1][0], P[k + 1][1]], rgb(200, 40, 40));
-  P.forEach(([y, z], k) => { const c = k % 2 ? [255, 220, 60] : [230, 50, 40]; fbox(x + .04, y - .04, z - .04, x + .1, y + .04, z + .04, c, 271 + k); });
-}
-function coffeeTable(fz) {
-  const lb = loungeB(), x0 = XA(1.3), x1 = x0 + .8, y0 = yb(lb + .75), y1 = y0 + 1.1;
-  for (const [x, y] of [[x0 + .04, y0 + .04], [x1 - .1, y0 + .04], [x0 + .04, y1 - .1], [x1 - .1, y1 - .1]]) fbox(x, y, fz, x + .06, y + .06, fz + .36, WOOD_D, 280);
-  fbox(x0, y0, fz + .36, x1, y1, fz + .44, [214, 200, 170], 281, .5);
-  onZ(fz + .44, x0 + .08, y0 + .05, x0 + .44, y1 - .05, (x, y) => ((Math.floor((x - x0) * 18) + Math.floor((y - y0) * 18)) & 1) ? rgb(250, 246, 230) : rgb(30, 28, 34));
-  for (const [x, y, c] of [[x0 + .4, y0 + .1, [200, 50, 44]], [x0 + .25, y0 + .22, [40, 40, 46]]]) fbox(x, y, fz + .44, x + .05, y + .05, fz + .52, c, 283);
-  for (const [x, c] of [[x0 + .6, [236, 236, 232]], [x0 + .8, [220, 60, 50]]]) fbox(x, y0 + .12, fz + .44, x + .12, y0 + .26, fz + .58, c, 282);
-  fbox(x1 - .2, y0 + .06, fz + .44, x1 - .06, y1 - .06, fz + .5, [60, 90, 150], 284);
-  footShadow(x0, y0, x1, y1, .42);
-}
-// a clothesline over the front beds, with the wash hung out
-function clothesline(fz) {
-  const xa = XA(1.8), xb = XA(5.85), y = yb(2.94), z = fz + 2.28;
-  for (const x of [xa, xb]) fbox(x - .03, y - .03, fz + 1.6, x + .03, y + .03, fz + UG.h, WOOD, 290);
-  ln([xa, y, z], [xb, y, z], rgb(230, 226, 214));
-  const cols = [[200, 60, 50], [70, 110, 170], [236, 232, 220], [90, 140, 80], [226, 186, 60], [150, 90, 150]];
-  for (let k = 0, x = xa + .25; x < xb - .3; x += .42 + hash(k, 5) * .12, k++) {
-    const c = cols[k % 6], w = .12 + hash(k, 6) * .1, h = .22 + hash(k, 7) * .2;
-    fbox(x - w, y - .015, z - h, x + w, y + .015, z, c, 291 + k, .5);
-    if (k % 3 === 0) { fbox(x - w, y - .015, z - h - .14, x - w + .07, y + .015, z - h, c, 300 + k, .5); fbox(x + w - .07, y - .015, z - h - .14, x + w, y + .015, z - h, c, 310 + k, .5); }
-    pt(x - w + .02, y + .02, z + .01, rgb(200, 170, 110)); pt(x + w - .02, y + .02, z + .01, rgb(200, 170, 110));
-  }
-}
-// a water cooler with a big blue bottle
-function waterCooler(fz) {
-  const fits = kitA() + 3.55 < RL(), x = fits ? XA(kitA() + 3.12) : XA(.12), y0 = fits ? yb(.12) : yb(3.3), y1 = y0 + .38;
-  sbox(x, y0, fz, x + .36, y1, fz + .95, [232, 234, 236], 156);
-  onY(y1, x + .08, x + .28, fz + .55, fz + .75, (xx, z) => Math.abs(xx - x - .12) < .03 && Math.abs(z - fz - .65) < .05 ? rgb(60, 120, 220) : Math.abs(xx - x - .24) < .03 && Math.abs(z - fz - .65) < .05 ? rgb(220, 60, 50) : 0);
-  sbox(x + .06, y0 + .06, fz + .95, x + .3, y1 - .06, fz + 1.4, [110, 170, 226], 157);
-  sbox(x + .12, y0 + .12, fz + 1.4, x + .24, y1 - .12, fz + 1.46, [80, 130, 200], 158);
-  footShadow(x, y0, x + .36, y1, 1.4);
-}
-function aquarium(fz0) {
-  const x0 = XA(kitA()) + .9, x1 = x0 + .42, y0 = yb(.1), y1 = yb(.46), fz = fz0 + .48;
-  fbox(x0, y0, fz + .42, x1, y1, fz + .45, DARK, 311);
-  EM = 1;
-  fbox(x0 + .03, y0 + .03, fz + .45, x1 - .03, y1 - .03, fz + .88, [90, 160, 210], 312, .5);
-  onY(y1 - .03, x0 + .05, x1 - .05, fz + .46, fz + .86, (x, z) => {
-    const u = (x - x0) / .42, v = (z - fz - .46) / .4, h = hash(Math.floor(u * 12), Math.floor(v * 10));
-    if (v < .12) return rgb(214, 196, 150);
-    if (v < .55 && (Math.abs(u - .2) < .03 || Math.abs(u - .78) < .03)) return rgb(60, 170, 90);
-    if ((Math.abs(u - .4) < .05 && Math.abs(v - .6) < .06) || (Math.abs(u - .64) < .04 && Math.abs(v - .35) < .05)) return rgb(255, 150, 50);
-    if (h > .95) return rgb(220, 240, 255);
-    return 0;
-  });
-  EM = 0;
-  fbox(x0, y0, fz + .88, x1, y1, fz + .92, DARK, 313);
-  lamp(0, (x0 + x1) / 2, y1 + .3, fz + .6, 1.4, 1.0, CYAN_T);
-}
-function arcade(fz) {
-  const x0 = XA(RL() * .36), x1 = x0 + .6, y0 = yb(RL() - 2.65), y1 = y0 + .6, body = [70, 46, 110];
-  fbox(x0, y0, fz, x1, y1, fz + 1.62, body, 320);
-  fbox(x0 + .02, y1, fz + .82, x1 - .02, y1 + .14, fz + .92, [40, 34, 56], 321);
-  onZ(fz + .92, x0 + .1, y1 + .02, x1 - .1, y1 + .12, (x, y) => { const u = (x - x0) / .62; return Math.abs(u - .3) < .05 ? rgb(230, 40, 40) : Math.abs(u - .55) < .04 ? rgb(60, 200, 255) : Math.abs(u - .7) < .04 ? rgb(255, 220, 60) : 0; });
-  EM = 1;
-  onY(y1, x0 + .08, x1 - .08, fz + 1.0, fz + 1.36, (x, z) => { const u = (x - x0 - .08) / .46, v = (z - fz - 1.0) / .36, h = hash(Math.floor(u * 9), Math.floor(v * 7)); return v < .2 ? rgb(60, 220, 120) : h > .8 ? rgb(255, 80, 200) : h > .7 ? rgb(255, 240, 120) : rgb(20, 24, 60); });
-  onY(y1, x0 + .02, x1 - .02, fz + 1.44, fz + 1.58, (x, z) => (Math.floor((x - x0) * 20) & 1) ? rgb(255, 120, 220) : rgb(120, 230, 255));
-  EM = 0;
-  onX(x1, y0 + .04, y1 - .04, fz + .1, fz + 1.5, (y, z) => Math.abs((y - y0) * 2.2 - (z - fz) * .6 - .2) < .06 ? rgb(255, 120, 220) : 0);
-  lamp(0, (x0 + x1) / 2, y1 + .4, fz + .5, 1.1, .8, PINK_T);
-  footShadow(x0, y0, x1, y1, 1.62);
-}
-function ducts(fz) {
-  const x0 = UG.x0, y0 = yb(1.05), y1 = UG.y1 - .05, c = [168, 174, 178];
-  sbox(x0, y0, fz + 2.12, x0 + .36, y1, fz + 2.46, c, 330);
-  onX(x0 + .36, y0, y1, fz + 2.12, fz + 2.46, y => ((y - y0) % .7) < .04 ? rgb(120, 126, 130) : 0);
-  sbox(x0, yb(1.2), fz + 1.5, x0 + .1, yb(1.6), fz + 2.12, c, 331);
-  onX(x0 + .1, yb(1.24), yb(1.56), fz + 1.56, fz + 2.06, (y, z) => (Math.floor((z - fz) * 28) & 1) ? rgb(70, 74, 80) : 0);
-  // and a drop to a grille on the back wall beside the shaft
-  sbox(UG.x0 + 1.92, UG.y0, fz + 1.55, UG.x0 + 2.0, UG.y0 + .12, fz + 2.46, c, 332);
-}
-// the bunker's emblem, painted big on the left wall
-function emblem(fz) {
-  const cy = yb(loungeB() + 4.2), x = UG.x0 + .01, z0 = fz + .9, z1 = fz + 2.08;
-  onX(x, cy - .72, cy + .72, z0, z1, (y, z) => {
-    const u = (y - cy) / .72, v = (z - z0) / 1.18, half = v > .35 ? 1 : .25 + v * 2.1;
-    if (Math.abs(u) > half) return 0;
-    if (Math.abs(u) > half - .14 || v > .9) return rgb(230, 186, 60);
-    const sx = Math.abs(u), sv = v - .55;
-    if (sx < .36 && sv > -.12 && sv < .2) { if (sv > .0 && Math.abs(sx - .17) < .08 && sv < .12) return rgb(30, 26, 30); return rgb(236, 232, 220); }
-    if (sx < .26 && sv > -.24 && sv <= -.12) return (Math.floor((u + 1) * 12) & 1) ? rgb(236, 232, 220) : rgb(30, 26, 30);
-    return rgb(150, 34, 36);
-  });
 }
 // the vault in the front corner: a low railing on its two inner sides with a gap to walk in
 function vaultCage(fz) {
@@ -989,11 +635,11 @@ function washtub(fz) {
   footShadow(x - .4, y - .3, x + .4, y + .3, .32);
 }
 // the beds: cots at first (one for every place a hand can be hired, LIVE.beds), then wooden beds
-const cots = fz => { for (let i = 0; i < bedsOf(G.live); i++) bed(i, fz, BED_STYLE[0]); };
+const cots = fz => { for (let i = 0; i < bedsOf(G.live); i++) bed(i, fz, COT); };
 // wooden beds have a tall headboard with posts, and a shelf over the head (a crate by it in the second row) with a
 // candle and a few belongings
 function woodBeds(fz, g) {
-  const st = { ...BED_STYLE[2], frame: mat(WOOD, g), head: .95, posts: true }, photo = [[120, 170, 210], [214, 180, 120], [110, 150, 90]];
+  const st = { ...WOOD_BED, frame: mat(WOOD, g) }, photo = [[120, 170, 210], [214, 180, 120], [110, 150, 90]];
   for (let i = 0; i < bedsOf(G.live); i++) {
     bed(i, fz, st);
     const bx = BED_X(i), [y0] = bedY(i), back = i < 3, x = back ? bx + .12 : bx - .4, y = back ? UG.y0 : y0 + .12, z = fz + (back ? 1.14 : .4);
@@ -1093,6 +739,12 @@ function messTable(fz, g) {
   onY(ry + .48, rx + .1, rx + .4, fz + .46, fz + .68, (xx, z) => Math.abs(xx - rx - .17) < .06 && Math.abs(z - fz - .6) < .04 ? lit(rgb(255, 196, 90)) : Math.hypot(xx - rx - .32, z - fz - .56) < .05 ? rgb(30, 30, 34) : (Math.floor((z - fz) * 40) & 1) && xx < rx + .26 && z - fz < .52 ? rgb(52, 58, 42) : 0);
   ln([rx + .4, ry + .14, fz + .72], [rx + .46, ry + .1, fz + 1.5], rgb(40, 40, 44));
   footShadow(rx, ry, rx + .5, ry + .6, .72);
+  // a bench along the left wall under the notice board, ammo crates beside it
+  const wy = yb(6.6);
+  for (const y of [wy + .1, wy + 1.3]) fbox(UG.x0 + .12, y, fz, UG.x0 + .5, y + .08, fz + .42, leg, 1594);
+  sbox(UG.x0 + .06, wy, fz + .42, UG.x0 + .56, wy + 1.48, fz + .48, top, 1595);
+  footShadow(UG.x0 + .06, wy, UG.x0 + .56, wy + 1.48, .48);
+  for (const [a, b, z] of [[.15, 8.25, 0], [.15, 8.25, .36], [.75, 8.3, 0]]) { const x = XA(a), y = yb(b); sbox(x, y, fz + z, x + .5, y + .34, fz + z + .34, OD_D, 1596); onY(y + .34, x + .04, x + .46, fz + z + .04, fz + z + .3, (xx, zz) => Math.abs(zz - fz - z - .17) < .03 ? rgb(214, 180, 60) : 0); footShadow(x, y, x + .5, y + .34, z + .34); }
 }
 // military era: a row of steel lockers along the left wall by the ladder, doors to the room, each stencilled
 function steelLockers(fz, g) {
@@ -1126,12 +778,20 @@ function showerStall(fz, g) {
   footShadow(x0 + .02, sy - .24, x0 + .44, sy + .24, .86);
 }
 // military era: the floor number stencilled big on the left wall
+// military era: the floor's number stencilled big on the left wall, the unit flag over the kitchen, a notice board
 function wallNumber(fz, g) {
-  const y0 = yb(5.45), num = stencil('01', y0 + .1, fz + 1.22, .17, .14), c = mat([236, 232, 214], g);
+  const y0 = yb(5.0), num = stencil('01', y0 + .1, fz + 1.22, .17, .14), c = mat([236, 232, 214], g);
   onX(UG.x0 + .005, y0, y0 + 1.15, fz + 1.12, fz + 2.0, (y, z) => num(y, z) ? rgb(...c) : Math.abs(z - fz - 1.15) < .025 || Math.abs(z - fz - 1.97) < .025 ? rgb(...c) : 0);
+  const fx = UG.x1 - 1.15, fy = UG.y0;
+  fbox(fx - .04, fy, fz + 2.2, fx + .9, fy + .06, fz + 2.25, [60, 58, 62], 1640);
+  onY(fy + .01, fx, fx + .86, fz + 1.4, fz + 2.2, (x, z) => { const u = (x - fx) / .86, v = (z - fz - 1.4) / .8; if (v < .12 && Math.abs(u - .5) > .12 - v) return 0; return Math.abs(u - .5) < .1 && Math.abs(v - .58) < .14 ? rgb(236, 210, 90) : Math.abs(u - .5) < .2 && Math.abs(v - .58) < .22 ? rgb(46, 52, 36) : rgb(...mat([150, 44, 40], g)); });
+  const by = yb(6.75);
+  fbox(UG.x0, by - .04, fz + 1.08, UG.x0 + .05, by + 1.14, fz + 1.82, [96, 70, 48], 1641);
+  onX(UG.x0 + .05, by, by + 1.1, fz + 1.12, fz + 1.78, (y, z) => { const u = (y - by) / 1.1, v = (z - fz - 1.12) / .66, h = hash(Math.floor(u * 5), Math.floor(v * 3)); if (h > .35 && (u * 5 % 1) > .12 && (u * 5 % 1) < .88 && (v * 3 % 1) > .14 && (v * 3 % 1) < .86) return h > .8 ? rgb(236, 220, 150) : rgb(236, 232, 222); return rgb(170, 128, 84); });
+  for (const [u, v] of [[.15, .8], [.55, .45], [.8, .8]]) pt(UG.x0 + .06, by + u * 1.1, fz + 1.12 + v * .66, rgb(200, 40, 40));
 }
 const LIVE_ART = {
-  lighting: [[liveLantern, brassLamps], [(fz, g) => cagedLamps(0, fz, g, [3.0, 5.0, 7.0, RL() - 1.6], [7.1, RL() - 3.5], .7)]],
+  lighting: [[liveLantern, brassLamps], [(fz, g) => cagedLamps(0, fz, g, [3.0, 5.0, 7.0, RL() - 1.9], [6.35, RL() - 2.6], .7)]],
   lounge: [[movedInLounge, crateTable], [messTable]],
   kitchen: [[waterAndCrate, stoveCorner], [fieldKitchen]],
   decor: [[lumber], [wallNumber]],
@@ -1158,7 +818,7 @@ function farmRows() {
   return rows;
 }
 const LEAF_D = [52, 104, 52], LEAF = [78, 140, 62], LEAF_L = [118, 178, 82], LETTUCE = [150, 204, 100];
-const R_FSOIL = rampOf([96, 70, 50]), R_CONC = rampOf([150, 150, 142]), R_PALLET = rampOf([176, 140, 96]);
+const R_FSOIL = rampOf([96, 70, 50]), R_PALLET = rampOf([176, 140, 96]);
 // earth walls and a dirt floor at first; from the military era painted concrete (an olive dado, pale above, the
 // formwork seams) and a concrete floor with the corridor marked in yellow
 function farmPaint(L, fz, look) {
@@ -1518,7 +1178,7 @@ const MINE_POSTS = [2.3, 3.72, 5.17, 6.62, 8.07, 9.52, 10.97];
 // the two rock pillars (centres, a and b): one against the left wall near the front, one on the right, out of the
 // way of every walk from the ladder and of the workers seen behind them
 const MINE_PILLARS = () => [[.45, RL() - 3.0], [RL() * .86, RL() * .28]];
-const R_ROCK = rampOf([112, 106, 102]), R_ROCKD = rampOf([86, 80, 80]), R_ORE = rampOf([84, 136, 210]), R_CRYS = rampOf([120, 220, 255]), R_SHOT = rampOf([150, 150, 146]), R_GRATE = rampOf([110, 116, 122]);
+const R_ROCK = rampOf([112, 106, 102]), R_ROCKD = rampOf([86, 80, 80]), R_ORE = rampOf([84, 136, 210]), R_CRYS = rampOf([120, 220, 255]), R_SHOT = rampOf([150, 150, 146]);
 const RUST = [128, 72, 50], YELLOW = [226, 178, 40], STEEL_B = [104, 112, 122], OD = [94, 106, 70], OD_D = [72, 82, 56];
 const ORE_B = [70, 130, 220], ORE_L = [130, 190, 250];
 function oreChunk(x, y, z, s, seed, blue = true) {
