@@ -544,7 +544,8 @@
    "member": "spark.wav",
    "title": "테슬라 방전",
    "mood": "작은 테슬라 발전기를 녹음한 실제 방전음.",
-   "star": true
+   "star": true,
+   "head_db": -18
   },
   {
    "id": "sfx_gun_electric_b",
@@ -606,7 +607,8 @@
    "member": "assaultriflereload1.wav",
    "title": "소총 장전",
    "mood": "에어소프트 건으로 만든 장전음.",
-   "star": true
+   "star": true,
+   "head_db": -30
   },
   {
    "id": "sfx_reload_shotgun_a",
@@ -618,7 +620,8 @@
    "member": "ShotgunSounds/Rack.mp3",
    "title": "펌프 당기기",
    "mood": "샷건 펌프를 당기는 소리.",
-   "star": true
+   "star": true,
+   "head_db": -30
   },
   {
    "id": "sfx_reload_shotgun_b",
@@ -803,10 +806,12 @@
    "source": "dar_zombie_moans",
    "member": "darsycho__zombie-moans.ogg",
    "title": "짧은 신음",
-   "mood": "약 2.6초, 음이 오르내림.",
+   "mood": "약 2.7초, 음이 오르내림.",
    "star": true,
-   "event": 2,
-   "event_tail": 0.15,
+   "segment": [
+    6.5,
+    9.22
+   ],
    "fade_out": 0.3
   },
   {
@@ -911,14 +916,28 @@
    "slot": "boss_stomp",
    "slot_label": "쿵",
    "kind": "sfx",
-   "source": "rd_creature2",
-   "member": "stomp_01.ogg",
-   "title": "발구름",
-   "mood": "저음 중심의 짧은 쿵.",
-   "star": true
+   "source": "bart_workshop",
+   "member": "workshop/workshop - wood on wood thuds.wav",
+   "title": "나무 쿵",
+   "mood": "나무끼리 부딪히는 묵직한 소리 한 번.",
+   "star": true,
+   "event": 1,
+   "event_tail": 0.2,
+   "fade_out": 0.15
   },
   {
    "id": "sfx_boss_stomp_b",
+   "group": "sfx-boss",
+   "slot": "boss_stomp",
+   "slot_label": "쿵",
+   "kind": "sfx",
+   "source": "rd_creature2",
+   "member": "stomp_01.ogg",
+   "title": "발구름",
+   "mood": "아주 낮은 저음뿐이라 폰 스피커에선 거의 안 들릴 수 있음."
+  },
+  {
+   "id": "sfx_boss_stomp_c",
    "group": "sfx-boss",
    "slot": "boss_stomp",
    "slot_label": "쿵",

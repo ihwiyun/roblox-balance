@@ -192,7 +192,8 @@ def encode(y, out, kind, meta, tmpdir):
     does not follow the gain smoothly), so a short ladder of gain trims is tried and the best encode is kept:
     sfx = true peak as close to -1.0 dBTP as possible without going above it; music/sting = first try <= -1.0 dBTP.
     Returns (measurements, chosen gain trim in dB)."""
-    ladder = [0.0, 0.15, -0.15, 0.3, -0.3, 0.45, -0.45, -0.7, -1.0, -1.5] if kind == 'sfx' else [0.0, -0.4, -0.8, -1.2, -1.6, -2.0]
+    ladder = ([0.0, 0.1, -0.1, 0.2, -0.2, 0.3, -0.3, 0.4, -0.4, 0.5, -0.5, 0.6, -0.6, -0.8, -1.0, -1.5] if kind == 'sfx'
+              else [0.0, -0.4, -0.8, -1.2, -1.6, -2.0])
     best = None
     for trim in ladder:
         wav = os.path.join(tmpdir, 'final.wav'); write_f32(wav, y * 10 ** (trim / 20))

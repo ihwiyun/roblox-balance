@@ -118,7 +118,7 @@
   .prog2 { flex: 1; height: 4px; background: var(--line); } .prog2 i { display: block; height: 100%; background: var(--ink); }
   .link { font-size: 11px; line-height: 14px; color: var(--muted); text-decoration: underline; text-underline-offset: 2px; white-space: nowrap; }
   /* 등급 필터 칩 한 줄: 옆으로 밀어 봅니다(화면 끝에서 잘려 보임) */
-  .chiprow { display: flex; gap: 8px; padding: 10px 12px; overflow: hidden; }
+  .chiprow { display: flex; gap: 8px; padding: 12px 12px 8px; overflow: hidden; }
   .foot2 { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-top: 1px solid var(--ink); background: var(--paper); }
   .kv { display: flex; justify-content: space-between; align-items: center; height: 28px; border-bottom: 1px solid var(--line); }
 
@@ -137,7 +137,7 @@
   .gear2 { position: absolute; right: 8px; top: 28px; }
   .side2 { position: absolute; right: 8px; top: 84px; display: grid; gap: 8px; }
   /* 알림 띠: 재화와 오른쪽 아이콘 사이, 스테이지 아래. 버튼을 가리지 않음 */
-  .note2 { position: absolute; left: 88px; right: 64px; top: 84px; padding: 6px 0 7px; text-align: center; color: #fff; background: linear-gradient(90deg, transparent, #1c1b19b8 18%, #1c1b19b8 82%, transparent); border-top: 1px solid #ffffff50; border-bottom: 1px solid #ffffff50; }
+  .note2 { position: absolute; left: 88px; right: 64px; top: 84px; padding: 4px 0; text-align: center; color: #fff; background: linear-gradient(90deg, transparent, #1c1b19b8 18%, #1c1b19b8 82%, transparent); border-top: 1px solid #ffffff50; border-bottom: 1px solid #ffffff50; }
   .note2 b { display: block; font-size: 16px; line-height: 20px; } .note2 span { display: block; font-size: 11px; line-height: 14px; color: #ffffffcc; }
   .spd2 { position: absolute; right: 8px; bottom: 124px; width: 48px; height: 32px; border: 1px solid var(--ink); background: var(--glass); display: grid; place-items: center; font-weight: 700; }
   .ammo2 { position: absolute; right: 8px; bottom: 84px; height: 32px; padding: 0 8px; border: 1px solid var(--ink); background: var(--glass); display: flex; align-items: center; gap: 4px; }
@@ -146,10 +146,11 @@
   .hp2 i { display: block; height: 6px; border: 1px solid var(--ink); background: #6aa64a; } .hp2 i.f { background: #a0784a; }
   /* 2. 강화 */
   .sheet2 { position: absolute; left: 0; right: 0; bottom: 74px; height: 326px; border-top: 1px solid var(--ink); background: var(--paper); }
-  .tool { display: flex; justify-content: flex-end; padding: 10px 12px 6px; }
+  .tool { display: flex; justify-content: flex-end; padding: 12px 12px 8px; }
   .uc2 { display: flex; align-items: center; gap: 8px; margin: 0 12px 4px; padding: 8px; border: 1px solid var(--line); }
+  .uc2:last-child { margin-bottom: 0; }
   .uc2 .bd { flex: 1; min-width: 0; }
-  .uc2 .bd .prog2 { flex: none; width: 120px; max-width: 100%; margin-top: 6px; }
+  .uc2 .bd .prog2 { flex: none; width: 120px; max-width: 100%; margin-top: 8px; }
   .uc2 .b { min-width: 80px; }
   /* 4. 캐릭터 */
   .hero { position: relative; height: 168px; background: var(--soft); display: flex; align-items: flex-end; justify-content: center; gap: 24px; padding-bottom: 16px; }
@@ -157,7 +158,7 @@
   .wslot .slot2 { width: 64px; }
   .info { padding: 12px 12px 0; }
   .info .nm { display: flex; align-items: baseline; gap: 8px; }
-  .info .role { display: flex; align-items: center; gap: 4px; margin: 2px 0 8px; }
+  .info .role { display: flex; align-items: center; gap: 4px; margin: 4px 0 8px; }
   .acts { display: flex; align-items: center; gap: 8px; margin: 12px 0 0; }
   .crew2 { display: grid; justify-items: center; gap: 4px; padding: 4px 0; border: 1px solid transparent; }
   .crew2.sel { border-color: var(--ink); }
@@ -171,8 +172,8 @@
   /* 7·8. 상점 */
   .pk { display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 12px; align-items: start; padding: 8px; border: 1px solid var(--line); margin-bottom: 8px; }
   .pk .slot2 { width: 64px; }
-  .pk .bd { display: grid; gap: 2px; }
-  .pk .b { margin-top: 6px; width: 100%; }
+  .pk .bd { display: grid; gap: 4px; }
+  .pk .b { margin-top: 4px; width: 100%; }
   .pk.locked .slot2 { opacity: .5; }
   .gem { display: grid; justify-items: center; gap: 4px; padding: 8px; border: 1px solid var(--line); }
   /* 15. 강약 규칙 */
@@ -254,7 +255,7 @@ const screens = [
     <div class="chiprow">${chip('전체', 'on')}${GR.map((g, n) => chip(g, '', n)).join('')}</div>
     <div class="list">${OWN.slice(0, 6).map((own, g) => sec2(`<span class="gr q${g}">${GR[g]}</span>`, own.length + '/5') + `<div class="grid2 c5">${[0, 1, 2, 3, 4].map(k => wslot(g, k, own[k])).join('')}</div>`).join('')}</div>
     <div class="foot2">${B('sub', '도감')}${B('sub', '일괄 강화')}${B('pri grow', '일괄 합성')}</div></div>`, 1],
-  ['4. 캐릭터 (서 있는 모습은 대기 동작, 바뀜)', charBody(), 1],
+  ['4. 캐릭터 (대기 동작으로 서 있음, 무기 칸은 사수·나만, 바뀜)', charBody(), 1],
   ['5. 장비 · 유물 (보관함, 바뀜)', `<div class="fs">${head('장비', ['무기', '터렛', '유물'], '유물')}
     ${strip('소환 Lv 4', 20, 300, '3,000')}
     <div class="list">${sec2('장착 칸', '3/8')}<div class="grid2 c4">${[4, 2, 1].map(g => `<span class="slot2 q${g} tap">${img('', '', '')}<em>Lv 3</em></span>`).join('')}${['200', '400', '700', '1,000', '2,000'].map(n => `<span class="slot2 lock">${ico('lock')}<span class="aux">스테이지<br>${n}</span></span>`).join('')}</div>

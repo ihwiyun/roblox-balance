@@ -55,7 +55,7 @@ def card(it, letter=None):
         f'data-label="{esc(label)}">'
         f'<div class="head">{f"<b class=chip>{letter}</b>" if letter else ""}<h4>{esc(name)}</h4>{STAR if it.get("star") else ""}'
         f'<label class="pick"><input type="checkbox"><span>선택</span></label></div>'
-        f'<audio controls preload="none"{" loop" if music else ""}{vol} src="{esc(it["file"])}"></audio>'
+        f'<audio controls preload="none"{" loop" if music else ""}{vol} aria-label="{esc(label)}" src="{esc(it["file"])}"></audio>'
         f'<p class="meta">{"".join(f"<span>{esc(m)}</span>" for m in meta)}</p>'
         f'<p class="meta dim"><span>{esc(it["author"])}</span>{lic(it)}</p>'
         f'<p class="mood">{esc(it["mood"])}</p></article>')
@@ -65,6 +65,7 @@ by_group = {}
 for it in catalog:
     by_group.setdefault(it['group'], []).append(it)
 
+total_slots = len({it.get('slot', it['group']) for it in catalog})
 nav, body = [], []
 section = None
 for g in groups:
@@ -129,8 +130,8 @@ main { max-width: 1000px; margin: 0 auto; padding: 0 16px 80px; }
 .pick { flex: none; display: flex; align-items: center; gap: 4px; min-height: 32px; padding-left: 6px; cursor: pointer; color: var(--muted); }
 .pick input { width: 18px; height: 18px; margin: 0; accent-color: var(--pick); }
 audio { display: block; width: 100%; height: 36px; margin: 4px 0 2px; }
-.meta { display: flex; flex-wrap: wrap; gap: 0 10px; margin: 2px 0 0; font-size: 12px; font-variant-numeric: tabular-nums; }
-.meta span + span::before, .meta span + a::before { content: ""; }
+.meta { display: flex; flex-wrap: wrap; gap: 0 6px; margin: 2px 0 0; font-size: 12px; font-variant-numeric: tabular-nums; }
+.meta span + span::before, .meta span + a::before { content: "·"; margin-right: 6px; color: var(--muted); }
 .meta.dim { color: var(--muted); }
 .mood { margin: 4px 0 0; font-size: 12px; }
 .out { margin-top: 30px; border: 1px solid var(--ink); padding: 8px 10px; }
@@ -168,7 +169,7 @@ JS = r'''
       chosen.forEach(c => lines.push('  ' + c.dataset.label + '  (' + c.dataset.id + ')'));
     });
     out.value = lines.join('\n');
-    count.textContent = Object.keys(picks).length + '개';
+    count.textContent = Object.keys(picks).length + '/' + count.dataset.total;
   }
   cands.forEach(c => c.querySelector('input').addEventListener('change', e => {
     if (e.target.checked) picks[c.dataset.slot] = c.dataset.id; else delete picks[c.dataset.slot];
@@ -195,7 +196,7 @@ page = f'''<!doctype html>
 </head>
 <body>
 <header class="top"><div class="in">
-<div class="bar"><h1>사운드 후보</h1><small id="count">0개</small><button id="copy" type="button">선택 복사</button></div>
+<div class="bar"><h1>사운드 후보</h1><small id="count" data-total="{total_slots}">0/{total_slots}</small><button id="copy" type="button">선택 복사</button></div>
 <nav>{''.join(nav)}</nav>
 </div></header>
 <main>
