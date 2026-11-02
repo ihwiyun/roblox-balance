@@ -43,7 +43,7 @@ const bunkerHp = L => Math.round(150 * 1.16 ** ((L - 1) * LEVEL_STRETCH));
 const bunkerCost = L => {
   const c = { money: Math.ceil(34 * 1.24 ** (L * LEVEL_STRETCH)) };
   if (L >= 6) c.food = Math.ceil(c.money * Math.min(.6, .2 + (L - 6) * .006));
-  if (L >= 16) c.mineral = Math.ceil(c.money * Math.min(.3, .08 + (L - 16) * .004));
+  if (L >= 16) c.mineral = Math.ceil(c.money * Math.min(.2, .05 + (L - 16) * .003));
   return c;
 };
 // material: the colour of the splinters when it is hit; metal: it clangs; electric: it shocks whoever hits it
@@ -61,7 +61,7 @@ const FENCE_FORMS = [
 ];
 const fenceInfo = (L = G.fence) => FENCE_FORMS[fenceForm(L)];
 const fenceHp = L => L ? Math.round(120 * 1.17 ** ((L - 1) * LEVEL_STRETCH)) : 0;
-const fenceCost = L => { const c = { money: Math.ceil(26 * 1.24 ** (L * LEVEL_STRETCH)) }; if (L >= 8) c.mineral = Math.ceil(c.money * Math.min(.35, .12 + (L - 8) * .005)); return c; };
+const fenceCost = L => { const c = { money: Math.ceil(26 * 1.24 ** (L * LEVEL_STRETCH)) }; if (L >= 8) c.mineral = Math.ceil(c.money * Math.min(.25, .08 + (L - 8) * .004)); return c; };
 // what each level adds; the first name of a form is the form itself
 const BUNKER_EXTRAS = [
   ['간이 참호', '말뚝 버팀벽', '모래주머니 2단', '판자 흉벽', '참호 확장', '네 귀 랜턴', '철판 덧대기', '철조망 둘레', '통나무 모서리 보강', '통나무 흉벽'],

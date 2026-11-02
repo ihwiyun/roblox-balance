@@ -66,7 +66,7 @@ function idleRate(res) {
 function creditAway(away, delay = 0) {
   if (away <= 30) return;
   const food = (idleRate('food') - hired().length * UPKEEP) * away, ore = idleRate('mineral') * away;
-  G.food = Math.max(0, G.food + food); G.mineral += ore;
+  G.food = clamp(G.food + food, 0, Math.max(G.food, foodCap())); G.mineral = Math.min(Math.max(G.mineral, mineralCap()), G.mineral + ore);
   const parts = [];
   if (food > 1) parts.push('식량 +' + fmt(food));
   if (ore > 1) parts.push('광물 +' + fmt(ore));

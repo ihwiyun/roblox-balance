@@ -3,8 +3,9 @@
 /* ================= zombies ================= */
 function pickType(w) {
   const pool = MUTANT_ORDER.filter(k => w >= ZTYPES[k].from), r = Math.random();
-  // the newest kinds are rarer at first and grow more common; walkers stay the bulk
-  const weights = pool.map(k => { const t = ZTYPES[k]; return k === 'walker' ? 6 : Math.max(.6, 3.2 - (t.from - 1) * .08 + (w - t.from) * .06); });
+  // early on nearly everything is a plain walker; each mutant starts rare and grows more common wave by
+  // wave, so the later waves are mostly mutants (the big ones stay rare)
+  const weights = pool.map(k => k === 'walker' ? Math.max(1.2, 6 - w * .13) : Math.min(BIG[k] ? 1.3 : 4, .4 + (w - ZTYPES[k].from) * .16));
   let x = r * weights.reduce((a, b) => a + b, 0);
   for (let n = 0; n < pool.length; n++) { x -= weights[n]; if (x <= 0) return pool[n]; }
   return 'walker';
@@ -219,6 +220,7 @@ function kill(z) {
   }
 }
 function fall() {
+  if (G.hungry) return gameOver();
   const back = Math.max(1, G.wave - 2);
   notify('기지가 뚫렸다', '웨이브 ' + G.wave + ' → ' + back + ' · 다시 막아내자', 'danger');
   sound('crash');
@@ -227,4 +229,16 @@ function fall() {
   G.hp = bunkerHp(G.bunker);
   if (G.fence) { G.fenceHp = fenceHp(G.fence); G.fenceDown = false; G.sideDmg = [0, 0, 0, 0]; G.sideStage = [0, 0, 0, 0]; composeYard(); }
   G.spawnIn = 3;
+}
+
+// the end: the base fell with nothing left to eat. The run is over; the overlay offers a fresh start
+function gameOver() {
+  G.over = true;
+  sound('crash');
+  // a run that ended does not come back on reload
+  try { localStorage.removeItem(SAVE_KEY); } catch { /* fine */ }
+  skipSave = true;
+  const el = document.getElementById('over');
+  el.querySelector('.stats').textContent = `웨이브 ${G.wave} · 처치 ${fmt(G.totalKills)} · 벙커 Lv ${G.bunker}`;
+  el.hidden = false;
 }

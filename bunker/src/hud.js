@@ -109,7 +109,21 @@ document.querySelectorAll('.tab').forEach(b => b.addEventListener('click', () =>
   renderPanel(true);
 }));
 nodes.viewBtn.addEventListener('click', () => setView(G.view === 'under' ? 'yard' : 'under'));
-const costHtml = c => Object.entries(c).map(([k, v]) => `<span class="${G[k] < v ? 'short' : ''}">${k === 'money' ? '$' + fmt(v) : RES_NAME[k] + ' ' + fmt(v)}</span>`).join('');
+// the price of the next level of anything: what the cards show is exactly what a purchase takes
+function priceOf(id) {
+  const [kind, key] = id.split(':');
+  if (kind === 'gun') return G.lv[key] >= GUN[key].max ? null : capCost(gunCost(key, G.lv[key]));
+  if (kind === 'bunker') return G.bunker >= MAX_BUNKER ? null : capCost(bunkerCost(G.bunker));
+  if (kind === 'fence') return G.fence >= MAX_FENCE ? null : capCost(fenceCost(G.fence));
+  if (kind === 'live') return G.live >= LIVE.max ? null : capCost(LIVE.cost(G.live));
+  if (kind === 'farm') return G.farm >= FARM.max ? null : capCost(FARM.cost(G.farm));
+  if (kind === 'mine') return G.mine >= MINE.max ? null : capCost(MINE.cost(G.mine));
+  if (kind === 'hire') return capCost({ ...HIRE[+key] });
+  return null;
+}
+// a price as small resource chips: icon and amount, red when you are short
+const COST_ICON = { money: 'coin', food: 'food', mineral: 'mineral' };
+const costHtml = c => Object.entries(c).map(([k, v]) => `<span class="cost${G[k] < v ? ' short' : ''}"><i class="ci ci-${COST_ICON[k]}"></i>${fmt(v)}</span>`).join('');
 const shotsToKill = dmg => Math.ceil(zombieHp(G.wave) / dmg - 1e-9);
 function cards() {
   if (tab === 'gun') {
@@ -122,28 +136,28 @@ function cards() {
         desc += `<br>Lv ${nxt}: ${weaponLookName(nxt)} 외형`;
       } else if (k === 'spd') desc = `초당 ${now.toFixed(2)}발 → ${next.toFixed(2)}발 · 총구 화염 ${1 + Math.min(2, Math.floor(L / 10))}단계`;
       else desc = `${now}발 → ${next}발 · 장전 ${reloadTime().toFixed(1)}초${L + 1 === 20 ? '<br>다음: 드럼 탄창' : ''}`;
-      return { id: 'gun:' + k, ico: { atk: 'bullet', spd: 'rate', mag: 'mag' }[k], name: k === 'atk' ? '공격력 · ' + weaponLookName(L) : g.name, lv: 'Lv ' + L, desc: max ? '최대 레벨' : desc, cost: max ? null : gunCost(k, L), max };
+      return { id: 'gun:' + k, ico: { atk: 'bullet', spd: 'rate', mag: 'mag' }[k], name: k === 'atk' ? '공격력 · ' + weaponLookName(L) : g.name, lv: 'Lv ' + L, desc: max ? '최대 레벨' : desc, cost: priceOf('gun:' + k), max };
     });
   }
   if (tab === 'def') {
     const B = G.bunker, F = G.fence, bmax = B >= MAX_BUNKER, fmax = F >= MAX_FENCE;
     return [
-      { id: 'bunker', ico: 'bunker', name: '벙커 · ' + bunkerInfo(B).name, lv: 'Lv ' + B, desc: bmax ? '최대 레벨' : `체력 ${fmt(bunkerHp(B))} → ${fmt(bunkerHp(B + 1))}<br>다음: ${bunkerAddName(B + 1)}`, cost: bmax ? null : bunkerCost(B), max: bmax },
-      { id: 'fence', ico: 'fence', name: '울타리' + (F ? ' · ' + fenceInfo(F).name : ''), lv: 'Lv ' + F, desc: fmax ? '최대 레벨' : `체력 ${fmt(fenceHp(F))} → ${fmt(fenceHp(F + 1))}<br>다음: ${fenceAddName(F + 1)}${fenceInfo(F + 1).electric && !(F && fenceInfo(F).electric) ? ' (공격한 좀비 감전)' : ''}`, cost: fmax ? null : fenceCost(F), max: fmax },
+      { id: 'bunker', ico: 'bunker', name: '벙커 · ' + bunkerInfo(B).name, lv: 'Lv ' + B, desc: bmax ? '최대 레벨' : `체력 ${fmt(bunkerHp(B))} → ${fmt(bunkerHp(B + 1))}<br>다음: ${bunkerAddName(B + 1)}`, cost: priceOf('bunker'), max: bmax },
+      { id: 'fence', ico: 'fence', name: '울타리' + (F ? ' · ' + fenceInfo(F).name : ''), lv: 'Lv ' + F, desc: fmax ? '최대 레벨' : `체력 ${fmt(fenceHp(F))} → ${fmt(fenceHp(F + 1))}<br>다음: ${fenceAddName(F + 1)}${fenceInfo(F + 1).electric && !(F && fenceInfo(F).electric) ? ' (공격한 좀비 감전)' : ''}`, cost: priceOf('fence'), max: fmax },
     ];
   }
   if (tab === 'under') {
     const Lv = G.live, Fm = G.farm, Mn = G.mine;
     return [
-      { id: 'live', ico: 'bed', name: '지하 1층 · 생활층', lv: 'Lv ' + Lv, desc: Lv >= LIVE.max ? '최대 레벨' : `침대 ${bedsOf(Lv)}/5 · 휴식 속도 +${Lv * 5}%<br>다음: ${LIVE_ITEMS[Lv]}${LIVE.beds.includes(Lv + 1) ? ' (고용 자리 +1)' : ''}`, cost: Lv >= LIVE.max ? null : LIVE.cost(Lv), max: Lv >= LIVE.max },
-      { id: 'farm', ico: 'farm', name: '지하 2층 · 식량층' + (Fm ? ' · ' + FARM_TIERS[facTier(Fm)] : ''), lv: Fm ? 'Lv ' + Fm : '미개척', desc: Fm >= FARM.max ? '최대 레벨' : `식량 초당 ${fmt(FARM.rate(Fm))} → ${fmt(FARM.rate(Fm + 1))} (농부 1명당 +100%)<br>다음: ${FARM_ITEMS[Fm]}`, cost: Fm >= FARM.max ? null : FARM.cost(Fm), max: Fm >= FARM.max },
-      { id: 'mine', ico: 'pick', name: '지하 3층 · 채굴층' + (Mn ? ' · ' + MINE_TIERS[facTier(Mn)] : ''), lv: Mn ? 'Lv ' + Mn : '미개척', desc: Mn >= MINE.max ? '최대 레벨' : `광물 초당 ${fmt(MINE.rate(Mn))} → ${fmt(MINE.rate(Mn + 1))} (광부 1명당 +100%)<br>다음: ${MINE_ITEMS[Mn]}`, cost: Mn >= MINE.max ? null : MINE.cost(Mn), max: Mn >= MINE.max },
+      { id: 'live', ico: 'bed', name: '지하 1층 · 생활층', lv: 'Lv ' + Lv, desc: Lv >= LIVE.max ? '최대 레벨' : `침대 ${bedsOf(Lv)}/5 · 휴식 속도 +${Lv * 5}%<br>다음: ${LIVE_ITEMS[Lv]}${LIVE.beds.includes(Lv + 1) ? ' (고용 자리 +1)' : ''}`, cost: priceOf('live'), max: Lv >= LIVE.max },
+      { id: 'farm', ico: 'farm', name: '지하 2층 · 식량층' + (Fm ? ' · ' + FARM_TIERS[facTier(Fm)] : ''), lv: Fm ? 'Lv ' + Fm : '미개척', desc: Fm >= FARM.max ? '최대 레벨' : `식량 초당 ${fmt(FARM.rate(Fm))} → ${fmt(FARM.rate(Fm + 1))} (농부 1명당 +100%)<br>다음: ${FARM_ITEMS[Fm]}`, cost: priceOf('farm'), max: Fm >= FARM.max },
+      { id: 'mine', ico: 'pick', name: '지하 3층 · 채굴층' + (Mn ? ' · ' + MINE_TIERS[facTier(Mn)] : ''), lv: Mn ? 'Lv ' + Mn : '미개척', desc: Mn >= MINE.max ? '최대 레벨' : `광물 초당 ${fmt(MINE.rate(Mn))} → ${fmt(MINE.rate(Mn + 1))} (광부 1명당 +100%)<br>다음: ${MINE_ITEMS[Mn]}`, cost: priceOf('mine'), max: Mn >= MINE.max },
     ];
   }
   const beds = bedsOf(G.live);
   return G.crew.map((c, i) => {
     if (i >= beds) return { id: 'slot:' + i, ico: 'lock', name: '자리 ' + (i + 1), lv: '침대 없음', desc: `생활층 Lv ${LIVE.beds[i]}에서 침대가 생긴다 · 고용 $${fmt(HIRE[i].money)}`, locked: true };
-    if (!c) return { id: 'hire:' + i, ico: 'person', name: NAMES[i], lv: '빈 침대', desc: `생존자 고용 · 식량을 초당 ${UPKEEP}씩 먹는다`, cost: HIRE[i] };
+    if (!c) return { id: 'hire:' + i, ico: 'person', name: NAMES[i], lv: '빈 침대', desc: `생존자 고용 · 식량을 초당 ${UPKEEP}씩 먹는다`, cost: priceOf('hire:' + i) };
     const where = c.state === 'sleep' ? '침대에서 자는 중' : c.state === 'toBed' ? '자러 가는 중' : c.state === 'toWork' ? '일하러 가는 중' : c.job === '사수' ? '지붕에서 사격 중' : c.job === '농부' ? '농장에서 일하는 중' : '광산에서 일하는 중';
     return { id: 'job:' + i, person: c, name: c.name, lv: c.job, desc: `${where}${G.hungry ? ' · 배고픔' : ''}`, fatigue: c.fatigue, jobs: true, slot: i };
   });
@@ -193,45 +207,37 @@ function renderPanel(force) {
 function act(id) {
   ensureAudio();
   const [kind, key] = id.split(':');
+  const c = priceOf(id);
+  if (!c || !canPay(c)) return;
   if (kind === 'gun') {
-    const c = gunCost(key, G.lv[key]);
-    if (G.lv[key] >= GUN[key].max || !canPay(c)) return;
     pay(c); G.lv[key]++;
     if (key === 'mag') for (const s of shooters()) if (!s.reload) s.ammo = gunStat('mag');
     if (key === 'atk' && G.lv.atk % 4 === 0) say('무기 외형이 바뀌었다: ' + weaponLookName(G.lv.atk));
   } else if (kind === 'bunker') {
-    const c = bunkerCost(G.bunker);
-    if (G.bunker >= MAX_BUNKER || !canPay(c)) return;
     pay(c); G.bunker++; G.hp = bunkerHp(G.bunker);
     if (isNewBunkerForm(G.bunker)) notify('새 건물 · ' + bunkerInfo().name, '벙커 Lv ' + G.bunker + ' · 체력 ' + fmt(bunkerHp(G.bunker)), 'good');
     else say('벙커 Lv ' + G.bunker + ' · ' + bunkerAddName(G.bunker));
     { const before = yardPix.slice(); bakeYard(); flashDiff(before, yardPix, 'yard'); }
     resyncPosts(); palCache.clear(); if (G.view !== 'yard') setView('yard');
   } else if (kind === 'fence') {
-    const c = fenceCost(G.fence);
-    if (G.fence >= MAX_FENCE || !canPay(c)) return;
     pay(c); G.fence++; G.fenceHp = fenceHp(G.fence); G.fenceDown = false; G.sideDmg = [0, 0, 0, 0]; G.sideStage = [0, 0, 0, 0];
     if (isNewFenceForm(G.fence)) notify('새 울타리 · ' + fenceInfo().name, '울타리 Lv ' + G.fence + ' · 체력 ' + fmt(fenceHp(G.fence)) + (fenceInfo().electric ? ' · 공격한 좀비 감전' : ''), 'good');
     else say('울타리 Lv ' + G.fence + ' · ' + fenceAddName(G.fence));
     { const before = yardPix.slice(); composeYard(); flashDiff(before, yardPix, 'yard'); } // only the fence overlays change
     if (G.view !== 'yard') setView('yard');
   } else if (kind === 'live') {
-    const c = LIVE.cost(G.live);
-    if (G.live >= LIVE.max || !canPay(c)) return;
     pay(c); G.live++;
     say('생활층: ' + LIVE_ITEMS[G.live - 1] + (LIVE.beds.includes(G.live) ? ' · 고용할 수 있는 자리가 생겼다' : ''));
     markUnder(0, true); viewFloor(0);
   } else if (kind === 'farm' || kind === 'mine') {
-    const B = kind === 'farm' ? FARM : MINE, L = G[kind], c = B.cost(L);
-    if (L >= B.max || !canPay(c)) return;
     pay(c); G[kind]++;
     const tiers = kind === 'farm' ? FARM_TIERS : MINE_TIERS, floorName = kind === 'farm' ? '식량층' : '채굴층';
     if (G[kind] === 1 || facTier(G[kind]) !== facTier(G[kind] - 1)) notify(floorName + ' · ' + tiers[facTier(G[kind])], (kind === 'farm' ? '식량' : '광물') + ' 초당 ' + (kind === 'farm' ? FARM : MINE).rate(G[kind]).toFixed(1), 'good');
     else say(floorName + ' Lv ' + G[kind] + ' · ' + (kind === 'farm' ? FARM_ITEMS : MINE_ITEMS)[G[kind] - 1]);
     markUnder(kind === 'farm' ? 1 : 2, true); viewFloor(kind === 'farm' ? 1 : 2);
   } else if (kind === 'hire') {
-    const i = +key, c = HIRE[i];
-    if (G.crew[i] || i >= bedsOf(G.live) || !canPay(c)) return;
+    const i = +key;
+    if (G.crew[i] || i >= bedsOf(G.live)) return;
     pay(c); G.crew[i] = makePerson(i);
     G.crew[i].state = 'toWork'; G.crew[i].path = route(G.crew[i], workSpot(G.crew[i]));
     resyncPosts(); // gunner posts follow slot order, so a new hire can move the others
@@ -246,8 +252,12 @@ function refreshTop() {
   for (const r of ['money', 'food', 'mineral']) document.getElementById('r-' + r).textContent = fmt(G[r]);
   for (const r of ['food', 'mineral']) {
     const net = rateOf(r) - (r === 'food' ? hired().length * UPKEEP : 0), el = document.getElementById('rr-' + r);
-    el.textContent = Math.abs(net) > .005 ? (net > 0 ? '+' : '−') + Math.abs(net).toFixed(1) + '/초' : '';
-    el.classList.toggle('neg', net < 0);
+    const cap = r === 'food' ? foodCap() : mineralCap(), full = G[r] >= cap - .5;
+    el.textContent = full && net > 0 ? '가득' : Math.abs(net) > .005 ? (net > 0 ? '+' : '−') + Math.abs(net).toFixed(1) + '/초' : '';
+    el.classList.toggle('neg', net < 0 && !full);
+    const bar = document.getElementById('cap-' + r);
+    bar.style.width = clamp(G[r] / cap, 0, 1) * 100 + '%'; bar.classList.toggle('full', full);
+    bar.parentNode.title = (r === 'food' ? '식량 창고 ' : '광물 창고 ') + fmt(G[r]) + '/' + fmt(cap);
   }
   const hero = G.hero;
   const next = nextMutant();
@@ -307,3 +317,10 @@ resetBtn.addEventListener('click', () => {
 });
 
 document.querySelectorAll('#floors button').forEach(b => b.addEventListener('click', () => { ensureAudio(); viewFloor(+b.dataset.floor); sound('buy'); }));
+
+// resource icons for the price chips, drawn once from the same pixel art as the top bar
+{
+  const css = ['coin', 'food', 'mineral'].map(n => `.ci-${n}{background-image:url(${iconCanvas(n, 1).toDataURL()})}`).join('');
+  const st = document.createElement('style'); st.textContent = css; document.head.append(st);
+}
+document.getElementById('restart').addEventListener('click', () => { try { localStorage.removeItem(SAVE_KEY); } catch { /* fine */ } skipSave = true; location.reload(); });

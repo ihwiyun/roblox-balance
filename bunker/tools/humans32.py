@@ -350,20 +350,115 @@ GEAR = {
 }
 
 
-def sleep_head(rows):
-    """the sleeping face: the front head with the eyes shut (a lid dash under each eye)"""
-    g = [list(r) for r in rows]
-    for x in range(HW):
-        if g[10][x] == 'K' and g[9][x] == 'K':
-            g[9][x] = 'S'
-            g[10][x] = 'K'
-            if g[10][x - 1] in 'Ss':
-                g[10][x - 1] = 'K'
-    return [''.join(r) for r in g]
+# lying face up on the pillow: the face on top of the head with the eye line along the up-right diagonal and
+# the chin toward the feet, the hair underneath on the pillow; eyes shut
+SLEEP_HEADS = {
+ 'hero': [
+  "...............",
+  "...............",
+  "...............",
+  "....HHhH.......",
+  "..HHhhHSSs.....",
+  ".HHhHSSSSSs....",
+  ".HHHSSSSSKKs...",
+  "HHHSSKKSSSSSs..",
+  "HHHSSSSSSSmSs..",
+  "HHHHSSSSSSSs...",
+  ".HHHHsSSSSs....",
+  ".HHHHHHsss.....",
+  "..HHHHHHH......",
+  "....HHHH.......",
+  "...............",
+ ],
+ 'minjun': [   # buzz cut: the scalp shows, a short cap of stubble underneath; scar by the eye
+  "...............",
+  "...............",
+  "...............",
+  "....HhHH.......",
+  "..HhsSSSSs.....",
+  ".HHsSSSSSSs....",
+  ".HhSSSSSdKKs...",
+  "HHsSSKKSSdSSs..",
+  "HhHSSSSSSSmSs..",
+  "HHHhSSSSSSSs...",
+  ".HhHHsSSSSs....",
+  ".HHhHHhsss.....",
+  "..HHHhHHH......",
+  "....HHHH.......",
+  "...............",
+ ],
+ 'seoyeon': [  # long hair fanned out over the pillow, bangs over the brow
+  "...............",
+  "...............",
+  "..HHHH.........",
+  ".HHhhHHH.......",
+  "HHhHHHHHSs.....",
+  "HHHHHHHHHSs....",
+  "HHHHSSSSSKKs...",
+  "HHHSSKKSSSSSs..",
+  "HHHSSSSSSSmSsH.",
+  "HHHHSSSSSSSsHH.",
+  "HHHHHsSSSSsHH..",
+  "HHHHHHHsssHHH..",
+  ".HHHHHHHHHHH...",
+  "..HHHHHHHHH....",
+  "...............",
+ ],
+ 'doyun': [    # glasses stay on
+  "...............",
+  "...............",
+  "...............",
+  "....HHhH.......",
+  "..HHhhHSSs.....",
+  ".HHhHSSSSMs....",
+  ".HHHSSSSoKKo...",
+  "HHHSoKKooSSSs..",
+  "HHHSSSSSSSmSs..",
+  "HHHHSSSSSSSs...",
+  ".HHHHsSSSSs....",
+  ".HHHHHHsss.....",
+  "..HHHHHHH......",
+  "....HHHH.......",
+  "...............",
+ ],
+ 'haeun': [    # ponytail lying out to the side, freckles
+  "...............",
+  "HHh............",
+  "HhHH...........",
+  ".HHHHHhH.......",
+  "..HHhhHSSs.....",
+  ".HHhHSSSSSs....",
+  ".HHHSSSSSKKs...",
+  "HHHSSKKSSSSSs..",
+  "HHHSsSsSSSmSs..",
+  "HHHHSSSSSSSs...",
+  ".HHHHsSSSSs....",
+  ".HHHHHHsss.....",
+  "..HHHHHHH......",
+  "....HHHH.......",
+  "...............",
+ ],
+ 'jiho': [     # shaggy hair, full beard round the chin
+  "...............",
+  "...............",
+  "...H.H.........",
+  "...HhHhH.......",
+  "..HHhhHSSs.....",
+  ".HHhHSSSSSs....",
+  ".HHHSSSSSKKs...",
+  "HHHSSKKSSSSSs..",
+  "HHHSSSSSSHmHs..",
+  "HHHHSSSSHHHHH..",
+  ".HHHHHHHHHHH...",
+  ".HHHHHHHHHH....",
+  "..HHHHHHHH.....",
+  "....HHHH.......",
+  "...............",
+ ],
+}
 
-
-for _look in HEADS.values():
-    _look['sleep'] = sleep_head(_look['F'])
+for _name, _look in HEADS.items():
+    _look['sleep'] = SLEEP_HEADS[_name]
 
 
 def outline_rows(rows):
@@ -645,14 +740,21 @@ def build(view, pose, vest=False):
         # the far shoulder tucks in behind the torso (its top is hidden by the near-side shoulder mass)
         sh3 = (lean, sgn * (SH_R if isnear else SH_R + 0.6), SH_Z - bob - (0 if isnear else 1.5))
         sh = P(view, *sh3)
-        w3 = pose['h' + side]
-        wr = P(view, *w3)
-        if pose.get('arm2d', {}).get(side):
+        scr = 'left' if (side == 'R') == (view == 'F') else 'right'   # which screen side this arm is on
+        if pose.get('arm_px', {}).get(scr):
+            # hand-placed screen joints (elbow, wrist): poses that must keep clear of the head (the climb)
+            el, wr = pose['arm_px'][scr]
+            sh = (sh[0], sh[1] - pose.get('shrug', {}).get(scr, 0))
+        elif pose.get('arm2d', {}).get(side):
             # screen-space solve for holding/reaching: chibi arms cannot reach a rifle's handguard in true 3D
+            w3 = pose['h' + side]
+            wr = P(view, *w3)
             hint = pose['arm2d'][side]
             l1, l2 = pose.get('armlen', ARM_L2)
             el = ik2(sh, wr, l1, l2, hint if view == 'F' else (-hint[0], hint[1]))
         else:
+            w3 = pose['h' + side]
+            wr = P(view, *w3)
             pole = pose.get('e' + side, (-1, sgn * 0.3, 0))
             el = P(view, *ik3(sh3, w3, ARM_L[0], ARM_L[1], (pole[0] * KF, pole[1] * KF, pole[2] * KZ)))
         z = pose.get('z' + side, {}).get(view, 40 if isnear else 10)
@@ -677,9 +779,14 @@ def build(view, pose, vest=False):
         isnear = side == near
         sgn = 1 if side == 'R' else -1
         hip3 = (0, sgn * HIP_R, HIP_Z - bob)
-        f3 = pose['f' + side]
-        kn3 = ik3(hip3, f3, LEG_L[0], LEG_L[1], (KF, 0, 0))
-        hp, kn, an = P(view, *hip3), P(view, *kn3), P(view, *f3)
+        scr = 'left' if (side == 'R') == (view == 'F') else 'right'
+        if pose.get('leg_px', {}).get(scr):
+            hp = P(view, *hip3)
+            kn, an = pose['leg_px'][scr]
+        else:
+            f3 = pose['f' + side]
+            kn3 = ik3(hip3, f3, LEG_L[0], LEG_L[1], (KF, 0, 0))
+            hp, kn, an = P(view, *hip3), P(view, *kn3), P(view, *f3)
         L = Layer('leg' + ('N' if isnear else 'F'), 20 if isnear else 15, sep={'legF', 'armF'} if isnear else ())
         far = not isnear
         cols = ['P', 'p', 'p', 'p'] if far else ['P', 'P', 'P', 'p']
@@ -888,26 +995,34 @@ def anim_reload():
 
 
 def anim_climb():
-    """on a ladder: hands on the rails beside the head, feet on the rungs, left hand with right foot"""
-    out = []
-    for k in range(4):
-        up = [1, 0, -1, 0][k]           # +1: left hand high, right foot high
-        p = {'bob': [1, 0, 1, 0][k], 'lean': 0.4}
-        hi, lo = 21.6, 18.4
-        mid = (hi + lo) / 2
-        p['hL'] = (1.5, -6.0, mid + (hi - mid) * up - p['bob'])
-        p['hR'] = (1.5, 6.0, mid - (hi - mid) * up - p['bob'])
-        p['handR'] = p['handL'] = 'grip'
-        p['arm2d'] = {'R': (-1, 0.2), 'L': (1, 0.2)}
-        p['armlen'] = (3.4, 3.6)
-        p['zR'] = {'F': 40, 'B': 12}
-        p['zL'] = {'F': 12, 'B': 40}
-        lo_f, hi_f = 2.4, 6.6
-        p['fR'] = (1.6, 2.2, (hi_f if up > 0 else lo_f) if up else (hi_f + lo_f) / 2)
-        p['fL'] = (1.6, -2.2, (lo_f if up > 0 else hi_f) if up else (hi_f + lo_f) / 2)
+    """on a ladder, seen from behind (the game draws B, mirrored, facing the wall). Hands grip the two rails
+    at x = AX - 9 and AX + 9, outside the head's 15 px box; the upper arms run out level below the head, the
+    elbows bend outward and the forearms rise to the rails: one hand high, one at shoulder height, swapping
+    each frame. The knee on the side of the low hand is raised and bent outward onto the next rung.
+    Frames 1 and 3 are the push between grips: hands level, body one pixel up. F shows the same pose."""
+    L_RAIL, R_RAIL = AX - 9, AX + 9
+    mir = lambda p: (2 * AX - p[0], p[1])
+    hi = {'arm': ((AX - 10, 13.4), (L_RAIL, 7.0)), 'shrug': 0}
+    lo = {'arm': ((AX - 10, 18.0), (L_RAIL, 14.6)), 'shrug': 0}
+    mid = {'arm': ((AX - 10, 14.0), (L_RAIL, 10.4)), 'shrug': 0}
+    leg_lo = ((AX - 3.6, 23.4), (AX - 3.0, 26.0))       # foot on the rung at the ground line
+    leg_hi = ((AX - 6.2, 21.6), (AX - 3.6, 23.0))       # knee up and out, foot on the next rung
+    leg_mid = ((AX - 4.4, 22.6), (AX - 3.2, 24.6))
+    def frame(left_arm, right_arm, left_leg, right_leg, bob):
+        p = {'bob': bob, 'lean': 0.0}
+        p['arm_px'] = {'left': left_arm['arm'], 'right': (mir(right_arm['arm'][0]), mir(right_arm['arm'][1]))}
+        p['shrug'] = {'left': left_arm['shrug'], 'right': right_arm['shrug']}
+        p['leg_px'] = {'left': left_leg, 'right': (mir(right_leg[0]), mir(right_leg[1]))}
+        p['handR'] = p['handL'] = 'fist'
+        p['zR'] = p['zL'] = {'F': 41, 'B': 41}
         p['sR'] = p['sL'] = 'flat'
-        out.append(p)
-    return out
+        return p
+    return [
+        frame(hi, lo, leg_lo, leg_hi, 0),       # left hand high, right knee up
+        frame(mid, mid, leg_mid, leg_mid, -1),  # pushing up between grips
+        frame(lo, hi, leg_hi, leg_lo, 0),       # right hand high, left knee up
+        frame(mid, mid, leg_mid, leg_mid, -1),
+    ]
 
 
 def anim_mine():
@@ -981,89 +1096,109 @@ def anim_carry():
 
 
 # ---------------------------------------------------------------------------- sleep
-# Lying on the back on a bed that runs toward screen down-right, head at the upper-left end. The anchor is
-# the floor point under the middle of the bed; the mattress top is SLEEP_UP px above it (the bunker's beds).
-SLEEP_UP = 6
-SLEEP_LEN = 15.0      # neck to toes, body units along the bed
+# Lying on the back in one of the bunker's beds: the bed runs along world x (screen down-right), 1.7 x 0.78
+# world units, head end at the upper left. The anchor is the floor under the middle of the bed and the
+# mattress top is 6 px above it. The frame holds the pillow, the shoulders in the striped shirt, the blanket
+# (shirt colours) from the chest to the foot of the bed with two folds and the toes pushing it up, and both
+# arms resting on top. The head stamp (heads.*.sleep) lies face up on the pillow.
+BED_K = 16 / math.sqrt(2)             # px per world unit along the iso axes (the game's scale is 16)
+SLEEP_MAT = 6 / (16 * 0.866)          # mattress top, world units
 
 
-def sleep_frame(breath=0.0):
-    """pillow and blanket (shirt colours) over a lying body: a height field over (u along the bed from the
-    neck, v across), shaded in three flat tones and outlined. breath lifts the chest."""
-    cx, cy = AX, AY - SLEEP_UP
-    def proj(u, v, h):  # true iso here, so the body lines up with the bed boxes of the world
-        f, r = u - SLEEP_LEN / 2 + 1.5, v
-        return (cx + 0.7071 * (f - r), cy + 0.3536 * (f + r) - 0.866 * h)
-    def lerp_tab(tab, x):
-        for (a, va), (b, vb) in zip(tab, tab[1:]):
-            if a <= x <= b:
-                return va + (vb - va) * (x - a) / (b - a)
-        return tab[0][1] if x < tab[0][0] else tab[-1][1]
-    width = [(0, 4.6), (2.5, 5.2), (5.5, 4.6), (8, 4.4), (11, 3.6), (13.2, 3.2), (15, 3.4)]
-    thick = [(0, 2.4), (2.4, 3.7 + breath), (4.6, 3.3 + breath * 0.6), (7, 3.0), (10.4, 2.5), (12.6, 2.1), (13.8, 2.6), (15, 3.0)]
-    def height(u, v):
-        if u < 0 or u > SLEEP_LEN:
-            return None
-        hw = lerp_tab(width, u)
-        if abs(v) > hw:
-            return None
-        t = abs(v) / hw
-        h = lerp_tab(thick, u) * (1 - t ** 2.6) ** 0.5
-        if u > 13.4:  # two toes pushing the blanket up
-            h += 0.7 * max(0.0, 1 - abs(abs(v) - 1.3) / 1.0)
-        return max(0.4, h)
-    best = {}
-    n = 6
-    for iu in range(int(SLEEP_LEN * n) + 1):
-        u = iu / n
-        for iv in range(-7 * n, 7 * n + 1):
-            v = iv / n
-            h = height(u, v)
-            if h is None:
-                continue
-            hu = (height(min(SLEEP_LEN, u + 0.35), v) or 0.4) - (height(max(0.0, u - 0.35), v) or 0.4)
-            hv = (height(u, v + 0.35) or 0.4) - (height(u, v - 0.35) or 0.4)
-            # light from the upper left: slopes facing -u (toward the head) and +v (toward screen-left) are lit
-            lit = -0.9 * hu + 0.7 * hv
-            for hh, side in ((h, 0), (h * 0.5, 1), (0.0, 1)):
-                x, y = proj(u, v, hh)
-                k = (rnd(x), rnd(y))
-                dep = (u + v) + hh * 3
-                if side:
-                    ch = 'c' if v > 0 else 'x'
-                elif u < 1.3:
-                    ch = 'T' if lit > -0.6 else 't'      # the folded-back hem in the stripe colours
-                else:
-                    ch = 'C' if lit > -0.45 else ('c' if lit > -1.6 else 'x')
+def bed_proj(x, y, z):
+    """bed coordinates: world units from the bed centre on the floor; x along the bed (screen down-right),
+    y across it (+ toward screen down-left), z up"""
+    return (AX + (x - y) * BED_K, AY + (x + y) * BED_K * 0.5 - z * 16 * 0.866)
+
+
+def _lerp_tab(tab, t):
+    for (a, va), (b, vb) in zip(tab, tab[1:]):
+        if a <= t <= b:
+            return va + (vb - va) * (t - a) / (b - a)
+    return tab[0][1] if t < tab[0][0] else tab[-1][1]
+
+
+def sleep_frame(inhale=False):
+    """inhale: the chest, the blanket over it and the arms resting on it sit one row higher"""
+    MAT, proj = SLEEP_MAT, bed_proj
+    layers = []
+    # pillow: a soft slab at the head end
+    pil = Layer('pillow', 10)
+    px0, px1, py = -0.86, -0.34, 0.37
+    for ix in range(61):
+        for iy in range(-45, 46):
+            x, y = px0 + (px1 - px0) * ix / 60, py * iy / 45
+            e = max(abs(y) / py, abs(x - (px0 + px1) / 2) / ((px1 - px0) / 2))
+            h = 0.13 * (1 - e ** 4)
+            pil.px[rp(proj(x, y, MAT + h))] = 'F' if h > 0.05 else 'f'
+            k = rp(proj(x, y, MAT))
+            if k not in pil.px:
+                pil.px[k] = 'f'
+    layers.append(pil)
+    # blanket from the chest to the foot of the bed; the body inside raises a ridge along the middle
+    X0, X1, HWB, CHEST = -0.30, 0.78, 0.35, -0.06
+    prof = [(-0.30, 0.12), (-0.14, 0.14), (0.04, 0.11), (0.30, 0.09), (0.54, 0.08), (0.64, 0.09), (0.72, 0.15), (0.78, 0.10)]
+    def bump(x, y):
+        h = 0.02 + (_lerp_tab(prof, x) - 0.02) * (1 - min(1.0, abs(y) / 0.30) ** 2)
+        if x > 0.62:   # two toes under the blanket
+            h += 0.075 * max(0.0, 1 - abs(abs(y) - 0.075) / 0.06) * min(1.0, (x - 0.62) / 0.06)
+        return h
+    bl = Layer('blanket', 20)
+    best, chest = {}, set()
+    for ix in range(141):
+        x = X0 + (X1 - X0) * ix / 140
+        for iy in range(-70, 71):
+            y = HWB * iy / 70
+            h = bump(x, y)
+            ch = 'C' if y > -0.03 else 'c'            # lit near half, shaded beyond the ridge
+            if x < X0 + 0.06:
+                ch = 'C'                               # the turned-down hem
+            elif abs(x - (X0 + 0.065)) < 0.012:
+                ch = 'c'                               # its seam
+            for xf, d in ((0.26, 0.05), (0.50, -0.05)):   # two folds across the blanket
+                if abs(x - (xf + d * y / HWB)) < 0.011 and abs(y) < 0.30:
+                    ch = 'c' if ch == 'C' else 'x'
+            if x > 0.66 and y > -0.03 and abs(abs(y) - 0.075) > 0.045 and h > 0.11:
+                ch = 'C'
+            pts = [(MAT + h, ch)]
+            if (y > HWB - 0.02 and x < X1 - 0.04) or (x > X1 - 0.01 and y < HWB - 0.04):   # hanging over the edge
+                pts += [(MAT - 0.02, 'c' if x <= X1 - 0.01 else 'x'), (MAT - 0.06, 'c' if x <= X1 - 0.01 else 'x')]
+            for z, c in pts:
+                k = rp(proj(x, y, z))
+                dep = x + y + z * 2
                 if k not in best or dep > best[k][0]:
-                    best[k] = (dep, ch)
-    blanket = Layer('blanket', 30)
-    for k, (dep, ch) in best.items():
-        blanket.put(k[0], k[1], ch)
-    # hands resting on the blanket over the belly
-    hands = Layer('hands', 40, sep={'blanket'})
-    for v in (1.4, -1.0):
-        x, y = proj(5.2, v, lerp_tab(thick, 5.2) * (1 - (abs(v) / 4.6) ** 2.6) ** 0.5 + 0.6)
-        hands.put(rnd(x), rnd(y), 'S')
-        hands.put(rnd(x) + 1, rnd(y), 's')
-    # the pillow: a soft box under the head end
-    pillow = Layer('pillow', 20)
-    for iu in range(-48, 1):
-        for iv in range(-30, 31):
-            u, v = iu / 6 - 1.0, iv / 6
-            if abs(v) > 5.0 or u < -8.6:
-                continue
-            e = max(abs(v) / 5.0, abs(u + 4.8) / 3.8)
-            h = 2.2 * (1 - e ** 4)
-            for hh in (h, 0.0):
-                x, y = proj(u, v, hh)
-                k = (rnd(x), rnd(y))
-                ch = 'F' if hh > 0 and v > -3.4 else 'f'
-                if k not in pillow.px or hh > 0:
-                    pillow.put(k[0], k[1], ch)
-    img = compose([pillow, blanket, hands])
-    hx, hy = proj(-1.6, 0.0, 1.6)
-    return {'rows': to_rows(img), 'head': [rnd(hx), rnd(hy)]}
+                    best[k] = (dep, c)
+                    (chest.add if x < CHEST else chest.discard)(k)
+    bl.px = {k: c for k, (d, c) in best.items()}
+    if inhale:
+        bl.px.update({(x, y - 1): bl.px[(x, y)] for (x, y) in chest if (x, y) in bl.px})
+    layers.append(bl)
+    # shoulders above the hem: the striped shirt, between the arms
+    sh = Layer('shirt', 18)
+    for ix in range(31):
+        x = -0.45 + 0.17 * ix / 30
+        for iy in range(-40, 41):
+            y = 0.22 * iy / 40
+            h = 0.13 * (1 - (abs(y) / 0.29) ** 3) ** 0.5 + 0.02
+            sh.px[rp(proj(x, y, MAT + h))] = 'T' if abs(x + 0.35) < 0.022 else ('C' if y > -0.05 else 'c')
+    if inhale:
+        sh.px.update({(x, y - 1): c for (x, y), c in list(sh.px.items())})
+    layers.append(sh)
+    # both arms lying on top of the blanket along the sides, hands by the hips
+    for sgn in (1, -1):
+        A = Layer('armN' if sgn > 0 else 'armF', 40, sep={'blanket', 'shirt', 'pillow'})
+        at = lambda x, y: proj(x, y, MAT + bump(x, y) + 0.07)
+        s0, cuff, wr = at(-0.39, sgn * 0.27), at(-0.25, sgn * 0.29), at(0.06, sgn * 0.25)
+        seg(A, cuff, wr, 3, ['S', 'S', 's'] if sgn > 0 else ['S', 's', 's'])
+        seg(A, s0, cuff, 3, ['C', 'C', 'c'] if sgn > 0 else ['C', 'c', 'c'])
+        hx, hy = rp(at(0.12, sgn * 0.23))
+        A.stamp(["Ss", "sd"], hx, hy - 1)
+        if inhale:
+            A.px = {(x, y - 1): c for (x, y), c in A.px.items()}
+        layers.append(A)
+    img = compose(layers)
+    hx, hy = proj(-0.50, 0.0, MAT + 0.10)
+    return {'rows': to_rows(img), 'head': [rnd(hx), rnd(hy) + 3]}
 
 
 # ============================================================================ build + export
@@ -1077,7 +1212,7 @@ ANIMS = [  # name, fps, loop
     ('mine', 8, True),
     ('farm', 6, True),
     ('carry', 8, True),
-    ('sleep', 1.5, True),
+    ('sleep', 0.75, True),   # one breath every 2.7 s
 ]
 POSES = {'idle': anim_idle, 'walk': anim_walk, 'aim': anim_aim, 'shoot': anim_shoot, 'reload': anim_reload,
          'climb': anim_climb, 'mine': anim_mine, 'farm': anim_farm, 'carry': anim_carry}
@@ -1087,7 +1222,7 @@ def build_body(vest):
     anims = {}
     for name, fps, loop in ANIMS:
         if name == 'sleep':
-            frs = [sleep_frame(0.0), sleep_frame(1.3)]
+            frs = [sleep_frame(False), sleep_frame(True)]
             views = {'F': frs, 'B': [dict(f) for f in frs]}   # the bed always runs down-right; B = F
         else:
             poses = POSES[name]()
@@ -1150,6 +1285,8 @@ def export(data, path):
            "// mirror F for down-left and B for up-right. (ax, ay) = ground point between the feet.",
            "// frame.head = body pixel for the head anchor; gun = [trigger hand x, y, point down the barrel x, y];",
            "// mag = top-left of the loose magazine while it is out of the rifle.",
+           "// climb: hands grip ladder rails at x = ax - 9 and ax + 9, always outside the head box (draw B mirrored).",
+           "// sleep: anchor = floor under the middle of the bed, mattress top 6 px up; B = F; draw over the bed.",
            "// Heads and gear: stamps with their own outline, anchor (ax, ay) = chin/neck point; draw gear over the head.",
            'window.ART_HUMANS = {',
            '  pal: ' + json.dumps(data['pal'], separators=(',', ':')) + ',',
@@ -1269,8 +1406,8 @@ def figure(data, fr, view, look, gear=None, sleep=False):
 
 def _paint(d, g, ox, oy, scale, pal, mirror=False):
     for (x, y), ch in g.items():
-        if mirror:
-            x = FW - 1 - x
+        if mirror:   # the game mirrors around the anchor column
+            x = 2 * AX - x
         X, Y = (ox + x) * scale, (oy + y) * scale
         d.rectangle([X, Y, X + scale - 1, Y + scale - 1], fill=pal.get(ch, (255, 0, 255)))
 
@@ -1346,6 +1483,79 @@ def previews(data):
     p = PREVIEW_DIR + 'faces.png'
     img.save(p)
     out.append(p)
+    out += climb_sheet(data) + sleep_sheets(data)
+    return out
+
+
+def climb_sheet(data, s=6, look='seoyeon'):
+    """climb at 6x on a ladder whose rails sit where the hands grip (AX - 9, AX + 9): B as authored,
+    B mirrored (how the game shows the climber, facing the wall) and F; the head is drawn over the body"""
+    from PIL import Image, ImageDraw
+    a = data['bodies']['human']['anims']['climb']
+    rows = [('B', False), ('B', True), ('F', False)]
+    img = Image.new('RGB', (len(a['B']) * 34 * s, len(rows) * 36 * s), (236, 232, 222))
+    d = ImageDraw.Draw(img)
+    wood, dark = (164, 120, 76), (120, 84, 56)
+    for ri, (v, mir) in enumerate(rows):
+        for i, fr in enumerate(a[v]):
+            ox, oy = i * 34 + 1, ri * 36 + 3
+            def px(x, y, c):
+                if 0 <= x < FW and -2 <= y <= FH:
+                    d.rectangle([(ox + x) * s, (oy + y) * s, (ox + x + 1) * s - 1, (oy + y + 1) * s - 1], fill=c)
+            for y in range(-2, FH + 1):
+                for rx in (AX - 9, AX + 9):
+                    px(rx, y, wood)
+                    px(rx + 1, y, dark)
+            for ry in range(-1, FH + 1, 4):
+                for x in range(AX - 8, AX + 10):
+                    px(x, ry, wood)
+            _paint(d, figure(data, fr, v, look), ox, oy, s, TEST_LOOKS[look], mir)
+    p = PREVIEW_DIR + 'climb_ladder_6x.png'
+    img.save(p)
+    return [p]
+
+
+def _bed_box(d, ox, oy, s, x0, y0, z0, x1, y1, z1, top, side_l, side_r):
+    """a box in bed coordinates (world units, see bed_proj), filled as polygons: top, +y face, +x face"""
+    def poly(pts, col):
+        d.polygon([((ox + p[0] + .5) * s, (oy + p[1] + .5) * s) for p in pts], fill=col)
+    P_ = bed_proj
+    poly([P_(x0, y1, z0), P_(x1, y1, z0), P_(x1, y1, z1), P_(x0, y1, z1)], side_l)
+    poly([P_(x1, y0, z0), P_(x1, y1, z0), P_(x1, y1, z1), P_(x1, y0, z1)], side_r)
+    poly([P_(x0, y0, z1), P_(x1, y0, z1), P_(x1, y1, z1), P_(x0, y1, z1)], top)
+
+
+def game_bed(d, ox, oy, s, shirt):
+    """the bunker's single bed as the game builds it (1.7 x 0.78, mattress top 0.4, pillow, blanket, boards)"""
+    L, Wd = 1.7, .78
+    bx, x1, y0, y1 = -L / 2, L / 2, -Wd / 2, Wd / 2
+    wood, woodd, woodl = (146, 104, 66), (112, 78, 50), (176, 132, 84)
+    dk = tuple(int(v * .8) for v in shirt)
+    _bed_box(d, ox, oy, s, bx - .04, y0, 0, bx + .04, y1, .72, woodl, wood, woodd)
+    _bed_box(d, ox, oy, s, bx, y0, .18, x1, y1, .26, woodl, wood, woodd)
+    _bed_box(d, ox, oy, s, bx + .04, y0 + .04, .26, x1 - .04, y1 - .04, .4, (218, 210, 192), (186, 176, 160), (186, 176, 160))
+    _bed_box(d, ox, oy, s, bx + .62, y0 + .02, .38, x1 - .03, y1 - .02, .44, shirt, dk, dk)
+    _bed_box(d, ox, oy, s, bx + .1, y0 + .14, .4, bx + .44, y1 - .14, .5, (240, 236, 226), (210, 204, 194), (200, 196, 186))
+    _bed_box(d, ox, oy, s, x1 - .06, y0, 0, x1 + .02, y1, .55, woodl, wood, woodd)
+
+
+def sleep_sheets(data):
+    """each person asleep in a game-sized bed, breathing out (top row) and in (bottom row), at 6x and 3x"""
+    from PIL import Image, ImageDraw
+    a = data['bodies']['human']['anims']['sleep']['F']
+    out = []
+    for s in (6, 3):
+        looks = list(HEADS)
+        img = Image.new('RGB', (len(looks) * 34 * s, len(a) * 34 * s), (236, 232, 222))
+        d = ImageDraw.Draw(img)
+        for li, look in enumerate(looks):
+            for fi, fr in enumerate(a):
+                ox, oy = li * 34 + 1, fi * 34 + 1
+                game_bed(d, ox, oy, s, TEST_LOOKS[look]['C'])
+                _paint(d, figure(data, fr, 'F', look, sleep=True), ox, oy, s, TEST_LOOKS[look])
+        p = PREVIEW_DIR + 'sleep_bed_%dx.png' % s
+        img.save(p)
+        out.append(p)
     return out
 
 

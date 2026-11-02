@@ -113,28 +113,35 @@ const commitOf = s => s.reload > 0 ? 0 : Math.min(s.ammo, Math.ceil(rateOfFire()
 // a spitter works from a distance, a bloater must not reach the wall)
 const THREAT = { bloater: 1.5, brute: .8, giant: 1, spitter: 2.2, screamer: 3, boss: 1.2, leaper: .6, burrower: .8, regenerator: .5 };
 function threat(z) { return z.n - (z.state === 'attack' ? 2.5 : 0) - (THREAT[z.type] || 0) - (z.rage > 0 ? .4 : 0); }
+// Each gunner watches its own sector of the island (the sectors split the full circle between the gunners
+// on the roof), so two of them never stand side by side aiming at the same spot. A gunner takes the most urgent
+// zombie it can see, preferring its own sector, skipping zombies others are already about to kill, and avoiding
+// one that another gunner already holds unless that one needs the extra fire.
+const sectorOf = (n, count) => Math.PI / 4 + n * Math.PI * 2 / count;
+const angleGap = (a, b) => Math.abs(Math.atan2(Math.sin(a - b), Math.cos(a - b)));
 function assignTargets(dt) {
   const list = shooters();
-  for (const z of G.zombies) z.incoming = 0;
-  for (const s of list) if (s.target && s.target.state !== 'dying' && !s.target.gone) s.target.incoming += commitOf(s);
+  list.forEach((s, n) => { s.sector = sectorOf(n, list.length); });
+  for (const z of G.zombies) { z.incoming = 0; z.held = 0; }
+  for (const s of list) if (s.target && s.target.state !== 'dying' && !s.target.gone) { s.target.incoming += commitOf(s); s.target.held++; }
   for (const s of list) {
     s.retarget -= dt;
     const t = s.target, alive = t && t.state !== 'dying' && !t.gone && t.visible;
     const overkill = alive && t.incoming - commitOf(s) >= t.hp;
     if (alive && !overkill && s.retarget > 0) continue;
-    if (alive) t.incoming -= commitOf(s);
+    if (alive) { t.incoming -= commitOf(s); t.held--; }
     let best = null, bestScore = Infinity, fallback = null, fallbackScore = Infinity;
     for (const z of G.zombies) {
       if (z.state === 'dying' || z.gone || !z.visible) continue;
-      const ang = Math.atan2(z.y - s.y, z.x - s.x), turn = Math.abs(Math.atan2(Math.sin(ang - s.yaw), Math.cos(ang - s.yaw)));
-      const score = threat(z) + turn * .6;
+      const turn = angleGap(Math.atan2(z.y - s.y, z.x - s.x), s.yaw), off = angleGap(Math.atan2(z.y, z.x), s.sector);
+      const score = threat(z) + turn * .3 + off * .9 + z.held * 1.6;
       if (score < fallbackScore) { fallback = z; fallbackScore = score; }
       if (z.incoming >= z.hp) continue;
       if (score < bestScore) { best = z; bestScore = score; }
     }
     s.target = best || fallback;
     s.retarget = .35;
-    if (s.target) s.target.incoming += commitOf(s);
+    if (s.target) { s.target.incoming += commitOf(s); s.target.held++; }
   }
 }
 function fire(s, z) {
@@ -162,7 +169,11 @@ function updateShooter(s, dt) {
   if (!s.hero && G.hungry) return;
   const z = s.target;
   s.cool -= dt;
-  if (!z || z.state === 'dying' || z.gone) { if (s.ammo < gunStat('mag') * .5) startReload(s); s.cool = Math.max(0, s.cool); return; }
+  if (!z || z.state === 'dying' || z.gone) {
+    // nothing to shoot: watch its own sector, sweeping slowly, and top up the magazine
+    if (s.sector != null) { const look = s.sector + Math.sin(G.time * .45 + s.sector * 3) * .5, d = Math.atan2(Math.sin(look - s.yaw), Math.cos(look - s.yaw)); s.yaw += clamp(d, -1.5 * dt, 1.5 * dt); }
+    if (s.ammo < gunStat('mag') * .5) startReload(s); s.cool = Math.max(0, s.cool); return;
+  }
   const want = Math.atan2(z.y - s.y, z.x - s.x);
   let d = Math.atan2(Math.sin(want - s.yaw), Math.cos(want - s.yaw));
   s.yaw += clamp(d, -8 * dt, 8 * dt);

@@ -18,6 +18,22 @@
   .chip { display: inline-flex; align-items: center; gap: 4px; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
   .rate { color: var(--muted); font-weight: 400; font-size: 11px; }
   .rate.neg { color: var(--bad); }
+  /* how full the pantry and the ore store are: a thin bar under the number */
+  .chip.store { position: relative; padding-bottom: 3px; }
+  .chip .cap { position: absolute; left: 20px; right: 0; bottom: 0; height: 2px; background: var(--line); }
+  .chip .cap b { display: block; height: 100%; width: 0; background: #8a8; }
+  .chip .cap b.full { background: #d08a2a; }
+  /* prices on the buy buttons: a resource icon and the amount, red when short */
+  .cost { display: inline-flex; align-items: center; gap: 3px; white-space: nowrap; }
+  .cost .ci { width: 12px; height: 12px; background-size: 12px 12px; image-rendering: pixelated; flex: none; }
+  .buy { gap: 1px; }
+  .buy .short { color: var(--bad); }
+  /* the end of a run */
+  #over { position: fixed; inset: 0; z-index: 10; display: grid; place-items: center; background: rgba(255, 255, 255, .86); }
+  #over[hidden] { display: none; }
+  #over .box { border: 1px solid var(--ink); background: #fff; padding: 18px 22px; text-align: center; width: min(320px, calc(100vw - 32px)); }
+  #over h2 { margin: 0 0 6px; font-size: 18px; color: var(--bad); }
+  #over p { margin: 4px 0 14px; color: var(--muted); }
   #waveLine { flex-basis: 100%; color: var(--muted); font-size: 12px; word-break: keep-all; }
   #waveLine b { color: var(--ink); }
   #topBtns { display: flex; flex: none; pointer-events: auto; }
@@ -90,7 +106,6 @@
   .buy:hover:not([disabled]) { background: var(--ink); color: #fff; }
   .buy:active:not([disabled]) { transform: translateY(1px); }
   .buy[disabled] { border-color: var(--line); color: #b3afa7; cursor: default; }
-  .buy .short { color: var(--bad); }
   .row { grid-column: 2 / -1; display: flex; gap: 4px; flex-wrap: wrap; }
   .mini { background: var(--paper); border: 1px solid var(--line); padding: 4px 9px; cursor: pointer; font-size: 12px; }
   .mini[aria-pressed="true"] { background: var(--ink); color: #fff; border-color: var(--ink); }
@@ -117,8 +132,8 @@
 <div id="top">
   <div id="res">
     <span class="chip" data-ico="coin"><span id="r-money">0</span></span>
-    <span class="chip" data-ico="food"><span id="r-food">0</span><span class="rate" id="rr-food"></span></span>
-    <span class="chip" data-ico="mineral"><span id="r-mineral">0</span><span class="rate" id="rr-mineral"></span></span>
+    <span class="chip store" data-ico="food"><span id="r-food">0</span><span class="rate" id="rr-food"></span><i class="cap"><b id="cap-food"></b></i></span>
+    <span class="chip store" data-ico="mineral"><span id="r-mineral">0</span><span class="rate" id="rr-mineral"></span><i class="cap"><b id="cap-mineral"></b></i></span>
     <span id="waveLine"></span>
   </div>
   <div id="topBtns">
@@ -150,6 +165,7 @@
     <button class="tab" role="tab" data-tab="crew" data-ico="person" aria-selected="false">인원</button>
   </div>
 </div>
+<div id="over" hidden role="alertdialog" aria-labelledby="overTitle"><div class="box"><h2 id="overTitle">기지 함락</h2><p>식량이 떨어진 채로 기지가 무너졌다</p><p class="stats"></p><button class="mini danger" id="restart" type="button">처음부터 다시</button></div></div>
 <dialog id="settings">
   <h2>설정</h2>
   <div class="set"><span>효과음</span><button class="mini" id="soundToggle" type="button">켜짐</button></div>

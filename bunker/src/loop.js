@@ -13,14 +13,30 @@ function warmFence() {
   }
 }
 function update(dt) {
+  if (G.over) return;
   G.time += dt;
-  // food and minerals from the floors below, then mouths to feed
-  G.food += rateOf('food') * dt; G.mineral += rateOf('mineral') * dt;
-  G.food -= hired().length * UPKEEP * dt;
+  // food and minerals from the floors below, up to what their stores hold; then mouths to feed
+  const fc = foodCap(), mc = mineralCap();
+  if (G.food < fc) G.food = Math.min(fc, G.food + rateOf('food') * dt);
+  if (G.mineral < mc) G.mineral = Math.min(mc, G.mineral + rateOf('mineral') * dt);
+  const eat = hired().length * UPKEEP;
+  G.food -= eat * dt;
   const wasHungry = G.hungry;
   G.hungry = G.food <= 0 && hired().length > 0;
   if (G.food < 0) G.food = 0;
-  if (G.hungry && !wasHungry) say('식량이 바닥났다 · 사람들이 지쳐 간다', true);
+  if (G.hungry && !wasHungry) notify('식량 바닥', '배고픈 사수는 쏘지 않는다 · 오래 굶으면 동료가 떠난다', 'danger');
+  // running low: a warning while there is still time to act
+  const net = rateOf('food') - eat;
+  if (!G.hungry && net < 0 && G.food < -net * 45) notify('식량 부족', '약 ' + Math.ceil(G.food / -net) + '초 뒤 바닥난다 · 식량층을 키우자', 'danger', 60);
+  // a long hunger drives the newest hand away
+  if (G.hungry) {
+    G.starve = (G.starve || 0) + dt;
+    if (G.starve >= STARVE_LEAVE) {
+      G.starve = STARVE_LEAVE / 2;
+      const i = G.crew.map((c, k) => c ? k : -1).filter(k => k >= 0).pop();
+      if (i != null) { notify('굶주림 · ' + G.crew[i].name + ' 떠남', '식량이 없어 기지를 떠났다', 'danger', 0); G.crew[i] = null; resyncPosts(); markUnder(0); renderPanel(true); }
+    }
+  } else G.starve = Math.max(0, (G.starve || 0) - dt * 2);
   // repairs: a slow free patch-up, and a fast one that eats food (bunker) or money (fence)
   const maxHp = bunkerHp(G.bunker);
   G.hp = Math.min(maxHp, G.hp + maxHp * .005 * dt);

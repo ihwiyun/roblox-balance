@@ -23,8 +23,8 @@ function gunCost(k, L) {
   // better guns need minerals from the mine: a share of the price that grows with the level, so the mine's
   // output is what keeps the guns coming (money alone runs out first otherwise)
   const c = { money: GUN[k].cost(L) };
-  if (k === 'atk' && L >= 6) c.mineral = Math.ceil(c.money * Math.min(.3, .08 + (L - 6) * .006));
-  if (k !== 'atk' && L >= 3) c.mineral = Math.ceil(c.money * Math.min(.3, .1 + (L - 3) * .008));
+  if (k === 'atk' && L >= 6) c.mineral = Math.ceil(c.money * Math.min(.2, .05 + (L - 6) * .004));
+  if (k !== 'atk' && L >= 3) c.mineral = Math.ceil(c.money * Math.min(.2, .06 + (L - 3) * .005));
   return c;
 }
 const reloadTime = () => 1.6 * .97 ** G.lv.mag;
@@ -32,6 +32,18 @@ const JOBS = ['사수', '농부', '광부'];
 // hiring: a new hand costs a little money and a lot of food (they come for the food), so a good farm
 // grows the crew
 const HIRE = [{ money: 50, food: 30 }, { money: 200, food: 150 }, { money: 600, food: 600 }, { money: 2000, food: 2000 }, { money: 6000, food: 6000 }];
+// stores: the pantry grows with the farm (and a little with the living quarters), the ore store with the mine.
+// What is made beyond a full store is lost, so nothing piles up forever; and no price ever asks for more than
+// the store can hold (it waits for the store to fill instead)
+const foodCap = () => Math.round(500 * 1.24 ** G.farm + 150 * G.live);
+const mineralCap = () => Math.round(300 * 1.26 ** G.mine);
+function capCost(c) {
+  if (c.food) c.food = Math.min(c.food, Math.floor(foodCap() * .8));
+  if (c.mineral) c.mineral = Math.min(c.mineral, Math.floor(mineralCap() * .8));
+  return c;
+}
+// hunger: after this long without food the newest hand leaves; a fall while starving ends the game
+const STARVE_LEAVE = 60;
 const UPKEEP = .4, REPAIR_FOOD = .1, REPAIR_MONEY = .02;
 const FATIGUE_WORK = 100 / 110, FATIGUE_REST = 100 / 28; // about two minutes on, half a minute in bed
 // zombies grow about 11% a wave; rewards about 8.5%; more kinds join as the waves go on
