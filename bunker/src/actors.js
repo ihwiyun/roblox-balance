@@ -2,7 +2,9 @@
 // Drawing people and zombies from their sprites, with the gun, the ammo and health bars.
 /* ================= drawing people and zombies ================= */
 // which way a figure faces: front frames look down-right; back frames look up-left; mirrored for the rest
-function facingOf(yaw) { const fx = Math.cos(yaw), fy = Math.sin(yaw), u = fx - fy, v = fx + fy; return v >= 0 ? { view: 'F', mirror: u < 0 } : { view: 'B', mirror: u > 0 }; }
+// (one shared answer object: callers read it at once, and a crowd of zombies makes no garbage)
+const FACING = { view: 'F', mirror: false };
+function facingOf(yaw) { const fx = Math.cos(yaw), fy = Math.sin(yaw), u = fx - fy, v = fx + fy; FACING.view = v >= 0 ? 'F' : 'B'; FACING.mirror = v >= 0 ? u < 0 : u > 0; return FACING; }
 const palCache = new Map();
 function gearOf(c) {
   const f = gearTier(), gunner = c.hero || c.job === '사수';
@@ -16,47 +18,25 @@ function palFor(c, gear) {
   return p;
 }
 const perPx = SIN / (S * COS);
-// 32x32 survivors: what the body is doing, as an animation name and a frame
+// An animation and a frame, as one shared [name, frame] answer (callers take it apart at once): a looping
+// animation at time t, or a one-off one at progress f from 0 to 1
+const FRAME = ['walk', 0];
+function frameLoop(set, name, t) { const n = animOf(set, name), a = set.anims[n]; FRAME[0] = n; FRAME[1] = Math.floor(t * a.fps) % a.F.length; return FRAME; }
+function frameOnce(set, name, f) { const n = animOf(set, name), a = set.anims[n]; FRAME[0] = n; FRAME[1] = Math.min(a.F.length - 1, Math.floor(clamp(f, 0, .999) * a.F.length)); return FRAME; }
+// 32x32 survivors: what the body is doing
 function personFrame(c, set, gunner) {
-  const loop = (name, t) => { const a = set.anims[animOf(set, name)]; return [animOf(set, name), Math.floor(t * a.fps) % a.F.length]; };
-  const once = (name, f) => { const a = set.anims[animOf(set, name)]; return [animOf(set, name), Math.min(a.F.length - 1, Math.floor(clamp(f, 0, .999) * a.F.length))]; };
-  if (c.anim === 'climb' && c.path.length && c.path[0].mode === 'climb') return loop('climb', c.walk / .9);
-  if (c.path.length) return loop('walk', c.walk / 1.05);
+  if (c.anim === 'climb' && c.path.length && c.path[0].mode === 'climb') return frameLoop(set, 'climb', c.walk / .9);
+  if (c.path.length) return frameLoop(set, 'walk', c.walk / 1.05);
   if (gunner) {
-    if (c.reload > 0) return once('reload', 1 - c.reload / c.reloadLen);
-    if (c.recoil > .02 && set.anims.shoot) return once('shoot', 1 - c.recoil / .12);
-    return loop('aim', G.time + (c.i || 0) * .37);
+    if (c.reload > 0) return frameOnce(set, 'reload', 1 - c.reload / c.reloadLen);
+    if (c.recoil > .02 && set.anims.shoot) return frameOnce(set, 'shoot', 1 - c.recoil / .12);
+    return frameLoop(set, 'aim', G.time + (c.i || 0) * .37);
   }
-  if (c.job === '농부') return loop('farm', c.act);
-  if (c.job === '광부') return loop('mine', c.act);
-  return loop('idle', G.time);
+  if (c.job === '농부') return frameLoop(set, 'farm', c.act);
+  if (c.job === '광부') return frameLoop(set, 'mine', c.act);
+  return frameLoop(set, 'idle', G.time);
 }
 function drawPerson(c, zOff = 0) {
-  if (window.ART_HUMANS) return drawSurvivor(c, zOff);
-  const { view, mirror } = facingOf(c.yaw), gear = gearOf(c), pal = palFor(c, gear), gunner = c.hero || c.job === '사수';
-  let anim = 'walk', idx = Math.floor(c.walk / .22) % 4;
-  if (c.anim === 'climb' && c.path.length && c.path[0].mode === 'climb') { anim = 'climb'; idx = Math.floor(c.walk / .3) % 2; }
-  else if (!c.path.length) {
-    if (gunner) { if (c.reload > 0) { anim = 'reload'; idx = Math.min(2, Math.floor((1 - c.reload / c.reloadLen) * 3)); } else { anim = 'aim'; idx = c.recoil > .06 ? 1 : 0; } }
-    else if (c.job === '농부') { anim = 'farm'; idx = Math.floor(c.act * 2) % 2; }
-    else { anim = 'mine'; idx = Math.floor(c.act * 2.6) % 3; }
-  }
-  const info = drawSprite(gear.body, anim, view, idx, mirror, c.x, c.y, c.z, pal);
-  const fr = info.fr, front = view === 'F';
-  if (fr.head) { const [hx, hy] = frameSpot(info, fr.head); drawHead(c.look, gear.head, view, hx, hy, mirror, pal, info.p.d + (SPR[gear.body].ay - fr.head[1]) * perPx + .06); }
-  if (fr.gun && gunner) {
-    const a = frameSpot(info, [fr.gun[0], fr.gun[1]]), b = frameSpot(info, [fr.gun[2], fr.gun[3]]);
-    c.muzzle = drawGun(a, b, info.p.d + 1.2 * perPx * 10 + (front ? .15 : -.15), c);
-  }
-  if (fr.mag) { const [mx, my] = frameSpot(info, fr.mag); for (let y = 0; y < 3; y++) for (let x = 0; x < 2; x++) putPx(mx + x, my + y, rgb(52, 50, 58), info.p.d + 1); }
-  if (fr.pick) {
-    const a = frameSpot(info, [fr.pick[0], fr.pick[1]]), b = frameSpot(info, [fr.pick[2], fr.pick[3]]), d = info.p.d + (front ? .2 : -.2);
-    pxLine(a[0], a[1], b[0], b[1], rgb(124, 92, 60), d);
-    const dx = b[0] - a[0], dy = b[1] - a[1], L = Math.hypot(dx, dy) || 1, nx = -dy / L, ny = dx / L;
-    pxLine(Math.round(b[0] - nx * 2), Math.round(b[1] - ny * 2), Math.round(b[0] + nx * 2), Math.round(b[1] + ny * 2), rgb(150, 156, 168), d + .01);
-  }
-}
-function drawSurvivor(c, zOff = 0) {
   const { view, mirror } = facingOf(c.yaw), gear = gearOf(c), pal = palFor(c, gear), gunner = c.hero || c.job === '사수';
   const set = SPR[gear.body], [anim, idx] = personFrame(c, set, gunner);
   // someone on the ladder is drawn a little in front of the shaft wall, so the concrete never cuts them
@@ -79,7 +59,7 @@ function drawSurvivor(c, zOff = 0) {
   }
   if (fr.mag) { const [mx, my] = frameSpot(info, fr.mag), x0 = info.mirror ? mx - 1 : mx; for (let y = 0; y < 3; y++) for (let x = 0; x < 2; x++) putPx(x0 + x, my + y, y ? rgb(52, 50, 58) : rgb(200, 160, 70), info.p.d + 1); }
 }
-function putPx(x, y, color, d) { if (x < 0 || y < CLIP_Y || x >= W || y >= H) return; const i = y * W + x; if (d <= zb[i]) return; zb[i] = d; pix[i] = color; }
+function putPx(x, y, color, d) { if (x < 0 || y < 0 || x >= W || y >= H) return; const i = y * W + x; if (d <= zb[i]) return; zb[i] = d; pix[i] = color; }
 function pxLine(x0, y0, x1, y1, color, d, w = 1) {
   const n = Math.max(1, Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0)));
   for (let k = 0; k <= n; k++) { const x = Math.round(lerp(x0, x1, k / n)), y = Math.round(lerp(y0, y1, k / n)); for (let o = 0; o < w; o++) putPx(x, y + o, color, d); }
@@ -121,26 +101,22 @@ function drawGun(a, b, d, s) {
 // which animation and frame a zombie shows: tricks (leap, dig, come up, spit, scream, stomp) take over,
 // a regenerator glows while it heals, a hit makes it flinch; walking frames follow the distance walked
 function zombieFrame(z, T, set) {
-  const pick = (name, progress) => { const a = set.anims[animOf(set, name)], n = a.F.length; return [animOf(set, name), Math.min(n - 1, Math.floor(clamp(progress, 0, .999) * n))]; };
-  const loopAt = (name, t) => { const a = set.anims[animOf(set, name)]; return [animOf(set, name), Math.floor(t * a.fps) % a.F.length]; };
-  if (z.state === 'dying') { const a = set.anims[animOf(set, 'die')]; return [animOf(set, 'die'), Math.min(a.F.length - 1, Math.floor(z.t * Math.max(a.fps, 7)))]; }
-  if (z.state === 'leap') return pick('leap', z.st / z.leap.dur);
-  if (z.state === 'dig' || z.state === 'emerge') return pick(z.state, z.st / .8);
-  if (z.state === 'attack') {
-    const name = T.special === 'spit' ? 'spit' : T.special === 'scream' ? 'scream' : T.special === 'boss' ? 'stomp' : 'attack';
-    return pick(name, z.atk / T.every);
-  }
-  if (z.hit > .03 && set.anims.hit) return ['hit', 0];
-  if (z.healing && set.anims.regen) return loopAt('regen', z.t);
+  if (z.state === 'dying') { const n = animOf(set, 'die'), a = set.anims[n]; FRAME[0] = n; FRAME[1] = Math.min(a.F.length - 1, Math.floor(z.t * Math.max(a.fps, 7))); return FRAME; }
+  if (z.state === 'leap') return frameOnce(set, 'leap', z.st / z.leap.dur);
+  if (z.state === 'dig' || z.state === 'emerge') return frameOnce(set, z.state, z.st / .8);
+  if (z.state === 'attack') return frameOnce(set, T.special === 'spit' ? 'spit' : T.special === 'scream' ? 'scream' : T.special === 'boss' ? 'stomp' : 'attack', z.atk / T.every);
+  if (z.hit > .03 && set.anims.hit) { FRAME[0] = 'hit'; FRAME[1] = 0; return FRAME; }
+  if (z.healing && set.anims.regen) return frameLoop(set, 'regen', z.t);
   // the frame follows the distance walked: one frame per foot-step of the art, so the planted foot stays put
   // whatever the island size, a scream's rage or the sprint in from the edge
-  const a = set.anims.walk;
-  return ['walk', Math.floor(z.walkDist / strideOf(z.type)) % a.F.length];
+  FRAME[0] = 'walk'; FRAME[1] = Math.floor(z.walkDist / strideOf(z.type)) % set.anims.walk.F.length;
+  return FRAME;
 }
 // how far a zombie's planted foot slides back per walk frame in its art, in screen pixels across; one world
 // unit along the ground is S / R2 pixels across the screen
 const STRIDE_PX = { runner: 1.3, screamer: 1.25, burrower: 1.25, giant: 1.25, boss: 1.25, leaper: 1.5, regenerator: 1.5 };
 const strideOf = type => (STRIDE_PX[type] || 1) / (S / R2);
+const ZOPT = { hit: false, fade: 1 };
 function drawZombie(z) {
   const T = ZTYPES[z.type], set = SPR[z.type];
   // underground: only a mound of earth moves, and nobody can shoot it
@@ -157,7 +133,8 @@ function drawZombie(z) {
   if (fade <= 0) return;
   const v = set.anims[anim][view] ? view : 'F';
   const pals = ZPAL_V[z.type], pal = pals ? pals[(z.variant || 0) % pals.length] : ZPALS[z.type];
-  const info = drawSprite(z.type, anim, v, idx, mirror, z.x, z.y, z.zh || 0, pal, { hit: z.hit > 0, fade });
+  ZOPT.hit = z.hit > 0; ZOPT.fade = fade;
+  const info = drawSprite(z.type, anim, v, idx, mirror, z.x, z.y, z.zh || 0, pal, ZOPT);
   z.sx = info.bx; z.sy = info.by - Math.round(set.ay * .5); z.top = info.by - set.ay + 1;
   // the rage of a scream shows as red eyes; a healing regenerator sparkles
   if (z.rage > 0 && Math.floor(z.t * 6) % 2) putPx(info.bx + (mirror ? -1 : 1), z.top + 3, rgb(255, 60, 40), info.p.d + 1);
@@ -185,11 +162,9 @@ function drawAmmo(s) {
 }
 function drawSleeper(c) {
   const { x, y, z: fz } = sleepSpot(c.i), p = project(x, y, fz + .5), gear = gearOf({ ...c, job: '' }), pal = palFor(c, gear);
-  if (window.ART_HUMANS && SPR.human.anims.sleep) {
-    const info = drawSprite('human', 'sleep', 'F', Math.floor(G.time * SPR.human.anims.sleep.fps), false, x, y, fz, pal, { shadow: false, dz: .6 });
-    const head = ART_HUMANS.heads[c.look.key] || ART_HUMANS.heads.hero;
-    if (info.fr.head && head.sleep) { const [hx, hy] = frameSpot(info, info.fr.head); stampAnchored(head, head.sleep, hx, hy, false, pal, info.p.d + 1.2); }
-  } else drawHead(c.look, 'sleep', 'F', Math.round(p.sx), Math.round(p.sy) - 3, false, pal, p.d + .2);
+  const info = drawSprite('human', 'sleep', 'F', Math.floor(G.time * SPR.human.anims.sleep.fps), false, x, y, fz, pal, { shadow: false, dz: .6 });
+  const head = ART_HUMANS.heads[c.look.key] || ART_HUMANS.heads.hero;
+  if (info.fr.head && head.sleep) { const [hx, hy] = frameSpot(info, info.fr.head); stampAnchored(head, head.sleep, hx, hy, false, pal, info.p.d + 1.2); }
   const zt = (G.time * .8 + c.i * .37) % 1;
   if (G.view === 'under') pixelText(zt < .5 ? 'z' : 'Z', p.sx + 6 + zt * 4, p.sy - 10 - zt * 6, rgb(236, 236, 255));
 }

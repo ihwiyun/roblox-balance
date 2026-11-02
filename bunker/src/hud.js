@@ -12,7 +12,6 @@ function iconCanvas(name, scale = 2) {
 }
 // a survivor's face for the crew list, from the same head bitmap the game draws
 function portrait(person, scale = 2) {
-  if (!window.ART_HUMANS) return portraitOld(person, 4);
   // head and shoulders from the person's own sprite: the standing front frame, their face and headgear,
   // cropped to 20x20 around the head so the whole face always shows
   const gear = gearOf(person), pal = palFor(person, gear), set = SPR[gear.body], a = set.anims.idle || set.anims.walk, fr = a.F[0];
@@ -26,17 +25,6 @@ function portrait(person, scale = 2) {
     if (!st) continue;
     st.F.forEach((row, y) => [...row].forEach((ch, x) => { if (ch !== '.') put(hx - st.ax + x, hy - st.ay + y, ch); }));
   }
-  g.putImageData(img, 0, 0);
-  return c;
-}
-function portraitOld(person, scale = 5) {
-  const gear = gearOf(person), pal = palFor(person, gear), rows = ART.heads[gear.head || person.look.head].F;
-  const w = Math.max(...rows.map(r => r.length)) + 2, h = rows.length + 3, c = document.createElement('canvas');
-  c.width = w; c.height = h; c.className = 'ico'; c.style.width = w * scale + 'px'; c.style.height = h * scale + 'px';
-  const g = c.getContext('2d'), img = g.createImageData(w, h), d = new Uint32Array(img.data.buffer);
-  rows.forEach((row, y) => [...row].forEach((ch, x) => { if (ch !== '.') d[(y + 1) * w + x + 1] = pal[ch.charCodeAt(0)]; }));
-  const shirt = pal['C'.charCodeAt(0)];
-  for (let x = 0; x < w; x++) { d[(h - 2) * w + x] = shirt; d[(h - 1) * w + x] = shirt; }
   g.putImageData(img, 0, 0);
   return c;
 }
@@ -153,7 +141,7 @@ function cards() {
   }
   const beds = bedsOf(G.live);
   return G.crew.map((c, i) => {
-    if (i >= beds) return { id: 'slot:' + i, ico: 'lock', name: '자리 ' + (i + 1), lv: '침대 없음', desc: `생활층 Lv ${LIVE.beds[i]}에서 침대가 생긴다 · 고용 $${fmt(HIRE[i].money)}`, locked: true };
+    if (i >= beds) return { id: 'slot:' + i, ico: 'lock', name: '자리 ' + (i + 1), lv: '침대 없음', desc: `생활층 Lv ${LIVE.beds[i]}에서 침대가 생긴다<br>고용 ${costHtml(priceOf('hire:' + i))}`, locked: true };
     if (!c) return { id: 'hire:' + i, ico: 'person', name: NAMES[i], lv: '빈 침대', desc: `생존자 고용 · 식량을 초당 ${UPKEEP}씩 먹는다`, cost: priceOf('hire:' + i) };
     const where = c.state === 'sleep' ? '침대에서 자는 중' : c.state === 'toBed' ? '자러 가는 중' : c.state === 'toWork' ? '일하러 가는 중' : c.job === '사수' ? '지붕에서 사격 중' : c.job === '농부' ? '농장에서 일하는 중' : '광산에서 일하는 중';
     return { id: 'job:' + i, person: c, name: c.name, lv: c.job, desc: `${where}${G.hungry ? ' · 배고픔' : ''}`, fatigue: c.fatigue, jobs: true, slot: i };
@@ -251,9 +239,8 @@ function refreshTop() {
     bar.style.width = clamp(G[r] / cap, 0, 1) * 100 + '%'; bar.classList.toggle('full', full);
     bar.parentNode.title = (r === 'food' ? '식량 창고 ' : '광물 창고 ') + fmt(G[r]) + '/' + fmt(cap);
   }
-  const hero = G.hero;
-  const next = nextMutant();
-  nodes.waveLine.innerHTML = `<b>웨이브 ${G.wave}</b> · ${G.waveKills}/${killsNeeded(G.wave)}` + (isBossWave(G.wave) ? ' · <b>보스</b>' : next ? ` · 다음 변이체 ${next.from}웨이브` : '');
+  // the next mutant is announced with each new wave, so the top line stays short
+  nodes.waveLine.innerHTML = `<b>웨이브 ${G.wave}</b> · ${G.waveKills}/${killsNeeded(G.wave)}` + (isBossWave(G.wave) ? ' · <b>보스</b>' : '');
   const maxHp = bunkerHp(G.bunker);
   nodes.bunkerFill.style.width = clamp(G.hp / maxHp, 0, 1) * 100 + '%';
   nodes.bunkerText.textContent = '벙커 ' + fmt(Math.max(0, G.hp)) + '/' + fmt(maxHp);

@@ -30,7 +30,7 @@ let last = performance.now(), hudIn = 0;
 // after the tab was hidden the time away is credited separately (state.js), so the loop starts fresh
 function resumeClock() { last = performance.now(); }
 function frame(now) {
-  let dt = Math.min(5, (now - last) / 1000) * G.speed;
+  let dt = Math.min(CATCH_UP, (now - last) / 1000) * G.speed;
   last = now;
   // a long catch-up runs quietly: a burst of every kill and thud at once is just noise
   quiet = dt > .5;

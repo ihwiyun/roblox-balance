@@ -22,7 +22,6 @@ function fmt(n) {
   while (n >= 1000 && i < units.length - 1) { n /= 1000; i++; }
   return n.toFixed(n < 10 ? 2 : n < 100 ? 1 : 0) + units[i];
 }
-const RES_NAME = { money: '$', food: '식량', mineral: '광물' };
 const px = n => Math.max(1, Math.round(n * S / 12));
 
 /* ================= save ================= */
@@ -32,7 +31,7 @@ function save() {
     localStorage.setItem(SAVE_KEY, JSON.stringify({
       money: G.money, food: G.food, mineral: G.mineral, lv: G.lv, bunker: G.bunker, fence: G.fence, live: G.live, farm: G.farm, mine: G.mine,
       crew: G.crew.map(c => c && { job: c.job, fatigue: c.fatigue }), wave: G.wave, waveKills: G.waveKills, totalKills: G.totalKills, at: Date.now(),
-      hp: G.hp, fenceHp: G.fenceHp, fenceDown: G.fenceDown, seen: G.seen, ver: 4,
+      hp: G.hp, fenceHp: G.fenceHp, fenceDown: G.fenceDown, seen: G.seen, bossFor: bossAlive() ? 0 : G.bossFor, ver: 4,
     }));
   } catch { /* saving is a convenience */ }
 }
@@ -52,33 +51,35 @@ function load() {
     G.fenceHp = Number.isFinite(+d.fenceHp) ? clamp(+d.fenceHp, 0, fenceHp(G.fence)) : fenceHp(G.fence);
     G.fenceDown = !!d.fenceDown && G.fence > 0;
     G.seen = Array.isArray(d.seen) ? d.seen.filter(k => ZTYPES[k]) : MUTANT_ORDER.filter(k => ZTYPES[k].from <= G.wave);
+    G.bossFor = +d.bossFor === G.wave ? G.wave : 0; // this wave's boss already fell
+    // saves from before the stores had a size keep no more than the stores hold
+    G.food = Math.min(G.food, foodCap()); G.mineral = Math.min(G.mineral, mineralCap());
     creditAway(clamp((Date.now() - (+d.at || Date.now())) / 1000, 0, OFFLINE_CAP), 300);
     return;
   }
   G.hp = bunkerHp(G.bunker); G.fenceHp = fenceHp(G.fence);
 }
 // what the floors made while nobody was looking: the farm and the mine with the workers on their books
-// (they sleep about a fifth of the time), less what everyone ate
-function idleRate(res) {
-  const n = hired().filter(c => c.job === (res === 'food' ? '농부' : '광부')).length * .8, base = (res === 'food' ? FARM : MINE).rate(res === 'food' ? G.farm : G.mine);
-  return base * (1 + n) + n * .2;
-}
+// (they sleep about a fifth of the time), less what everyone ate. The note says what actually reached the stores
 function creditAway(away, delay = 0) {
   if (away <= 30) return;
-  const food = (idleRate('food') - hired().length * UPKEEP) * away, ore = idleRate('mineral') * away;
+  const workers = job => hired().filter(c => c.job === job).length * .8;
+  const food = (outputOf('food', workers('농부')) - hired().length * UPKEEP) * away, ore = outputOf('mineral', workers('광부')) * away;
+  const f0 = G.food, m0 = G.mineral;
   G.food = clamp(G.food + food, 0, Math.max(G.food, foodCap())); G.mineral = Math.min(Math.max(G.mineral, mineralCap()), G.mineral + ore);
-  const parts = [];
-  if (food > 1) parts.push('식량 +' + fmt(food));
-  if (ore > 1) parts.push('광물 +' + fmt(ore));
-  if (parts.length) setTimeout(() => notify('자리 비운 동안', parts.join(' · '), 'good'), delay);
+  const df = G.food - f0, dm = G.mineral - m0, parts = [];
+  if (Math.abs(df) >= 1) parts.push('식량 ' + (df > 0 ? '+' : '-') + fmt(Math.abs(df)));
+  if (dm >= 1) parts.push('광물 +' + fmt(dm));
+  if (parts.length) setTimeout(() => notify('자리 비운 동안', parts.join(' · '), df < 0 ? 'danger' : 'good'), delay);
 }
 addEventListener('beforeunload', save);
-// a hidden tab gets no frames: on return the time away is credited like a reload, and the clock restarts
+// a hidden tab gets no frames: on return a short absence (up to 30 s) is played out by the frame loop, which
+// catches up that far; a longer one is credited like a reload, and the clock restarts
 let hiddenAt = 0;
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) { save(); hiddenAt = Date.now(); return; }
   if (!hiddenAt) return;
   const away = Math.min(OFFLINE_CAP, (Date.now() - hiddenAt) / 1000);
   hiddenAt = 0;
-  if (away > 5) { creditAway(away); resumeClock(); }
+  if (away > CATCH_UP) { creditAway(away); resumeClock(); }
 });

@@ -1,14 +1,15 @@
 'use strict';
 // People: the hero and the hired hands, their jobs, routes between floors, sleep, and shooting.
 /* ================= people: the hero on the roof and up to five hired hands ================= */
+// what everyone carries: a rifle with a full magazine, nobody to shoot yet, no route
+const personBase = () => ({ job: '사수', path: [], walk: 0, act: 0, ammo: gunStat('mag'), reload: 0, reloadLen: 1, cool: 0, recoil: 0, flash: 0,
+  target: null, retarget: 0, magOut: false, magIn: false, pal: null });
 function makePerson(i) {
-  return { i, name: NAMES[i], look: LOOKS[i + 1], job: '사수', fatigue: 10 + Math.random() * 20, state: 'toWork', where: 'ug', floor: 0,
-    x: BED_X(i) + .75, y: UG.y0 + 1.05, z: LEVEL_Z[0], path: [], yaw: -Math.PI / 2, walk: 0, act: Math.random() * 3,
-    ammo: gunStat('mag'), reload: 0, reloadLen: 1, cool: 0, recoil: 0, flash: 0, target: null, retarget: 0, magOut: false, magIn: false, pal: null };
+  return { ...personBase(), i, name: NAMES[i], look: LOOKS[i + 1], fatigue: 10 + Math.random() * 20, state: 'toWork', where: 'ug', floor: 0,
+    x: BED_X(i) + .75, y: UG.y0 + 1.05, z: LEVEL_Z[0], yaw: -Math.PI / 2, act: Math.random() * 3 };
 }
 function makeHero() {
-  return { hero: true, i: -1, name: '나', look: LOOKS[0], job: '사수', fatigue: 0, state: 'work', where: 'yard', floor: -1, x: 0, y: 0, z: STAGE_Z(), path: [], yaw: Math.PI / 4,
-    walk: 0, act: 0, ammo: gunStat('mag'), reload: 0, reloadLen: 1, cool: 0, recoil: 0, flash: 0, target: null, retarget: 0, magOut: false, magIn: false, pal: null };
+  return { ...personBase(), hero: true, i: -1, name: '나', look: LOOKS[0], fatigue: 0, state: 'work', where: 'yard', floor: -1, x: 0, y: 0, z: STAGE_Z(), yaw: Math.PI / 4 };
 }
 const STAGE_Z = () => bunkerInfo().roof;
 const gunners = () => G.crew.filter(c => c && c.job === '사수');
@@ -41,13 +42,13 @@ function route(c, dest) {
   return pts;
 }
 function sendTo(c, dest, state) {
-  // someone on the ladder finishes the rung they are on: the new route starts from where they hang
+  // someone on the ladder (or at its top, about to go out through the hatch) goes on from where they hang
   const cur = c.path[0];
-  if (cur && cur.mode === 'climb' && c.where === 'ug') {
+  if (cur && c.where === 'ug' && (cur.mode === 'climb' || cur.mode === 'hatch' && cur.to === 'yard')) {
     const k = LEVEL_Z.reduce((b, z, i) => Math.abs(z - c.z) < Math.abs(LEVEL_Z[b] - c.z) ? i : b, 0);
-    const rest = route({ ...c, floor: k }, dest).filter((p, i) => !(i === 0 && p.mode === 'walk' && p.x === SHAFT.x && p.y === LADDER_Y));
-    // if the new route goes on climbing, the climb starts from here; if not, step off at the nearest floor first
-    c.path = rest.length && rest[0].mode === 'climb' ? rest : [{ ...cur, floor: k, z: LEVEL_Z[k] }, ...rest];
+    const rest = route({ ...c, floor: k, viaDone: 0 }, dest).filter((p, i) => !(i === 0 && p.mode === 'walk' && p.x === SHAFT.x && p.y === LADDER_Y));
+    // if the new route goes on climbing, the climb starts from here; if not, climb to the nearest floor and step off
+    c.path = rest.length && rest[0].mode === 'climb' ? rest : [{ ...walkAt(k, { x: SHAFT.x, y: LADDER_Y }), mode: 'climb' }, ...rest];
   } else c.path = route(c, dest);
   c.state = state;
   // the post's way in, which way to face there and where a pick strikes
@@ -98,19 +99,17 @@ function updatePeople(dt) {
 const atWork = c => c && c.state === 'work' && !c.path.length;
 const activeOn = job => G.crew.filter(c => c && c.job === job && atWork(c)).length;
 function rateOf(res) {
-  const L = res === 'food' ? G.farm : G.mine, base = (res === 'food' ? FARM : MINE).rate(L), n = activeOn(res === 'food' ? '농부' : '광부');
-  if (G.hungry && res !== 'food') return base; // the farm keeps going, or hunger could never end
-  return base * (1 + n) + n * .2;
+  if (G.hungry && res !== 'food') return outputOf(res, 0); // the farm keeps going, or hunger could never end
+  return outputOf(res, activeOn(res === 'food' ? '농부' : '광부'));
 }
 function resyncPosts() {
   // new bunker or a changed job: everyone working heads to the right post
   if (G.hero) { const s = SITES[0]; G.hero.x = s[0]; G.hero.y = s[1]; G.hero.z = s[2]; }
   for (const c of G.crew) if (c && (c.state === 'work' || c.state === 'toWork')) {
-    const w = workSpot(c);
-    if (c.where === 'yard' && c.job === '사수') { c.x = w.x; c.y = w.y; c.z = w.z; c.path = []; c.state = 'work'; continue; }
-    // already at, or on the way to, the same post below ground: carry on (re-sending would walk them out and back in)
-    const at = c.path.length ? c.path[c.path.length - 1] : { where: c.where, floor: c.floor, x: c.x, y: c.y };
-    if (w.where === 'ug' && at.where === 'ug' && at.floor === w.floor && Math.abs(at.x - w.x) < .01 && Math.abs(at.y - w.y) < .01) continue;
+    // already at, or on the way to, the same post: carry on (re-sending would walk someone below out and back in);
+    // a gunner on the roof whose spot moved walks over to it
+    const w = workSpot(c), at = c.path.length ? c.path[c.path.length - 1] : { where: c.where, floor: c.floor, x: c.x, y: c.y };
+    if (at.where === w.where && (w.where === 'yard' || at.floor === w.floor) && Math.abs(at.x - w.x) < .01 && Math.abs(at.y - w.y) < .01) { if (w.where === 'yard' && !c.path.length) c.z = w.z; continue; }
     sendTo(c, w, 'toWork');
   }
 }
@@ -130,11 +129,20 @@ function threat(z) { return z.n - (z.state === 'attack' ? 2.5 : 0) - (THREAT[z.t
 // on the roof), so two of them never stand side by side aiming at the same spot. A gunner takes the most urgent
 // zombie it can see, preferring its own sector, skipping zombies others are already about to kill, and avoiding
 // one that another gunner already holds unless that one needs the extra fire.
-const sectorOf = (n, count) => Math.PI / 4 + n * Math.PI * 2 / count;
+// The sectors are spread evenly and handed out around the circle in the order the gunners stand, turned so each
+// one's sector lies on its own side of the roof (nobody covers the far side by firing across the others)
 const angleGap = (a, b) => Math.abs(Math.atan2(Math.sin(a - b), Math.cos(a - b)));
+function giveSectors(list) {
+  const n = list.length, step = Math.PI * 2 / n, at = s => Math.hypot(s.x, s.y) > .3 ? Math.atan2(s.y, s.x) : null;
+  list.sort((a, b) => (at(a) ?? 9) - (at(b) ?? 9));
+  let sx = 0, sy = 0;
+  list.forEach((s, i) => { const a = at(s); if (a != null) { sx += Math.cos(a - i * step); sy += Math.sin(a - i * step); } });
+  const base = sx || sy ? Math.atan2(sy, sx) : Math.PI / 4;
+  list.forEach((s, i) => { s.sector = base + i * step; });
+}
 function assignTargets(dt) {
   const list = shooters();
-  list.forEach((s, n) => { s.sector = sectorOf(n, list.length); });
+  giveSectors(list);
   for (const z of G.zombies) { z.incoming = 0; z.held = 0; }
   for (const s of list) if (s.target && s.target.state !== 'dying' && !s.target.gone) { s.target.incoming += commitOf(s); s.target.held++; }
   for (const s of list) {

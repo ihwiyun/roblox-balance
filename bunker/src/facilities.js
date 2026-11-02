@@ -29,6 +29,9 @@ const MINE = { max: 40, rate: L => L ? .28 * L * 1.1 ** L : 0, cost: L => {
   if (L >= 3) c.food = Math.ceil(c.money * Math.min(.5, .15 + (L - 3) * .015));
   return c;
 } };
+// what a floor makes a second with n workers at it: each worker adds the floor's own output again, plus a little
+// (live in crew.js rateOf, offline in state.js creditAway)
+const outputOf = (res, n) => (res === 'food' ? FARM.rate(G.farm) : MINE.rate(G.mine)) * (1 + n) + n * .2;
 // the farm and the mine change form every eight levels (levels 1, 9, 17, 25, 33); the levels in between add
 // rows, growth and equipment
 const FARM_TIERS = ['흙밭', '나무 화분대', '생장등 선반', '수경 재배', '자동 수직 농장'];

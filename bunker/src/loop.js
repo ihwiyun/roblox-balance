@@ -70,10 +70,9 @@ function update(dt) {
   }
   G.hurt = Math.max(0, G.hurt - dt);
   for (const t of G.tracers) t.life -= dt;
-  G.tracers = G.tracers.filter(t => t.life > 0);
+  keep(G.tracers, t => t.life > 0);
   updateParts(dt);
-  for (const d of G.decals) d.life -= dt;
-  G.decals = G.decals.filter(d => d.life > 0);
+  ageDecals(dt);
   if ((G.saveIn -= dt) <= 0) { save(); G.saveIn = 5; }
   // the store rooms below show what you hold: rebuild them when a stack grows or shrinks
   // once a second, below ground: a pile that grew or shrank only lays its cached overlay again
@@ -84,20 +83,26 @@ function update(dt) {
 // the ground with its stains and its swaying grass only changes at the wind's 8 steps a second (or when the
 // baked picture or the stains change), so it is kept between those steps instead of redrawn every frame
 const groundFrame = new Uint32Array(W * H);
-let groundKey = '', groundSrc = null, bakedVersion = 0;
+let groundWind = -1, groundFade = -1, groundCut = -1, groundDecals = 0, groundSrc = null, bakedVersion = 0;
 // every new picture behind the actors arrives through showYard()/showUnder(): count them, so the kept ground
 // frame knows when it is stale
 for (const name of ['showYard', 'showUnder']) { const show = window[name]; window[name] = function () { bakedVersion++; return show.apply(this, arguments); }; }
 function drawYard() {
   const windT = STILL || !settings.wind ? 0 : Math.floor(G.time * WIND_FPS) / WIND_FPS;
-  const key = windT + ':' + G.decals.length + ':' + (G.decals.length && Math.floor(G.decals[0].life * 4));
+  // redrawn at each wind step, while a stain fades (4 times a second), or when one is gone; a new stain is
+  // painted onto the kept frame
+  let fade = -1;
+  for (const d of G.decals) if (d.life < 2) { fade = Math.floor(G.time * 4); break; }
   zb.set(bakedZ);
-  if (key !== groundKey || groundSrc !== bakedVersion) {
+  if (windT !== groundWind || fade !== groundFade || DECALS.cut !== groundCut || groundSrc !== bakedVersion) {
     pix.set(bakedPix);
-    for (const d of G.decals) for (const i of d.pts) { if (d.life < 2 && hash(i, 7) > d.life / 2) continue; if (zb[i] === groundZ[i]) pix[i] = d.color; }
+    for (const d of G.decals) paintDecal(d);
     drawTufts(windT);
-    groundFrame.set(pix); groundKey = key; groundSrc = bakedVersion;
-  } else pix.set(groundFrame);
+    groundFrame.set(pix); groundWind = windT; groundFade = fade; groundCut = DECALS.cut; groundSrc = bakedVersion; groundDecals = G.decals.length;
+  } else {
+    pix.set(groundFrame);
+    if (groundDecals < G.decals.length) { for (let k = groundDecals; k < G.decals.length; k++) paintDecal(G.decals[k]); groundFrame.set(pix); groundDecals = G.decals.length; }
+  }
   applyFlash('yard');
   for (const z of G.zombies) drawZombie(z);
   if (G.hero) drawPerson(G.hero);
@@ -150,21 +155,22 @@ function drawUnder() {
       for (let z = fz - .2; z < top - .1; z += STEP) { const p = project(x, y, z + dz), band = Math.floor(z * 6 + spin) & 1; putPx(Math.round(p.sx), Math.round(p.sy), band ? rgb(210, 214, 220) : rgb(96, 100, 108), p.d + .3); putPx(Math.round(p.sx) + 1, Math.round(p.sy), rgb(70, 74, 80), p.d + .3); }
     }
   }
-  // people on this floor, and anyone on the ladder between the opening in the floor and the one in the ceiling:
-  // the shaft ends at the top of the room (on B1 it goes on up to the hatch), and a climber is cut off there, so
-  // people come down feet first and leave head first instead of floating over the room
-  const shaftTop = UG.h + (v === 0 ? 1.2 : .05), clip = Math.max(0, Math.ceil(project(SHAFT.x, SHAFT.y + .5, FLOOR_Z[v] + shaftTop).sy));
+  // people on this floor, and anyone on the ladder between the opening in the floor and the hood over its top:
+  // a climber goes up behind the hood (on B1 out through the hatch) and comes down from behind it feet first,
+  // so whatever of them is above its lower edge is wiped back to the room picture
+  const top = shaftTop(v) - FLOOR_Z[v], hood = hoodEdge(v);
   for (const c of G.crew) {
     if (!c || c.where !== 'ug') continue;
     const rel = c.z - LEVEL_Z[v];
-    if (rel < -1.3 || rel > shaftTop) continue;
+    if (rel < -1.3 || rel > top) continue;
     if (c.state === 'sleep' && !c.path.length) { if (v === 0) drawSleeper(c); continue; }
-    if (Math.abs(c.x - SHAFT.x) < 1 && c.y < LADDER_Y + .6) CLIP_Y = clip;
     drawPerson(c, FLOOR_Z[v] - LEVEL_Z[v]);
-    CLIP_Y = 0;
+    if (rel > .2 && Math.abs(c.x - SHAFT.x) < 1 && c.y < LADDER_Y + .6) {
+      for (let ix = hood.i0; ix <= hood.i1; ix++) for (let iy = Math.max(0, hood.rows[ix] - 48); iy < hood.rows[ix]; iy++) { const i = iy * W + ix; pix[i] = bakedPix[i]; zb[i] = bakedZ[i]; }
+    }
   }
   castSpriteShadows(.25, .1);
-  drawParts(G.uparts.filter(q => q.fk === v));
+  drawParts(G.uparts, v);
 }
 function draw() {
   if (G.view === 'under') drawUnder(); else drawYard();

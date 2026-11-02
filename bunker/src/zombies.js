@@ -96,7 +96,7 @@ function updateZombies(dt) {
     }
     if (z.atk >= T.every) { z.atk -= T.every; z.swings++; }
   }
-  G.zombies = G.zombies.filter(z => !z.gone);
+  keep(G.zombies, z => !z.gone);
   // acid globs in the air
   for (const g of G.spits) {
     g.t += dt;
@@ -107,7 +107,7 @@ function updateZombies(dt) {
     else { G.hp -= g.power; G.hurt = .3; }
     sound('thud');
   }
-  G.spits = G.spits.filter(g => !g.done);
+  keep(G.spits, g => !g.done);
 }
 // a spitter lobs a glob of acid at the fence in front of it (or the bunker wall)
 function spit(z, atFence) {
@@ -158,7 +158,7 @@ function splatter(z) {
     const a = Math.random() * 6.28, d = Math.sqrt(Math.random()) * 1.1, p = project(z.x + Math.cos(a) * d, z.y + Math.sin(a) * d, 0);
     const ix = p.sx | 0, iy = p.sy | 0; if (ix >= 0 && iy >= 0 && ix < W && iy < H) pts.push(iy * W + ix);
   }
-  G.decals.push({ pts, color: rgb(150, 170, 70), life: 14 });
+  addDecal({ pts, color: rgb(150, 170, 70), life: 14 });
   sound('crash');
 }
 function burst(z, atFence) {
@@ -195,7 +195,7 @@ function hurt(z, dmg, quiet, still) {
 function kill(z) {
   z.state = 'dying'; z.t = 0;
   if (z.type === 'bloater') { splatter(z); z.gone = true; }
-  if (z.state === 'dying' && z.zh) z.zh = 0;
+  if (z.zh) z.zh = 0;
   G.money += z.reward; G.totalKills++;
   if (z.type === 'boss') notify('보스 처치', '+$' + fmt(z.reward), 'good');
   float(z.x, z.y, 2.85, '+$' + fmt(z.reward), SIGNAL); // high enough not to overlap the damage number
@@ -206,8 +206,7 @@ function kill(z) {
     const a = Math.random() * 6.28, dd = Math.sqrt(Math.random()) * .45, p = project(z.x - Math.cos(z.yaw) * .5 + Math.cos(a) * dd, z.y - Math.sin(z.yaw) * .5 + Math.sin(a) * dd, 0);
     const ix = p.sx | 0, iy = p.sy | 0; if (ix >= 0 && iy >= 0 && ix < W && iy < H) pts.push(iy * W + ix);
   }
-  G.decals.push({ pts, color: Math.random() < .5 ? rgb(70, 92, 50) : rgb(100, 44, 42), life: 12 });
-  if (G.decals.length > 40) G.decals.shift();
+  addDecal({ pts, color: Math.random() < .5 ? rgb(70, 92, 50) : rgb(100, 44, 42), life: 12 });
   // a boss wave only ends with the boss
   G.waveKills = Math.min(G.waveKills + 1, bossAlive() ? killsNeeded(G.wave) - 1 : Infinity);
   if (G.waveKills >= killsNeeded(G.wave)) {

@@ -16,6 +16,18 @@ function spray(x, y, z, n, speed, up, life, colors, w = 1, h = 1) {
   }
 }
 const floorAt = (x, y) => { const F = bunkerInfo(); return Math.abs(x) < F.deck && Math.abs(y) < F.deck ? F.roof : 0; };
+// drop the finished entries of a list in place (a new array every tick for every list was garbage)
+function keep(list, ok) { let n = 0; for (let i = 0; i < list.length; i++) if (ok(list[i])) list[n++] = list[i]; list.length = n; }
+// stains on the ground: at most 40, the oldest goes first. DECALS.cut counts the ones gone, so the kept ground
+// frame (loop.js) knows to redraw; new ones are painted onto it as they come
+const DECALS = { cut: 0 };
+function addDecal(d) { G.decals.push(d); if (G.decals.length > 40) { G.decals.shift(); DECALS.cut++; } }
+function ageDecals(dt) {
+  let n = 0;
+  for (const d of G.decals) { d.life -= dt; if (d.life > 0) G.decals[n++] = d; else DECALS.cut++; }
+  G.decals.length = n;
+}
+const paintDecal = d => { for (const i of d.pts) { if (d.life < 2 && hash(i, 7) > d.life / 2) continue; if (zb[i] === groundZ[i]) pix[i] = d.color; } };
 function updateParts(dt) {
   for (const list of [G.parts, G.uparts]) for (const q of list) {
     q.vz -= 13 * dt;
@@ -24,13 +36,15 @@ function updateParts(dt) {
     if (q.z < floor && q.z > floor - .5) { q.z = floor; q.vz = Math.abs(q.vz) > 1 ? -q.vz * .35 : 0; q.vx *= .5; q.vy *= .5; }
     q.life -= dt;
   }
-  G.parts = G.parts.filter(q => q.life > 0 && q.z > -1.5);
-  G.uparts = G.uparts.filter(q => q.life > 0);
+  keep(G.parts, q => q.life > 0 && q.z > -1.5);
+  keep(G.uparts, q => q.life > 0);
   for (const f of G.floats) { f.z += dt * .9; f.life -= dt; }
-  G.floats = G.floats.filter(f => f.life > 0);
+  keep(G.floats, f => f.life > 0);
 }
-function drawParts(list) {
+// fk: below ground, only the bits on that floor
+function drawParts(list, fk) {
   for (const q of list) {
+    if (fk != null && q.fk !== fk) continue;
     const p = project(q.x, q.y, q.z), x0 = Math.round(p.sx), y0 = Math.round(p.sy), u = q.under ? 1 : 0;
     for (let dy = 0; dy < q.h + u; dy++) for (let dx = 0; dx < q.w; dx++) {
       const ix = x0 + dx, iy = y0 + dy;

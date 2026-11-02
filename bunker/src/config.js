@@ -2,6 +2,8 @@
 // Tuning: every number that shapes the game (costs, growth curves, zombie types, names).
 /* ================= tuning ================= */
 const FIELD = PP_SCENE.field, FENCE_R = 3.6, MAX_ZOMBIES = 60, OFFLINE_CAP = 2 * 3600, SAVE_KEY = 'bunker-idle:v3';
+// time away up to CATCH_UP seconds is played out (fights and all) when the page comes back; longer is credited
+const CATCH_UP = 30;
 // the bunker and the fence each have 40 levels: the building changes form six times, and every level
 // in between adds something you can see
 // zombies walk the same time from the island edge to the fence whatever the island size (speeds are tuned for 8.3 units)

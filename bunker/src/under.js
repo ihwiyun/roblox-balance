@@ -7,7 +7,6 @@
 // ceiling and the floor. Every floor has 40 levels and every level adds something you can see; the front corner of
 // each floor is its store, where what you hold piles up.
 const UG = { x0: -6, x1: 6, y0: -6, y1: 6, h: 2.5, slab: .8, gap: 0, R: 6 };
-const FLOOR_NAME = ['지하 1층 · 생활층', '지하 2층 · 식량층', '지하 3층 · 채굴층'];
 // FLOOR_Z: where a floor is drawn (every floor at the same spot, since one is shown at a time);
 // LEVEL_Z: how deep it really is, which is what people climb (and what their z means)
 const FLOOR_Z = [0, 0, 0], LEVEL_Z = [0, -4.4, -8.8];
@@ -274,6 +273,27 @@ function storeLamp(k, fz) {
   fbox(x - .11, y + .38, fz + 1.98, x + .11, y + .62, fz + 2.04, [190, 150, 70], 348);
   lamp(k, SX(STORE / 2), SY(STORE / 2), fz, 3.6, 2.4);
 }
+// the hood over the top of the ladder: a climber goes up behind it into the floor above (on B1 out through the
+// hatch), and drawUnder wipes whatever of them shows above its lower edge, column by column (hoodEdge)
+const HOOD = { front: .62, drop: .38 };
+const shaftTop = k => FLOOR_Z[k] + UG.h + (k === 0 ? 1.2 : .05);
+const HOOD_EDGE = { k: -1, R: 0, i0: 0, i1: -1, rows: new Int16Array(W) };
+function hoodEdge(k) {
+  const E = HOOD_EDGE;
+  if (E.k === k && E.R === UG.R) return E;
+  // each screen column is the line x - y = c on the ground; the hood's underside is lowest on screen where x + y is largest
+  const x0 = SHAFT.x - .9, x1 = SHAFT.x + .9, ya = SHAFT.y + .48, yb = SHAFT.y + .5 + HOOD.front, zf = shaftTop(k) - HOOD.drop;
+  E.i0 = W; E.i1 = -1;
+  for (let ix = 0; ix < W; ix++) {
+    const c = (ix + .5 - OX) / S * R2, x = Math.min(x1, c + yb);
+    if (x < Math.max(x0, c + ya)) continue;
+    E.rows[ix] = Math.round(OY + ((2 * x - c) / R2 * SIN - zf * COS) * S);
+    if (ix < E.i0) E.i0 = ix;
+    E.i1 = ix;
+  }
+  E.k = k; E.R = UG.R;
+  return E;
+}
 function buildShaft(k) {
   // 1.8 wide; the ladder's rails stand at SHAFT.x ± 0.8 just in front of its face, where the climbers' hands are
   const sx0 = SHAFT.x - .9, sx1 = SHAFT.x + .9, sy0 = UG.y0, sy1 = SHAFT.y + .5, fz = FLOOR_Z[k];
@@ -288,6 +308,7 @@ function buildShaft(k) {
   for (const o of [-.8, .8]) fbox(SHAFT.x + o - .03, sy1 + .02, z0, SHAFT.x + o + .03, sy1 + .08, k === 0 ? z1 + .2 : z1, METAL, 41);
   for (let z = z0 + .2; z < z1; z += .26) fbox(SHAFT.x - .8, sy1 + .03, z, SHAFT.x + .8, sy1 + .07, z + .035, METAL, 42);
   if (k === 0) { fbox(sx0 - .1, sy0 - .1, z1, sx1 + .1, sy1 + .1, z1 + .12, STEEL, 43); fbox(sx0 + .1, sy0 + .1, z1 + .12, sx1 - .1, sy1 - .1, z1 + .18, DARK, 44); }
+  fbox(sx0, SHAFT.y + .48, z1 - HOOD.drop, sx1, sy1 + HOOD.front, z1, CONCRETE, 45);
 }
 // contact shade on the floor next to anything standing on it: the engine's bakeOcclusion, with its sixteen
 // neighbour offsets worked out once as index steps
@@ -340,10 +361,10 @@ function bakeUnder(floors = [0, 1, 2], flash) {
     if (before) flashDiff(before, FLOORS[k].pix, 'under', k);
   }
   mergeFloors();
-  underDirty = false; dirtyFloors.clear(); underBakedAt = G.time;
+  underDirty = false; dirtyFloors.clear();
   composeUnder();
 }
-let stockSeen = '', underDirty = true, underBakedAt = -9;
+let stockSeen = '', underDirty = true;
 const dirtyFloors = new Set();
 // the yard keeps its own baked picture: a change below only marks its floor stale (baked when it is seen)
 function markUnder(k, flash) {
