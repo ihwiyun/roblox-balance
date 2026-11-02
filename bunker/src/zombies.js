@@ -15,7 +15,7 @@ function spawn(type) {
   const w = G.wave, T = ZTYPES[type = type || pickType(w)], hp = zombieHp(w) * T.hp;
   const z = { x, y, n: Math.max(Math.abs(x), Math.abs(y)), yaw: Math.atan2(-y, -x), hp, max: hp, type, speed: T.speed * PACE * (.9 + Math.random() * .2),
     hitPower: zombieHit(w) * T.hit, reward: zombieReward(w) * T.reward, state: 'walk', t: 0, atk: 0, swings: 0, hit: 0, walkDist: Math.random(), swerve: (Math.random() - .5) * .5,
-    incoming: 0, visible: false, sx: 0, sy: 0, zh: 0, rage: 0, lastHit: -9, st: 0 };
+    incoming: 0, visible: false, sx: 0, sy: 0, zh: 0, rage: 0, lastHit: -9, st: 0, variant: Math.floor(Math.random() * ZVARIANTS) };
   G.zombies.push(z);
   return z;
 }

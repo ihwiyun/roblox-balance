@@ -7,7 +7,7 @@ const G = {
   crew: [null, null, null, null, null],
   wave: 1, waveKills: 0, totalKills: 0,
   hp: 150, fenceHp: 0, fenceDown: false, sideDmg: [0, 0, 0, 0], sideStage: [0, 0, 0, 0],
-  zombies: [], spits: [], tracers: [], parts: [], uparts: [], decals: [], floats: [], bossFor: 0, seen: [],
+  zombies: [], spits: [], tracers: [], parts: [], uparts: [], decals: [], floats: [], bossFor: 0, seen: [], floorView: 0,
   hero: null, time: 0, spawnIn: 2, speed: 1, hurt: 0, hungry: false, saveIn: 5, statusT: 0, view: 'yard',
 };
 const gunStat = k => GUN[k].val(G.lv[k]);

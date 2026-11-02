@@ -1,13 +1,14 @@
 'use strict';
 // Particles, ground decals, floating numbers and the pixel font.
 /* ================= particles and floating numbers ================= */
-let partsInto = 'parts', partFloor = 0;
+let partsInto = 'parts', partFloor = 0, partFloorK = 0;
 function part(x, y, z, vx, vy, vz, life, color, under, w = 1, h = 1) {
   const list = G[partsInto];
-  list.push({ x, y, z, vx, vy, vz, life, color, under, w, h, fz: partsInto === 'uparts' ? partFloor : null });
+  list.push({ x, y, z, vx, vy, vz, life, color, under, w, h, fz: partsInto === 'uparts' ? partFloor : null, fk: partFloorK });
   if (list.length > 300) list.shift();
 }
-function inDugout(fz, fn) { partsInto = 'uparts'; partFloor = fz; fn(); partsInto = 'parts'; }
+// particles below ground are made in floor k's picture (positions given in that picture's coordinates)
+function inDugout(k, fn) { partsInto = 'uparts'; partFloor = FLOOR_Z[k]; partFloorK = k; fn(); partsInto = 'parts'; }
 function spray(x, y, z, n, speed, up, life, colors, w = 1, h = 1) {
   for (let k = 0; k < n; k++) {
     const a = Math.random() * 6.28, v = speed * (.4 + Math.random() * .6);

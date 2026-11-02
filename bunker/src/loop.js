@@ -46,11 +46,11 @@ function update(dt) {
   for (const s of shooters()) updateShooter(s, dt);
   // the floors below at work: sparks off the drill and the picks, leaves from the farm
   if (!G.hungry) {
-    if (G.mine) inDugout(FLOOR_Z[2], () => { if (Math.random() < dt * 8) part(PIT.x, PIT.y, FLOOR_Z[2] + .05, (Math.random() - .5) * 2.4, (Math.random() - .5) * 2.4, 2.2, .45, rgb(255, 204, 96), null); });
+    if (G.mine && G.floorView === 2) inDugout(2, () => { if (Math.random() < dt * 8) part(PIT.x, PIT.y, FLOOR_Z[2] + .05, (Math.random() - .5) * 2.4, (Math.random() - .5) * 2.4, 2.2, .45, rgb(255, 204, 96), null); });
     for (const c of G.crew) {
       if (!atWork(c) || c.where !== 'ug') continue;
-      if (c.job === '광부') { const ph = (c.act * 2.6) % 3, prev = ((c.act - dt) * 2.6) % 3; if (prev < 2 && ph >= 2) inDugout(c.z, () => spray(c.x + .05, UG.y0 + .1, c.z + .9, 6, 1.5, 2.2, .7, [rgb(110, 150, 214), rgb(150, 146, 140), rgb(255, 214, 120)])); }
-      if (c.job === '농부' && Math.random() < dt * 1.2) inDugout(c.z, () => part(c.x + (Math.random() - .5) * .6, c.y - .7, c.z + 1 + Math.random() * .4, 0, 0, -.2, .8, rgb(140, 210, 110), null));
+      if (c.job === '광부') { const ph = (c.act * 2.6) % 3, prev = ((c.act - dt) * 2.6) % 3; if (prev < 2 && ph >= 2 && G.floorView === 2) inDugout(2, () => spray(c.x + .05, UG.y0 + .1, toFloorZ(c.z, 2) + .9, 6, 1.5, 2.2, .7, [rgb(110, 150, 214), rgb(150, 146, 140), rgb(255, 214, 120)])); }
+      if (c.job === '농부' && G.floorView === 1 && Math.random() < dt * 1.2) inDugout(1, () => part(c.x + (Math.random() - .5) * .6, c.y - .7, toFloorZ(c.z, 1) + 1 + Math.random() * .4, 0, 0, -.2, .8, rgb(140, 210, 110), null));
     }
   }
   G.hurt = Math.max(0, G.hurt - dt);
@@ -84,6 +84,7 @@ function drawYard() {
     drawTufts(windT);
     groundFrame.set(pix); groundKey = key; groundSrc = bakedVersion;
   } else pix.set(groundFrame);
+  applyFlash('yard');
   for (const z of G.zombies) drawZombie(z);
   if (G.hero) drawPerson(G.hero);
   for (const c of G.crew) if (c && c.where === 'yard') drawPerson(c);
@@ -121,8 +122,10 @@ function drawYard() {
 }
 function drawUnder() {
   pix.set(bakedPix); zb.set(bakedZ);
+  applyFlash('under');
+  const v = G.floorView || 0;
   // the mine's machinery moves
-  if (G.mine) {
+  if (G.mine && v === 2) {
     const fz = FLOOR_Z[2], { x, y } = PIT, run = !G.hungry;
     if (facTier(G.mine) === 0) {
       const depth = run ? Math.sin(G.time * 1.3) * .5 + .5 : .5, p0 = project(x, y, fz + 1.3), p1 = project(x, y, fz + 1.2 - depth * 1.6);
@@ -133,12 +136,16 @@ function drawUnder() {
       for (let z = fz - .2; z < top - .1; z += STEP) { const p = project(x, y, z + dz), band = Math.floor(z * 6 + spin) & 1; putPx(Math.round(p.sx), Math.round(p.sy), band ? rgb(210, 214, 220) : rgb(96, 100, 108), p.d + .3); putPx(Math.round(p.sx) + 1, Math.round(p.sy), rgb(70, 74, 80), p.d + .3); }
     }
   }
+  // people on this floor, and anyone on the ladder between the opening in the floor and the one in the ceiling
   for (const c of G.crew) {
     if (!c || c.where !== 'ug') continue;
-    if (c.state === 'sleep' && !c.path.length) drawSleeper(c); else drawPerson(c);
+    const rel = c.z - LEVEL_Z[v];
+    if (rel < -1.3 || rel > UG.h + .2) continue;
+    if (c.state === 'sleep' && !c.path.length) { if (v === 0) drawSleeper(c); }
+    else drawPerson(c, FLOOR_Z[v] - LEVEL_Z[v]);
   }
   castSpriteShadows(.25, .1);
-  drawParts(G.uparts);
+  drawParts(G.uparts.filter(q => q.fk === v));
 }
 function draw() {
   if (G.view === 'under') drawUnder(); else drawYard();

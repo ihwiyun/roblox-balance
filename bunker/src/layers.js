@@ -58,3 +58,37 @@ function objectBounds(refZ, pad) {
   }
   return x1 < 0 ? null : [Math.max(0, x0 - pad), Math.max(0, y0 - pad), Math.min(W, x1 + pad + 1), Math.min(H, y1 + pad + 1)];
 }
+
+// After an upgrade, whatever it changed in the picture flashes warm white for a couple of seconds, so it is
+// easy to see what grew. (Sprites are drawn over the flash, so only the buildings and rooms light up.)
+let flash = null;
+function flashDiff(before, after, view, floor = 0) {
+  const idx = [];
+  for (let i = 0; i < after.length; i++) if (before[i] !== after[i]) idx.push(i);
+  if (!idx.length) return;
+  // a few twinkles scattered over what changed, so the eye finds it at once
+  const stars = [];
+  for (let n = 0; n < Math.min(14, Math.ceil(idx.length / 40)); n++) { const i = idx[Math.floor(Math.random() * idx.length)]; stars.push(i % W, (i / W) | 0, Math.random()); }
+  flash = { idx: Int32Array.from(idx), stars, until: G.time + 2.4, view, floor };
+}
+function applyFlash(view) {
+  if (!flash || flash.view !== view || (view === 'under' && flash.floor !== (G.floorView || 0))) return;
+  const left = flash.until - G.time;
+  if (left <= 0) { flash = null; return; }
+  const k = (Math.sin(G.time * 11) * .5 + .5) * Math.min(1, left / .8) * .6, idx = flash.idx;
+  for (let n = 0; n < idx.length; n++) {
+    const i = idx[n], c = pix[i], r = c & 255, g = c >> 8 & 255, b = c >> 16 & 255;
+    pix[i] = rgb(r + (255 - r) * k, g + (248 - g) * k, b + (196 - b) * k);
+  }
+  // the twinkles: small four-point stars that blink on and off
+  const st = flash.stars;
+  for (let n = 0; n < st.length; n += 3) {
+    const on = Math.sin(G.time * 9 + st[n + 2] * 6.28) > -.2;
+    if (!on) continue;
+    const x = st[n], y = st[n + 1], arm = left > 1.2 ? 2 : 1;
+    for (let a = -arm; a <= arm; a++) for (const [dx, dy] of [[a, 0], [0, a]]) {
+      const px = x + dx, py = y + dy;
+      if (px >= 0 && py >= 0 && px < W && py < H) pix[py * W + px] = Math.abs(a) === arm ? rgb(255, 214, 90) : rgb(255, 255, 240);
+    }
+  }
+}

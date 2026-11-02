@@ -3,7 +3,7 @@
 /* ================= people: the hero on the roof and up to five hired hands ================= */
 function makePerson(i) {
   return { i, name: NAMES[i], look: LOOKS[i + 1], job: '사수', fatigue: 10 + Math.random() * 20, state: 'toWork', where: 'ug', floor: 0,
-    x: BED_X(i) + .75, y: UG.y0 + 1.05, z: FLOOR_Z[0], path: [], yaw: -Math.PI / 2, walk: 0, act: Math.random() * 3,
+    x: BED_X(i) + .75, y: UG.y0 + 1.05, z: LEVEL_Z[0], path: [], yaw: -Math.PI / 2, walk: 0, act: Math.random() * 3,
     ammo: gunStat('mag'), reload: 0, reloadLen: 1, cool: 0, recoil: 0, flash: 0, target: null, retarget: 0, magOut: false, magIn: false, pal: null };
 }
 function makeHero() {
@@ -21,11 +21,11 @@ function workSpot(c) {
 }
 // a path is a list of steps: walk on a floor (or the roof), climb the shaft, or pass through the roof hatch
 function route(c, dest) {
-  const pts = [], shaftAt = k => ({ where: 'ug', floor: k, x: SHAFT.x, y: LADDER_Y, z: FLOOR_Z[k], mode: 'walk' });
+  const pts = [], shaftAt = k => ({ where: 'ug', floor: k, x: SHAFT.x, y: LADDER_Y, z: LEVEL_Z[k], mode: 'walk' });
   if (c.where === 'yard' && dest.where === 'yard') pts.push({ ...dest, mode: 'walk' });
   else if (c.where === 'yard') {
     const h = SITES.hatch;
-    pts.push({ where: 'yard', x: h[0], y: h[1], z: h[2], mode: 'walk' }, { mode: 'hatch', to: 'ug' }, { where: 'ug', floor: dest.floor, x: SHAFT.x, y: LADDER_Y, z: FLOOR_Z[dest.floor], mode: 'climb' }, { ...dest, mode: 'walk' });
+    pts.push({ where: 'yard', x: h[0], y: h[1], z: h[2], mode: 'walk' }, { mode: 'hatch', to: 'ug' }, { where: 'ug', floor: dest.floor, x: SHAFT.x, y: LADDER_Y, z: LEVEL_Z[dest.floor], mode: 'climb' }, { ...dest, mode: 'walk' });
   } else if (dest.where === 'yard') {
     pts.push(shaftAt(c.floor), { where: 'ug', floor: 0, x: SHAFT.x, y: LADDER_Y, z: HATCH_TOP(), mode: 'climb' }, { mode: 'hatch', to: 'yard' }, { ...dest, mode: 'walk' });
   } else if (c.floor !== dest.floor) {
@@ -37,10 +37,10 @@ function sendTo(c, dest, state) {
   // someone on the ladder finishes the rung they are on: the new route starts from where they hang
   const cur = c.path[0];
   if (cur && cur.mode === 'climb' && c.where === 'ug') {
-    const k = FLOOR_Z.reduce((b, z, i) => Math.abs(z - c.z) < Math.abs(FLOOR_Z[b] - c.z) ? i : b, 0);
+    const k = LEVEL_Z.reduce((b, z, i) => Math.abs(z - c.z) < Math.abs(LEVEL_Z[b] - c.z) ? i : b, 0);
     const rest = route({ ...c, floor: k }, dest).filter((p, i) => !(i === 0 && p.mode === 'walk' && p.x === SHAFT.x && p.y === LADDER_Y));
     // if the new route goes on climbing, the climb starts from here; if not, step off at the nearest floor first
-    c.path = rest.length && rest[0].mode === 'climb' ? rest : [{ ...cur, floor: k, z: FLOOR_Z[k] }, ...rest];
+    c.path = rest.length && rest[0].mode === 'climb' ? rest : [{ ...cur, floor: k, z: LEVEL_Z[k] }, ...rest];
   } else c.path = route(c, dest);
   c.state = state;
 }

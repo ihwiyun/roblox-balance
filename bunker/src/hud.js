@@ -42,7 +42,7 @@ function portraitOld(person, scale = 5) {
 }
 document.querySelectorAll('[data-ico]').forEach(el => el.prepend(iconCanvas(el.dataset.ico, el.classList.contains('tab') ? 1.5 : 1.25)));
 const nodes = {};
-for (const id of ['status', 'panel', 'bunkerFill', 'bunkerText', 'bunkerTrack', 'fenceFill', 'fenceText', 'waveLine', 'stage', 'speed', 'viewBtn', 'labels', 'notes', 'ammo', 'ammoNum', 'ammoBar']) nodes[id] = document.getElementById(id);
+for (const id of ['floors', 'status', 'panel', 'bunkerFill', 'bunkerText', 'bunkerTrack', 'fenceFill', 'fenceText', 'waveLine', 'stage', 'speed', 'viewBtn', 'labels', 'notes', 'ammo', 'ammoNum', 'ammoBar']) nodes[id] = document.getElementById(id);
 // notifications: one band at a time, queued; kind is '' | 'good' | 'new' | 'danger'
 const noteQueue = [];
 let noteBusy = false;
@@ -84,6 +84,22 @@ function setView(v) {
   if (v === 'under') refreshUnder(); else showYard();
   nodes.viewBtn.textContent = v === 'under' ? '지상' : '지하';
   nodes.viewBtn.setAttribute('aria-pressed', String(v === 'under'));
+  nodes.floors.hidden = v !== 'under';
+  markFloorButtons();
+  fitStage();
+}
+// below ground one floor is shown at a time: the buttons over the picture pick it
+function viewFloor(k) {
+  G.floorView = k;
+  if (G.view !== 'under') setView('under'); else showFloor(k);
+  markFloorButtons();
+}
+function markFloorButtons() {
+  const lv = [G.live, G.farm, G.mine];
+  [...nodes.floors.children].forEach((b, k) => {
+    b.setAttribute('aria-pressed', String(k === (G.floorView || 0)));
+    b.querySelector('span').textContent = (['생활', '식량', '채굴'][k]) + ' Lv ' + lv[k];
+  });
 }
 document.querySelectorAll('.tab').forEach(b => b.addEventListener('click', () => {
   tab = b.dataset.tab;
@@ -188,20 +204,22 @@ function act(id) {
     pay(c); G.bunker++; G.hp = bunkerHp(G.bunker);
     if (isNewBunkerForm(G.bunker)) notify('새 건물 · ' + bunkerInfo().name, '벙커 Lv ' + G.bunker + ' · 체력 ' + fmt(bunkerHp(G.bunker)), 'good');
     else say('벙커 Lv ' + G.bunker + ' · ' + bunkerAddName(G.bunker));
-    bakeYard(); resyncPosts(); palCache.clear();
+    { const before = yardPix.slice(); bakeYard(); flashDiff(before, yardPix, 'yard'); }
+    resyncPosts(); palCache.clear(); if (G.view !== 'yard') setView('yard');
   } else if (kind === 'fence') {
     const c = fenceCost(G.fence);
     if (G.fence >= MAX_FENCE || !canPay(c)) return;
     pay(c); G.fence++; G.fenceHp = fenceHp(G.fence); G.fenceDown = false; G.sideDmg = [0, 0, 0, 0]; G.sideStage = [0, 0, 0, 0];
     if (isNewFenceForm(G.fence)) notify('새 울타리 · ' + fenceInfo().name, '울타리 Lv ' + G.fence + ' · 체력 ' + fmt(fenceHp(G.fence)) + (fenceInfo().electric ? ' · 공격한 좀비 감전' : ''), 'good');
     else say('울타리 Lv ' + G.fence + ' · ' + fenceAddName(G.fence));
-    composeYard(); // only the fence overlays change
+    { const before = yardPix.slice(); composeYard(); flashDiff(before, yardPix, 'yard'); } // only the fence overlays change
+    if (G.view !== 'yard') setView('yard');
   } else if (kind === 'live') {
     const c = LIVE.cost(G.live);
     if (G.live >= LIVE.max || !canPay(c)) return;
     pay(c); G.live++;
     say('생활층: ' + LIVE_ITEMS[G.live - 1] + (LIVE.beds.includes(G.live) ? ' · 고용할 수 있는 자리가 생겼다' : ''));
-    markUnder(0);
+    markUnder(0, true); viewFloor(0);
   } else if (kind === 'farm' || kind === 'mine') {
     const B = kind === 'farm' ? FARM : MINE, L = G[kind], c = B.cost(L);
     if (L >= B.max || !canPay(c)) return;
@@ -209,7 +227,7 @@ function act(id) {
     const tiers = kind === 'farm' ? FARM_TIERS : MINE_TIERS, floorName = kind === 'farm' ? '식량층' : '채굴층';
     if (G[kind] === 1 || facTier(G[kind]) !== facTier(G[kind] - 1)) notify(floorName + ' · ' + tiers[facTier(G[kind])], (kind === 'farm' ? '식량' : '광물') + ' 초당 ' + (kind === 'farm' ? FARM : MINE).rate(G[kind]).toFixed(1), 'good');
     else say(floorName + ' Lv ' + G[kind] + ' · ' + (kind === 'farm' ? FARM_ITEMS : MINE_ITEMS)[G[kind] - 1]);
-    markUnder(kind === 'farm' ? 1 : 2);
+    markUnder(kind === 'farm' ? 1 : 2, true); viewFloor(kind === 'farm' ? 1 : 2);
   } else if (kind === 'hire') {
     const i = +key, c = HIRE[i];
     if (G.crew[i] || i >= bedsOf(G.live) || !canPay(c)) return;
@@ -246,14 +264,17 @@ function refreshTop() {
 function fitStage() {
   const r = nodes.stage.getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
   const f = Math.min(r.width / W, r.height / H);
-  const scale = f * dpr >= 1 ? Math.floor(f * dpr) / dpr : f;
+  // whole device pixels per game pixel; below ground one step closer (the picture's middle fills the stage)
+  let k = f * dpr >= 1 ? Math.floor(f * dpr) : 0;
+  if (k && G.view === 'under') k += 1;
+  const scale = k ? k / dpr : f;
   canvas.style.width = W * scale + 'px'; canvas.style.height = H * scale + 'px';
 }
 // floor names over the cutaway are real page text, laid over the canvas
 function placeLabels() {
-  const show = G.view === 'under';
-  nodes.labels.hidden = !show;
-  if (!show) return;
+  // one floor at a time below ground: the floor buttons name it, so no labels are laid over the picture
+  nodes.labels.hidden = true;
+  return;
   const r = canvas.getBoundingClientRect(), f = r.width / W;
   if (nodes.labels.children.length !== 4) nodes.labels.innerHTML = FLOOR_NAME.map(t => { const [a, b] = t.split(' · '); return `<span class="fl"><b>${a}</b>${b}</span>`; }).join('') + '<span>지상 해치</span>';
   // each name stands in the white margin left of its floor, level with it, so it never covers the floor
@@ -283,3 +304,5 @@ resetBtn.addEventListener('click', () => {
   try { localStorage.removeItem(SAVE_KEY); } catch { /* fine */ }
   skipSave = true; location.reload();
 });
+
+document.querySelectorAll('#floors button').forEach(b => b.addEventListener('click', () => { ensureAudio(); viewFloor(+b.dataset.floor); sound('buy'); }));

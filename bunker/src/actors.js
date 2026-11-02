@@ -31,8 +31,8 @@ function personFrame(c, set, gunner) {
   if (c.job === '광부') return loop('mine', c.act);
   return loop('idle', G.time);
 }
-function drawPerson(c) {
-  if (window.ART_HUMANS) return drawSurvivor(c);
+function drawPerson(c, zOff = 0) {
+  if (window.ART_HUMANS) return drawSurvivor(c, zOff);
   const { view, mirror } = facingOf(c.yaw), gear = gearOf(c), pal = palFor(c, gear), gunner = c.hero || c.job === '사수';
   let anim = 'walk', idx = Math.floor(c.walk / .22) % 4;
   if (c.anim === 'climb' && c.path.length && c.path[0].mode === 'climb') { anim = 'climb'; idx = Math.floor(c.walk / .3) % 2; }
@@ -56,10 +56,12 @@ function drawPerson(c) {
     pxLine(Math.round(b[0] - nx * 2), Math.round(b[1] - ny * 2), Math.round(b[0] + nx * 2), Math.round(b[1] + ny * 2), rgb(150, 156, 168), d + .01);
   }
 }
-function drawSurvivor(c) {
+function drawSurvivor(c, zOff = 0) {
   const { view, mirror } = facingOf(c.yaw), gear = gearOf(c), pal = palFor(c, gear), gunner = c.hero || c.job === '사수';
   const set = SPR[gear.body], [anim, idx] = personFrame(c, set, gunner);
-  const info = drawSprite(gear.body, anim, view, idx, mirror, c.x, c.y, c.z, pal);
+  // someone on the ladder is drawn a little in front of the shaft wall, so the concrete never cuts them
+  const climbing = anim === 'climb';
+  const info = drawSprite(gear.body, anim, view, idx, mirror, c.x, c.y + (climbing ? .35 : 0), c.z + zOff, pal);
   const fr = info.fr, front = view === 'F';
   if (fr.head) {
     // the person's own face, then the headgear over the hair
@@ -153,7 +155,8 @@ function drawZombie(z) {
   const fade = z.state === 'dying' ? clamp(4.4 - z.t, 0, 1) : clamp((FIELD + .7 - z.n) / 1.0, 0, 1);
   if (fade <= 0) return;
   const v = set.anims[anim][view] ? view : 'F';
-  const info = drawSprite(z.type, anim, v, idx, mirror, z.x, z.y, z.zh || 0, ZPALS[z.type], { hit: z.hit > 0, fade });
+  const pals = ZPAL_V[z.type], pal = pals ? pals[(z.variant || 0) % pals.length] : ZPALS[z.type];
+  const info = drawSprite(z.type, anim, v, idx, mirror, z.x, z.y, z.zh || 0, pal, { hit: z.hit > 0, fade });
   z.sx = info.bx; z.sy = info.by - Math.round(set.ay * .5); z.top = info.by - set.ay + 1;
   // the rage of a scream shows as red eyes; a healing regenerator sparkles
   if (z.rage > 0 && Math.floor(z.t * 6) % 2) putPx(info.bx + (mirror ? -1 : 1), z.top + 3, rgb(255, 60, 40), info.p.d + 1);

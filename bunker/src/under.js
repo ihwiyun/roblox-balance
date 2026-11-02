@@ -1,12 +1,16 @@
 'use strict';
 // Under the bunker: three floors (beds, food, mine) joined by one ladder shaft.
-/* ================= under the bunker: three floors, one above the other ================= */
-// a cutaway of three floors pulled apart so each is seen whole: B1 living quarters, B2 food, B3 the mine,
-// joined by one ladder shaft in the back-left corner. Every floor has 40 levels and every level adds something
-// you can see; the right end of each floor is its store, where what you hold piles up.
-const UG = { x0: -8, x1: 8, y0: -1.8, y1: 1.8, h: 2.5, slab: .8, gap: 0 };
+/* ================= under the bunker: three floors, one shown at a time ================= */
+// B1 living quarters, B2 food, B3 the mine, joined by one ladder shaft in the back-left corner. The view shows
+// one floor at a time, zoomed in, so what each level adds is easy to see; people climb in and out through the
+// shaft's openings in the ceiling and the floor. Every floor has 40 levels and every level adds something you can
+// see; the right end of each floor is its store, where what you hold piles up.
+const UG = { x0: -8, x1: 8, y0: -2, y1: 2, h: 2.5, slab: .8, gap: 0 };
 const FLOOR_NAME = ['지하 1층 · 생활층', '지하 2층 · 식량층', '지하 3층 · 채굴층'];
-const FLOOR_Z = [0, 0, 0];
+// FLOOR_Z: where a floor is drawn (every floor at the same spot, since one is shown at a time);
+// LEVEL_Z: how deep it really is, which is what people climb (and what their z means)
+const FLOOR_Z = [0, 0, 0], LEVEL_Z = [0, -4.4, -8.8];
+const toFloorZ = (z, k) => z - LEVEL_Z[k] + FLOOR_Z[k];
 const SHAFT = { x: UG.x0 + .55, y: UG.y0 + .55 }, LADDER_Y = UG.y0 + 1.08;
 // the mine's pit: the windlass, then the drill, stand over it (loop.js animates the rope and the drill bit here)
 const PIT = { x: -4.6, y: .6, r: .62 };
@@ -15,21 +19,17 @@ const PIT = { x: -4.6, y: .6, r: .62 };
 const PLAN = 14;
 const AX = a => UG.x0 + a * (UG.x1 - UG.x0) / PLAN;
 function layoutFloors() {
-  // the floors are as long as the picture allows (at most 16 units): three floor diamonds, their walls,
-  // slabs, gaps and the hatch on top must fit the canvas height
-  const yr = UG.y1 - UG.y0, fixed = 3 * UG.slab * COS * S + 2 * 10 + UG.h * COS * S + 1.4 * COS * S;
-  const xr = clamp(((H - 24 - fixed) / 3) * R2 / (SIN * S) - yr, 7, 16);
+  // the floor is as long as the zoomed view allows (at most 20 units), and sits centred in the picture
+  const V = PP_SCENE.underView || { w: W, h: H }, yr = UG.y1 - UG.y0;
+  const byW = (V.w - 26) * R2 / S - yr;
+  const byH = (V.h - 64 - (UG.h + UG.slab + 1.6) * COS * S) / (SIN * S) * R2 - yr;
+  const xr = clamp(Math.min(byW, byH), 8, 20);
   UG.x0 = -xr / 2; UG.x1 = xr / 2;
   SHAFT.x = UG.x0 + .55;
   PIT.x = AX(3.75); PIT.y = UG.y0 + 2.45;
-  // each floor sits just below the one above on screen: the step is the floor's own screen height
-  // (its diamond plus the slab) so the floors never cover each other, plus a small white gap
-  const diamond = (UG.x1 - UG.x0 + UG.y1 - UG.y0) / R2 * SIN * S, slab = UG.slab * COS * S;
-  const step = (diamond + slab + 10) / (COS * S);
-  UG.gap = step - UG.h - UG.slab;
-  const top = project(UG.x0, UG.y0, UG.h + 1.4).sy, bot = project(UG.x1, UG.y1, -2 * step - UG.slab).sy;
-  const z0 = ((top + bot) / 2 - OY) / (COS * S);
-  for (let k = 0; k < 3; k++) FLOOR_Z[k] = z0 - k * step;
+  const top = project(UG.x0 - .4, UG.y0 - .4, UG.h + 1.5).sy, bot = project(UG.x1, UG.y1, -UG.slab).sy;
+  const z = ((top + bot) / 2 - H / 2 - 14) / (COS * S); // a little low: the floor buttons sit at the top
+  for (let k = 0; k < 3; k++) FLOOR_Z[k] = z;
 }
 // where people stand, work and sleep below ground (the crew code asks here, so the floor plan stays in one file)
 // beds: five single beds lying along x (head at the -x end, mattress top 0.4 above the floor): beds 0-2 along the
@@ -40,11 +40,11 @@ const BED_L = 1.7, BEDS_A = [1.15, 3.0, 4.85, 1.15, 3.0];
 const bedGap = () => Math.max(BED_L + .12, 1.85 * (UG.x1 - UG.x0) / PLAN);
 const BED_X = i => Math.max(AX(BEDS_A[0]), UG.x0 + 1.05) + (i % 3) * bedGap();
 const bedY = i => i < 3 ? [UG.y0 + .08, UG.y0 + .86] : [UG.y0 + 2.72, UG.y0 + 3.5];
-const bedSpot = c => ({ where: 'ug', floor: 0, x: BED_X(c.i) + .85, y: UG.y0 + (c.i < 3 ? 1.12 : 2.4), z: FLOOR_Z[0] });
-const sleepSpot = i => { const [a, b] = bedY(i); return { x: BED_X(i) + BED_L / 2, y: (a + b) / 2, z: FLOOR_Z[0] }; };
+const bedSpot = c => ({ where: 'ug', floor: 0, x: BED_X(c.i) + .85, y: UG.y0 + (c.i < 3 ? 1.12 : 2.4), z: LEVEL_Z[0] });
+const sleepSpot = i => { const [a, b] = bedY(i); return { x: BED_X(i) + BED_L / 2, y: (a + b) / 2, z: FLOOR_Z[0] }; }; // drawn on the B1 picture
 // farmers tend the row along the back wall, standing in the aisle; miners face the rock of the back wall
-const farmSpot = n => ({ where: 'ug', floor: 1, x: AX(1.95 + n * 2.0), y: UG.y0 + 1.38, z: FLOOR_Z[1] });
-const mineSpot = n => ({ where: 'ug', floor: 2, x: AX(5.0 + n * 1.25), y: UG.y0 + .72, z: FLOOR_Z[2] });
+const farmSpot = n => ({ where: 'ug', floor: 1, x: AX(1.95 + n * 2.0), y: UG.y0 + 1.38, z: LEVEL_Z[1] });
+const mineSpot = n => ({ where: 'ug', floor: 2, x: AX(5.0 + n * 1.25), y: UG.y0 + .72, z: LEVEL_Z[2] });
 const levelOf = k => [G.live, G.farm, G.mine][k];
 
 /* ---------- drawing straight into the pixel grid ---------- */
@@ -197,7 +197,7 @@ const FLOORS = [0, 1, 2].map(() => ({ pix: new Uint32Array(W * H), z: new Float3
 const STOCK_KINDS = ['money', 'food', 'mineral'];
 // the screen rectangle a floor can draw into (its walls, slab and its piece of the shaft), with a margin
 function floorBox(k) {
-  const fz = FLOOR_Z[k], top = k === 0 ? HATCH_TOP() + .2 : FLOOR_Z[k - 1] - UG.slab;
+  const fz = FLOOR_Z[k], top = fz + UG.h + (k === 0 ? 1.4 : .3);
   const a = project(UG.x0 - .4, UG.y1, 0).sx, b = project(UG.x1, UG.y0 - .4, 0).sx;
   const t = Math.min(project(UG.x0 - .4, UG.y0 - .4, fz + UG.h).sy, project(SHAFT.x - .6, UG.y0 - .2, top).sy), bt = project(UG.x1, UG.y1, fz - UG.slab).sy;
   return [Math.max(0, Math.floor(a) - 6), Math.max(0, Math.floor(t) - 6), Math.min(W, Math.ceil(b) + 7), Math.min(H, Math.ceil(bt) + 7)];
@@ -238,10 +238,10 @@ function bakeFloor(k) {
   if (sig !== F.sig) { F.sig = sig; for (const key of [...stockCache.keys()]) if (key.startsWith(STOCK_KINDS[k] + ':')) stockCache.delete(key); }
 }
 // the ladder shaft: each floor bakes the piece from its own slab up to the floor above (or the hatch on top)
-const HATCH_TOP = () => FLOOR_Z[0] + UG.h + 1.2;
+const HATCH_TOP = () => LEVEL_Z[0] + UG.h + 1.2; // where people come in from the yard (real depth)
 function buildShaft(k) {
   const sx0 = SHAFT.x - .45, sx1 = SHAFT.x + .45, sy0 = UG.y0, sy1 = SHAFT.y + .45, fz = FLOOR_Z[k];
-  const z0 = fz - UG.slab, z1 = k === 0 ? HATCH_TOP() : FLOOR_Z[k - 1] - UG.slab - .01;
+  const z0 = fz - UG.slab, z1 = fz + UG.h + (k === 0 ? 1.2 : .05);
   fbox(sx0, sy0, z0, sx1, sy1, z1, CONCRETE, 40);
   // the doorway onto this floor, framed in hazard stripes, with a lamp over it
   const dark = rampOf(DARK);
@@ -250,7 +250,7 @@ function buildShaft(k) {
   for (const s of [-1, 1]) onY(sy1, SHAFT.x + s * .36 - .04, SHAFT.x + s * .36 + .04, fz, fz + 1.75, (x, z) => (Math.floor(z * 9) & 1) ? C(232, 186, 40) : C(40, 36, 40));
   EM = 1; fbox(SHAFT.x - .08, sy1, fz + 1.92, SHAFT.x + .08, sy1 + .06, fz + 2.0, [255, 226, 150], 3); EM = 0;
   for (const o of [-.2, .2]) fbox(SHAFT.x + o - .025, sy1 + .02, z0, SHAFT.x + o + .025, sy1 + .07, k === 0 ? z1 + .2 : z1, METAL, 41);
-  for (let z = Math.ceil((z0 - FLOOR_Z[2]) / .26) * .26 + FLOOR_Z[2] + .2; z < z1; z += .26) fbox(SHAFT.x - .2, sy1 + .03, z, SHAFT.x + .2, sy1 + .07, z + .035, METAL, 42);
+  for (let z = z0 + .2; z < z1; z += .26) fbox(SHAFT.x - .2, sy1 + .03, z, SHAFT.x + .2, sy1 + .07, z + .035, METAL, 42);
   if (k === 0) { fbox(sx0 - .1, sy0 - .1, z1, sx1 + .1, sy1 + .1, z1 + .12, STEEL, 43); fbox(sx0 + .1, sy0 + .1, z1 + .12, sx1 - .1, sy1 - .1, z1 + .18, DARK, 44); }
 }
 // contact shade on the floor next to anything standing on it: the engine's bakeOcclusion, with its sixteen
@@ -272,14 +272,8 @@ function occlude(b) {
 }
 const underBase = { pix: new Uint32Array(W * H), z: new Float32Array(W * H) };
 function mergeFloors() {
-  underBase.pix.fill(PAPER); underBase.z.fill(-1e9); UNDER_GZ.fill(-1e9); UNDER_GROUND.fill(0);
-  for (const F of FLOORS) {
-    const [x0, y0, x1, y1] = F.box;
-    for (let iy = y0; iy < y1; iy++) for (let ix = x0; ix < x1; ix++) {
-      const i = iy * W + ix;
-      if (F.z[i] > underBase.z[i]) { underBase.z[i] = F.z[i]; underBase.pix[i] = F.pix[i]; UNDER_GZ[i] = F.gz[i]; UNDER_GROUND[i] = F.ground[i]; }
-    }
-  }
+  const F = FLOORS[G.floorView || 0];
+  underBase.pix.set(F.pix); underBase.z.set(F.z); UNDER_GZ.set(F.gz); UNDER_GROUND.set(F.ground);
 }
 // stock piles: one cached overlay per kind and size (and per floor position and lamps)
 const stockCache = new Map();
@@ -295,13 +289,18 @@ function stockOverlay(kind) {
 }
 function composeUnder() {
   underPix.set(underBase.pix); underZ.set(underBase.z);
-  layOverlays(STOCK_KINDS.map(stockOverlay), underPix, underZ, UNDER_GZ, null);
+  layOverlays([stockOverlay(STOCK_KINDS[G.floorView || 0])], underPix, underZ, UNDER_GZ, null);
   stockSeen = STOCK_KINDS.map(k => stockLevel(G[k])).join();
   if (G.view === 'under') showUnder(); else if (G.view === 'yard') showYard();
 }
-function bakeUnder(floors = [0, 1, 2]) {
+function bakeUnder(floors = [0, 1, 2], flash) {
   layoutFloors();
-  for (const k of floors) bakeFloor(k);
+  for (const k of floors) {
+    // after an upgrade, what changed on that floor flashes for a moment
+    const before = flash && FLOORS[k].pix.slice();
+    bakeFloor(k);
+    if (before) flashDiff(before, FLOORS[k].pix, 'under', k);
+  }
   mergeFloors();
   underDirty = false; dirtyFloors.clear(); underBakedAt = G.time;
   composeUnder();
@@ -309,15 +308,22 @@ function bakeUnder(floors = [0, 1, 2]) {
 let stockSeen = '', underDirty = true, underBakedAt = -9;
 const dirtyFloors = new Set();
 // the yard keeps its own baked picture: a change below only marks its floor stale (baked when it is seen)
-function markUnder(k) {
+function markUnder(k, flash) {
   if (k == null) underDirty = true; else dirtyFloors.add(k);
+  if (flash) flashFloors.add(k);
   if (G.view === 'under') refreshUnder();
 }
+const flashFloors = new Set();
 function refreshUnder() {
   if (underDirty) bakeUnder();
-  else if (dirtyFloors.size) bakeUnder([...dirtyFloors]);
+  else if (dirtyFloors.size) { const f = [...dirtyFloors]; bakeUnder(f, f.some(k => flashFloors.has(k))); flashFloors.clear(); }
   else if (STOCK_KINDS.map(k => stockLevel(G[k])).join() !== stockSeen) composeUnder();
   else showUnder();
+}
+// switch the view to another floor: bake it if it is stale, then lay its picture and its store
+function showFloor(k) {
+  G.floorView = k;
+  if (underDirty || dirtyFloors.size) refreshUnder(); else { mergeFloors(); composeUnder(); }
 }
 function showUnder() { bakedPix.set(underPix); bakedZ.set(underZ); groundZ.set(UNDER_GZ); ground.set(UNDER_GROUND); staticShadow.fill(0); }
 

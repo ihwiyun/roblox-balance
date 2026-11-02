@@ -27,11 +27,40 @@ function decodeSet(s) {
 const ZBORROW = { spitter: ['walker', [1.15, 1.3, .7]], screamer: ['walker', [1.35, 1.3, 1.25]], leaper: ['runner', [1.05, .85, 1.3]],
   burrower: ['walker', [1.15, .92, .7]], regenerator: ['walker', [1.5, .8, .8]], giant: ['brute', [.95, .95, 1.1]], boss: ['brute', [1.3, .7, .75]] };
 const ZPALS = {};
+// one crowd, many people: each zombie of a kind wears its own shirt and trousers and has its own skin tone.
+// Per kind: which palette letters are the shirt, the trousers and the skin (the big later kinds only vary in tone)
+const ZVARY = {
+  walker: { top: 'Ccx', bottom: 'UPpu', skin: 'kSsq' }, crawler: { top: 'WCcx', skin: 'kSsq' },
+  runner: { top: 'YAax', bottom: 'UPpu', skin: 'kSsq' }, brute: { bottom: 'UPpu', skin: 'kSsq' },
+  bloater: { top: 'WCcx', bottom: 'UPpu', skin: 'kSsq' }, armored: { top: 'VvxA', skin: 'kSsq' },
+};
+const SHIRTS = [[184, 174, 144], [156, 64, 54], [74, 96, 146], [104, 124, 80], [196, 164, 72], [118, 86, 128], [64, 128, 126], [128, 100, 74], [206, 204, 198]];
+const PANTS = [[76, 94, 134], [62, 60, 68], [104, 84, 62], [72, 94, 72], [116, 72, 62], [54, 56, 86]];
+const SKINS = [[1, 1, 1], [.92, 1.03, .9], [1.07, 1.04, .9], [.95, .95, 1.05], [1.1, 1, .98], [.86, .9, .86]];
+const ZVARIANTS = 6, ZPAL_V = {};
+function zombieVariants(type, pal) {
+  const V = ZVARY[type], lum = c => c[0] * .3 + c[1] * .59 + c[2] * .11, out = [];
+  for (let v = 0; v < ZVARIANTS; v++) {
+    const p = {};
+    for (const [k, c] of Object.entries(pal)) p[k] = c.slice();
+    const recolor = (letters, list, pick) => {
+      const keys = [...letters].filter(k => p[k]), top = Math.max(...keys.map(k => lum(pal[k])), 1), base = list[pick % list.length];
+      for (const k of keys) { const f = lum(pal[k]) / top; p[k] = base.map(x => Math.min(255, x * (.35 + f * .75))); }
+    };
+    if (v && V) {
+      if (V.top) recolor(V.top, SHIRTS, v * 2 + type.length);
+      if (V.bottom) recolor(V.bottom, PANTS, v + type.length);
+      for (const k of V.skin || '') if (p[k]) p[k] = p[k].map((x, n) => Math.min(255, x * SKINS[v][n]));
+    } else if (v) for (const k of Object.keys(p)) if (k !== 'o') p[k] = p[k].map((x, n) => Math.min(255, x * (1 + (SKINS[v][n] - 1) * .7)));
+    out.push(paletteOf(p));
+  }
+  return out;
+}
 function loadSprites() {
   // the old sheets first, then the new 32x32 sets on top
   // (art.js declares a global const, which is not a window property)
   if (typeof ART !== 'undefined' && ART.sprites) for (const [type, s] of Object.entries(ART.sprites)) { SPR[type] = decodeSet(s); if (ART.pal[type]) ZPALS[type] = paletteOf(ART.pal[type]); }
-  for (const pack of [window.ART_ZOMBIES_A, window.ART_ZOMBIES_B]) if (pack) for (const [type, s] of Object.entries(pack.types)) { SPR[type] = decodeSet(s); ZPALS[type] = paletteOf(s.pal); }
+  for (const pack of [window.ART_ZOMBIES_A, window.ART_ZOMBIES_B]) if (pack) for (const [type, s] of Object.entries(pack.types)) { SPR[type] = decodeSet(s); ZPALS[type] = paletteOf(s.pal); ZPAL_V[type] = type === 'boss' ? [ZPALS[type]] : zombieVariants(type, s.pal); }
   for (const [type, [base, tint]] of Object.entries(ZBORROW)) {
     if (SPR[type] || !SPR[base]) continue;
     SPR[type] = SPR[base];
