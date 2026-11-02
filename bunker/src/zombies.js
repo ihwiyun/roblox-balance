@@ -276,7 +276,7 @@ function hurt(z, dmg, quiet, still, crit) {
   dmg *= ZTYPES[z.type].armor || 1;
   z.lastHit = G.time;
   // a hit flashes white for a frame or two, at most every 0.4 s (never a white silhouette under steady fire)
-  if (G.time - (z.flashAt ?? -9) >= .4) { z.hit = .035; z.flashAt = G.time; }
+  if (G.time - (z.flashAt ?? -9) >= .4) { z.hit = .033; z.flashAt = G.time; }
   const d = Math.hypot(z.x, z.y) || 1;
   if (!still && !BIG[z.type] && z.state !== 'leap') { z.x += z.x / d * .04; z.y += z.y / d * .04; z.n = Math.max(Math.abs(z.x), Math.abs(z.y)); }
   // only a critical hit shows its number, small and orange (none over a boss: the screen shows its health)
