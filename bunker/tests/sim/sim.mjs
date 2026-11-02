@@ -64,7 +64,8 @@ function bunkerSlotGain(st) {
 /* ---------- one run ---------- */
 export function run(opts = {}) {
   const { bot = 'human', profile = 'f2p', seed = 1, days = 60, untilStage = 1000, sessionMin = 26, maxActiveH = 400, sample = 600 } = opts;
-  const prof = PROFILES[profile], human = bot === 'human';
+  // override: a profile with one paid stream switched off (the timeline's attribution runs)
+  const prof = { ...PROFILES[profile], ...(opts.override || {}) }, human = bot === 'human';
   const st = L.newGame(seed), rng = L.makeRng(seed * 7919 + 13), LOG = opts.log ? makeLogger(st, () => relicAxis()) : null;
   const income = (res, amount, src) => LOG && LOG.onEvent('earn', { res, amount, src });
   // is the next purchase on this track a breakthrough (materials) rather than a level?
@@ -145,25 +146,26 @@ export function run(opts = {}) {
   function payerShop() {
     if (profile === 'f2p') return;
     if (st.t - ctx.monthStart >= 30 * DAY) { ctx.monthStart = st.t; ctx.krwThisMonth = 0; }
-    if (prof.monthly && st.t >= st.shop.monthlyUntil) { st.shop.monthlyUntil = st.t + 30 * DAY; st.gems += L.PASSES.monthly.now; income('gems', L.PASSES.monthly.now, 'monthly pass'); pay(L.PASSES.monthly.krw); }
-    if (prof.season && st.t >= st.shop.seasonUntil) { st.shop.seasonUntil = st.t + 60 * DAY; pay(L.PASSES.season.krw); }
+    if (prof.monthly && st.t >= st.shop.monthlyUntil) { st.shop.monthlyUntil = st.t + 30 * DAY; st.gems += L.PASSES.monthly.now; income('gems', L.PASSES.monthly.now, 'monthly pass'); pay(L.PASSES.monthly.krw); LOG && LOG.buy('월정액', L.PASSES.monthly.krw); }
+    if (prof.season && st.t >= st.shop.seasonUntil) { st.shop.seasonUntil = st.t + 60 * DAY; pay(L.PASSES.season.krw); LOG && LOG.buy('시즌 패스', L.PASSES.season.krw); }
     if (!prof.krwMonth) return;
     if (prof.steps) for (const line of ['weapon', 'crew', 'turret']) {
       for (let s = L.nextStep(st.shop, line, st.record); s && budget(s.krw); s = L.nextStep(st.shop, line, st.record)) {
         const before = powerOf(st), rec = st.record;
-        pay(s.krw); L.buyStep(st, line, s, s.krw);
+        pay(s.krw); L.buyStep(st, line, s, 0);            // pay() books the price once
         L.assignCrew(st); L.equipBest(st);
         M.packages.push({ line, step: st.shop.steps[line], krw: s.krw, at: st.active / 3600, record: rec, jump: powerOf(st) / before });
-        if (LOG) LOG.event(`패키지 구매: ${{ weapon: '무기', crew: '동료', turret: '터렛' }[line]} ${st.shop.steps[line]}단계`, { krw: s.krw, powerJump: +(powerOf(st) / before).toFixed(2) });
+        if (LOG) { const nm = `${{ weapon: '무기', crew: '동료', turret: '터렛' }[line]} ${st.shop.steps[line]}단계`; LOG.event(`패키지 구매: ${nm}`, { krw: s.krw, powerJump: +(powerOf(st) / before).toFixed(2) }); LOG.buy(`패키지 ${nm}`, s.krw); }
         if (line === 'weapon' && st.shop.steps.weapon === 1) M.step1At = st.active;
       }
     }
     // diamonds with the rest, the best-value pack first; while packages remain, half the month is kept for them
     const stepsLeft = prof.steps && ['weapon', 'crew', 'turret'].some(l => st.shop.steps[l] < L.STEP_LINES[l].length);
     const room = prof.krwMonth * (stepsLeft ? 0.5 : 1);
+    if (prof.diamonds === false) return;
     for (let i = L.DIAMOND_PACKS.length - 1; i >= 0; i--) {
       const p = L.DIAMOND_PACKS[i];
-      while (ctx.krwThisMonth + p.krw <= room) { const d = L.diamondsFor(st.shop, i); st.diamonds += d; income('diamonds', d, 'purchase'); st.shop.packsBought[i] = true; pay(p.krw); }
+      while (ctx.krwThisMonth + p.krw <= room) { const d = L.diamondsFor(st.shop, i); st.diamonds += d; income('diamonds', d, 'purchase'); st.shop.packsBought[i] = true; pay(p.krw); LOG && LOG.buy(`다이아 ${p.krw}원 묶음`, p.krw); }
     }
   }
 
@@ -183,8 +185,9 @@ export function run(opts = {}) {
       for (const k of Object.keys(plan)) { if (!plan[k]) continue; const g = plan[k] - ctx.gemPlan[k] / total; if (g > gap) { gap = g; kind = k; } }
       const n = kind === 'relic' || kind === 'recruit' ? 1 : batch;
       if (!kind || have < each[kind] * n) break;
-      const out = L.summon(st, kind, n, useDia);
+      const g0 = st.gems, d0 = st.diamonds, out = L.summon(st, kind, n, useDia);
       if (!out.length) break;
+      if (LOG) LOG.pull(kind, out, g0 - st.gems, d0 - st.diamonds);
       ctx.gemPlan[kind] += each[kind] * out.length;
       if (kind === 'recruit') L.assignCrew(st);
       bought();
@@ -438,7 +441,7 @@ export function run(opts = {}) {
     st.gems += T.economy.dailyGems; M.gemsIn += T.economy.dailyGems; income('gems', T.economy.dailyGems, 'daily');
     if (st.t < st.shop.monthlyUntil) { st.gems += L.PASSES.monthly.daily; income('gems', L.PASSES.monthly.daily, 'monthly pass'); }
     let boosts = prof.ads.boosts, offAds = prof.ads.offline, raids = T.economy.raidsPerDay;
-    if (prof.ads.pull) { L.freeSummon(st); }
+    if (prof.ads.pull) { const i = L.freeSummon(st); if (LOG) LOG.pull('weapon (ad)', [i], 0, 0); }
     for (let si = 0; si < SESSION_AT.length; si++) {
       const start = day * DAY + SESSION_AT[si];
       if (st.t === 0) st.t = start;               // the clock starts with the first session: no offline before installing

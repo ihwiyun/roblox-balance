@@ -13,6 +13,9 @@ var SYS = window.SYS || (() => {
   const now = () => Date.now();
   const DAY_MS = 864e5, SLOTS_T = 6, SLOTS_R = 8;
   const won = n => n.toLocaleString('en') + '원';
+  // a price or a reward is only currencies with an amount (the screens show and check every key); extra facts ride
+  // along as properties that do not enumerate
+  const purse = (o, extra = {}) => { const out = {}; for (const [k, v] of Object.entries(o)) if (v > 0) out[k] = v; for (const [k, v] of Object.entries(extra)) Object.defineProperty(out, k, { value: v }); return out; };
   const num = n => Math.floor(n).toLocaleString('en');
 
   /* ================= change events ================= */
@@ -265,7 +268,7 @@ var SYS = window.SYS || (() => {
           toNextMerge: G.rel.level[r.id] < tun().relics.maxLevel ? G.rel.level[r.id] - G.rel.dupes[r.id] : null });
       } else {
         const r = Lg.recruit(rng, { cards: G.cards }, G.sums.crew), c = Lg.CARD[r.id], own = G.cards[r.id];
-        out.push({ kind, i: r.id, id: r.id, name: c.name, grade: c.grade, isNew: r.result === 'new', result: r.result, stars: own.stars,
+        out.push({ kind, i: c.grade, id: r.id, name: c.name, grade: c.grade, isNew: r.result === 'new', result: r.result, stars: own.stars,
           toNextMerge: own.stars < 5 ? tun().crew.starDupes[own.stars - 1] - own.dupes : null });
       }
     }
@@ -299,9 +302,9 @@ var SYS = window.SYS || (() => {
     if (!on || (kind !== 'weapon' && kind !== 'turret')) return null;
     const inv = invOf(kind), it = listOf(kind)[i];
     if (!it || !inv.owned[i] || inv.enh[i] >= Lg.enhCap(it.grade)) return null;
-    if (Lg.enhNeedsBt(inv, i)) { const c = Lg.enhBtCost(it.grade, inv.enh[i] / 10, storeCaps()); return { gold: 0, ore: c.ore || 0, parts: c.parts || 0, bt: true }; }
+    if (Lg.enhNeedsBt(inv, i)) { const c = Lg.enhBtCost(it.grade, inv.enh[i] / 10, storeCaps()); return purse({ ore: c.ore, parts: c.parts }, { bt: true }); }
     const c = Lg.enhCost(it.grade, inv.enh[i]);
-    return { gold: c.gold, parts: c.parts };
+    return purse({ gold: c.gold, parts: c.parts });
   }
   const afford = c => G.money >= (c.gold || 0) && G.mineral >= (c.ore || 0) && G.comps >= (c.parts || 0) && G.food >= (c.food || 0);
   const spend = c => { G.money -= c.gold || 0; G.mineral -= c.ore || 0; G.comps -= c.parts || 0; G.food -= c.food || 0; };
@@ -356,7 +359,7 @@ var SYS = window.SYS || (() => {
     const used = hired().length, beds = bedsOf(G.live), c = used < HIRE.length ? capCost({ ...HIRE[used] }) : null, count = jobCount(s.job);
     const locked = !!s.unlock && Math.max(G.record + 1, G.best) < s.unlock;
     const reason = locked ? '스테이지 ' + s.unlock : count >= s.max ? '최대' : used >= beds || !c ? '침대 부족' : null;
-    return { section: key, job: s.job, count, max: s.max, price: c && { gold: c.money || 0, food: c.food || 0, ore: c.mineral || 0 },
+    return { section: key, job: s.job, count, max: s.max, price: c && purse({ gold: c.money, food: c.food, ore: c.mineral }),
       beds: { used, total: beds }, locked, lockReason: reason, reason, canBuy: !reason && !!c && canPay(c) };
   }
   function buyWorker(section) {
@@ -462,7 +465,7 @@ var SYS = window.SYS || (() => {
     return { stage: s, theme: band.theme, band: Lg.band(s), zone: Lg.zone(s) + 1, eliteShare: Lg.eliteShare(s),
       zombies: band.zombies.map(k => ({ key: k, name: Lg.ZOMBIES[k].name, sprite: ZTYPES[k] ? k : null })),
       boss: b && { kind: b.kind, name: b.name, desc: b.patterns.map(p => Lg.PATTERNS[p.key].desc).join(' · '), time: bossLimit(s), patterns: b.patterns.map(p => p.key) },
-      kills: killsNeeded(s), rewards: { gold: Math.round(stageGold(s) * st.gold), gems: firstGems(s), xp: Math.round(xp) },
+      kills: killsNeeded(s), rewards: Object.defineProperty({ gold: Math.round(stageGold(s) * st.gold), gems: firstGems(s) }, 'xp', { value: Math.round(xp) }), xp: Math.round(xp),
       cleared: s <= G.record, current: s === G.wave };
   }
   // what is on now: the stage, its kills, the boss and its clock
@@ -493,21 +496,21 @@ var SYS = window.SYS || (() => {
     const sh = G.shop, out = [], t = now();
     Lg.STEP_LINES.weapon.forEach((st, k) => {
       const bought = sh.steps.weapon > k, reason = bought ? '구매 완료' : sh.steps.weapon < k ? `${k}단계 구매 후` : G.record < st.gate ? `스테이지 ${st.gate}` : null;
-      out.push({ id: 'step-' + (k + 1), tab: 'pack', step: k + 1, name: `${k + 1}단계`, price: st.krw, priceText: won(st.krw), contents: itemsText(st.items).join(' + '),
-        items: itemsText(st.items), gate: st.gate, bought, locked: !!reason, lockReason: reason });
+      out.push({ id: 'step-' + (k + 1), tab: 'pack', step: k + 1, name: `${k + 1}단계`, price: st.krw, priceText: won(st.krw), contents: itemsText(st.items),
+        text: itemsText(st.items).join(' + '), gate: st.gate, bought, locked: !!reason, lockReason: reason });
     });
     Lg.DIAMOND_PACKS.forEach((p, k) => {
       const first = !sh.packsBought[k], dia = Lg.diamondsFor(sh, k);
       out.push({ id: 'dia-' + (k + 1), tab: 'dia', name: `다이아 ${num(p.dia)}`, price: p.krw, priceText: won(p.krw), dia, base: p.dia, first,
-        contents: `다이아 ${num(dia)}` + (first ? ' (첫 구매 2배)' : ''), locked: false, lockReason: null });
+        contents: [`다이아 ${num(dia)}`], text: `다이아 ${num(dia)}` + (first ? ' (첫 구매 2배)' : ''), locked: false, lockReason: null });
     });
     for (const [id, P, name] of [['monthly', Lg.PASSES.monthly, '월정액'], ['season', Lg.PASSES.season, '시즌 패스']]) {
       const until = id === 'monthly' ? sh.monthlyUntil : sh.seasonUntil;
-      out.push({ id, tab: 'pass', name, price: P.krw, priceText: won(P.krw), contents: P.desc, days: P.days, active: until > t, until: until > t ? until : 0, locked: false, lockReason: null });
+      out.push({ id, tab: 'pass', name, price: P.krw, priceText: won(P.krw), contents: P.desc.split(' + '), text: P.desc, days: P.days, active: until > t, until: until > t ? until : 0, locked: false, lockReason: null });
     }
     for (const [id, key, name] of CONV) {
       const own = !!sh.owned[key];
-      out.push({ id, tab: 'conv', key, name, price: Lg.CONVENIENCE[key].krw, priceText: won(Lg.CONVENIENCE[key].krw), contents: Lg.CONVENIENCE[key].desc, owned: own, locked: own, lockReason: own ? '구매 완료' : null });
+      out.push({ id, tab: 'conv', key, name, price: Lg.CONVENIENCE[key].krw, priceText: won(Lg.CONVENIENCE[key].krw), contents: [Lg.CONVENIENCE[key].desc], text: Lg.CONVENIENCE[key].desc, owned: own, locked: own, lockReason: own ? '구매 완료' : null });
     }
     return Object.assign(out, { packages: out.filter(x => x.tab === 'pack'), diamonds: out.filter(x => x.tab === 'dia'), passes: out.filter(x => x.tab === 'pass'), convenience: out.filter(x => x.tab === 'conv') });
   }
@@ -654,34 +657,26 @@ var SYS = window.SYS || (() => {
       if (t.cool < 0) t.cool = 0;
     }
   }
-  // the turret art (art/turrets.js, ART_TURRETS) when it is there: a pack like the zombies' ({ types: { [i]: set } },
-  // sets with anims 'idle' and 'fire', F/B frames, the muzzle as the frame's 'mouth' anchor); else a stand-in
+  // the turret art (art/turrets.js, ART_TURRETS): types['turret' + i], one anim per facing (se, sw, nw, ne) with two
+  // frames, idle and fire (the fire frame for the one drawn frame of a shot); the muzzle is the end of frame.gun.
+  // A turret not drawn yet gets the stand-in below
   const turretSets = new Map();
   function turretArt(i) {
-    const A = window.ART_TURRETS;
-    if (!A) return null;
-    if (turretSets.has(i)) return turretSets.get(i);
-    let out = null;
-    try {
-      const t = Lg.TURRETS[i], pack = A.types || A.turrets || A, src = Array.isArray(pack) ? pack[i] : pack[i] || pack['t' + i] || pack[t.role + t.grade] || pack[t.role];
-      if (src && src.anims) { const key = 'turret:' + i; SPR[key] = decodeSet(src); out = { key, pal: paletteOf(src.pal || A.pal || {}) }; }
-    } catch { out = null; }
-    turretSets.set(i, out);
-    return out;
+    const A = window.ART_TURRETS, src = A && A.types && A.types['turret' + i];
+    if (!src) return null;
+    let set = turretSets.get(i);
+    if (!set) { const key = 'turret' + i; SPR[key] = decodeSet(src); set = { key, pal: paletteOf(src.pal) }; turretSets.set(i, set); }
+    return set;
   }
   const GRADE_RGB = [[150, 150, 150], [92, 170, 84], [72, 128, 214], [150, 92, 200], [236, 140, 48], [214, 60, 56], [232, 192, 60], [120, 220, 230]];
   function drawTower(t) {
     const art = turretArt(t.i);
     if (art) {
-      try {
-        const set = SPR[art.key], anim = t.recoil > .3 && set.anims.fire ? 'fire' : set.anims.idle ? 'idle' : Object.keys(set.anims)[0];
-        const { view, mirror } = facingOf(t.yaw), v = set.anims[anim][view] ? view : 'F', a = set.anims[anim];
-        const info = drawSprite(art.key, anim, v, anim === 'fire' ? Math.min(a[v].length - 1, Math.floor((1 - t.recoil) * a[v].length)) : Math.floor(G.time * a.fps), mirror, t.x, t.y, t.z, art.pal);
-        if (info.fr.mouth) t.muzzle = frameSpot(info, info.fr.mouth);
-        if (t.flash && t.muzzle) { flashAt(t.muzzle[0], t.muzzle[1], info.p.d + 2); }
-        t.flash = 0;
-        return;
-      } catch { turretSets.set(t.i, null); }
+      const f = facingOf(t.yaw), dir = f.view === 'F' ? (f.mirror ? 'sw' : 'se') : (f.mirror ? 'ne' : 'nw');
+      const info = drawSprite(art.key, dir, 'F', t.flash ? 1 : 0, false, t.x, t.y, t.z, art.pal), g = info.fr.gun;
+      if (g) t.muzzle = frameSpot(info, [g[2], g[3]]);
+      t.flash = 0;
+      return;
     }
     // stand-in: a squat steel body (dark edges like the bunker's) with a band of its grade's colour, on the turntable,
     // and a barrel by role aimed at the target: twin for the machine gun, a thick tube for the mortar or rockets, a

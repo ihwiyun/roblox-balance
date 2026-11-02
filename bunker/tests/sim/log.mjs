@@ -7,7 +7,7 @@ const r2 = x => +(+x).toPrecision(3);
 
 export function makeLogger(st, relicAxis) {
   const wk = () => Math.floor(st.t / WEEK);                 // 0 = week 1
-  const events = [], flows = [], bts = [], states = [], blocks = [], weekly = [], peak = [];
+  const events = [], flows = [], bts = [], states = [], blocks = [], weekly = [], peak = [], purchases = [], pulls = [], byStage = {};
   const evt = (event, extra = {}) => events.push({ day: +(st.t / DAY).toFixed(2), hour: +(st.active / 3600).toFixed(2), stage: st.record, event, ...extra });
   const bump = (o, k, v = 1) => { o[k] = (o[k] || 0) + v; };
   const fw = () => (flows[wk()] ||= { earned: {}, spent: {} });
@@ -28,6 +28,8 @@ export function makeLogger(st, relicAxis) {
   }
   function onRecord(s) {
     peak[wk()] = powerNow();
+    const b = Math.floor(s / 50) * 50;                      // the breakdown when the record first passes each 50
+    if (b > 0 && !byStage[b]) byStage[b] = { ...peak[wk()], day: +(st.t / DAY).toFixed(1) };
     if (!seen.boss && s >= 10) { seen.boss = true; evt('첫 보스 처치 (스테이지 10)'); }
     if (!seen.titan && s >= 100) { seen.titan = true; evt('첫 타이탄 처치 (스테이지 100)'); }
     if (!seen.cmd && s >= T.player.unlockStage) { seen.cmd = true; evt('지휘관 레벨 열림'); }
@@ -42,7 +44,18 @@ export function makeLogger(st, relicAxis) {
     for (const set of L.SETS) if (!seen.sets.has(set.key) && set.ids.every(id => st.relics.level[id] > 0)) { seen.sets.add(set.key); evt(`유물 세트 완성: ${set.name}`); }
   }
   return {
-    events, flows, bts, states, blocks, weekly, event: evt,
+    events, flows, bts, states, blocks, weekly, purchases, pulls, byStage, event: evt,
+    buy(product, krw) { bump(purchases[wk()] ||= {}, product, krw); },
+    // a batch of summons: how many, paid with what, and what came out (grades for gear, results for relics and crew)
+    pull(kind, out, gems, diamonds) {
+      const w = (pulls[wk()] ||= {}), k = (w[kind] ||= { n: 0, gems: 0, diamonds: 0, got: {} });
+      k.n += out.length; k.gems += gems; k.diamonds += diamonds;
+      for (const o of out) {
+        const tag = kind.startsWith('weapon') ? L.GRADES[L.WEAPONS[o].grade].name : kind === 'turret' ? L.GRADES[L.TURRETS[o].grade].name
+          : kind === 'relic' ? { new: '새 유물', level: '레벨 업', dupe: '중복', shard: '조각' }[o.result] : { new: '새 동료', star: '별 업', dupe: '중복', max: '최대' }[o.result];
+        bump(k.got, tag);
+      }
+    },
     onEvent(type, data) {
       if (type === 'earn') { const f = fw(); bump(f.earned[data.res] ||= {}, data.src, data.amount); }
       else if (type === 'spend') { const f = fw(), sink = data.sink || 'other'; for (const [k, v] of Object.entries(data)) if (typeof v === 'number' && v > 0) bump(f.spent[k] ||= {}, sink, v); }

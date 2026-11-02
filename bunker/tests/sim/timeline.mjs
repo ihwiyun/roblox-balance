@@ -29,17 +29,62 @@ const sinkName = k => SRC[k] || k.replace('summon:', '뽑기:').replace(':bt', '
 const STATE = { 'new record': '새 기록 등반', 're-climbing': '환생 후 재등반', replaying: '깬 스테이지 반복(실패 뒤)', 'boss timer': '보스 제한시간', 'titan timer': '타이탄 제한시간', defense: '방어(뚫림)', 'normal stage too slow': '일반 스테이지 처치 속도' };
 const AXIS = { workshop: '공방 공격력', rateUptime: '연사×가동률', weaponEquip: '무기 장착', weaponOwned: '무기 보유', weaponCodex: '도감', shooters: '사수 수', turrets: '터렛', roof: '지붕 구역', crew: '동료 레벨', commander: '지휘관', medals: '훈장', relics: '유물', research: '연구' };
 
+const LABEL = { f2p: '무과금', light: '소과금', heavy: '고과금', 'heavy-packages-to-diamonds': '고과금, 패키지 대신 다이아', 'heavy-no-diamonds': '고과금, 다이아 없이(패스+패키지만)',
+  'light-no-monthly': '소과금, 월정액 없이(시즌 패스만)', 'light-no-season': '소과금, 시즌 패스 없이(월정액만)' };
+const WEEKS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
+const recAt = (r, w) => (r.weekly.find(s => s.week === w) || {}).record;
+
+function payerSection(L, r, f2p) {
+  const nm = NAME[r.profile];
+  L.push('', `### 6. 결제와 그 효과 (${nm})`, '', '**주별 결제(원, 상품별)**', '');
+  const prods = [...new Set(r.purchases.flatMap(p => Object.keys(p || {})))];
+  L.push('| 주 | 합계 | ' + prods.join(' | ') + ' |', '|---|---|' + prods.map(() => '---').join('|') + '|');
+  WEEKS.forEach(w => { const p = r.purchases[w - 1] || {}; L.push(`| ${w} | ${n(Object.values(p).reduce((a, b) => a + b, 0))} | ` + prods.map(k => p[k] ? n(p[k]) : '').join(' | ') + ' |'); });
+  L.push('', '**뽑기: 횟수(보석/다이아로 낸 양)와 결과**', '', '| 주 | 무기 | 무기(광고) | 터렛 | 유물 상자 | 동료 모집 |', '|---|---|---|---|---|---|');
+  const cell = k => k ? `${k.n}회 (보석 ${n(k.gems)}, 다이아 ${n(k.diamonds)}): ${Object.entries(k.got).map(([g, c]) => `${g} ${c}`).join(' ')}` : '-';
+  WEEKS.forEach(w => { const p = r.pulls[w - 1] || {}; L.push(`| ${w} | ${cell(p.weapon)} | ${p['weapon (ad)'] ? p['weapon (ad)'].n + '회' : '-'} | ${cell(p.turret)} | ${cell(p.relic)} | ${cell(p.recruit)} |`); });
+  L.push('', `**무과금과 같은 주에 비교한 축별 배수 (${nm} ÷ 무과금)**, 각 주 마지막 새 기록 시점`, '');
+  const axes = Object.keys(AXIS);
+  L.push('| 주 | 스테이지 (' + nm + ' / 무과금) | 로그 힘 차 | ' + axes.map(a => AXIS[a]).join(' | ') + ' |', '|---|---|---|' + axes.map(() => '---').join('|') + '|');
+  for (const s of r.weekly) {
+    const f = f2p.weekly.find(x => x.week === s.week);
+    if (!f) continue;
+    L.push(`| ${s.week} | ${s.powerAtStage} / ${f.powerAtStage} | ${(s.logPower - f.logPower).toFixed(1)} | ` + axes.map(a => { const q = s.power[a].mul / f.power[a].mul; return q >= 1.05 || q <= 0.95 ? `**${n(q)}**` : n(q); }).join(' | ') + ' |');
+  }
+  // the same comparison at the same stage: what the payer carries that F2P did not have when it got there
+  L.push('', `**같은 스테이지에서 비교 (${nm} ÷ 무과금, 두 쪽이 그 스테이지를 처음 넘은 순간)**: 결제로 앞선 축과, 무과금이 시간을 더 써서 채운 축이 보입니다.`, '');
+  const stages = Object.keys(r.byStage).map(Number).filter(b => f2p.byStage[b] && b % 100 === 0);
+  L.push('| 스테이지 | 도달 일 (' + nm + ' / 무과금) | ' + axes.map(a => AXIS[a]).join(' | ') + ' |', '|---|---|' + axes.map(() => '---').join('|') + '|');
+  for (const b of stages) {
+    const p = r.byStage[b], f = f2p.byStage[b];
+    L.push(`| ${b} | ${p.day} / ${f.day} | ` + axes.map(a => { const q = p.power[a].mul / f.power[a].mul; return q >= 1.05 || q <= 0.95 ? `**${n(q)}**` : n(q); }).join(' | ') + ' |');
+  }
+}
+
 function markdown(out) {
   const L = [];
   L.push('# 시뮬 타임라인: 12주 동안 실제로 일어나는 일', '');
   L.push(`- 봇: 사람형(30~120초마다 확인, 묶음 구매, 가끔 최선이 아닌 선택, 진행이 멈추면 환생). ${out.schedule}. 시드 ${out.seed}.`);
   L.push('- 과금: 무과금(광고 하루 3회), 소과금(월정액 5,500 + 시즌 패스 9,900원), 고과금(월 10만 원: 패스 → 열린 단계 패키지 → 다이아).');
   L.push(`- 수치: \`bunker/src/logic/tuning.mjs\` 현재값. 다시 만들기: \`node bunker/tests/sim/timeline.mjs\`. 전체 자료: \`timeline.json\`.`, '');
+  const main = out.runs.filter(r => r.label === r.profile), f2p = main.find(r => r.profile === 'f2p');
   L.push('## 요약', '', '| 유형 | 끝(일) | 활동 시간 | 최고 스테이지 | 환생 | 결제(원) |', '|---|---|---|---|---|---|');
-  for (const r of out.runs) L.push(`| ${NAME[r.profile]} | ${n(r.end.day)} | ${n(r.end.activeH)} | ${r.end.record} | ${r.end.prestiges} | ${n(r.end.spentKrw)} |`);
-  L.push('', '| 주 | ' + out.runs.map(r => NAME[r.profile]).join(' | ') + ' |', '|---|' + out.runs.map(() => '---').join('|') + '|');
-  for (let w = 1; w <= Math.max(...out.runs.map(r => r.weekly.length)); w++) L.push(`| ${w} | ` + out.runs.map(r => (r.weekly.find(s => s.week === w) || {}).record ?? '-').join(' | ') + ' |');
-  for (const r of out.runs) {
+  for (const r of out.runs) L.push(`| ${LABEL[r.label]} | ${n(r.end.day)} | ${n(r.end.activeH)} | ${r.end.record} | ${r.end.prestiges} | ${n(r.end.spentKrw)} |`);
+  const med = a => { const b = a.filter(x => x != null).sort((x, y) => x - y); return b.length ? (b.length % 2 ? b[b.length >> 1] : (b[b.length / 2 - 1] + b[b.length / 2]) / 2) : null; };
+  const recOn = (series, day) => { let r = 0; for (const [d, s] of series) { if (d <= day) r = s; else break; } return r; };
+  const dayAt = (series, stage) => { for (const [d, s] of series) if (s >= stage) return d; return null; };
+  const labels = Object.keys(out.seriesBy);
+  L.push('', `각 주 끝의 최고 스테이지 (시드 ${out.seeds.join('·')}의 중앙값):`, '', '| 주 | 목표 | ' + labels.map(l => LABEL[l]).join(' | ') + ' |', '|---|---|' + labels.map(() => '---').join('|') + '|');
+  const TARGET = { 1: 250, 2: 450, 3: 650, 4: 850, 5: 1000, 6: 1150, 7: 1300, 8: 1450, 10: 1750, 12: 2000 };
+  for (const w of WEEKS) L.push(`| ${w} | ${TARGET[w] ?? ''} | ` + labels.map(l => n(med(out.seriesBy[l].map(x => recOn(x.series, 7 * w))))).join(' | ') + ' |');
+  L.push('', '과금 효과를 시간으로: 무과금이 그 주 끝에 닿은 스테이지(시드별)에 몇 % 일찍 닿는가 (중앙값; 목표 소과금 15~25%, 고과금 35~45%):', '');
+  const payers = labels.filter(l => l !== 'f2p');
+  L.push('| 주 | ' + payers.map(l => LABEL[l]).join(' | ') + ' |', '|---|' + payers.map(() => '---').join('|') + '|');
+  for (const w of WEEKS) L.push(`| ${w} | ` + payers.map(l => {
+    const v = out.seriesBy[l].map(x => { const f = out.seriesBy.f2p.find(y => y.seed === x.seed); if (!f) return null; const target = recOn(f.series, 7 * w), d = dayAt(x.series, target); return d == null ? null : 100 * (1 - d / (7 * w)); });
+    const m = med(v); return m == null ? '-' : `${m.toFixed(0)}%`;
+  }).join(' | ') + ' |');
+  for (const r of main) {
     const nm = NAME[r.profile];
     L.push('', `## ${nm}`, '', `### 1. 사건 기록 (${nm})`, '', '| 일 | 활동 시간 | 스테이지 | 사건 | 내용 |', '|---|---|---|---|---|');
     const isPrestige = e => e.event.startsWith('환생 ') && e.event.endsWith('회');
@@ -98,6 +143,7 @@ function markdown(out) {
       const top = Object.entries(b).filter(([k]) => k !== '_total').sort((x, y) => y[1] - x[1])[0];
       L.push(`| ${i + 1} | ${st} | ${bl} | ${stall ? STATE[stall[0]] : '-'} · ${top ? RES[top[0]] || top[0] : '-'} |`);
     });
+    if (r.profile !== 'f2p') payerSection(L, r, f2p);
   }
   L.push('', '## 읽는 법', '',
     '- **진행 상태**: 확인할 때마다(30~120초) 직전 구간을 분류합니다. 기록이 올랐으면 새 기록 등반, 환생 뒤 이번 런 최고만 올랐으면 재등반, 마지막 도전이 실패했으면 실패 원인(보스·타이탄 제한시간, 방어 뚫림, 일반 스테이지 처치 속도), 그 밖은 실패 뒤 한 칸 아래 반복입니다.',
@@ -108,16 +154,34 @@ function markdown(out) {
 
 if (!isMainThread) {
   const { run } = await import('./sim.mjs');
-  const M = run({ bot: 'human', profile: workerData.profile, seed: workerData.seed, days: workerData.days, untilStage: 30000, maxActiveH: 1e9, log: true });
-  const { events, flows, bts, states, blocks, weekly } = M.log;
-  parentPort.postMessage({ profile: workerData.profile, end: { day: M.endDays, activeH: M.endActive, record: M.st.record, prestiges: M.st.evacs, spentKrw: M.st.shop.spent }, events, flows, bts, states, blocks, weekly });
+  const M = run({ bot: 'human', profile: workerData.profile, override: workerData.override, seed: workerData.seed, days: workerData.days, untilStage: 30000, maxActiveH: 1e9, log: workerData.log });
+  const series = M.samples.map(x => [+x.days.toFixed(3), x.record]);
+  const base = { profile: workerData.profile, label: workerData.label, seed: workerData.seed, series, end: { day: M.endDays, activeH: M.endActive, record: M.st.record, prestiges: M.st.evacs, spentKrw: M.st.shop.spent } };
+  if (!workerData.log) parentPort.postMessage(base);
+  else { const { events, flows, bts, states, blocks, weekly, purchases, pulls, byStage } = M.log; parentPort.postMessage({ ...base, events, flows, bts, states, blocks, weekly, purchases, pulls, byStage }); }
 } else {
-  const days = +(process.argv[2] || 84), seed = +(process.argv[3] || 1);
-  const runs = await Promise.all(PROFILES.map(profile => new Promise((res, rej) => {
-    const w = new Worker(fileURLToPath(import.meta.url), { workerData: { profile, seed, days } });
-    w.on('message', res); w.on('error', rej);
-  })));
-  const out = { generated: new Date().toISOString(), schedule: '하루 4회 접속(약 26분, 하루 1.75시간), 그 사이는 오프라인', bot: 'human', seed, days, runs };
+  const days = +(process.argv[2] || 84), seed = +(process.argv[3] || 1), seeds = [seed, seed + 1, seed + 2, seed + 3];
+  const F2P_ADS = { boosts: 3, offline: 1, pull: 1 };
+  const jobs = [...PROFILES.map(profile => ({ profile, label: profile })),
+    // attribution: the same run with one paid stream switched off (the money it freed is not spent elsewhere,
+    // except 'heavy-packages-to-diamonds', where the package budget buys diamonds instead)
+    { profile: 'heavy', label: 'heavy-packages-to-diamonds', override: { steps: false } },
+    { profile: 'heavy', label: 'heavy-no-diamonds', override: { diamonds: false } },
+    { profile: 'light', label: 'light-no-monthly', override: { monthly: false, ads: F2P_ADS } },
+    { profile: 'light', label: 'light-no-season', override: { season: false } }];
+  // the detailed logs come from the first seed; the payer comparison uses every seed (medians)
+  const all = seeds.flatMap(sd => jobs.map(j => ({ ...j, seed: sd, days, log: sd === seed })));
+  const pool = 4, done = new Array(all.length);
+  let next = 0;
+  await Promise.all(Array.from({ length: pool }, async () => {
+    while (next < all.length) {
+      const i = next++;
+      done[i] = await new Promise((res, rej) => { const w = new Worker(fileURLToPath(import.meta.url), { workerData: all[i] }); w.on('message', res); w.on('error', rej); });
+    }
+  }));
+  const runs = done.filter(r => r.seed === seed), seriesBy = {};
+  for (const r of done) (seriesBy[r.label] ||= []).push({ seed: r.seed, series: r.series, end: r.end });
+  const out = { generated: new Date().toISOString(), schedule: '하루 4회 접속(약 26분, 하루 1.75시간), 그 사이는 오프라인', bot: 'human', seed, seeds, days, runs, seriesBy };
   fs.writeFileSync(path.join(HERE, 'timeline.json'), JSON.stringify(out, null, 1));
   fs.writeFileSync(path.join(HERE, 'timeline.md'), markdown(out));
   console.log('wrote timeline.json and timeline.md:', runs.map(r => `${r.profile} 기록 ${r.end.record} (${r.end.activeH.toFixed(0)}h)`).join(', '));
