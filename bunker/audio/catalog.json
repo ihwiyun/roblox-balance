@@ -3050,6 +3050,214 @@
    ],
    "punch_db": -12.3,
    "preview_gain_db": -7.7
+  },
+  {
+   "id": "sfx_breakthrough_a",
+   "group": "sfx-base",
+   "slot": "breakthrough",
+   "slot_label": "돌파 팡파르",
+   "kind": "sfx",
+   "source": "generated",
+   "member": "breakthrough_fanfare",
+   "title": "생성: 금관 팡파르",
+   "mood": "짧은 도입 후 큰 화음, 스네어와 심벌.",
+   "star": true,
+   "author": "synth.mjs (이 프로젝트)",
+   "file": "candidates/sfx-base/sfx_breakthrough_a.ogg",
+   "bytes": 23027,
+   "seconds": 1.958,
+   "lufs_i": -18.8,
+   "true_peak": -1.1,
+   "lufs_m_max": -15.4,
+   "changes": [
+    "앞뒤 무음 0.14초 제거",
+    "20Hz 이하 제거(직류 성분 제거)",
+    "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 +0.0 dB)",
+    "OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 -0.70 dB 조정)"
+   ],
+   "source_files": [],
+   "generated_desc": "Brass fanfare: G-G-G pick-up into a C-major chord with snare and cymbal",
+   "punch_db": -11.5,
+   "preview_gain_db": -8.5
+  },
+  {
+   "id": "sfx_breakthrough_b",
+   "group": "sfx-base",
+   "slot": "breakthrough",
+   "slot_label": "돌파 팡파르",
+   "kind": "sfx",
+   "source": "wobble_levelup",
+   "member": "Rise05.aif",
+   "title": "반짝이는 상승",
+   "mood": "반짝이는 아르페지오와 긴 여운(앞 3초).",
+   "segment": [
+    0,
+    3.0
+   ],
+   "fade_out": 0.5,
+   "author": "wobbleboxx",
+   "file": "candidates/sfx-base/sfx_breakthrough_b.ogg",
+   "bytes": 19907,
+   "seconds": 2.316,
+   "lufs_i": -16.1,
+   "true_peak": -1.2,
+   "lufs_m_max": -10.8,
+   "changes": [
+    "원본 0.00–3.00초 구간만 사용",
+    "앞뒤 무음 0.68초 제거",
+    "20Hz 이하 제거(직류 성분 제거)",
+    "0.5초 페이드아웃",
+    "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 +9.8 dB)",
+    "OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 -0.15 dB 조정)"
+   ],
+   "source_files": [
+    "Rise05.aif"
+   ],
+   "direct_files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/SoundPack01.zip",
+     "name": "SoundPack01.zip",
+     "sha256": "b3405c1c98f5223c101fdbfd445903c0b558ebb325b85306964d64a34ef82db3",
+     "members": [
+      "Rise05.aif"
+     ]
+    }
+   ],
+   "punch_db": -8.8,
+   "preview_gain_db": -11.2
+  },
+  {
+   "id": "sfx_ui_button_a",
+   "group": "sfx-ui",
+   "slot": "ui_button",
+   "slot_label": "버튼",
+   "kind": "sfx",
+   "source": "generated",
+   "member": "ui_button",
+   "title": "생성: 블립",
+   "mood": "짧고 부드러운 사각파.",
+   "star": true,
+   "author": "synth.mjs (이 프로젝트)",
+   "file": "candidates/sfx-ui/sfx_ui_button_a.ogg",
+   "bytes": 4589,
+   "seconds": 0.067,
+   "lufs_i": -70.0,
+   "true_peak": -1.0,
+   "lufs_m_max": -120.0,
+   "changes": [
+    "20Hz 이하 제거(직류 성분 제거)",
+    "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 +0.3 dB)",
+    "OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 -0.15 dB 조정)"
+   ],
+   "source_files": [],
+   "generated_desc": "Short soft select blip (square, 1.05 → 1.4 kHz)",
+   "punch_db": -8.7,
+   "preview_gain_db": -11.3
+  },
+  {
+   "id": "sfx_ui_button_b",
+   "group": "sfx-ui",
+   "slot": "ui_button",
+   "slot_label": "버튼",
+   "kind": "sfx",
+   "source": "robin_ui",
+   "member": "ui_wav/click_3.wav",
+   "title": "부드러운 클릭",
+   "mood": "악기 샘플로 만든 짧은 클릭.",
+   "author": "Robin Lamb",
+   "file": "candidates/sfx-ui/sfx_ui_button_b.ogg",
+   "bytes": 5507,
+   "seconds": 0.204,
+   "lufs_i": -70.0,
+   "true_peak": -1.2,
+   "lufs_m_max": -120.7,
+   "changes": [
+    "앞뒤 무음 0.01초 제거",
+    "20Hz 이하 제거(직류 성분 제거)",
+    "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -0.4 dB)",
+    "OGG Vorbis q4로 변환"
+   ],
+   "source_files": [
+    "ui_wav/click_3.wav"
+   ],
+   "direct_files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/ui_wav.zip",
+     "name": "ui_wav.zip",
+     "sha256": "8e4e23dd4ec501776dab1428c5f1e405b5065e296518feb04816f2892d163053",
+     "members": [
+      "ui_wav/click_3.wav"
+     ]
+    }
+   ],
+   "punch_db": -13.6,
+   "preview_gain_db": -6.4
+  },
+  {
+   "id": "sfx_ui_tab_a",
+   "group": "sfx-ui",
+   "slot": "ui_tab",
+   "slot_label": "탭",
+   "kind": "sfx",
+   "source": "generated",
+   "member": "ui_tab",
+   "title": "생성: 두 번 톡",
+   "mood": "두 음의 가벼운 틱.",
+   "star": true,
+   "author": "synth.mjs (이 프로젝트)",
+   "file": "candidates/sfx-ui/sfx_ui_tab_a.ogg",
+   "bytes": 4920,
+   "seconds": 0.102,
+   "lufs_i": -70.0,
+   "true_peak": -1.5,
+   "lufs_m_max": -120.7,
+   "changes": [
+    "20Hz 이하 제거(직류 성분 제거)",
+    "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 +0.8 dB)",
+    "OGG Vorbis q4로 변환"
+   ],
+   "source_files": [],
+   "generated_desc": "Two-step soft tick for switching tabs",
+   "punch_db": -14.4,
+   "preview_gain_db": -5.6
+  },
+  {
+   "id": "sfx_ui_tab_b",
+   "group": "sfx-ui",
+   "slot": "ui_tab",
+   "slot_label": "탭",
+   "kind": "sfx",
+   "source": "robin_ui",
+   "member": "ui_wav/click_2.wav",
+   "title": "클릭",
+   "mood": "악기 샘플로 만든 짧은 클릭.",
+   "author": "Robin Lamb",
+   "file": "candidates/sfx-ui/sfx_ui_tab_b.ogg",
+   "bytes": 5934,
+   "seconds": 0.219,
+   "lufs_i": -70.0,
+   "true_peak": -1.2,
+   "lufs_m_max": -120.7,
+   "changes": [
+    "20Hz 이하 제거(직류 성분 제거)",
+    "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 +3.3 dB)",
+    "OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 +0.15 dB 조정)"
+   ],
+   "source_files": [
+    "ui_wav/click_2.wav"
+   ],
+   "direct_files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/ui_wav.zip",
+     "name": "ui_wav.zip",
+     "sha256": "8e4e23dd4ec501776dab1428c5f1e405b5065e296518feb04816f2892d163053",
+     "members": [
+      "ui_wav/click_2.wav"
+     ]
+    }
+   ],
+   "punch_db": -15.5,
+   "preview_gain_db": -4.5
   }
  ]
 }
