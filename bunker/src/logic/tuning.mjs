@@ -5,7 +5,7 @@ const DEFAULTS = {
   stage: {
     e: 0.035,                // early term of H(s); doc draft 0.012, raised so stage 60 takes 2-3 h of real play
     cap: 30000,              // doc: stages stop near 30,000
-    spawnEvery: 1.0,         // s between zombies: a stage of 30-60 kills lasts 30-60 s at full pace
+    spawnEvery: 0.9,         // s between zombies: 30-60 kills (doc) clear in 27-54 s at full pace, 30-60 s with the gap (was 1.0: 62 s)
     walk: 8,                 // s from the island edge to the fence
     hitEvery: 1.2,           // s between blows of a zombie at the fence
     tRef: 45,                // s: the pace "requirement" (auto-skip, payer checks) is measured at
@@ -19,10 +19,12 @@ const DEFAULTS = {
     extraPatternStrength: 0.5, maxExtraPatterns: 3,
   },
   workshop: {                // reset on evacuation; value(L) and the price of L -> L+1
-    atk: { base: 10, grow: 1.10, cost0: 6, costGrow: 1.118 },
-    rate: { base: 2, step: 0.04, cost0: 12, costGrow: 1.17 },     // shots/s = base(1 + step L)
-    mag: { base: 8, step: 1, cost0: 10, costGrow: 1.16 },
-    reload: { base: 1.6, grow: 0.965, min: 0.2, cost0: 10, costGrow: 1.16 },
+    // atk: x1.10 a level for x1.175 the price (was x1.118: the workshop alone kept pace with H(s) and reached 3e24 by
+    // stage 1,000 against the doc's 5e16, so no run ever stalled and the first evacuation came at stage 699)
+    atk: { base: 10, grow: 1.10, cost0: 6, costGrow: 1.175 },
+    rate: { base: 2, step: 0.04, cost0: 12, costGrow: 1.2 },      // shots/s = base(1 + step L)
+    mag: { base: 8, step: 1, cost0: 10, costGrow: 1.19 },
+    reload: { base: 1.6, grow: 0.965, min: 0.2, cost0: 10, costGrow: 1.19 },
     maxShots: 12,            // doc: real fire stops at 12 shots/s, the rest becomes damage
   },
   base: {                    // bunker, fence and sections: no level cap, a breakthrough every 50 levels (client)
@@ -42,10 +44,15 @@ const DEFAULTS = {
   sections: {
     // tier t costs tierCost * t^2 * tierGrow^(t-1) aux (doc: 200 T^2). The doc's square alone fell behind production,
     // which itself grows with every tier, so tiers ran into the hundreds; the growth factor keeps them a real sink
-    levelGrow: 1.13, levelPct: 0.04, tierPct: 0.10, roofTierPct: 0.20, tierCost: 200, tierGrow: 1.3, // doc: +4%/level
-    capPct: 0.15, capCostGold0: 150, capCostGoldGrow: 1.22, capCostAux: 90, capCostPow: 1.5, // doc: 1 h x (1 + 0.15 C)
+    // levelGrow: a floor level's gold price grows x1.25 (was 1.13: levels ran past 450 and multiplied output ~20x)
+    levelGrow: 1.25, levelPct: 0.04, tierPct: 0.10, roofTierPct: 0.20, tierCost: 200, tierGrow: 1.25, // doc: +4%/level
+    // capacity is the idle-efficiency track (doc 4): its gold price grows x1.12 so the store can keep up with the offline
+    // credit (at x1.22 the ~150 levels a 12-h night needs cost 1e15+ gold mid-game and the boxes sat full)
+    capPct: 0.15, capCostGold0: 150, capCostGoldGrow: 1.12, capCostAux: 90, capCostPow: 1.5, // doc: 1 h x (1 + 0.15 C)
     minStore: 600,
-    perWorker: { food: 2, ore: 1.5, parts: 1 },             // doc, per second
+    // doc: 2 / 1.5 / 1 a second. Parts lowered to 0.5: their sinks are bounded by doc caps (enhancement 20..160 by
+    // grade, crew breakthroughs 15 k^2) and doc 18 wants them fully used, offline credit included
+    perWorker: { food: 2, ore: 1.5, parts: 0.5 },
     overflowToXp: 10,                                       // doc: 10:1
   },
   crew: {
@@ -63,21 +70,23 @@ const DEFAULTS = {
     // medal upgrades: level L costs cost0 * grow^L medals. The effects are the doc's (x1.15 fire and funds ...);
     // the price growth sets how much one doubling of the medals buys
     ups: {
-      fire: { cost0: 2, grow: 1.22 }, funds: { cost0: 2, grow: 1.25 }, command: { cost0: 4, grow: 1.28 },
-      supply: { cost0: 5, grow: 1.32 }, drill: { cost0: 8, grow: 1.35 }, watch: { cost0: 25, grow: 2.5 }, sentry: { cost0: 25, grow: 2.5 },
+      // was 1.22-1.35: one doubling bought ~3.5 levels of each line (x3 power), so quick re-climbs doubled the medals
+      // every few minutes (3.6e16 by day 20). At x2.2-2.5 a doubling is worth ~x1.3 and a run has to push the record
+      fire: { cost0: 2, grow: 2.2 }, funds: { cost0: 2, grow: 2.2 }, command: { cost0: 4, grow: 2.5 },
+      supply: { cost0: 5, grow: 2.5 }, drill: { cost0: 8, grow: 2.5 }, watch: { cost0: 25, grow: 2.5 }, sentry: { cost0: 25, grow: 2.5 },
     },
   },
   gear: {
     mergeN: 4,                                              // doc: 4 copies -> next (4 vs 5 tested in the sim)
-    stepMul: 1.16,                                          // equip multiplier per ladder step
-    ownedBase: 0.012, ownedGrow: 1.16,                      // owned effect of weapon i: ownedBase * ownedGrow^i
-    enhEquip: 0.05, enhOwned: 0.05,                         // per enhance level
+    stepMul: 1.10,                                          // equip multiplier per ladder step (was 1.16: weapon axis 5,580 at stage 1,000 vs doc 14)
+    ownedBase: 0.01, ownedGrow: 1.10,                       // owned effect of weapon i: ownedBase * ownedGrow^i (was 0.012, 1.16)
+    enhEquip: 0.02, enhOwned: 0.02,                         // per enhance level (was 0.05: x7 on a capped immortal)
     // the enhance breakthrough every 10 levels (doc 7: ore and parts) is the parts sink of the late game: production
     // runs ~20 h a day once offline credit is counted, and 20 k^2 parts left the box full 70-90% of the time
-    btOre: 40, btParts: 400,
+    btOre: 40, btParts: 2000,                               // late gear breakthroughs hit the 80% store cap: they scale with the box
     // a level costs enhGold0 * enhGoldGrow^L * (grade + 1) gold: at 1.24 every owned piece sat at its grade cap
     // (doc: 20 .. 160) by stage ~500, which emptied the gear sink for the rest of the game
-    enhGold0: 40, enhGoldGrow: 1.24,
+    enhGold0: 40, enhGoldGrow: 1.45,
     enhCapByGrade: [20, 40, 60, 80, 100, 120, 140, 160],    // doc
     codexPer: 0.01, codexGradeSet: 0.10,                    // doc: +1% each, a grade set adds more
     pullCost: 50, pity: [[3, 50], [4, 150], [5, 500]],     // doc: hero+ in 50, legend+ in 150, immortal+ in 500

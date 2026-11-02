@@ -225,10 +225,12 @@ export function run(opts = {}) {
     }
     const crewN = Object.keys(st.crew.cards).length, bed = cost('bed');
     if (bed && (L.beds(st.sec.bed.tier) < crewN + 1 || Object.values(bed)[0] <= 0.25 * st.food)) out.push('bed');
-    // a surplus goes into whatever tier it pays for (a full box is wasted output)
+    // a surplus goes into whatever tier it pays for (a full box is wasted output), but not into a floor whose own
+    // product is already piling up (nobody upgrades the workshop while its parts box overflows)
+    const piling = r => st[r] > 0.4 * S.caps[r];
     for (const k of ['roof', 'food', 'mine', 'shop', 'bed']) {
-      const c = cost(k), r = aux(k);
-      if (c && !out.includes(k) && st[r] > 0.4 * S.caps[r] && st[r] - c[r] > 0.15 * S.caps[r]) out.push(k);
+      const c = cost(k), r = aux(k), prod = L.SECTIONS[k].product;
+      if (c && !out.includes(k) && piling(r) && st[r] - c[r] > 0.15 * S.caps[r] && !(prod && piling(prod))) out.push(k);
     }
     return out;
   }
@@ -246,7 +248,12 @@ export function run(opts = {}) {
       // capacity: hold a night's offline credit, and the largest single thing wanted
       const credit = S.offlineH * 3600 * S.prod[res] * S.offlineEff * 2;
       const biggest = Math.max(0, ...tiers.map(k => (L.price(st, `sec:${k}:tier`) || {})[res] || 0));
-      if (credit > 0.9 * S.caps[res] || biggest > 0.9 * S.caps[res] || (st[res] >= 0.9 * S.caps[res] && need[res] > st[res])) buy(`sec:${sec}:cap`);
+      // room for what is in the box plus a night's credit, and for the biggest thing being saved for
+      for (let n = 0; n < 200; n++) {                 // the MAX chip
+        const cap = L.stats(st).caps[res];
+        if (!(credit > 0.9 * cap || biggest > 0.9 * cap || st[res] + credit / 2 > 0.95 * cap)) break;
+        if (!buy(`sec:${sec}:cap`)) break;
+      }
       // output: the floor's level (doc 8: base x tier x level) when the wants are more than an hour of output away
       // and the box is not already half full (nobody raises output while the store sits full)
       const lack = need[res] - st[res];
