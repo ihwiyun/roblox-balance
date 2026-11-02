@@ -49,6 +49,8 @@ PAL = {
     'P': [238, 128, 222], 'i': [196, 140, 240], 'I': [155, 79, 209], 'j': [96, 46, 148],
     # smoke
     'p': [232, 230, 226], 'x': [184, 182, 184], 'X': [128, 126, 132],
+    # skin
+    'S': [236, 186, 146], 's': [198, 142, 106],
     # burlap
     'J': [196, 172, 120], 'N': [150, 126, 86],
     # electric arc
@@ -2397,6 +2399,337 @@ def _icon35():
 
 
 ICONS[35] = _icon35
+
+
+# 36 비상 배급: an opened ration tin of beans with its lid peeled back, a spoon, a hard biscuit
+_tin36 = rows("""
+..oooooooooooooooo....
+.oGGGGGGGGGGGGGGgao...
+oGgooooooooooooooagao.
+oGoTTTtTTtTTTtTtToaao.
+oGotTtTttTtTTtTttoaao.
+oaoooooooooooooooaako.
+oMMMMMMMMMMMMMMMMmmmo.
+oMZZZMMMMMMMMMMMMmmmo.
+oMZMCCCCCCCCCCCCMmmmo.
+oMMMCcccccccccCCMmmmo.
+oMMMCCCCCCCCCCCCMmmmo.
+oMMMMMMMMMMMMMMMMmmmo.
+oMMMMMMMMMMMMMMMMmmmo.
+oaGGGGGGGGGGGGGGGaako.
+oaaaaaaaaaaaaaaaaakko.
+.ooooooooooooooooooo..
+""")
+_lid36 = rows("""
+......oooo..
+....ooGGgao.
+...oGGggaao.
+..oGgggaao..
+.oGggaaoo...
+oGgaaoo.....
+oaaoo.......
+.oo.........
+""")
+_spoon36 = rows("""
+.oooo.
+oGWgao
+oGggao
+.oGao.
+..oao.
+..oGo.
+..oGo.
+..oGo.
+..oao.
+...o..
+""")
+_biscuit36 = rows("""
+.oooooooooo.
+oCCCCCCCCcco
+oCcCCcCCcCco
+oCCCCCCCCcco
+oCcCCcCCcCco
+ocqqqqqqqqqo
+.oooooooooo.
+""")
+
+
+def _icon36():
+    cv = blank()
+    stamp(cv, _biscuit36, 29, 31, 'biscuit')
+    stamp(cv, _tin36, 7, 22, 'tin')
+    stamp(cv, _lid36, 9, 13, 'lid')
+    stamp(cv, _spoon36, 30, 11, 'spoon')
+    return cv
+
+
+ICONS[36] = _icon36
+
+# 37 동면 캡슐: an upright sleep capsule, frost round its glass, a sleeper's face inside, a green light on
+_pod37 = rows("""
+.......oooooooooo.......
+.....ooGGGGGGGGgaoo.....
+....oGGggggggggggaao....
+...oGggooooooooooggao...
+..oGggoLLLLLLLLLLoggao..
+..oGgoLLWLLBBBBBBLogao..
+.oGggoLWLBBBBBBBBLogaao.
+.oGgoLLLBBBSSSSBBBLogao.
+.oGgoLLBBBSSSSSSBBLogao.
+.oGgoLLBBBSssSssBBLogao.
+.oGgoLLBBBSSSSSSBBLogao.
+.oGgoLLBBBBSssSBBBLogao.
+.oGgoLLBBBBBBBBBBBLogao.
+.oGgoLLBBBBBBBBBBLLogao.
+.oGgoLLLBBBBBBBBLLLogao.
+.oGgoLLLLBBBBBBLLLLogao.
+.oGggoLLLLLLLLLLLLoggao.
+.oGgggoooooooooooogggao.
+.oGgggggggggggggggggaao.
+.oGggggggVVgggggggggaao.
+.oGgggggVWVggggggggaaao.
+.oGggggggVgggggggggaaao.
+.oaaaaaaaaaaaaaaaaaaako.
+.okkkkkkkkkkkkkkkkkkkko.
+..oooooooooooooooooooo..
+""")
+
+
+def _icon37():
+    cv = blank()
+    stamp(cv, _pod37, 12, 9, 'capsule')
+    stamp(cv, _flake, 4, 9, 'flake')
+    stamp(cv, _flake, 37, 30, 'flake')
+    for x, y in ((8, 30), (40, 12), (6, 38)):
+        cv[y][x] = 'L'
+    return cv
+
+
+ICONS[37] = _icon37
+
+# 38 방폭문: a round blast door in a concrete frame, bolted all round, a spoked wheel at its middle
+_frame38 = rows("""
+oooooooooooooooooooooooooooooooooooo
+occccccccccccccccccccccccccccccccc.o
+ocCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCcao
+ocCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCcao
+ocCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCcao
+ocCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCcao
+ocCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCcao
+ocCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCcao
+ocCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCcao
+ocCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCcao
+ocCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCcao
+ocCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCcao
+ocCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCcao
+ocCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCcao
+ocCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCcao
+ocCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCcao
+ocCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCcao
+ocCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCcao
+ocCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCcao
+ocCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCcao
+ocCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCcao
+ocCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCcao
+ocCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCcao
+ocCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCcao
+ocCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCcao
+ocCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCcao
+ocCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCcao
+ocCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCcao
+ocCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCcao
+ocaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaao
+oooooooooooooooooooooooooooooooooooo
+""")
+_door38 = rows("""
+.........oooooooooo.........
+......oooGGGGGGGGgaooo......
+.....oGGGgggggggggggaao.....
+...ooGgggaGgggggGagggaaoo...
+..oGgggggggggggggggggggaao..
+..oGgGaggggggggggggggaGaao..
+.oGgggggggaaaaaaaaggggggaao.
+.oGggggggaoooooooaagggggaao.
+oGgggggaao.oGGGo.oaaggggaako
+oGggggggo.oGaKaGo.oagggggako
+oGaGgggoGGGo.o.oGGGoggggGako
+oGggggo.GaKaooooaKaG.ogggako
+oGggggo.GGGGo.o.GGGG.ogggako
+oGggggoGGGo.oGo.oGGGoggggako
+oGgaGgggo.oGaKaGo.oaggggGako
+oGgggggggo.oGGGo.oagggggaako
+.oGggggggaoooooooagggggaako.
+.oGggggggggaaaaaaggggggaako.
+..oGgGagggggggggggggggaGko..
+..oGggggggggggggggggggaako..
+...ooGgggaGggggggGagggakoo..
+.....oaaaaaaaaaaaaaaaakko...
+......oookkkkkkkkkkkkooo....
+.........oooooooooooo.......
+""")
+
+
+_wheel38 = rows("""
+....ooooo....
+..ooRRRRroo..
+.oRro.o.orro.
+.oRo..o..oro.
+oRo..oo...oro
+oRo..oKo..oro
+oRooooKKooorr
+oRo..oKo..oro
+oro...oo..oQo
+.oro..o..oQo.
+.orro.o.oQQo.
+..oorrrrQoo..
+....ooooo....
+""")
+
+
+def _icon38():
+    cv = blank()
+    stamp(cv, _frame38, 6, 8, 'frame')
+    stamp(cv, _door38, 10, 12, 'door')
+    for y in range(17, 31):
+        for x in range(16, 33):
+            if cv[y][x] != '.' and 18 <= x <= 30 and 18 <= y <= 30:
+                pass
+    stamp(cv, [r for r in rows("""
+.......ooooooooo.......
+.....ooGGGGgggggoo.....
+...ooGggggggggggaaoo...
+..oGgggggggggggggggao..
+..oGgggggggggggggggao..
+.oGgggggggggggggggggao.
+.oGgggggggggggggggggao.
+.oGgggggggggggggggggao.
+.oGgggggggggggggggggao.
+.oGgggggggggggggggggao.
+..oGgggggggggggggggao..
+..oagggggggggggggggao..
+...ooaggggggggggaaoo...
+.....ooaaaaaaaaaoo.....
+.......ooooooooo.......
+""")], 13, 16, 'boss')
+    stamp(cv, _wheel38, 18, 17, 'wheel')
+    return cv
+
+
+ICONS[38] = _icon38
+
+# 39 방독면: a gas mask face on, two round eyepieces with a purple sheen, a filter screwed on below
+_mask39 = rows("""
+........oooooooooooooo........
+......ooMMMMMMMMMMMMMMoo......
+....ooMMZMMMMMMMMMMMMMmmoo....
+...oMZMMMMMMMMMMMMMMMMMmmmo...
+..oMZMMooooooMMMMooooooMmmmo..
+..oMMMoiiIIIjoMMoiiIIIjoMmmo..
+.oMZMoiWiIIIjjooiWiIIIjjomMmo.
+.oMMMoiiIIIIjjooiiIIIIjjommmo.
+.oMMMoIIIIIjjjooIIIIIjjjommmo.
+.oMMMojjjjjjjjoMojjjjjjjommmo.
+.oMMMMoojjjjooMMMoojjjjoommmo.
+.oMMMMMMooooMMMMMMMooooMmmmmo.
+..oMMMMMMMMMMMMMMMMMMMMmmmmo..
+..omMMMMMMMMooooooMMMMmmmmmo..
+...omMMMMMMoaGGgaaoMMMmmmmo...
+....ommMMMMoaggaaaoMMmmmmo....
+.....ommmMMoaaaakkommmmmo.....
+.......oommooooooommmoo.......
+.........oooaaaakooo..........
+..........oGggggaao...........
+..........oGgkgkgao...........
+..........oGggggaao...........
+..........oGgkgkgao...........
+..........oaaaaakko...........
+...........ooooooo............
+""")
+
+
+def _icon39():
+    cv = blank()
+    stamp(cv, _mask39, 9, 9, 'mask')
+    # straps out to the sides
+    for x in range(3, 10):
+        cv[17][x] = 'k' if x % 2 else 'H'
+    for x in range(38, 45):
+        cv[17][x] = 'k' if x % 2 else 'H'
+    return cv
+
+
+ICONS[39] = _icon39
+
+# 40 정찰 드론: a quadcopter, four blurred rotors on its arms, an orange camera eye under its body
+_drone40 = rows("""
+..oooooooo..................oooooooo..
+.opppxxpppo................opppxxpppo.
+oppxxpppxxpo..............oppxxpppxxpo
+.opppxxpppo................opppxxpppo.
+..oooggoooo................ooooggooo..
+......oGao....................oGao....
+.......oGao..................oGao.....
+........oGao..oooooooooo....oGao......
+.........oGaooGGGGGGGGgaoooGao........
+..........oGGGggggggggggaGGao.........
+..........ooGgOOOOOOOOggaaaoo.........
+...........oGgggggggggggaao...........
+..........oGaoaaaaaaaaaaoGao..........
+.........oGao.oaaWfeaao..oGao.........
+........oGao...ofFfeo.....oGao........
+.......oGao.....ooooo......oGao.......
+......oGao..................oGao......
+..oooggoooo................ooooggooo..
+.opppxxpppo................opppxxpppo.
+oppxxpppxxpo..............oppxxpppxxpo
+.opppxxpppo................opppxxpppo.
+..oooooooo..................oooooooo..
+""")
+
+
+def _icon40():
+    cv = blank()
+    stamp(cv, _drone40, 5, 12, 'drone')
+    return cv
+
+
+ICONS[40] = _icon40
+
+# 41 재활용기: three bent arrows chasing round a gear, scrap going in and coming back as ore
+_arrows41 = rows("""
+.........oooooooooo.........
+.......ooVVVVVVVVVVoo.......
+.....ooVVvvvvvvvvvVVVoo.....
+....oVVvoo........ooVVVo....
+...oVvoo............oVVVo...
+..oVvo...............oVVo...
+..oVo..............oooVVVooo
+.oVvo..............oVVVVVVVo
+.oVo................oVVVVVo.
+.oVo.................oVVVo..
+.oVo..................oVo...
+.ooo...................o....
+....o...................ooo.
+...oVo..................oVo.
+..oVVVo.................oVo.
+.oVVVVVo................oVo.
+oVVVVVVVo..............ovVo.
+oooVVVooo..............oVo..
+...oVVo...............ovVo..
+...oVVVo.............oovVo..
+....oVVVoo........oovVvo....
+.....ooVVVvvvvvvvvvVVoo.....
+.......ooVVVVVVVVVVoo.......
+.........oooooooooo.........
+""")
+def _icon41():
+    cv = blank()
+    stamp(cv, _arrows41, 10, 9, 'arrows')
+    stamp(cv, _gearA31, 17, 14, 'gear')
+    stamp(cv, _ore27, 37, 36, 'ore')
+    return cv
+
+
+ICONS[41] = _icon41
 
 
 def build_icon(rid, grade):

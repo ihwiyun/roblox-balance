@@ -397,8 +397,8 @@ function strip(kind, label, price, cls = '') {
   const I = sysCall('summonInfo', kind), cur = I && I.currency === 'diamonds' ? 'diamond' : 'ruby';
   const lv = I ? I.level : 1, fill = I && I.nextAt ? Math.min(1, (I.pulls - (I.prevAt || 0)) / Math.max(1, I.nextAt - (I.prevAt || 0))) : 0;
   const one = I ? I.price : price, ten = I ? I.price10 : price * 10, c = curOf(), gems = c.gems || 0, all = gems + (I && I.diamondsToo ? c.diamonds || 0 : 0);
-  // which it spends: gems while they last, then diamonds
-  const cost = n => `${gems >= n ? ic(cur) : gems > 0 ? ic(cur) + ic('diamond') : ic('diamond')}<span class="num">${n.toLocaleString('en')}</span>`;
+  // which it spends: gems while they last, then diamonds (a price that cannot be paid shows its own currency)
+  const cost = n => `${gems >= n || all < n ? ic(cur) : gems > 0 ? ic(cur) + ic('diamond') : ic('diamond')}<span class="num">${n.toLocaleString('en')}</span>`;
   const can = (n, flag) => !!I && (flag ?? all >= n);
   return `<div class="strip ${cls}"><button class="lv tap" type="button" data-rates="${kind}"${I ? '' : ' disabled'}><b>${label} Lv ${lv}</b><span><span class="prog2"><i style="width:${fill * 100}%"></i></span><span class="link">확률</span></span></button>`
     + B('sub sm', '1회 ' + cost(one), can(one, I && I.canPay) ? `data-summon="${kind}:1"` : 'disabled') + B('sub sm', '10회 ' + cost(ten), can(ten, I && I.canPay10) ? `data-summon="${kind}:10"` : 'disabled') + '</div>';
@@ -606,7 +606,7 @@ function rebirthConfirm() {
   const P = sysCall('prestigeInfo');
   if (!P) return;
   openSheet('환생', () => `<div class="rb">${ic('medal', 2)}${evacGain(P)}</div>`
-    + '<p>스테이지·강화·자원은 처음으로 돌아가고, 기지·장비·유물·동료·훈장은 남습니다.</p>'
+    + line('초기화', '스테이지·강화·자원') + line('유지', '기지·장비·유물·동료·훈장')
     + `<div class="tool">${B('sub', '취소', 'data-close')}${B('pri grow', '환생', 'data-yes')}</div>`, d => { if ('yes' in d) { sysCall('prestige'); sound('buy'); closeSheet(); } });
 }
 // 랭킹: the player's own runs, best first (other players come with the server); raiding is shown, switched off
