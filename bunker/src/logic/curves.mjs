@@ -41,7 +41,11 @@ export function capToStores(cost, caps) {
 const btK = k => k ** B().btPow;
 // bunker, fence and sections: k = L/50; coefficients in tuning (B().bt). Their gold part is added by the economy,
 // which knows the level's price (B().btGold x the next level's gold)
-const btOf = (coef, k, aux) => Object.fromEntries(Object.entries(coef).map(([r, v]) => [r === 'aux' ? aux : r, v * btK(k)]));
+const btOf = (coef, k, aux) => {
+  const o = {};
+  for (const [r, v] of Object.entries(coef)) { const key = r === 'aux' ? aux : r; o[key] = (o[key] || 0) + v * btK(k); } // the lab's aux is parts too
+  return o;
+};
 export const BREAKTHROUGHS = {
   bunker: k => btOf(B().bt.bunker, k),
   fence: k => btOf(B().bt.fence, k),
