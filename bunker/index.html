@@ -81,7 +81,31 @@
 
   #bottom { position: fixed; left: 0; right: 0; bottom: 0; height: var(--bottom); border-top: 1px solid var(--ink); background: var(--paper); display: flex; flex-direction: column; padding-bottom: env(safe-area-inset-bottom); }
   #panel { flex: 1; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); align-content: start; }
-  #tabs { display: grid; grid-template-columns: repeat(4, 1fr); flex: none; border-top: 1px solid var(--ink); }
+  #tabs { display: grid; grid-template-columns: repeat(5, 1fr); flex: none; border-top: 1px solid var(--ink); }
+  /* each bottom tab splits into its own pages */
+  #subtabs { display: flex; gap: 4px; padding: 6px 8px; border-bottom: 1px solid var(--line); overflow-x: auto; flex: none; }
+  #subtabs .mini { white-space: nowrap; }
+  /* shop, rebirth and ranking: their own buttons beside the picture, apart from the tabs */
+  #side { position: fixed; right: max(8px, env(safe-area-inset-right)); top: calc(var(--top) + 8px); display: grid; gap: 6px; z-index: 3; }
+  .wide #side { right: calc(var(--side) + 8px); }
+  .sbtn { background: rgba(255, 255, 255, .92); border: 1px solid var(--ink); padding: 6px 8px; min-width: 52px; min-height: 36px; cursor: pointer; font: inherit; font-weight: 700; color: var(--ink); }
+  .sbtn:active { transform: translateY(1px); }
+  /* grids of slots: weapons, relics, turrets, the codex */
+  .block { grid-column: 1 / -1; padding: 8px 10px; border-bottom: 1px solid var(--line); }
+  .block h3 { margin: 0 0 6px; font-size: 12px; display: flex; justify-content: space-between; gap: 8px; }
+  .slots { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
+  .slots.six { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  .slots.eight { grid-template-columns: repeat(8, minmax(0, 1fr)); }
+  .slot { border: 2px solid var(--g, var(--line)); background: var(--soft); min-height: 40px; display: grid; place-items: center; font-size: 10px; color: var(--muted); text-align: center; padding: 2px; overflow-wrap: anywhere; }
+  .slot.off { opacity: .45; }
+  .gr { font-weight: 700; color: var(--g); }
+  .g0 { --g: #9a9a9a; } .g1 { --g: #4caf50; } .g2 { --g: #3d7be0; } .g3 { --g: #9b4fd1; }
+  .g4 { --g: #f08a24; } .g5 { --g: #d63a3a; } .g6 { --g: #c99a10; } .g7 { --g: #e0459b; }
+  .g7.slot { border-image: linear-gradient(90deg, #e04545, #f0b020, #45c070, #4590e0, #a050e0) 1; }
+  .rowline { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px solid var(--line); }
+  .rowline:last-child { border-bottom: 0; }
+  dialog.big { width: min(380px, calc(100vw - 24px)); max-height: calc(100vh - 48px); overflow-y: auto; padding: 12px; }
+  dialog.big h3 { margin: 14px 0 6px; font-size: 13px; }
   .tab { background: var(--paper); border: 0; padding: 5px 2px 6px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 1px; color: var(--muted); }
   .tab[aria-selected="true"] { color: var(--ink); font-weight: 700; box-shadow: inset 0 2px 0 var(--ink); }
   /* below ground, the floor cards are also how you pick the floor on show */
@@ -144,15 +168,21 @@
   <span class="lbl" id="fenceText">울타리 없음</span><div class="track"><div class="fill" id="fenceFill"></div></div>
 </div>
 <div id="bottom">
+  <div id="subtabs" role="tablist"></div>
   <div id="panel"></div>
   <div id="tabs" role="tablist">
     <button class="tab" role="tab" data-tab="gun" data-ico="bullet" aria-selected="true">무기</button>
     <button class="tab" role="tab" data-tab="def" data-ico="bunker" aria-selected="false">방어</button>
     <button class="tab" role="tab" data-tab="under" data-ico="bed" aria-selected="false">지하</button>
     <button class="tab" role="tab" data-tab="crew" data-ico="person" aria-selected="false">인원</button>
+    <button class="tab" role="tab" data-tab="relic" data-ico="relic" aria-selected="false">유물</button>
   </div>
 </div>
 <div id="over" hidden role="alertdialog" aria-labelledby="overTitle"><div class="box"><h2 id="overTitle">기지 함락</h2><p>식량이 떨어진 채로 기지가 무너졌다</p><p class="stats"></p><button class="mini danger" id="restart" type="button">처음부터 다시</button></div></div>
+<div id="side"><button class="sbtn" type="button" data-dlg="shopDlg">상점</button><button class="sbtn" type="button" data-dlg="rebirthDlg">환생</button><button class="sbtn" type="button" data-dlg="rankDlg">랭킹</button></div>
+<dialog id="shopDlg" class="big"><h2>상점</h2><div class="dbody"></div><form method="dialog" style="text-align:right;margin-top:12px"><button class="mini">닫기</button></form></dialog>
+<dialog id="rebirthDlg" class="big"><h2>환생</h2><div class="dbody"></div><form method="dialog" style="text-align:right;margin-top:12px"><button class="mini">닫기</button></form></dialog>
+<dialog id="rankDlg" class="big"><h2>랭킹</h2><div class="dbody"></div><form method="dialog" style="text-align:right;margin-top:12px"><button class="mini">닫기</button></form></dialog>
 <dialog id="settings">
   <h2>설정</h2>
   <div class="set"><span>효과음</span><button class="mini" id="soundToggle" type="button">켜짐</button></div>

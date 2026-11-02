@@ -30,7 +30,7 @@ function portrait(person, scale = 2) {
 }
 document.querySelectorAll('[data-ico]').forEach(el => el.prepend(iconCanvas(el.dataset.ico, el.classList.contains('tab') ? 1.5 : 1.25)));
 const nodes = {};
-for (const id of ['panel', 'bunkerFill', 'bunkerText', 'bunkerTrack', 'fenceFill', 'fenceText', 'waveLine', 'stage', 'speed', 'notes', 'ammo', 'ammoNum', 'ammoBar']) nodes[id] = document.getElementById(id);
+for (const id of ['panel', 'subtabs', 'bunkerFill', 'bunkerText', 'bunkerTrack', 'fenceFill', 'fenceText', 'waveLine', 'stage', 'speed', 'notes', 'ammo', 'ammoNum', 'ammoBar']) nodes[id] = document.getElementById(id);
 // notifications: one band at a time, queued; kind is '' | 'good' | 'new' | 'danger'
 const noteQueue = [];
 let noteBusy = false;
@@ -67,6 +67,32 @@ function refreshAmmo() {
   nodes.ammo.classList.toggle('empty', !reloading && h.ammo === 0);
 }
 let tab = 'gun';
+// every bottom tab is split into its own pages (지하: one page per floor)
+const SUBS = {
+  gun: [['up', '강화'], ['own', '보유 무기'], ['merge', '합성'], ['codex', '도감']],
+  def: [['bunker', '벙커'], ['fence', '울타리'], ['turret', '터렛']],
+  under: [[0, '1층 침실'], [1, '2층 식량'], [2, '3층 채굴']],
+  crew: [['crew', '동료'], ['zones', '구역 배치'], ['cmd', '지휘관']],
+  relic: [['equip', '장착'], ['own', '보유'], ['set', '세트']],
+};
+const sub = { gun: 'up', def: 'bunker', crew: 'crew', relic: 'equip' };
+const subOf = t => t === 'under' ? (G.floorView || 0) : sub[t];
+let subKey = '';
+function renderSubtabs() {
+  const key = tab + ':' + subOf(tab);
+  if (key === subKey) return;
+  subKey = key;
+  nodes.subtabs.innerHTML = '';
+  for (const [k, name] of SUBS[tab]) {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'mini'; b.textContent = name; b.setAttribute('aria-pressed', String(subOf(tab) === k));
+    b.addEventListener('click', () => {
+      if (tab === 'under') { viewFloor(k); return; }
+      sub[tab] = k; nodes.panel.scrollTop = 0; renderPanel(true);
+    });
+    nodes.subtabs.append(b);
+  }
+}
 function setView(v) {
   G.view = v;
   if (v === 'under') refreshUnder(); else showYard();
@@ -110,34 +136,67 @@ function priceOf(id) {
 const COST_ICON = { money: 'coin', food: 'food', mineral: 'mineral' };
 const costHtml = c => Object.entries(c).map(([k, v]) => `<span class="cost${G[k] < v ? ' short' : ''}"><i class="ci ci-${COST_ICON[k]}"></i>${fmt(v)}</span>`).join('');
 const shotsToKill = dmg => Math.ceil(zombieHp(G.wave) / dmg - 1e-9);
+// the planned collections, laid out as their real slots (they fill in as the systems arrive)
+const GRADES = ['일반', '고급', '희귀', '영웅', '전설', '불멸', '신화', '영원'];
+const WEAPON_LADDER = [
+  ['녹슨 리볼버', '사제 기관단총', '쇠파이프 산탄총', '사냥용 볼트액션', '고물 못총'],
+  ['경찰 권총', '민간 기관단총', '펌프 산탄총', '사냥 소총', '소방 화염기'],
+  ['군용 권총', '돌격소총', '전투 산탄총', '저격소총', '경기관총'],
+  ['기관권총', '특수부대 소총', '자동 산탄총', '대물 저격총', '유탄발사기'],
+  ['플라즈마 권총', '레이저 소총', '충격파 산탄총', '레일 저격총', '미니건'],
+  ['중력 권총', '입자 소총', '분열 산탄총', '시간 저격총', '테슬라 포'],
+  ['천둥의 권총', '용의 숨결 소총', '지옥불 산탄총', '신의 창', '종말의 개틀링'],
+  ['별의 권총', '은하 소총', '초신성 산탄총', '블랙홀 저격총', '영원의 포'],
+];
+const RELIC_SETS = ['검은 연기', '동상', '폭풍', '사냥꾼', '성채', '보급관'];
+const slot = (cls, text) => `<div class="slot ${cls}">${text}</div>`;
+const block = (id, title, right, body) => ({ id, html: `<h3><span>${title}</span><span>${right}</span></h3>${body}` });
+function pageHtml() {
+  const p = subOf(tab);
+  if (tab === 'gun' && p === 'own') return GRADES.map((g, n) => block('own' + n, `<span class="gr g${n}">${g}</span>`, '0/5', `<div class="slots">${WEAPON_LADDER[n].map(w => slot('g' + n + ' off', w)).join('')}</div>`));
+  if (tab === 'gun' && p === 'merge') return [block('merge', '합성', '4 → 1', `<div class="slots">${slot('', '')}${slot('', '')}${slot('', '')}${slot('', '')}${slot('', '→')}</div><div class="rowline"><span></span><button class="buy" type="button" disabled>합성</button></div>`)];
+  if (tab === 'gun' && p === 'codex') return [block('codex', '도감', '0/40', `<div class="slots eight">${GRADES.flatMap((g, n) => WEAPON_LADDER[n].map(() => slot('g' + n + ' off', ''))).join('')}</div>`)];
+  if (tab === 'def' && p === 'turret') return [block('turret', '터렛', '0/6', `<div class="slots six">${[25, 50, 100, 200, 400, 700].map(L => slot('off', '벙커 Lv ' + L)).join('')}</div>`)];
+  if (tab === 'crew' && p === 'zones') {
+    const zone = (name, job, n) => { const who = G.crew.filter(c => c && c.job === job); return block('zone' + job, name, who.length + '/' + n, `<div class="slots">${Array.from({ length: n }, (_, i) => slot(who[i] ? '' : 'off', who[i] ? who[i].name : '')).join('')}</div>`); };
+    return [zone('지붕 초소', '사수', 5), zone('2층 식량', '농부', 5), zone('3층 채굴', '광부', 5), block('zoneWork', '작업장', '잠김', `<div class="slots">${Array.from({ length: 5 }, () => slot('off', '')).join('')}</div>`)];
+  }
+  if (tab === 'crew' && p === 'cmd') return [block('cmd', '지휘관 Lv 1', '포인트 0', ['위력', '속사', '행운', '정밀', '지휘', '보급'].map(n => `<div class="rowline"><span>${n}</span><span>0 <button class="mini" type="button" disabled>+</button></span></div>`).join(''))];
+  if (tab === 'relic' && p === 'equip') return [block('requip', '장착', '0/8', `<div class="slots eight">${[20, 50, 100, 200, 400, 700, 1000, 2000].map(r => slot('off', '기록 ' + fmt(r))).join('')}</div>`)];
+  if (tab === 'relic' && p === 'own') return GRADES.map((g, n) => block('rown' + n, `<span class="gr g${n}">${g}</span>`, '0/6', `<div class="slots six">${Array.from({ length: 6 }, () => slot('g' + n + ' off', '')).join('')}</div>`));
+  if (tab === 'relic' && p === 'set') return RELIC_SETS.map((name, n) => block('rset' + n, name, '0/3', `<div class="slots">${slot('off', '')}${slot('off', '')}${slot('off', '')}</div>`));
+  return null;
+}
 function cards() {
+  const page = pageHtml();
+  if (page) return page;
   if (tab === 'gun') {
     return Object.entries(GUN).map(([k, g]) => {
       const L = G.lv[k], max = L >= g.max, now = g.val(L), next = g.val(L + 1);
       let desc;
       if (k === 'atk') {
         desc = `한 발 ${fmt(now)} → ${fmt(next)} · 지금 좀비 ${shotsToKill(now)}발 → ${shotsToKill(next)}발`;
-        const nxt = Math.ceil((L + 1) / 4) * 4;
-        desc += `<br>Lv ${nxt}: ${weaponLookName(nxt)} 외형`;
       } else if (k === 'spd') desc = `초당 ${now.toFixed(2)}발 → ${next.toFixed(2)}발 · 총구 화염 ${1 + Math.min(2, Math.floor(L / 10))}단계`;
       else desc = `${now}발 → ${next}발 · 장전 ${reloadTime().toFixed(1)}초${L + 1 === 20 ? '<br>다음: 드럼 탄창' : ''}`;
-      return { id: 'gun:' + k, ico: { atk: 'bullet', spd: 'rate', mag: 'mag' }[k], name: k === 'atk' ? '공격력 · ' + weaponLookName(L) : g.name, lv: 'Lv ' + L + '/' + g.max, desc: max ? '최대 레벨' : desc, cost: priceOf('gun:' + k), max, prog: L / g.max };
+      return { id: 'gun:' + k, ico: { atk: 'bullet', spd: 'rate', mag: 'mag' }[k], name: g.name, lv: 'Lv ' + L + '/' + g.max, desc: max ? '최대 레벨' : desc, cost: priceOf('gun:' + k), max, prog: L / g.max };
     });
   }
   if (tab === 'def') {
     const B = G.bunker, F = G.fence, bmax = B >= MAX_BUNKER, fmax = F >= MAX_FENCE;
-    return [
+    const list = [
       { id: 'bunker', ico: 'bunker', name: '벙커 · ' + bunkerInfo(B).name, lv: 'Lv ' + B + '/' + MAX_BUNKER, desc: bmax ? '최대 레벨' : `체력 ${fmt(bunkerHp(B))} → ${fmt(bunkerHp(B + 1))}<br>다음: ${bunkerAddName(B + 1)}`, cost: priceOf('bunker'), max: bmax, prog: B / MAX_BUNKER },
       { id: 'fence', ico: 'fence', name: '울타리' + (F ? ' · ' + fenceInfo(F).name : ''), lv: 'Lv ' + F + '/' + MAX_FENCE, desc: fmax ? '최대 레벨' : `체력 ${fmt(fenceHp(F))} → ${fmt(fenceHp(F + 1))}<br>다음: ${fenceAddName(F + 1)}${fenceInfo(F + 1).electric && !(F && fenceInfo(F).electric) ? ' (공격한 좀비 감전)' : ''}`, cost: priceOf('fence'), max: fmax, prog: F / MAX_FENCE },
     ];
+    return list.filter(c => c.id === sub.def);
   }
   if (tab === 'under') {
     const Lv = G.live, Fm = G.farm, Mn = G.mine;
-    return [
+    const floors = [
       { id: 'live', floor: 0, ico: 'bed', name: '지하 1층 · 생활층', lv: 'Lv ' + Lv + '/' + LIVE.max, desc: Lv >= LIVE.max ? '최대 레벨' : `침대 ${bedsOf(Lv)}/5 · 휴식 속도 +${Lv * 5}%<br>다음: ${LIVE_ITEMS[Lv]}${LIVE.beds.includes(Lv + 1) ? ' (고용 자리 +1)' : ''}`, cost: priceOf('live'), max: Lv >= LIVE.max, prog: Lv / LIVE.max },
       { id: 'farm', floor: 1, ico: 'farm', name: '지하 2층 · 식량층' + (Fm ? ' · ' + FARM_TIERS[facTier(Fm)] : ''), lv: Fm ? 'Lv ' + Fm + '/' + FARM.max : '미개척', desc: Fm >= FARM.max ? '최대 레벨' : `식량 초당 ${fmt(FARM.rate(Fm))} → ${fmt(FARM.rate(Fm + 1))} (농부 1명당 +100%)<br>다음: ${FARM_ITEMS[Fm]}`, cost: priceOf('farm'), max: Fm >= FARM.max, prog: Fm / FARM.max },
       { id: 'mine', floor: 2, ico: 'pick', name: '지하 3층 · 채굴층' + (Mn ? ' · ' + MINE_TIERS[facTier(Mn)] : ''), lv: Mn ? 'Lv ' + Mn + '/' + MINE.max : '미개척', desc: Mn >= MINE.max ? '최대 레벨' : `광물 초당 ${fmt(MINE.rate(Mn))} → ${fmt(MINE.rate(Mn + 1))} (광부 1명당 +100%)<br>다음: ${MINE_ITEMS[Mn]}`, cost: priceOf('mine'), max: Mn >= MINE.max, prog: Mn / MINE.max },
     ];
+    return [floors[G.floorView || 0]];
   }
   const beds = bedsOf(G.live);
   return G.crew.map((c, i) => {
@@ -152,9 +211,10 @@ let panelKey = '', pressing = false;
 nodes.panel.addEventListener('pointerdown', () => { pressing = true; });
 addEventListener('pointerup', () => { pressing = false; }); addEventListener('pointercancel', () => { pressing = false; });
 function renderPanel(force) {
+  renderSubtabs();
   const list = cards();
   // fatigue is not part of the key: its bars are updated in place below, so cards are not rebuilt for it
-  const key = tab + G.view + (G.floorView || 0) + JSON.stringify(list.map(c => [c.id, c.name, c.lv, c.desc, c.cost && Object.entries(c.cost).map(([k, v]) => [v, G[k] >= v])]));
+  const key = tab + G.view + (G.floorView || 0) + JSON.stringify(list.map(c => [c.id, c.html, c.name, c.lv, c.desc, c.cost && Object.entries(c.cost).map(([k, v]) => [v, G[k] >= v])]));
   if (!force && (key === panelKey || pressing)) {
     list.forEach((c, n) => { if (c.fatigue != null) { const bar = nodes.panel.children[n] && nodes.panel.children[n].querySelector('.tired span'); if (bar) bar.style.width = clamp(c.fatigue, 0, 100) + '%'; } });
     return;
@@ -163,6 +223,7 @@ function renderPanel(force) {
   nodes.panel.innerHTML = '';
   for (const c of list) {
     const el = document.createElement('div');
+    if (c.html) { el.className = 'block'; el.innerHTML = c.html; nodes.panel.append(el); continue; }
     el.className = 'card' + (c.floor != null ? ' pick' + (c.floor === (G.floorView || 0) && G.view === 'under' ? ' on' : '') : '');
     if (c.floor != null) el.addEventListener('click', e => { if (!e.target.closest('button')) { ensureAudio(); viewFloor(c.floor); } });
     const ic = document.createElement('div');
@@ -287,3 +348,31 @@ resetBtn.addEventListener('click', () => {
   const st = document.createElement('style'); st.textContent = css; document.head.append(st);
 }
 document.getElementById('restart').addEventListener('click', () => { try { localStorage.removeItem(SAVE_KEY); } catch { /* fine */ } skipSave = true; location.reload(); });
+/* ================= shop, rebirth and ranking (their own buttons beside the picture) ================= */
+const line = (left, right) => `<div class="rowline"><span>${left}</span><span>${right}</span></div>`;
+const off = text => `<button class="mini" type="button" disabled>${text}</button>`;
+const SIDE = {
+  shopDlg: () => {
+    const pulls = [['무기', 100], ['터렛', 150], ['동료', 200], ['유물', 300]].map(([n, p]) => line(n, `${off('1회 ' + p)} ${off('10회 ' + fmt(p * 10))}`)).join('');
+    const odds = GRADES.map((g, n) => `<span class="gr g${n}">${g}</span> ${[52, 30, 12, 4.5, 1.2, .25, .045, .005][n]}%`).join(' · ');
+    const steps = [['희귀 5번 무기 + 보석 300', '1,200원'], ['영웅 3번 무기 + 희귀 동료', '3,300원'], ['전설 1번 무기 + 유물 상자 5', '5,900원'], ['전설 5번 무기 + 영웅 터렛', '12,000원'], ['불멸 1번 무기 + 전설 동료', '33,000원'], ['신화 1번 무기 + 유물 상자 30', '69,000원']]
+      .map(([what, price], n) => line(`${n + 1}단계 · ${what}`, off(n ? '잠김' : price))).join('');
+    const conv = ['광고 제거', '자동 합성', '오프라인 +12시간', '장비 프리셋', '연구 칸 +1', '배속 상시'].map(n => line(n, off('구매'))).join('');
+    const passes = line('월정액', off('5,500원')) + line('시즌 패스', off('9,900원'));
+    const gems = ['1,200', '5,900', '12,000', '33,000', '69,000', '119,000'].map(p => line('다이아 · 첫 구매 2배', off(p + '원'))).join('');
+    return `<h3>뽑기 · 소환 Lv 1</h3>${pulls}<div class="desc" style="font-size:11px;margin-top:4px">${odds}</div><h3>성장 패키지</h3>${steps}<h3>편의</h3>${conv}<h3>패스</h3>${passes}<h3>다이아</h3>${gems}`;
+  },
+  rebirthDlg: () => {
+    const auto = [[1, '공방 자동 강화'], [3, '자동 돌파'], [5, '시작 스테이지 건너뛰기'], [8, '자동 합성'], [12, '자동 건너뛰기 5배'], [20, '자동 환생']].map(([n, what]) => line(what, n + '회')).join('');
+    const ups = ['화력', '군자금', '오프라인 효율', '오프라인 시간', '보스 피해', '치명 피해', '유물·보석 발견', '유지비 감소'].map(n => line(n, `Lv 0 ${off('+')}`)).join('');
+    return `${line('받을 훈장', '0')}${line('보유 훈장', '0')}<div class="rowline"><span>스테이지 50</span>${off('환생')}</div><h3>훈장 강화</h3>${ups}<h3>자동화</h3>${auto}`;
+  },
+  rankDlg: () => `<h3>최고 기록</h3>${line('나', '웨이브 ' + G.wave)}${line('순위', '—')}<h3>기지 털기</h3>${line('습격권', '0/5')}${line('리그', '—')}`,
+};
+document.querySelectorAll('#side .sbtn').forEach(b => b.addEventListener('click', () => {
+  ensureAudio();
+  const d = document.getElementById(b.dataset.dlg);
+  d.querySelector('.dbody').innerHTML = SIDE[b.dataset.dlg]();
+  d.showModal();
+  d.scrollTop = 0; // opens at its top (focus would scroll it to the close button)
+}));
