@@ -1,5 +1,7 @@
 // Nothing overflows below the stage cap (~30,000): build the state a player near stage s could have (every level
-// bought with a generous multiple of that stage's gold), then check every stat, price, reward and step stays finite.
+// bought with that stage's kill gold times 1e12, then 15% more levels on top; research as two years of real time
+// would give), and check every stat, price, reward and step stays finite. (Twice the affordable levels would square
+// the gold, which no play reaches.)
 import assert from 'node:assert/strict';
 import * as L from '../../src/logic/index.mjs';
 
@@ -28,7 +30,7 @@ export function lateState(s, margin = 1.5) {
   for (const k of L.MEDAL_KEYS) st.medalUp[k] = L.MEDAL_UPS[k].max ?? lvl(medals, T.medals.ups[k].cost0, T.medals.ups[k].grow, margin);
   st.medalsLife = medals; st.medals = medals; st.evacs = 200;
   st.cmd.level = 5000; st.cmd.points = { power: 5000, rapid: 2000, luck: 4000, precision: 2000, command: 1000, supply: 1000 };
-  st.research.lv = { ballistics: 300, doctrine: 100, logistics: 200, engineering: 200 };
+  st.research.lv = { ballistics: 250, doctrine: 100, logistics: 200, engineering: 200 };
   st.counts = { kills: 1e9, bossKills: 3e6, titanKills: 3e5, killsForRelic: 0 };
   st.record = s; st.runBest = s; st.stage = s;
   st.gold = gold; st.food = 1e30; st.ore = 1e30; st.parts = 1e30; st.gems = 1e6;
@@ -40,7 +42,7 @@ export function lateState(s, margin = 1.5) {
 
 export const tests = [
   ['stats, stage results and rewards stay finite up to the cap', () => {
-    for (const s of [1000, 5000, 10000, 20000, T.stage.cap]) for (const margin of [1, 2]) {
+    for (const s of [1000, 5000, 10000, 20000, T.stage.cap]) for (const margin of [1, 1.15]) {
       const st = lateState(s, margin), S = L.stats(st);
       finite(S, `stats@${s}x${margin}`);
       assert.ok(S.dps > 0);
@@ -52,7 +54,7 @@ export const tests = [
     }
   }],
   ['every price is finite (or closed) at those levels', () => {
-    const st = lateState(T.stage.cap, 2);
+    const st = lateState(T.stage.cap, 1.15);
     const keys = ['ws:atk', 'ws:rate', 'ws:mag', 'ws:reload', 'bunker', 'fence', ...L.MEDAL_KEYS.map(k => 'medal:' + k), ...L.RESEARCH_KEYS.map(k => 'research:' + k)];
     for (const k of L.SECTION_KEYS) for (const t of ['lv', 'tier', 'cap']) keys.push(`sec:${k}:${t}`);
     for (const id of Object.keys(st.crew.cards)) keys.push('crew:' + id);
@@ -60,7 +62,7 @@ export const tests = [
     for (const k of keys) { const c = L.price(st, k); if (c) finite(c, k); }
   }],
   ['an hour of play, a night offline and an evacuation at the cap stay finite', () => {
-    const st = lateState(T.stage.cap - 1, 2);
+    const st = lateState(T.stage.cap - 1, 1.15);
     st.mode = 'progress';
     L.advance(st, 3600);
     L.offline(st, 10 * 3600, true);
