@@ -572,14 +572,30 @@ function productSheet(id) {
     const got = sysCall('buy', id);
     if (!got) return;
     sound('buy');
-    openSheet('받은 것', () => `<div class="phero">${prodImg(id, 2)}</div><ul class="contents">${got.map(c => `<li>${c}</li>`).join('')}</ul><div class="tool">${B('pri', '확인', 'data-close')}</div>`);
+    openSheet('받은 것', () => gotHtml(id, got));
   });
 }
-// 환생: the medals it gives now and those kept, the medal upgrades and their prices, what the count of rebirths opens
+// what a purchase brought: an item as its slot (as a summon shows it), a currency with its icon, the rest as a line;
+// with no item in it, the product's picture on top
+function gotHtml(id, got) {
+  const CUR = [['보석 ', 'ruby'], ['다이아 ', 'diamond'], ['식량 ', 'food']], lists = ['weapon', 'turret', 'relic'].map(k => [k, listOf(k) || []]);
+  const cells = [], rows = [];
+  let box = null;
+  for (const s of got) {
+    const hit = lists.map(([k, l]) => [k, l.find(x => x.name === s)]).find(([, it]) => it), cur = CUR.find(([p]) => s.startsWith(p));
+    if (hit) { const [kind, it] = hit, b = artBox(kind); box = box || b; cells.push(`<div class="rc"><span class="slot g${it.grade}" style="height:${b.h + 16}px">${itemArt(kind, idOf(it), true)}</span><b>${it.name}</b></div>`); }
+    else rows.push(cur ? line(cur[0].trim(), `${ic(cur[1])}<b class="num">${s.slice(cur[0].length)}</b>`) : line(s, ''));
+  }
+  return (cells.length ? gridOf(box.w + 16, cells, 4) : `<div class="phero">${prodImg(id, 2)}</div>`) + rows.join('') + `<div class="tool">${B('pri', '확인', 'data-close')}</div>`;
+}
+// 환생: what it gives now (medals, and a few gems) and the medals kept, the medal upgrades and their prices, what the
+// count of rebirths opens
+const evacGain = P => `<span><span class="aux">받을 훈장</span><b class="num">+${fmt(P.gainNow)}</b></span>`
+  + (P.gems ? `<span><span class="aux">보석</span><b class="num">${ic('ruby')}+${fmt(P.gems)}</b></span>` : '');
 function rebirthHtml() {
   const P = sysCall('prestigeInfo');
   if (!P) return '';
-  return `<div class="rb">${ic('medal', 2)}<span><span class="aux">받을 훈장</span><b class="num">+${fmt(P.gainNow)}</b></span><span><span class="aux">보유</span><b class="num">${fmt(P.medals)}</b></span></div>`
+  return `<div class="rb">${ic('medal', 2)}${evacGain(P)}<span><span class="aux">보유</span><b class="num">${fmt(P.medals)}</b></span></div>`
     + `<div class="tool">${B('pri grow', '환생', P.gainNow > 0 ? 'data-rebirth' : 'disabled')}</div>`
     + sec('훈장 강화') + grid(4, P.ups.map(u => `<button class="cell up" type="button" data-medal="${u.key}"${(u.canBuy ?? (!u.maxed && P.medals >= u.price)) ? '' : ' disabled'}><b>${u.name}</b><span class="aux">Lv ${u.level}</span>`
       + (u.maxed ? '<span class="aux">최대</span>' : `<span class="cost${P.medals < u.price ? ' short' : ''}">${ic('medal')}<span class="num">${fmt(u.price)}</span></span>`) + '</button>'))
@@ -588,8 +604,8 @@ function rebirthHtml() {
 function rebirthConfirm() {
   const P = sysCall('prestigeInfo');
   if (!P) return;
-  openSheet('환생', () => `<div class="rb">${ic('medal', 2)}<span><span class="aux">받을 훈장</span><b class="num">+${fmt(P.gainNow)}</b></span></div>`
-    + '<p>스테이지와 강화가 처음으로 돌아가고, 훈장은 남습니다.</p>'
+  openSheet('환생', () => `<div class="rb">${ic('medal', 2)}${evacGain(P)}</div>`
+    + '<p>스테이지·강화·자원은 처음으로 돌아가고, 기지·장비·유물·동료·훈장은 남습니다.</p>'
     + `<div class="tool">${B('sub', '취소', 'data-close')}${B('pri grow', '환생', 'data-yes')}</div>`, d => { if ('yes' in d) { sysCall('prestige'); sound('buy'); closeSheet(); } });
 }
 // 랭킹: the player's own runs, best first (other players come with the server); raiding is shown, switched off
@@ -597,7 +613,8 @@ function rankHtml() {
   if (ui.sub.rank === 'raid') return `<div class="tool top">${B('pri grow', ic('lock') + ' 기지 털기', 'disabled')}</div>`;
   const R = sysCall('records');
   if (!R) return '';
-  return R.map(r => `<div class="rowline${r.me ? ' me' : ''}"><span><b class="num rank">${r.rank}</b><span>${r.name}</span></span><b class="num">스테이지 ${r.stage.toLocaleString('en')}</b></div>`).join('');
+  // every row is the player's own run: the one under way stands out
+  return R.map(r => `<div class="rowline${r.current ? ' me' : ''}"><span><b class="num rank">${r.rank}</b><span>${r.name}</span>${r.current ? '<span class="aux">진행 중</span>' : ''}</span><b class="num">스테이지 ${r.stage.toLocaleString('en')}</b></div>`).join('');
 }
 function codexHtml() {
   const list = sysCall('weapons'), box = artBox('weapon'), has = (n, k) => list ? list[n * 5 + k].owned : false;

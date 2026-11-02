@@ -156,7 +156,7 @@ function drawYard() {
 // the boss's clock over its health bar (red in the last ten seconds), and a titan's phases as pips beside it (the
 // spent ones dark)
 function drawBossClock() {
-  const z = G.bossLeft > 0 && G.zombies.find(o => o.type === 'boss' && !o.minion && o.state !== 'dying' && o.visible);
+  const z = G.bossLeft > 0 && (G.zombies.find(o => o.type === 'boss' && !o.minion && o.state !== 'dying' && o.visible) || G.zombies.find(o => o.type === 'boss' && o.state !== 'dying' && o.visible));
   if (!z) return;
   const x = Math.round(z.sx), y = z.top - 13;
   pixelText(String(Math.ceil(G.bossLeft)), x, y, G.bossLeft < 10 ? rgb(255, 96, 80) : rgb(255, 255, 255));

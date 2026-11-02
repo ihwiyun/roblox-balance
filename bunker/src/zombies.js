@@ -122,7 +122,10 @@ function updateZombies(dt) {
     const stopAt = stopRing(z, T);
     if (z.n > stopAt) {
       const ang = Math.atan2(-z.y, -z.x) + z.swerve * clamp((z.n - FENCE_R) / 4, 0, 1);
-      const pace = z.speed * (z.n > FIELD - .3 ? 1.6 : 1) * (z.rage > 0 ? 1.6 : 1) * (z.under ? (z.type === 'boss' ? 4 : 1.3) : 1) * (z.charge > 0 ? 4 : 1) * (z.chillT > 0 ? 1 - z.chill : 1) * dt;
+      // a charging boss first plants itself and paws the ground (dust), then dashes in a trail of dust
+      if (z.wind > 0) { z.wind -= dt; if (Math.random() < dt * 12) spray(z.x, z.y, .05, 4, 1.8, 1, .5, DUST); continue; }
+      if (z.charge > 0 && Math.random() < dt * 20) spray(z.x, z.y, .05, 2, .8, .8, .4, DUST);
+      const pace = (z.charge > 0 ? 3 : z.speed * (z.n > FIELD - .3 ? 1.6 : 1) * (z.rage > 0 ? 1.6 : 1) * (z.under ? (z.type === 'boss' ? 4 : 1.3) : 1)) * (z.chillT > 0 ? 1 - z.chill : 1) * dt;
       z.x += Math.cos(ang) * pace; z.y += Math.sin(ang) * pace;
       z.n = Math.max(Math.abs(z.x), Math.abs(z.y));
       if (z.state === 'attack') z.leftAttack = G.time;
@@ -142,7 +145,7 @@ function updateZombies(dt) {
     if (z.state !== 'attack') { if (G.time - (z.leftAttack || -9) > .8) z.atk = 0; z.state = 'attack'; z.yaw = Math.atan2(-z.y, -z.x); }
     z.lastAttack = G.time;
     // a charge ends in three quick blows, twice as hard
-    if (z.charge > 0) { if ((z.chargeT -= dt) <= 0) { z.chargeT = .3; z.charge--; strike(z, atFence, 2); stomp(z); } continue; }
+    if (z.charge > 0) { if (z.wind > 0) { z.wind -= dt; continue; } if ((z.chargeT -= dt) <= 0) { z.chargeT = .3; z.charge--; strike(z, atFence, 2); stomp(z); } continue; }
     const inc = dt * (z.rage > 0 ? 1.4 : 1) * (z.chillT > 0 ? 1 - z.chill : 1);
     z.atk += inc;
     if (T.special === 'burst') { if (z.atk >= T.every) burst(z, atFence); continue; }
@@ -383,7 +386,7 @@ function bossTick(dt) {
 // acid lobbed at a turret's mount: that turret stops for sec seconds (a base without turrets takes it on the wall)
 function lobAcid(z, t, sec) { G.spits.push({ x: z.x, y: z.y, tx: t.x, ty: t.y, tz: t.z + .25, t: 0, dur: .9, power: 0, side: -1, tower: t.slot, down: sec }); }
 const BOSS_DO = {
-  charge(z) { z.charge = 3; z.chargeT = 0; spray(z.x, z.y, .1, 16, 2.2, 1.4, .6, DUST); sound('thud'); },
+  charge(z) { z.charge = 3; z.chargeT = 0; z.wind = .7; spray(z.x, z.y, .1, 16, 2.2, 1.4, .6, DUST, 2, 1); sound('thud'); },
   swarm(z, w) {
     // the pack comes in beside the boss out of a burst of dust at the island's edge
     const a = Math.atan2(z.y, z.x), n = Math.round(2 + 3 * w);
@@ -401,7 +404,7 @@ const BOSS_DO = {
   },
   howl(z) {
     for (const o of G.zombies) if (o.state !== 'dying') o.rage = Math.max(o.rage || 0, 5);
-    for (let k = 0; k < 24; k++) { const a = k / 24 * Math.PI * 2; part(z.x, z.y, 1.4, Math.cos(a) * 4.5, Math.sin(a) * 4.5, .5, .5, rgb(255, 214, 200), rgb(200, 120, 110), 1, 1); }
+    for (let k = 0; k < 28; k++) { const a = k / 28 * Math.PI * 2; part(z.x, z.y, 1.4, Math.cos(a) * 4.5, Math.sin(a) * 4.5, 2.5, .6, rgb(255, 214, 200), rgb(200, 120, 110), 2, 2); }
     z.screamT = .8; sound('scream');
   },
   leapStun(z) {
@@ -435,7 +438,8 @@ function splitBoss(z) {
   spray(z.x, z.y, 1, 30, 3.4, 3, 1, [rgb(176, 196, 90), rgb(120, 150, 60), rgb(210, 220, 130)], 2, 2); sound('crash'); G.hurt = .4;
   for (const side of [-1, 1]) {
     const o = spawn('boss'), a = Math.atan2(z.y, z.x) + side * Math.PI / 2;
-    Object.assign(o, { minion: true, titan: z.titan, name: z.name, x: z.x + Math.cos(a) * .6, y: z.y + Math.sin(a) * .6, swerve: side * .3, state: 'walk', reward: z.reward * .1 });
+    Object.assign(o, { minion: true, titan: z.titan, name: z.name, x: z.x + Math.cos(a) * 1.1, y: z.y + Math.sin(a) * 1.1, swerve: side * .3, state: 'walk', reward: z.reward * .1 });
+    spray(o.x, o.y, .4, 14, 2.4, 2, .7, [rgb(176, 196, 90), rgb(120, 150, 60)], 2, 2);
     o.n = Math.max(Math.abs(o.x), Math.abs(o.y)); o.max = o.hp = z.max * (z.splitShare || .125); o.yaw = z.yaw;
   }
 }

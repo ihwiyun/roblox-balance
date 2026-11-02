@@ -488,9 +488,11 @@ var SYS = window.SYS || (() => {
       kills: killsNeeded(s), rewards: Object.defineProperty({ gold: Math.round(stageGold(s) * st.gold), gems: firstGems(s) }, 'xp', { value: Math.round(xp) }), xp: Math.round(xp),
       cleared: s <= G.record, current: s === G.wave };
   }
+  // the boss on the field: the titan itself, else what is left of its split
+  const mainBoss = () => G.zombies.find(o => o.type === 'boss' && !o.minion && o.state !== 'dying') || G.zombies.find(o => o.type === 'boss' && o.state !== 'dying');
   // what is on now: the stage, its kills, the boss and its clock
   function stageNow() {
-    const z = on && G.zombies.find(o => o.type === 'boss' && !o.minion && o.state !== 'dying'), b = z && Lg.bossInfo(G.wave);
+    const z = on && mainBoss(), b = z && Lg.bossInfo(G.wave);
     return { stage: G.wave, kills: G.waveKills, need: killsNeeded(G.wave), repeat: G.repeat, best: G.best, record: G.record,
       skip: G.skip ? { from: G.skip.from, to: G.skip.to, progress: Math.min(1, G.skip.t / G.skip.dur) } : null,
       boss: b ? { name: b.name, kind: b.kind, left: Math.max(0, G.bossLeft || 0), limit: bossLimit(G.wave), hp: Math.max(0, z.hp / z.max),

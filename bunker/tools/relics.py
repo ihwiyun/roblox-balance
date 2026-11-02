@@ -49,6 +49,8 @@ PAL = {
     'P': [238, 128, 222], 'i': [196, 140, 240], 'I': [155, 79, 209], 'j': [96, 46, 148],
     # smoke
     'p': [232, 230, 226], 'x': [184, 182, 184], 'X': [128, 126, 132],
+    # burlap
+    'J': [196, 172, 120], 'N': [150, 126, 86],
     # electric arc
     'A': [244, 250, 255], 'l': [120, 220, 255],
     # rainbow (the eternal frame)
@@ -1093,6 +1095,1305 @@ def _icon11():
 
 
 ICONS[11] = _icon11
+
+
+# 12 철갑 코어: an armour-piercing dart flying out of its copper sabot, the petals peeling away, a hard steel tip
+_dart12 = rows("""
+.oo......................................
+oGGoo....................................
+oggGGoooooooooooooooooooooooooooooooooo..
+oaggggGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGWoo
+oaaakkaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaKo
+oaggggkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkoo
+oggaaoooooooooooooooooooooooooooooooooo..
+oaaoo....................................
+.oo......................................
+""")
+_petal12 = rows("""
+..........oooo
+......ooooTTto
+...oooTTTTttho
+.ooTTWTTtthhoo
+oTTTTttthhoo..
+ohhhhhhoooo...
+.oooooo.......
+""")
+
+
+def _icon12():
+    cv = blank()
+    stamp(cv, _petal12, 14, 11, 'petal')
+    stamp(cv, flipv(_petal12), 14, 30, 'petal')
+    stamp(cv, _dart12, 4, 20, 'dart')
+    for x, y, c in ((33, 15, 'p'), (35, 14, 'x'), (31, 34, 'p'), (34, 35, 'x'), (2, 23, 'x'), (1, 25, 'p')):
+        cv[y][x] = c
+    return cv
+
+
+ICONS[12] = _icon12
+
+# 13 처형자: a headsman's axe standing upright, a broad D-shaped blade with a bright edge, a back spike, a red grip
+_haft13 = rows("""
+.oo.
+oDdo
+oDdo
+oDdo
+oDdo
+oDdo
+oDdo
+oDdo
+oDdo
+oDdo
+oDdo
+oDdo
+oRro
+oRro
+oERo
+oRro
+oRro
+oERo
+oRro
+oDdo
+oDdo
+oDdo
+oDdo
+oDdo
+oDdo
+oDdo
+oDdo
+oddo
+oaao
+.oo.
+""")
+_blade13 = rows("""
+...........oooooo.
+.........ooGGGgao.
+.......ooWGggggao.
+......oWWGgggggao.
+.....oWGGggggggao.
+....oWGgggggggaao.
+...oWGggggggggaao.
+...oWGggggggggaao.
+..oWGgggggggggaao.
+..oWGgggggggggaao.
+..oWGgggggggggaao.
+..oWGgggggggggaao.
+..oWGgggggggggaao.
+..oWGgggggggggaao.
+...oWGggggggggaao.
+...oWGggggggggaao.
+....oWGgggggggaao.
+.....oWGGggggggao.
+......oWWGgggggao.
+.......ooWGggggao.
+.........ooGGGgao.
+...........oooooo.
+""")
+_spike13 = rows("""
+oooo...
+oaggoo.
+oaGGGWo
+oaggoo.
+oooo...
+""")
+_cap13 = rows("""
+.oooooo.
+oGGGgaao
+oaaaakko
+.oooooo.
+""")
+
+
+def _icon13():
+    cv = blank()
+    stamp(cv, _blade13, 8, 5, 'blade')
+    stamp(cv, _spike13, 28, 13, 'spike')
+    stamp(cv, _haft13, 24, 13, 'haft')
+    stamp(cv, _cap13, 22, 3, 'cap')
+    for y in range(7, 13):
+        cv[y][24], cv[y][25], cv[y][26], cv[y][27] = 'o', 'D', 'd', 'o'
+    return cv
+
+
+ICONS[13] = _icon13
+
+# 14 거인 사냥꾼: a barbed harpoon laid across a giant's fang as long as a man's arm, its rope coiled at the butt
+_fang14 = rows("""
+.ooooooo.......
+oCCCCcccoo.....
+oCWCCcccccoo...
+.oCCCCccccccoo.
+..ooCCCCccccco.
+....ooCCCcccco.
+......oCCccccO.
+.......oCCccco.
+........oCccco.
+........oCccco.
+.........oCcco.
+.........oCcco.
+..........oCco.
+..........oCco.
+...........oco.
+...........oco.
+............oo.
+""")
+_harpoon14 = rows("""
+..........................oo
+.........................oGo
+........................oGWo
+.......................oGgao
+..........oo..........oGgao.
+.........oGo.........oGgao..
+........oGgo........oGgao...
+.......oaggoooo....oGgao....
+........oaGGGGgo..oGgao.....
+.........oooaaaaooGgao......
+............oooaGGgao.......
+..............oGgaao........
+.............oDdooo.........
+............oDdo............
+...........oDdo.............
+..........oDdo..............
+.........oDdo...............
+........oDdo................
+.......oDdo.................
+......oDdo..................
+.....oDdo...................
+....oDdo....................
+...oDdo.....................
+..oDdo......................
+.oDdo.......................
+odDo........................
+odo.........................
+oo..........................
+""")
+_rope14 = rows("""
+..oooooo..
+.ocCCccco.
+ocCooooCco
+oCo....oCo
+oco....oco
+ocCooooCco
+.occcCCco.
+..oooooo..
+""")
+
+
+def _icon14():
+    cv = blank()
+    stamp(cv, _fang14, 26, 22, 'fang')
+    stamp(cv, _harpoon14, 9, 3, 'harpoon')
+    stamp(cv, _rope14, 3, 34, 'rope')
+    return cv
+
+
+ICONS[14] = _icon14
+
+# 15 약점 표식: a sight's ring closing on a glowing red weak spot in a cracked plate
+_plate15 = rows("""
+.oooooooooooooooooooooooo.
+oGGGGGGGGGGGGGGGGGGGGGGgao
+oGggggggggggggggggggggggao
+oGgggggggggaggggggggggggao
+oGggggggggaogggggggggggaao
+oGgggggggggaogggggggggggao
+oGggggggggggaoggggggggggao
+oGgggggggggggaooaggggggggao
+oGggggggggaaaoEEoaggggggao
+oGgggggaaoooEEWEEoaaggggao
+oGggggggggaoEEEEEoaggggggao
+oGgggggggaoggoEEoaggggggao
+oGggggggaogggggoaggggggggo
+oGgggggaogggggggaoggggggao
+oGggggaogggggggggaoggggggo
+oGgggggggggggggggggaogggao
+oGggggggggggggggggggggggao
+oaaaaaaaaaaaaaaaaaaaaaaaao
+.oooooooooooooooooooooooo.
+""")
+_ring15 = rows("""
+.........bbbbbbbb.........
+......bbbBBBBBBBBbbb......
+....bbBBB...bb...BBBbb....
+...bBB......bb......BBb...
+..bBB.......bb.......BBb..
+.bB.........bb.........Bb.
+.bB....................Bb.
+bB......................Bb
+bB......................Bb
+bB......................Bb
+bbbbbb..............bbbbbb
+bB......................Bb
+bB......................Bb
+bB......................Bb
+.bB....................Bb.
+.bB.........bb.........Bb.
+..bBB.......bb.......BBb..
+...bBB......bb......BBb...
+....bbBBB...bb...BBBbb....
+......bbbBBBBBBBBbbb......
+.........bbbbbbbb.........
+""")
+
+
+def _icon15():
+    cv = blank()
+    stamp(cv, [r[:26] for r in _plate15], 11, 14, 'plate')
+    stamp(cv, _ring15, 11, 10, 'reticle')
+    return cv
+
+
+ICONS[15] = _icon15
+
+# 16 현상금 시계: a stopwatch with its dial run into the red, a stack of bounty coins beside it
+_watch16 = rows("""
+..........oooo..........
+.........oGGgo..........
+.........oaaao..........
+.......oooooooooo.......
+.....ooGGGGGGGgaaoo.....
+....oGGCCCCCCCCcgaao....
+...oGCCCCCCoCCCCccgao...
+..oGCCCCCCCoCCCCCccgao..
+..oGCoCCCCCoCCCCRRcgao..
+.oGCCCCCCCCoCCCRRRccgao.
+.oGCCCCCCCCoCCRRRRccgao.
+.oGCCCCCCCCooRRRRRcoga..
+.oGCoCCCCCCoKKKKoCcogao.
+.oGCCCCCCCCCCCCCCCcogao.
+.oGCCCCCCCCCCCCCCccogao.
+..oGCCCCCCCCCCCCCccgao..
+..oGCoCCCCCCCCCCCcogao..
+...oGCCCCCCoCCCCccgao...
+....oGCCCCCCCCCcgaao....
+.....ooGgggggggaaoo.....
+.......oooooooooo.......
+""")
+
+
+def _icon16():
+    cv = blank()
+    stamp(cv, _watch16, 5, 7, 'stopwatch')
+    for k in range(4):
+        stamp(cv, _coin, 31, 35 - k * 3, 'coin')
+    stamp(cv, _coin, 37, 37, 'coin')
+    for x, y in ((8, 8), (26, 4), (44, 30)):
+        cv[y][x] = 'W'
+    return cv
+
+
+ICONS[16] = _icon16
+
+# 17 타이탄 심장: a titan's heart, huge and dark, cosmic light running through its veins
+_heart17 = rows("""
+....oooooooo....oooooooo....
+..ooEERRRRRRooooRRRRRRrroo..
+.oEEERRRRRRRRooRRRRRRRRrrro.
+oEEWERRRRRRRRrrRRRRRRRRrrrro
+oEERRRRRRRRRRRRRRRRRRRrrrrQo
+oERRRRRRRRRRRRRRRRRRRRrrrrQo
+oERRRRRRRRRRRRRRRRRRRRrrrrQo
+oRRRRRRRRRRRRRRRRRRRRRrrrrQo
+oRRRRRRRRRRRRRRRRRRRRrrrrQQo
+orRRRRRRRRRRRRRRRRRRRrrrrQQo
+.orRRRRRRRRRRRRRRRRRrrrrQQo.
+.orrRRRRRRRRRRRRRRRRrrrQQQo.
+..orrRRRRRRRRRRRRRRrrrrQQo..
+...orrRRRRRRRRRRRRrrrrQQo...
+....orrRRRRRRRRRRrrrrQQo....
+.....orrRRRRRRRRrrrrQQo.....
+......orrRRRRRRrrrrQQo......
+.......orrRRRRrrrrQQo.......
+........orrRRrrrrQQo........
+.........orrrrrrQQo.........
+..........orrrrQQo..........
+...........orrQQo...........
+............oQQo............
+.............oo.............
+""")
+_veins17 = rows("""
+............................
+............................
+............................
+.......i.......i............
+........i.....i.............
+.........i...P..............
+..........PWP.....i.........
+...i......PWWP...i..........
+....iP...PWWWWPPi...........
+......PPPWWWWWWP............
+.........PWWWWP.............
+.........iPWWPi.............
+........i..PP..i............
+.......i...Pi...i...........
+...........i................
+...........i................
+""")
+_vessel17 = rows("""
+.oooo.
+oRERro
+oRRrro
+.orro.
+""")
+def _icon17():
+    cv = blank()
+    stamp(cv, _vessel17, 14, 8, 'vessel')
+    stamp(cv, _vessel17, 25, 7, 'vessel')
+    stamp(cv, _heart17, 10, 11, 'heart')
+    hv = blank()
+    stamp(hv, _veins17, 10, 11, 'veins')
+    for y in range(N):
+        for x in range(N):
+            if hv[y][x] != '.' and cv[y][x] in 'ERrQ':
+                cv[y][x] = hv[y][x]
+    for x, y in ((6, 8), (41, 9), (4, 30), (43, 33), (24, 6), (14, 40), (36, 41)):
+        cv[y][x] = 'W'
+    for x, y in ((7, 8), (5, 8), (6, 7), (6, 9), (41, 8), (41, 10), (40, 9), (42, 9)):
+        cv[y][x] = 'i'
+    return cv
+
+
+ICONS[17] = _icon17
+
+
+# 18 면도날 철조망: a coil of razor wire, its loops overlapping, little blades all along it
+_loop18 = rows("""
+....oooo....
+..oogGGgoo..
+.ogo....ogo.
+og........go
+oG........ao
+og........ao
+og........ao
+oG........ao
+og........ao
+.oa......ao.
+..ooaaaaoo..
+....oooo....
+""")
+_barb18 = rows("""
+..o..
+.oGo.
+oGWao
+.oao.
+..o..
+""")
+
+
+def _icon18():
+    cv = blank()
+    for k, x in enumerate(range(1, 36, 7)):
+        stamp(cv, _loop18, x, 16 + (k % 2), 'loop')
+    for x, y in ((3, 14), (11, 26), (16, 14), (24, 27), (30, 15), (37, 26), (6, 26), (21, 14), (33, 26), (39, 15), (17, 26), (27, 14)):
+        stamp(cv, _barb18, x, y, 'barb')
+    # the wire running off both ends
+    for x in range(0, 4):
+        cv[22][x] = 'g'
+    for x in range(44, 48):
+        cv[23][x] = 'a'
+    return cv
+
+
+ICONS[18] = _icon18
+
+# 19 장갑판: a riveted armour plate, a round flattened against it and the steel dented round the hit
+_plate19 = rows("""
+..oooooooooooooooooooooooooo..
+.oGGGGGGGGGGGGGGGGGGGGGGGGGGo.
+oGGWGGGGGGGGGGGGGGGGGGGGGGGgao
+oGGgggggggggggggggggggggggggao
+oGgGagggggggggggggggggggGagkao
+oGgaggggggggggggggggggggaggkao
+oGgggggggggggggggggggggggggkao
+oGgggggggggggggggggggggggggkao
+oGgggggggggggggggggggggggggkao
+oGgggggggggggggggggggggggggkao
+oGggggggggggggggaaaggggggggkao
+oGgggggggggggggaoTToaggggggkao
+oGggggggggggggaoTWtToagggggkao
+oGgggggggggggggatTtha.ggggggkao
+oGgggggggggggggaohhoaggggggkao
+oGggggggggggggggaaagggggggggkao
+oGgggggggggggggggggggggggggkao
+oGgggggggggggggggggggggggggkao
+oGgggggggggggggggggggggggggkao
+oGgggggggggggggggggggggggggkao
+oGgGagggggggggggggggggggGagkao
+oGgaggggggggggggggggggggaggkao
+oGgggggggggggggggggggggggggkao
+oGkkkkkkkkkkkkkkkkkkkkkkkkkkao
+oaaaaaaaaaaaaaaaaaaaaaaaaaaaao
+.oooooooooooooooooooooooooooo.
+""")
+
+
+def _icon19():
+    cv = blank()
+    stamp(cv, [r.replace(' ', '') for r in _plate19], 9, 10, 'plate')
+    for x, y in ((26, 18), (31, 20), (27, 27), (21, 25), (30, 25)):
+        cv[y][x] = 'a'
+    return cv
+
+
+ICONS[19] = _icon19
+
+# 20 모래주머니 부적: a little sandbag tied with red cord, a paper charm hung on it
+_bag20 = rows("""
+..........oooo..........
+.........oNJJNo.........
+........oRRRRRRo........
+.........oRrrRo.........
+.......ooNJJJJNoo.......
+.....ooJJJJJJJJJJoo.....
+....oJJCJJJJJJJJJJNo....
+...oJJCCJJJJJJJJJJNNo...
+..oJJCJJJJJJJJJJJJJNNo..
+..oJJJJJJJJNJJJJJJJNNo..
+.oJJCJJJJJJJNJJJJJJJNNo.
+.oJJJJJJJJJJJNJJJJJJNNo.
+.oJJJJJJJJJJJJJJJJJJNNo.
+.oJJJJJJJJJJJJJJJJJNNNo.
+.oNJJJJJJJJJJJJJJJJNNNo.
+..oNJJJJJJJJJJJJJJNNNo..
+..oNNJJJJJJJJJJJJNNNNo..
+...oNNNJJJJJJJJNNNNNo...
+....ooNNNNNNNNNNNNoo....
+......oooooooooooo......
+""")
+_charm20 = rows("""
+..o...
+.oYo..
+oYYYo.
+oYrYo.
+oYrrYo
+oYYrYo
+oYrrYo
+oYYYYo
+oyYYyo
+.oooo.
+""")
+
+
+def _icon20():
+    cv = blank()
+    stamp(cv, _bag20, 12, 13, 'sandbag')
+    stamp(cv, _charm20, 31, 18, 'charm')
+    for x, y in ((28, 16), (29, 16), (30, 17), (31, 18)):
+        cv[y][x] = 'R'
+    return cv
+
+
+ICONS[20] = _icon20
+
+# 21 수리 상자: a red toolbox, a wrench and a screwdriver standing out of it
+_box21 = rows("""
+.........oooooooooooo.........
+.........okkkkkkkkkko.........
+.........ok........ko.........
+..oooooooooooooooooooooooooo..
+.oEEEEEEEEEEEEEEEEEEEEEEEEERo.
+oERRRRRRRRRRRRRRRRRRRRRRRRRrro
+oRRRRRRRRRRRRRRRRRRRRRRRRRRrro
+oooooooooooooooooooooooooooooo
+oRRRRRRRRRRRRggRRRRRRRRRRRRrro
+oRRRRRRRRRRRRkkRRRRRRRRRRRRrro
+oRRRRRRRRRRRRRRRRRRRRRRRRRRrro
+oRRRRRRRRRRRRRRRRRRRRRRRRRRrro
+oRRRRRRRRRRRRRRRRRRRRRRRRRRrro
+orrrrrrrrrrrrrrrrrrrrrrrrrrrQo
+oQQQQQQQQQQQQQQQQQQQQQQQQQQQQo
+.oooooooooooooooooooooooooooo.
+""")
+_wrench21 = rows("""
+.oo..oo.
+oGgooGgo
+oGgaaGgo
+.oGgggo.
+..oGgo..
+..oGao..
+..oGao..
+..oGao..
+..oGao..
+..oGao..
+""")
+_driver21 = rows("""
+..o..
+.oGo.
+.oGo.
+.oGo.
+.oao.
+oYYyo
+oYyuo
+oYyuo
+oyyuo
+""")
+
+
+def _icon21():
+    cv = blank()
+    stamp(cv, _wrench21, 13, 7, 'wrench')
+    stamp(cv, _driver21, 30, 9, 'screwdriver')
+    stamp(cv, _box21, 9, 15, 'box')
+    return cv
+
+
+ICONS[21] = _icon21
+
+# 22 과부하: a pressure gauge with its needle jammed in the red, steam bursting from the pipe, sparks
+_gauge22 = rows("""
+.........oooooooooo.........
+.......ooYYYYYYYYyyoo.......
+.....ooYYyyyyyyyyyyuuoo.....
+....oYYyoooooooooooouuuo....
+...oYyooCCCCCCCCCCCooouo....
+..oYyoCCCkCCCkCCCRRRCCouuo..
+..oYoCCCCCCCCCCCCRRRRCCouo..
+.oYyoCkCCCCCCCCCCCRRRCCoouo.
+.oYoCCCCCCCCCCCCCKKRRRCCouo.
+.oYoCCCCCCCCCCCCKKCCRRCCouo.
+.oYoCkCCCCCCCCCKKCCCCCkCouo.
+.oYoCCCCCCCCCooKCCCCCCCCouo.
+.oYoCCCCCCCCCoaoCCCCCCCCouo.
+.oyoCCCCCCCCCCoCCCCCCCCCouo.
+.oyyoCCCCCCCCCCCCCCCCCCouUo.
+..oyoCCCCCCCCCCCCCCCCCCouo..
+..oyyoCCCCCCCCCCCCCCCCouUo..
+...ouyooCCCCCCCCCCCCoouUo...
+....ouuyoooooooooooouuUo....
+.....oouuuuuuuuuuuuuUoo.....
+.......ooUUUUUUUUUUoo.......
+.........oooooooooo.........
+""")
+_pipe22 = rows("""
+.oooooo.
+oGGggaao
+oGgggaao
+oGgggaao
+oGgggaao
+oaaaaako
+.oooooo.
+""")
+_steam22 = rows("""
+...xx..
+..xppx.
+.xpppxx
+xppxppx
+.xx.xx.
+""")
+
+
+def _icon22():
+    cv = blank()
+    stamp(cv, _pipe22, 20, 33, 'pipe')
+    stamp(cv, rows("""
+oooooooooooooooooooo
+oGGgggggggggggggggao
+oaaaaaaaaaaaaaaaaako
+oooooooooooooooooooo
+"""), 14, 39, 'pipe')
+    stamp(cv, _gauge22, 10, 13, 'gauge')
+    stamp(cv, _steam22, 5, 35, 'steam')
+    stamp(cv, _steam22, 34, 36, 'steam')
+    for x, y, c in ((9, 9, 'Y'), (10, 10, 'W'), (38, 9, 'Y'), (37, 10, 'W'), (40, 14, 'Y'), (6, 14, 'Y'), (24, 9, 'W'), (25, 8, 'Y')):
+        cv[y][x] = c
+    return cv
+
+
+ICONS[22] = _icon22
+
+# 23 최후의 저항: a round shield cracked and stuck with arrows, gold-rimmed, a sword standing behind it
+_shield23 = rows("""
+..........oooooooooo..........
+.......oooYYYYYYYYYYyooo......
+.....ooYYYyyyyyyyyyyyyuuoo....
+....oYYyyDDDDDDDDDDDDyyuuo....
+...oYyyDDDDDDDDDDDDDDDDyuuo...
+..oYyDDDDDDDDDDDDDDDDDDDdyuo..
+..oYyDDDDDDDDDdDDDDDDDDDdyuo..
+.oYyDDDDDDDDDDdDDDDDDDDDDdyuo.
+.oYyDDDDDDDDDdoDDDDDDDDDDdyuo.
+.oYyDDDDDDDDdoDDDDDDDDDDDdyuo.
+oYyDDDDDDDDDDdoooYYYoDDDDDdyuo
+oYyDDDDDDDDDDDDoYWYyyoDDDDdyuo
+oYyDDDDDDDDDDDDoYYyyuoDDDDdyuo
+oYyDDDDDDDDDDDDoYyyuuoDDDDdyuo
+oYyDDDDDDDDDDDDDoyuuoDDDDDdyuo
+oYyDDDDDDDDDDDDDDooodDDDDDdyuo
+.oYyDDDDDDDDDDDDDDDdoDDDDdyuo.
+.oYyDDDDDDDDDDDDDDDDdoDDDdyuo.
+.oYyDDDDDDDDDDDDDDDDDdoDDdyuo.
+..oyyDDDDDDDDDDDDDDDDDDDdyuo..
+..oyyddDDDDDDDDDDDDDDDDddyuo..
+...ouyyddddDDDDDDDDdddddyuo...
+....ouuyyddddddddddddyyuuo....
+.....oouuuyyyyyyyyyyuuuoo.....
+.......ooouuuuuuuuuuooo.......
+..........oooooooooo..........
+""")
+_sword23 = rows("""
+..........oo
+.........oGo
+........oGWo
+.......oGgo.
+......oGgo..
+.....oGgo...
+....oGgo....
+..ooGgo.....
+.oyoGoo.....
+oyYyoo......
+.oyoyo......
+..oooYo.....
+.....ooo....
+""")
+_arrow23 = rows("""
+oo......
+oWo.....
+.oDo....
+..oDo...
+...oDo..
+....oDo.
+.....oko
+......oo
+""")
+
+
+def _icon23():
+    cv = blank()
+    stamp(cv, _sword23, 29, 2, 'sword')
+    stamp(cv, [r[::-1] for r in _sword23], 7, 2, 'sword')
+    stamp(cv, _shield23, 9, 12, 'shield')
+    stamp(cv, _arrow23, 13, 17, 'arrow')
+    stamp(cv, [r[::-1] for r in _arrow23], 30, 23, 'arrow')
+    return cv
+
+
+ICONS[23] = _icon23
+
+
+# 24 현상금 장부: an open ledger of bounties, a red skull stamp on the page, a quill laid across, a coin
+_book24 = rows("""
+...oooooooooooooo..oooooooooooooo...
+..oCCCCCCCCCCCCCCooCCCCCCCCCCCCCCo..
+..oCWCCCCCCCCCCCcoocCCCCCCCCCCCCCo..
+..oCccccccccccCCcoocCCcccccccccCCo..
+..oCCCCCCCCCCCCCcoocCCCCCCCCCCCCCo..
+..oCcccccccccCCCcoocCCrrrrrCCCCCCo..
+..oCCCCCCCCCCCCCcoocCrRCCCRrCCCCCo..
+..oCccccccccccCCcoocCrCooCoCrCCCCo..
+..oCCCCCCCCCCCCCcoocCrCCCCCCrCCCCo..
+..oCcccccccCCCCCcoocCrRCooCRrCCCCo..
+..oCCCCCCCCCCCCCcoocCCrRRRRrCCCCCo..
+..oCccccccccccCCcoocCCCrrrrCCCCCCo..
+..oCCCCCCCCCCCCCcoocCCCCCCCCCCCCCo..
+..oCcccccccccCCCcoocCCcccccccccCCo..
+..oCCCCCCCCCCCCCcoocCCCCCCCCCCCCCo..
+.oocccccccccccccccoccccccccccccccoo.
+obbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbo
+onnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnno
+.oooooooooooooooooooooooooooooooooo.
+""")
+_quill24 = rows("""
+..............oo
+............ooWo
+..........ooWWpo
+........ooWWppo.
+......ooWWppxo..
+.....oWWppxxo...
+....oWppxxoo....
+...oWpxxoo......
+...oxxoo........
+..oKoo..........
+.oKo............
+oKo.............
+oo..............
+""")
+
+
+def _icon24():
+    cv = blank()
+    stamp(cv, _book24, 6, 16, 'ledger')
+    stamp(cv, _quill24, 26, 4, 'quill')
+    stamp(cv, _coin, 6, 9, 'coin')
+    return cv
+
+
+ICONS[24] = _icon24
+
+# 25 고물 자루: a burlap sack bursting with scrap: a gear, bolts, a pipe and a spring
+_sack25 = rows("""
+.....oooooooooooooooo.....
+....oJJJJJJJJJJJJJJJNo....
+.....oNNNNNNNNNNNNNNo.....
+......oJJJJJJJJJJJNo......
+....ooJJJJJJJJJJJJJNoo....
+...oJJJJJJJJJJJJJJJJNNo...
+..oJJCJJJJJJJJJJJJJJJNNo..
+.oJJCJJJJJJJNJJJJJJJJJNNo.
+.oJCJJJJJJJJJNJJJJJJJJNNo.
+oJJJJJJJJJJJJJNJJJJJJJJNNo
+oJJJJJJJJJJJJJJJJJJJJJJNNo
+oJJJJJJJJJJJJJJJJJJJJJJNNo
+oJJJJJJJJJJJJJJJJJJJJJNNNo
+oNJJJJJJJJJJJJJJJJJJJJNNNo
+.oNJJJJJJJJJJJJJJJJJJNNNo.
+..oNNJJJJJJJJJJJJJJJNNNo..
+...ooNNNNNNNNNNNNNNNNoo...
+.....oooooooooooooooo.....
+""")
+_gear25 = rows("""
+....oo....
+.oo.oGo.oo
+oGGoGgoGgo
+.oGGggggo.
+oGGgoooggo
+oGgo..oago
+.oggooago.
+oGgaaaakgo
+.oo.oao.oo
+....oo....
+""")
+_bolt25 = rows("""
+.oooo.
+oGGgao
+oaaako
+.oGao.
+.oGao.
+.oGao.
+.oGao.
+..oo..
+""")
+_spring25 = rows("""
+.oooo.
+oGggao
+.oooo.
+oGggao
+.oooo.
+oGggao
+.oooo.
+""")
+_pipe25 = rows("""
+.oo.....
+oGgoo...
+oaGggoo.
+.ooaGgao
+...ooaao
+.....oo.
+""")
+
+
+def _icon25():
+    cv = blank()
+    stamp(cv, _gear25, 13, 7, 'gear')
+    stamp(cv, _bolt25, 24, 5, 'bolt')
+    stamp(cv, _spring25, 31, 9, 'spring')
+    stamp(cv, _pipe25, 20, 11, 'pipe')
+    stamp(cv, _sack25, 11, 15, 'sack')
+    stamp(cv, _gear25, 4, 34, 'gear')
+    return cv
+
+
+ICONS[25] = _icon25
+
+# 26 야전 취사장: a field kettle steaming over a small fire, a ladle hooked on its rim
+_pot26 = rows("""
+....oooooooooooooooooo....
+..ooaaaaaaaaaaaaaaaaaaoo..
+.oaGGGGGGGGGGGGGGGGGGgaao.
+oaGggggggggggggggggggggaao
+oooooooooooooooooooooooooo
+.oMZZMMMMMMMMMMMMMMMMmmmo.
+.oMZMMMMMMMMMMMMMMMMMmmmo.
+.oMZMMMMMMMMMMMMMMMMMmmmo.
+.oMMMMMMMMMMMMMMMMMMMmmmo.
+.oMMMMMMMMMMMMMMMMMMmmmmo.
+.oMMMMMMMMMMMMMMMMMMmmmmo.
+..omMMMMMMMMMMMMMMMmmmmo..
+...ommmmmmmmmmmmmmmmmmo...
+....oooooooooooooooooo....
+""")
+_ladle26 = rows("""
+..oo..
+.oGao.
+.oGao.
+.oGao.
+.oGao.
+oGGgao
+ogaaao
+.oooo.
+""")
+_fire26 = rows("""
+.....e......e......
+....eFe....eFe.....
+...eFFe.e.eFWFe....
+..eFWFeeFeeFWWFe...
+..eFWWFFWFFWWWFe...
+...eFFFWWWWWFFe....
+oooooooooooooooooo.
+oDDddoDDDddoDDddDo.
+oddddoddddoodddddo.
+.oooo.oooo..oooooo.
+""")
+_steam26 = rows("""
+...xx......xx..
+..xppx....xppx.
+...xppx....xppx
+..xppx....xppx.
+.xppx....xppx..
+..xppx....xppx.
+...xx......xx..
+""")
+
+
+def _icon26():
+    cv = blank()
+    stamp(cv, _steam26, 16, 2, 'steam')
+    stamp(cv, _fire26, 14, 36, 'fire')
+    stamp(cv, _pot26, 11, 22, 'kettle')
+    stamp(cv, _ladle26, 31, 15, 'ladle')
+    # the pot's bail handle arching over it
+    for x, y in ((12, 22), (12, 21), (13, 20), (14, 19), (35, 22), (35, 21), (34, 20), (33, 19)):
+        cv[y][x] = 'a'
+    for x in range(15, 33):
+        cv[18][x] = 'a'
+    return cv
+
+
+ICONS[26] = _icon26
+
+# 27 광맥 지도: an unrolled map, a dotted vein winding to a red cross, a lump of blue ore weighing it down
+_map27 = rows("""
+.oooo..............................oooo..
+oDDddoooooooooooooooooooooooooooooodDDdo.
+oDdddoCCCCCCCCCCCCCCCCCCCCCCCCCCCCodddDo.
+oDdddoCCcCCCCCCCCCCCCCCCcCCCCCCCCCodddDo.
+oDdddoCCCCCCCuCuCCCCCCCCCCCCCCCcCCodddDo.
+oDdddoCCCCCuCCCCCuCCCCCCCCCCCCCCCCodddDo.
+oDdddoCCCCuCCCCCCCuCCCCCCCcCCCCCCCodddDo.
+oDdddoCcCuCCCCCCCCCuCCCCCCCCCCCCCCodddDo.
+oDdddoCCCuCCCCCCCCCCuCCCCCCRCCCRCCodddDo.
+oDdddoCCCCuCCCCCCCCCCuCCCCCCRCRCCCodddDo.
+oDdddoCCCCCuCCCcCCCCCCuCuCCCCRCCCCodddDo.
+oDdddoCCCCCCuCCCCCCCCCCCCuCCRCRCCCodddDo.
+oDdddoCCcCCCCuCuCCCCCCCCCCCRCCCRCCodddDo.
+oDdddoCCCCCCCCCCuCCCCcCCCCCCCCCCCCodddDo.
+oDdddoCCCCCCCCCCCCCCCCCCCCCCCCcCCCodddDo.
+oDdddoooooooooooooooooooooooooooooodddDo.
+oDDddo.............................oddDDo
+.oooo..............................oooo.
+""")
+_ore27 = rows("""
+....oo....
+...oLBo...
+..oLBBbo..
+.oLWBbbno.
+oLBBBbbnno
+obBbbbnnno
+.obbbnnno.
+..oonnoo..
+....oo....
+""")
+
+
+def _icon27():
+    cv = blank()
+    stamp(cv, [r.replace(' ', '') for r in _map27], 4, 12, 'map')
+    stamp(cv, _ore27, 6, 30, 'ore')
+    for x, y in ((11, 30), (13, 41), (16, 33)):
+        cv[y][x] = 'L'
+    return cv
+
+
+ICONS[27] = _icon27
+
+# 28 무전 중계: a field radio with a handset, its long whip antenna throwing out rings of signal
+_radio28 = rows("""
+..oooooooooooooooooooooo..
+.oZZZZZZZZZZZZZZZZZZZZMMo.
+oZMMMMMMMMMMMMMMMMMMMMMmmo
+oMMooooooooooMMMMoooMMMmmo
+oMMoKkKkKkKkoMMMoYYoMMmmmo
+oMMokKkKkKkKoMMMoyuoMMmmmo
+oMMoKkKkKkKkoMMMMooMMMmmmo
+oMMokKkKkKkKoMMMoooMMMmmmo
+oMMoKkKkKkKkoMMMoRoMMMmmmo
+oMMooooooooooMMMMoMMMMmmmo
+oMMMMMMMMMMMMMMMMMMMMMmmmo
+ommmmmmmmmmmmmmmmmmmmmmmmo
+.oooooooooooooooooooooooo.
+""")
+_hand28 = rows("""
+.oooo..
+okkkko.
+oko.oko
+oko..ko
+oko..ko
+okko.oo
+.ooo...
+""")
+
+
+def _icon28():
+    cv = blank()
+    stamp(cv, _radio28, 7, 26, 'radio')
+    stamp(cv, _hand28, 33, 31, 'handset')
+    for y in range(8, 27):
+        cv[y][29], cv[y][30] = 'o', 'g' if y % 3 else 'a'
+    cv[7][29], cv[7][30], cv[6][29], cv[6][30] = 'o', 'o', '.', '.'
+    # rings of signal round the antenna's tip
+    for x, y in ((25, 6), (24, 8), (24, 10), (25, 12), (34, 6), (35, 8), (35, 10), (34, 12),
+                 (21, 4), (20, 7), (20, 10), (21, 13), (38, 4), (39, 7), (39, 10), (38, 13)):
+        cv[y][x] = 'E' if (x + y) % 2 else 'R'
+    return cv
+
+
+ICONS[28] = _icon28
+
+# 29 지휘관 핀: a commander's gold pin, a star with spread wings, a ruby at its heart
+_pin29 = rows("""
+..................oo..................
+.................oYYo.................
+................oYWYyo................
+...............oYYYyyo................
+.oooo.........oYYYYyyuo.........oooo..
+oCCCCooo......oYYYyyyuo......oooCCCCo.
+.oCCCCccooo..oYYYRRyyuuo..ooocccCCCo..
+..ooCCCCcccooYYYREEryyuooocccCCCCoo...
+....ooCCCCccoYYYRrryyuuoocCCCCoo......
+......ooCCCCoyYYYyyyyuuoCCCCoo........
+........oooooyyYYyyyuuuooooo..........
+............oyyyoooyuuuo..............
+...........oyyyo...ouuuo..............
+...........ouuo.....ouuo..............
+...........ooo.......ooo..............
+""")
+_ribbon29 = rows("""
+.ooooooooooo.
+obbRRRRRRRbbo
+obbRRRRRRRbbo
+obbRRRRRRRbbo
+.obRRRRRRRbo.
+.obbo...obbo.
+.oo.......oo.
+""")
+
+
+def _icon29():
+    cv = blank()
+    stamp(cv, _ribbon29, 18, 30, 'ribbon')
+    stamp(cv, _pin29, 5, 14, 'pin')
+    return cv
+
+
+ICONS[29] = _icon29
+
+
+# 30 피의 계약: a contract on old parchment, a seal of blood, a dagger laid over it
+_scroll30 = rows("""
+.oooooooooooooooooooooo.
+oDdCCCCCCCCCCCCCCCCCCdDo
+odoooooooooooooooooooodo
+.oCCCCCCCCCCCCCCCCCCCo..
+.oCcccccccccccccccCCCo..
+.oCCCCCCCCCCCCCCCCCCCo..
+.oCcccccccccccccCCCCCo..
+.oCCCCCCCCCCCCCCCCCCCo..
+.oCccccccccccccccccCCo..
+.oCCCCCCCCCCCCCCCCCCCo..
+.oCcccccccccCCCCCCCCCo..
+.oCCCCCCCCCCCCCCCCCCCo..
+.oCCCCCCCCCCCCCCCCCCCo..
+.oCCCcccccccccCCCCCCCo..
+.oCCCCCCCCCCCCCCCCCCCo..
+.oCCCCCCCCCCCCCCCCCCCo..
+.oooooooooooooooooooooo.
+oDdCCCCCCCCCCCCCCCCCCdDo
+.oooooooooooooooooooooo.
+""")
+_seal30 = rows("""
+..oooo..
+.orRRro.
+orREERro
+oRREWRro
+oRRERRro
+orRRRrQo
+.orrrQo.
+..oooo..
+""")
+_dagger30 = rows("""
+...........oo
+..........oGo
+.........oGWo
+........oGgo.
+.......oGgo..
+......oGgo...
+...o.oGgo....
+...ooGgo.....
+....oYo......
+...oYyoo.....
+..oyuo.oo....
+.oRro........
+oRro.........
+oo...........
+""")
+
+
+def _icon30():
+    cv = blank()
+    stamp(cv, _scroll30, 8, 8, 'contract')
+    stamp(cv, _seal30, 22, 27, 'seal')
+    for x, y in ((24, 35), (25, 36), (24, 37), (26, 38), (25, 39)):
+        cv[y][x] = 'r'
+    stamp(cv, _dagger30, 30, 13, 'dagger')
+    return cv
+
+
+ICONS[30] = _icon30
+
+# 31 태엽: a big clockwork key, its bow cut in two wings, turning two gears
+_key31 = rows("""
+.oooooo......oooooo.
+oYYYYyyo....oYYyyuuo
+oYWYyyyuo..oYyyyyuuo
+oYYyyyyuuooYyyyyyuuo
+oYyyyyyuuyyyyyyyyuuo
+.oyyyyyuuyyuuyyyuuo.
+..ooyyyuuyyuuyyuoo..
+....ooooyyuuoooo....
+.......oyyuuo.......
+.......oYyuuo.......
+.......oYyuuo.......
+.......oYyuuo.......
+.......oYyuuo.......
+......ooYyuuoo......
+......oyyyuuuo......
+......ooYyuuoo......
+.......oYyuuo.......
+.......oYyuuo.......
+.......oyyuuo.......
+........oooo........
+""")
+_gearA31 = rows("""
+.....oo.oo.....
+..oo.oGgao.oo..
+.oGgooGgaooGgo.
+.oggGGgggggaao.
+..oGgggoooggo..
+ooGggoo..ooggoo
+oGggo......ogao
+.oGgo......oao.
+oGggo......ogao
+ooGggoo..ooaaoo
+..oGgggoooaao..
+.oggaaaaaaaako.
+.oaaookkkookko.
+..oo.okkko.oo..
+.....oo.oo.....
+""")
+
+
+def _icon31():
+    cv = blank()
+    stamp(cv, _gearA31, 4, 25, 'gear')
+    stamp(cv, _gearA31, 29, 27, 'gear')
+    stamp(cv, _key31, 14, 6, 'key')
+    return cv
+
+
+ICONS[31] = _icon31
+
+# 32 거울 파편: a jagged shard of mirror catching the light, a reflection glinting in it, sparkles flying off
+_shard32 = rows("""
+..............oo........
+.............oLLo.......
+............oLWLo.......
+...........oLWLBo.......
+..........oLWLLBo.......
+.........oLWLBBbo.......
+........oLLLBBbbo.......
+.......oLLWLBBbbo.......
+......oLLLLBBbbbo.......
+.....oLLWLBBbbbnoo......
+....oLLLLBBBbbbnnooo....
+...oLLWLLBBbbbnnnnLLoo..
+..oLLLLBBBbbbbnnnBLLLo..
+..oLLLBBBbbbbnnnBBLLo...
+..oLLBBBbbbbnnnBBLLo....
+..oLBBBbbbbnnnBBLLo.....
+..oBBBbbbbnnnBBLLo......
+..oBBbbbbnnnBBLLo.......
+..obbbbbnnnBBLLo........
+..obbbbnnnBBLoo.........
+..obbbnnnBBoo...........
+..obbnnnBoo.............
+..oonnBoo...............
+....ooo.................
+""")
+_sparkle = rows("""
+..W..
+..W..
+WWWWW
+..W..
+..W..
+""")
+
+
+def _icon32():
+    cv = blank()
+    stamp(cv, _shard32, 11, 10, 'shard')
+    stamp(cv, _sparkle, 34, 9, 'sparkle')
+    stamp(cv, _sparkle, 7, 13, 'sparkle')
+    for x, y in ((38, 22), (40, 26), (36, 30), (9, 33)):
+        cv[y][x] = 'i'
+    return cv
+
+
+ICONS[32] = _icon32
+
+# 33 감염된 심장: a zombie's heart, grey-green and swollen, veins bulging purple, sick drops running off it
+_heart33 = rows("""
+....oooooooo....oooooooo....
+..ooZZMMMMMMooooMMMMMMmmoo..
+.oZZZMMMMMMMMooMMMMMMMMmmmo.
+oZZVZMMMMjMMMmmMMMMMjMMmmmmo
+oZZMMMMMjMMMMMMMMMMjMMMmmmmo
+oZMMMMMjMMMMMMMMMMjMMMmmmmmo
+oZMMMMMjjMMMMMMMMjMMMMmmmmmo
+oMMMMMMMjjMMMMMjjMMMMMmmmmmo
+oMMMMMMMMjjjjjjjMMMMMmmmmmmo
+omMMMMMMMMMjMMMMMMMMMmmmmmmo
+.omMMMMMMMMjMMMMMMMMmmmmmmo.
+.ommMMMMMMMjMMMMMMMMmmmmmmo.
+..ommMMMMMMjMMMMMMMmmmmmmo..
+...ommMMMMMjjMMMMMmmmmmmo...
+....ommMMMMMjMMMMmmmmmmo....
+.....ommMMMMjMMMmmmmmmo.....
+......ommMMMMMMmmmmmmo......
+.......ommMMMMmmmmmmo.......
+........ommMMmmmmmmo........
+.........ommmmmmmmo.........
+..........ommmmmmo..........
+...........ommmmo...........
+............ommo............
+.............oo.............
+""")
+_drip33 = rows("""
+.o.
+oVo
+oVo
+oZo
+.o.
+""")
+
+
+def _icon33():
+    cv = blank()
+    stamp(cv, _vessel17, 14, 8, 'vessel')
+    stamp(cv, _vessel17, 25, 7, 'vessel')
+    stamp(cv, _heart33, 10, 11, 'heart')
+    for (x, y) in ((14, 31), (31, 32), (22, 36)):
+        stamp(cv, _drip33, x, y, 'drip')
+    for x, y in ((15, 37), (32, 38), (23, 42)):
+        cv[y][x] = 'V'
+    # the vessels sicken too
+    for y in range(7, 13):
+        for x in range(13, 33):
+            if cv[y][x] in 'RE':
+                cv[y][x] = 'M'
+            elif cv[y][x] in 'r':
+                cv[y][x] = 'm'
+    return cv
+
+
+ICONS[33] = _icon33
+
+# 34 연금술 화로: a squat iron furnace, its mouth glowing, gold ingots and coins spilling out in front of it
+_furnace34 = rows("""
+...........oooo..........
+...........oaao..........
+...........oGao..........
+.........oooooooo........
+.......ooGGGGGGgaoo......
+.....ooGGggggggggaaoo....
+....oGggggggggggggaako...
+...oGgggggggggggggaaako..
+...oggg|ooooooo|ggaaako..
+..oGggoFFFFFFFFFoggaakko.
+..oggoFFWWWWWWFFfoggakko.
+..oggoFWWWWWWWWFfoggakko.
+..oggofFFWWWWFFffogaakko.
+..oggoeffFFFFfffeoaaakko.
+..oggoooooooooooooaaakko.
+..oGgggggggggggggggaakko.
+..oaaaaaaaaaaaaaaaaaakko.
+..okkkkkkkkkkkkkkkkkkkko.
+.oooooooooooooooooooooooo
+""".replace('|', 'o'))
+_ingot34 = rows("""
+..oooooooo.
+.oYYYYYYYyo
+oYWYYYYYyuo
+oyyyyyyyuuo
+oooooooooo.
+""")
+
+
+def _icon34():
+    cv = blank()
+    stamp(cv, _furnace34, 11, 6, 'furnace')
+    stamp(cv, _ingot34, 7, 36, 'ingot')
+    stamp(cv, _ingot34, 10, 32, 'ingot')
+    stamp(cv, _coin, 25, 36, 'coin')
+    stamp(cv, _coin, 32, 37, 'coin')
+    stamp(cv, _coin, 29, 33, 'coin')
+    for x, y, c in ((17, 4, 'x'), (16, 2, 'p'), (24, 3, 'x'), (25, 1, 'p'), (8, 25, 'Y'), (40, 24, 'Y'), (41, 30, 'W')):
+        cv[y][x] = c
+    return cv
+
+
+ICONS[34] = _icon34
+
+# 35 끝없는 탄띠: an ammunition belt that never ends, looped round on itself in a figure of eight
+_inf35 = rows("""
+.....oooooooo..............oooooooo.....
+...ooHHHHHHHHoo..........ooHHHHHHHHoo...
+..oHHddddddddHHo........oHHddddddddHHo..
+.oHddo......odHHo......oHHdo......oddHo.
+oHddo........odHHo....oHHdo........oddHo
+oHdo..........odHHo..oHHdo..........odHo
+oHdo...........odHHooHHdo...........odHo
+oHdo............odHHHHdo............odHo
+oHdo.............oHHHHo.............odHo
+oHdo............odHHHHdo............odHo
+oHdo...........odHHooHHdo...........odHo
+oHdo..........odHHo..oHHdo..........odHo
+oHddo........odHHo....oHHdo........oddHo
+.oHddo......odHHo......oHHdo......oddHo.
+..oHHddddddddHHo........oHHddddddddHHo..
+...ooHHHHHHHHoo..........ooHHHHHHHHoo...
+.....oooooooo..............oooooooo.....
+""")
+_rnd35 = rows("""
+.o.
+oGo
+oYo
+oyo
+""")
+
+
+def _icon35():
+    cv = blank()
+    stamp(cv, _inf35, 4, 16, 'belt')
+    # rounds standing out of the belt all the way round
+    for x, y in ((9, 13), (13, 12), (17, 12), (21, 13), (29, 13), (33, 12), (37, 12), (41, 13),
+                 (5, 18), (44, 18), (24, 22)):
+        stamp(cv, _rnd35, x - 1, y, 'round')
+    for x, y in ((9, 34), (13, 35), (17, 35), (29, 35), (33, 35), (37, 34)):
+        stamp(cv, flipv(_rnd35), x - 1, y - 1, 'round')
+    stamp(cv, _sparkle, 21, 3, 'sparkle')
+    return cv
+
+
+ICONS[35] = _icon35
 
 
 def build_icon(rid, grade):

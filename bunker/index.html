@@ -225,6 +225,7 @@
   /* 환생: the medals now and kept; the upgrades as cells with their price */
   .rb { display: flex; align-items: center; gap: 16px; padding: 12px; margin: 4px 0; background: var(--soft); } .rb > span { display: grid; gap: 2px; } .rb .num { font-size: 16px; }
   .cell.up { gap: 4px; padding: 8px 4px; } .cell.up b { font-size: 13px; }
+  .cell.up[disabled] { color: #b3afa7; cursor: default; } .cell.up[disabled] i.ic { opacity: .45; } .cell .cost.short { color: var(--bad); }
   .rowline .rank { width: 28px; display: inline-block; } .rowline.me { font-weight: 700; }
   .rowline > span:first-child { display: flex; align-items: center; gap: 8px; }
   .tool.top { padding-top: 12px; } .tool .b + .b { margin-left: 8px; }

@@ -228,7 +228,12 @@ function stunGunner(sec) {
 function updateShooter(s, dt) {
   s.recoil = Math.max(0, s.recoil - dt * .8); s.flash = Math.max(0, s.flash - dt);
   // stunned: no aim and no fire, stars over the head
-  if (s.stun > 0) { s.stun -= dt; if (Math.random() < dt * 8) part(s.x + (Math.random() - .5) * .5, s.y + (Math.random() - .5) * .5, s.z + 2.1, 0, 0, 1.2, .35, rgb(255, 232, 90), null); return; }
+  if (s.stun > 0) {
+    s.stun -= dt;
+    // stars circling the head
+    if (Math.random() < dt * 10) { const a = G.time * 6 + Math.random(); part(s.x + Math.cos(a) * .35, s.y + Math.sin(a) * .35, s.z + 2.2, -Math.sin(a) * 1.2, Math.cos(a) * 1.2, 1.4, .3, rgb(255, 232, 90), null, 2, 2); }
+    return;
+  }
   if (s.reload > 0) {
     s.reload -= dt;
     const t = 1 - s.reload / s.reloadLen;
