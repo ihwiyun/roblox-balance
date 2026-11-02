@@ -764,7 +764,7 @@ function refreshBoss() {
   bossNode.hidden = !b;
   if (!b) return;
   setText(bossName, b.name);
-  setText(bossTime, String(Math.ceil(b.left)));
+  setText(bossTime, b.left > 0 ? String(Math.ceil(b.left)) : ''); // no clock: no number
   bossTime.classList.toggle('low', b.left < 10);
   setWidth(bossFill, b.hp);
   bossNode.classList.toggle('shield', !!b.gathering);
