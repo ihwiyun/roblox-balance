@@ -121,9 +121,8 @@ function drawZombie(z) {
   const T = ZTYPES[z.type], set = SPR[z.type];
   // underground: only a mound of earth moves, and nobody can shoot it
   if (z.under && z.state !== 'emerge') {
-    const m = SPR.mound;
-    if (m) { const name = Object.keys(m.anims)[0], a = m.anims[name]; drawSprite('mound', name, 'F', Math.floor(z.t * a.fps), false, z.x, z.y, 0, ZPALS.mound, { shadow: false }); }
-    else { const p = project(z.x, z.y, 0); for (let k = 0; k < 9; k++) putPx(Math.round(p.sx) + (k % 3) - 1, Math.round(p.sy) - Math.floor(k / 3), k % 2 ? rgb(120, 96, 66) : rgb(92, 72, 50), p.d + .1); }
+    const m = SPR.mound, name = Object.keys(m.anims)[0], a = m.anims[name];
+    drawSprite('mound', name, 'F', Math.floor(z.t * a.fps), false, z.x, z.y, 0, ZPALS.mound, { shadow: false });
     z.sx = -99; z.sy = -99;
     return;
   }

@@ -3,7 +3,8 @@
 // Changed: canvas size and world scale come from PP_SCENE (width, height, scale); box steps, grass and
 // occlusion follow the world scale so a finer pixel grid stays solid. noise() keeps its lattice values in a
 // small table and box() only works out the grain of a sample that is actually in front, so big bakes stay fast;
-// bakeOcclusion() takes optional pixel bounds.
+// bakeOcclusion() takes optional pixel bounds; projectTo() fills a given object. The sphere and capsule figures,
+// trees and leaves, the arrow and fit() are left out: this game draws its figures from sprites.
 // Shared pixel renderer for every game: orthographic camera, depth buffer, ramps, shadows, edges and wind.
 // A game sets window.PP_SCENE before loading this file, then draws through these globals.
 const SCENE = window.PP_SCENE || {};
@@ -24,7 +25,6 @@ const shadowMask = new Uint8Array(W * H);
 const groundZ = new Float32Array(W * H);
 const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5].map(v => (v + .5) / 16);
 const COOL = [46, 38, 84], WARM = [255, 232, 180];
-const SHOE = [226, 222, 212], BARK = [92, 74, 60];
 const GRASS = [[34, 62, 50], [52, 88, 52], [82, 118, 54], [124, 146, 62], [168, 172, 76]];
 const GRADIENT_Y = COS / (S * SIN), EDGE = .28;
 
@@ -63,48 +63,18 @@ function noise(x, y) {
   const ix = Math.floor(x), iy = Math.floor(y), fx = ease(x - ix), fy = ease(y - iy);
   return lerp(lerp(lattice(ix, iy), lattice(ix + 1, iy), fx), lerp(lattice(ix, iy + 1), lattice(ix + 1, iy + 1), fx), fy);
 }
-function project(x, y, z) {
+// projectTo fills a given { sx, sy, d } instead of making a new one, for code that runs per sprite per frame
+function project(x, y, z) { return projectTo({ sx: 0, sy: 0, d: 0 }, x, y, z); }
+function projectTo(o, x, y, z) {
   const u = (x - y) / R2, v = (x + y) / R2;
-  return { sx: OX + u * S, sy: OY + (v * SIN - z * COS) * S, d: v * COS + z * SIN };
+  o.sx = OX + u * S; o.sy = OY + (v * SIN - z * COS) * S; o.d = v * COS + z * SIN;
+  return o;
 }
 function unproject(sx, sy) {
   const u = (sx - OX) / S, v = (sy - OY) / (S * SIN);
   return { x: (u + v) / R2, y: (v - u) / R2 };
 }
 
-let capture = null; // when set, sphere() records pixels instead of drawing them
-function sphere(x, y, z, r, c, mode) {
-  const ramp = rampOf(c);
-  const p = project(x, y, z), rp = Math.max(r * S, .75);
-  const y0 = Math.max(0, Math.floor(p.sy - rp)), y1 = Math.min(H - 1, Math.ceil(p.sy + rp));
-  const x0 = Math.max(0, Math.floor(p.sx - rp)), x1 = Math.min(W - 1, Math.ceil(p.sx + rp));
-  for (let iy = y0; iy <= y1; iy++) for (let ix = x0; ix <= x1; ix++) {
-    const dx = (ix + .5 - p.sx) / rp, dy = (iy + .5 - p.sy) / rp, nn = dx * dx + dy * dy;
-    if (nn > 1) continue;
-    const nz = Math.sqrt(1 - nn), d = p.d + r * nz, i = iy * W + ix;
-    if (d <= zb[i]) continue;
-    let l = clamp(-.55 * dx - .6 * dy + .58 * nz, 0, 1);
-    if (mode === 'rough') l += (hash(ix, iy) - .5) * .55;
-    if (dy > .35) l = Math.max(l, .12 + dy * .24); // warm light bouncing off the ground
-    if (capture) {
-      capture.push(ix, iy, d, ramp[clamp(Math.floor(l * 4.4 + .2 + (bayerAt(ix, iy) - .5) * .7), 0, 4)]);
-      continue;
-    }
-    zb[i] = d;
-    if (mode === 'gloss' && l > .9) { pix[i] = rgb(255, 250, 232); continue; }
-    // figures get flat bands with no dither, so they read as sharp shapes against the textured ground
-    if (mode === 'solid') { pix[i] = ramp[clamp(Math.floor(l * 4.4 + .2), 1, 4)]; continue; }
-    pix[i] = ramp[clamp(Math.floor(l * 4.4 + .2 + (bayerAt(ix, iy) - .5) * .7), 0, 4)];
-  }
-}
-function capsule(a, b, r0, r1, colorOf, mode) {
-  const len = Math.hypot(b[0] - a[0], b[1] - a[1], b[2] - a[2]);
-  const n = Math.max(1, Math.ceil(len / (Math.min(r0, r1) * .45)));
-  for (let k = 0; k <= n; k++) {
-    const t = k / n, z = lerp(a[2], b[2], t);
-    sphere(lerp(a[0], b[0], t), lerp(a[1], b[1], t), z, lerp(r0, r1, t), colorOf(z), mode);
-  }
-}
 function box(x0, y0, z0, x1, y1, z1, c, seed = 0) {
   const ramp = rampOf(c);
   // the grain is noise(gx, gy), worked out only for a sample that wins the depth test
@@ -169,7 +139,7 @@ const kinds = new Uint8Array(W * H);
 /* ---------- wind ---------- */
 const WIND_FPS = 8; // stepped on purpose: the sway should feel hand-animated, not simulated
 const STILL = matchMedia('(prefers-reduced-motion: reduce)').matches;
-const tufts = [], leaves = [];
+const tufts = [];
 const staticShadow = new Uint8Array(W * H);
 const tuftLit = GRASS.map(c => rgb(...c)), tuftDark = GRASS.map(c => rgb(c[0] * .54, c[1] * .52, c[2] * .72));
 function growGrass() {
@@ -195,23 +165,6 @@ function drawTufts(t) {
       if ((kinds[j] !== KIND_GRASS && kinds[j] !== KIND_NONE) || zb[j] !== groundZ[j]) continue;
       pix[j] = tuft.bloom && k === tuft.height ? tuft.bloom : colors[clamp(tuft.base + k + (gust > 1 ? 1 : 0), 1, 4)];
     }
-  }
-}
-function drawLeaves(t) {
-  for (const leaf of leaves) {
-    const reach = clamp((leaf.z - 2.5) / 3, .3, 1);
-    const swayX = (Math.sin(t * .9 + leaf.x * .5 + leaf.z * .7) + .55 * Math.sin(t * 2.3 + leaf.k * 1.7)) * reach;
-    const dx = Math.round(swayX * .9), dy = Math.round(Math.sin(t * 1.3 + leaf.y + leaf.k) * reach * .45);
-    const px = leaf.pixels;
-    for (let n = 0; n < px.length; n += 4) {
-      const ix = px[n] + dx, iy = px[n + 1] + dy;
-      if (ix < 0 || iy < 0 || ix >= W || iy >= H) continue;
-      const i = iy * W + ix;
-      if (px[n + 2] <= zb[i]) continue;
-      zb[i] = px[n + 2];
-      pix[i] = px[n + 3];
-    }
-    if (leaf.k % 2 === 0) castShadow(leaf.x + swayX * .12, leaf.y, leaf.z, leaf.r);
   }
 }
 function bakeOcclusion(bx0 = 0, by0 = 0, bx1 = W, by1 = H) {
@@ -242,119 +195,4 @@ function plot(x, y, z, color) {
   zb[i] = p.d;
   pix[i] = color;
 }
-// a gnarled trunk, then a dark core under silver-green leaf clusters that sway in drawLeaves
-const CROWN = [[.1, 0, 3.7, 1.6], [-1.4, -.7, 3.3, 1.2], [1.6, .7, 3.4, 1.25], [-.6, 1.1, 3.9, 1.1], [.9, -1.1, 4, 1.1], [.2, .1, 4.9, 1.05]];
-const LEAF_DEEP = [58, 84, 62], LEAF_MID = [100, 126, 78], LEAF_SILVER = [146, 162, 112];
-function growTree(x, y, scale = 1, count = 420, seed = 0) {
-  const bark = () => BARK;
-  capsule([x, y, 0], [x + .3 * scale, y + .1 * scale, 2.2 * scale], .36 * scale, .22 * scale, bark, 'rough');
-  capsule([x + .3 * scale, y + .1 * scale, 2.2 * scale], [x - .8 * scale, y - .4 * scale, 3.3 * scale], .2 * scale, .13 * scale, bark, 'rough');
-  capsule([x + .3 * scale, y + .1 * scale, 2.2 * scale], [x + 1.2 * scale, y + .4 * scale, 3.4 * scale], .2 * scale, .13 * scale, bark, 'rough');
-  for (let n = 0; n < count; n++) {
-    const k = n + seed, [cx, cy, cz, spread] = CROWN[n % CROWN.length];
-    const a = hash(k, 7) * 6.283, tilt = hash(k, 8) * 2 - 1, d = Math.cbrt(hash(k, 9)) * spread, flat = Math.sqrt(1 - tilt * tilt);
-    const rx = cx + Math.cos(a) * flat * d, ry = cy + Math.sin(a) * flat * d, rz = cz + tilt * d * .8;
-    const tone = hash(k, 10) + (rz - 4.2) * .22 + (d / spread - .5) * .3;
-    const leaf = tone > .72 ? LEAF_SILVER : tone > .3 ? LEAF_MID : LEAF_DEEP;
-    capture = [];
-    sphere(x + rx * scale, y + ry * scale, rz * scale, (.2 + hash(k, 11) * .22) * scale, leaf, 'rough');
-    leaves.push({ x: x + rx * scale, y: y + ry * scale, z: rz * scale, k, r: .42 * scale, pixels: capture });
-    capture = null;
-  }
-}
-function figure(px, py, yaw, pose, palette, addBone) {
-  const fx = Math.cos(yaw), fy = Math.sin(yaw), sx = -fy, sy = fx, base = pose.z || 0, k = pose.scale || 1;
-  const P = (a, b, c) => [px + (fx * a + sx * b) * k, py + (fy * a + sy * b) * k, c * k + base];
-  const add = (a, b, r0, r1, f) => addBone(a, b, r0 * k, r1 * k, f);
-  const t = palette;
-  const shirt = z => (Math.floor(z * 3.2) % 2 ? t.shirt : t.stripe); // about 3px bands: thinner ones read as noise
-  const legs = () => t.legs, skin = () => t.skin;
-  const crouch = pose.crouch || 0, lean = pose.lean || 0;
-  const hipZ = 1.28 - crouch * .4;
-  const hipA = -crouch * .15;
-  const shA = hipA + Math.sin(lean) * .95, shZ = hipZ + Math.cos(lean) * .95;
-  const neck = P(shA, 0, shZ + .08), head = P(shA + Math.sin(lean) * .32, 0, shZ + .36);
-  const stance = pose.stance == null ? .2 : pose.stance;
-  const footB = P(-stance * 1.2, .2, .12), footF = P(stance * 2, -.2, .12);
-  const kneeB = P(-stance * .4 + crouch * .12, .22, .68 - crouch * .1);
-  const kneeF = P(stance * 1.2 + crouch * .34, -.22, .72 - crouch * .08);
-  const hipB = P(hipA, .15, hipZ), hipF = P(hipA, -.15, hipZ);
-  add(hipB, kneeB, .17, .13, legs); add(kneeB, footB, .13, .1, legs);
-  add(hipF, kneeF, .17, .13, legs); add(kneeF, footF, .13, .1, legs);
-  add(footB, P(-stance * 1.2 + .16, .2, .08), .1, .09, () => SHOE);
-  add(footF, P(stance * 2 + .16, -.2, .08), .1, .09, () => SHOE);
-  add(P(hipA, 0, hipZ), neck, .3, .32, shirt);
-  add(neck, head, .11, .12, skin);
-  sphere2(add, head, .24, t.skin);
-  sphere2(add, [head[0] - fx * .06, head[1] - fy * .06, head[2] + .08], .205, t.hair);
-  const shR = P(shA, .36, shZ - .03), shL = P(shA, -.36, shZ - .03);
-  const armR = pose.armR == null ? 0 : pose.armR, armL = pose.armL == null ? .08 : pose.armL;
-  const elbowR = P(shA + Math.sin(armR) * .46, .4, shZ - .03 - Math.cos(armR) * .46);
-  const handR = P(shA + Math.sin(armR + .18) * .95, .42, shZ - .03 - Math.cos(armR + .18) * .95);
-  const elbowL = P(shA + Math.sin(armL) * .46, -.42, shZ - .03 - Math.cos(armL) * .46);
-  const handL = P(shA + Math.sin(armL + .2) * .9, -.43, shZ - .03 - Math.cos(armL + .2) * .9);
-  add(shR, elbowR, .12, .1, shirt); add(elbowR, handR, .09, .08, skin);
-  add(shL, elbowL, .12, .1, shirt); add(elbowL, handL, .09, .08, skin);
-  return handR;
-}
-function sphere2(add, c, r, color) { add(c, c, r, r, () => color); }
-const dynamicAdd = (a, b, r0, r1, f) => { capsule(a, b, r0, r1, f, 'solid'); pendingShadows.push(a, r0, b, r1); };
-const pendingShadows = [];
-function flushShadows() {
-  for (let i = 0; i < pendingShadows.length; i += 4) {
-    const a = pendingShadows[i], ra = pendingShadows[i + 1], c = pendingShadows[i + 2];
-    const n = Math.max(1, Math.ceil(Math.hypot(c[0] - a[0], c[1] - a[1], c[2] - a[2]) / .25));
-    for (let k = 0; k <= n; k++) {
-      const t = k / n;
-      castShadow(lerp(a[0], c[0], t), lerp(a[1], c[1], t), lerp(a[2], c[2], t), ra * .9, 1, 0);
-    }
-    if (a[2] < .25) castShadow(a[0], a[1], 0, .2, 2, 0); // contact under the feet
-  }
-}
-function drawDots(points, color) {
-  for (const [sx, sy] of points) {
-    const ix = sx | 0, iy = sy | 0;
-    if (ix >= 0 && iy >= 0 && ix < W && iy < H) pix[iy * W + ix] = color;
-  }
-}
-const ARROW = [
-  '....ooooo....',
-  '....oXXXo....',
-  '....oXXXo....',
-  '....oXXXo....',
-  'oooooXXXooooo',
-  'oXXXXXXXXXXXo',
-  '.oXXXXXXXXXo.',
-  '..oXXXXXXXo..',
-  '...oXXXXXo...',
-  '....oXXXo....',
-  '.....oXo.....',
-  '......o......',
-];
 const INK = rgb(28, 27, 25), SIGNAL = rgb(255, 214, 10), PAPER = rgb(255, 255, 255);
-// signals get a white halo, so they separate from whatever busy detail sits behind them
-function haloDots(points) {
-  const halo = [];
-  for (const [x, y] of points) for (const [dx, dy] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) halo.push([x + dx, y + dy]);
-  drawDots(halo, PAPER);
-}
-// a bobbing arrow whose tip points at (sx, sy)
-function drawArrow(sx, sy, time) {
-  const bob = STILL ? 0 : Math.floor(time * 3) % 2 * 2;
-  const left = Math.round(sx) - 6, top = Math.round(sy) - ARROW.length - bob;
-  const ink = [], fill = [];
-  ARROW.forEach((row, y) => [...row].forEach((cell, x) => {
-    if (cell === 'o') ink.push([left + x, top + y]);
-    if (cell === 'X') fill.push([left + x, top + y]);
-  }));
-  haloDots(ink);
-  drawDots(ink, INK);
-  drawDots(fill, SIGNAL);
-}
-function fit() {
-  const dpr = window.devicePixelRatio || 1;
-  const fitScale = Math.min(innerWidth / W, (innerHeight - 40) / H);
-  const scale = Math.max(1, Math.floor(fitScale * dpr)) / dpr;
-  canvas.style.width = W * scale + 'px';
-  canvas.style.height = H * scale + 'px';
-}
