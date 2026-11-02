@@ -607,7 +607,6 @@
    "member": "assaultriflereload1.wav",
    "title": "소총 장전",
    "mood": "에어소프트 건으로 만든 장전음.",
-   "star": true,
    "head_db": -30
   },
   {
@@ -736,7 +735,6 @@
    "member": "ZombieMoans - Track 5 - ZombieMoan1.wav",
    "title": "사람 목소리 신음",
    "mood": "사람 목소리로 녹음한 신음, 약 2초.",
-   "star": true,
    "fade_out": 0.25
   },
   {
@@ -749,7 +747,6 @@
    "member": "zombies/zombie-17.wav",
    "title": "뚜렷한 신음",
    "mood": "목소리가 뚜렷한 신음, 약 1.5초.",
-   "star": true,
    "fade_out": 0.25
   },
   {
@@ -762,7 +759,6 @@
    "member": "darsycho__zombie-moans.ogg",
    "title": "길게 끄는 신음",
    "mood": "약 3초, 서서히 잦아듦.",
-   "star": true,
    "event": 0,
    "event_tail": 0.15,
    "fade_out": 0.3
@@ -777,7 +773,6 @@
    "member": "undead-2.ogg",
    "title": "언데드 신음",
    "mood": "사람이 낸 언데드 소리, 약 1.8초.",
-   "star": true,
    "segment": [
     0,
     1.84
@@ -794,7 +789,6 @@
    "member": "zombienoise1.ogg",
    "title": "거친 신음",
    "mood": "숨소리가 섞인 거친 신음, 약 2초.",
-   "star": true,
    "fade_out": 0.3
   },
   {
@@ -807,7 +801,6 @@
    "member": "darsycho__zombie-moans.ogg",
    "title": "다른 목소리 신음",
    "mood": "같은 작가의 다른 신음, 약 2.7초.",
-   "star": true,
    "segment": [
     6.5,
     9.22
@@ -822,9 +815,8 @@
    "kind": "sfx",
    "source": "arcade_voices",
    "member": "Voice Effects Zombie-Skeleton-Monster Human Male/zombieDeath1.wav",
-   "title": "쓰러지는 소리 1",
+   "title": "쓰러지는 소리",
    "mood": "쓰러지며 내는 소리, 약 0.6~0.8초.",
-   "star": true,
    "fade_out": 0.08
   },
   {
@@ -835,9 +827,8 @@
    "kind": "sfx",
    "source": "arcade_voices",
    "member": "Voice Effects Zombie-Skeleton-Monster Human Male/zombieDeath2.wav",
-   "title": "쓰러지는 소리 2",
+   "title": "쓰러지는 소리",
    "mood": "쓰러지며 내는 소리, 약 0.6~0.8초.",
-   "star": true,
    "fade_out": 0.08
   },
   {
@@ -848,9 +839,8 @@
    "kind": "sfx",
    "source": "arcade_voices",
    "member": "Voice Effects Zombie-Skeleton-Monster Human Male/zombieDeath3.wav",
-   "title": "쓰러지는 소리 3",
+   "title": "쓰러지는 소리",
    "mood": "쓰러지며 내는 소리, 약 0.6~0.8초.",
-   "star": true,
    "fade_out": 0.08
   },
   {
@@ -861,9 +851,8 @@
    "kind": "sfx",
    "source": "arcade_voices",
    "member": "Voice Effects Zombie-Skeleton-Monster Human Male/zombieDeath4.wav",
-   "title": "쓰러지는 소리 4",
+   "title": "쓰러지는 소리",
    "mood": "쓰러지며 내는 소리, 약 0.6~0.8초.",
-   "star": true,
    "fade_out": 0.08
   },
   {
@@ -1301,8 +1290,7 @@
    "source": "generated",
    "member": "reveal_1_common",
    "title": "",
-   "mood": "중립적인 작은 \"퐁\".",
-   "star": true
+   "mood": "중립적인 작은 \"퐁\"."
   },
   {
    "id": "sfx_reveal_2",
@@ -1313,8 +1301,7 @@
    "source": "generated",
    "member": "reveal_2_uncommon",
    "title": "",
-   "mood": "밝은 두 음이 올라감.",
-   "star": true
+   "mood": "밝은 두 음이 올라감."
   },
   {
    "id": "sfx_reveal_3",
@@ -1325,8 +1312,7 @@
    "source": "generated",
    "member": "reveal_3_rare",
    "title": "",
-   "mood": "아르페지오와 반짝임 몇 개.",
-   "star": true
+   "mood": "아르페지오와 반짝임 몇 개."
   },
   {
    "id": "sfx_reveal_4",
@@ -1337,8 +1323,7 @@
    "source": "generated",
    "member": "reveal_4_epic",
    "title": "",
-   "mood": "휙 하는 소리 뒤 D장조 아르페지오와 화음.",
-   "star": true
+   "mood": "휙 하는 소리 뒤 D장조 아르페지오와 화음."
   },
   {
    "id": "sfx_reveal_5",
@@ -1349,8 +1334,7 @@
    "source": "generated",
    "member": "reveal_5_legendary",
    "title": "",
-   "mood": "상승음, 충격, 금관 화음, 반짝이는 소리.",
-   "star": true
+   "mood": "상승음, 충격, 금관 화음, 반짝이는 소리."
   },
   {
    "id": "sfx_reveal_6",
@@ -1361,8 +1345,7 @@
    "source": "generated",
    "member": "reveal_6_immortal",
    "title": "",
-   "mood": "이중 충격, 저음과 큰 화음, 합창 패드.",
-   "star": true
+   "mood": "이중 충격, 저음과 큰 화음, 합창 패드."
   },
   {
    "id": "sfx_reveal_7",
@@ -1373,8 +1356,7 @@
    "source": "generated",
    "member": "reveal_7_mythic",
    "title": "",
-   "mood": "긴 상승음, 충격, 종소리 폭포, 금관 화음.",
-   "star": true
+   "mood": "긴 상승음, 충격, 종소리 폭포, 금관 화음."
   },
   {
    "id": "sfx_reveal_8",
@@ -1385,8 +1367,7 @@
    "source": "generated",
    "member": "reveal_8_eternal",
    "title": "",
-   "mood": "가장 긴 상승, 거대한 충격, 무지개 음계, 합창과 종.",
-   "star": true
+   "mood": "가장 긴 상승, 거대한 충격, 무지개 음계, 합창과 종."
   },
   {
    "id": "sfx_relic_a",
