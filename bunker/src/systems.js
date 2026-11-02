@@ -60,9 +60,9 @@ var SYS = window.SYS || (() => {
     const sums = G.sums || {};
     G.sums = {};
     for (const k of ['weapon', 'turret', 'relic', 'crew']) G.sums[k] = fixSum(sums[k]);
+    const ew = G.equipW && typeof G.equipW === 'object' ? G.equipW : {};
     G.equipW = {};
-    for (const [k, i] of Object.entries(G.equipW0 || {})) if (Number.isInteger(i) && i >= 0 && i < Lg.WEAPONS.length) G.equipW[k] = i;
-    delete G.equipW0;
+    for (const [k, i] of Object.entries(ew)) if (Number.isInteger(i) && i >= 0 && i < Lg.WEAPONS.length) G.equipW[k] = i;
     G.equipT = fixArr(G.equipT, SLOTS_T, -1).map(x => (Number.isInteger(x) && x >= 0 && x < Lg.TURRETS.length ? x : -1));
     const c = G.cmd || {};
     G.cmd = { level: Math.max(1, nat(c.level)), xp: Math.max(0, +c.xp || 0), unspent: nat(c.unspent), points: Object.fromEntries(Lg.STATS.map(k => [k, nat(c.points && c.points[k])])) };
@@ -92,7 +92,7 @@ var SYS = window.SYS || (() => {
   const keepRng = () => { G.rng = rng.state(); };
 
   /* ================= the numbers everything multiplies by ================= */
-  const ROLE = () => Object.fromEntries(Lg.TURRET_ROLES.map(r => [r.key, r]));
+  let ROLES = {}, FAMS = {};
   const turretOpen = () => MOUNT_AT.filter(at => G.bunker >= at).length;
   const relicOpen = () => Lg.relicSlots(G.record);
   const jobCount = job => G.crew.reduce((n, c) => n + (c && c.job === job ? 1 : 0), 0);
@@ -353,7 +353,7 @@ var SYS = window.SYS || (() => {
     const locked = !!s.unlock && Math.max(G.record + 1, G.best) < s.unlock;
     const reason = locked ? '스테이지 ' + s.unlock : count >= s.max ? '최대' : used >= beds || !c ? '침대 부족' : null;
     return { section: key, job: s.job, count, max: s.max, price: c && { gold: c.money || 0, food: c.food || 0, ore: c.mineral || 0 },
-      beds: { used, total: beds }, locked, lockReason: reason, reason, canBuy: !reason && canPay(c) };
+      beds: { used, total: beds }, locked, lockReason: reason, reason, canBuy: !reason && !!c && canPay(c) };
   }
   function buyWorker(section) {
     const w = workers(section);
@@ -363,7 +363,8 @@ var SYS = window.SYS || (() => {
     pay(c);
     const p = hireWorker(w.job);
     if (!p) { for (const [k, v] of Object.entries(c)) G[k] += v; return false; }
-    if (on) { autoEquip(); changed(); }
+    if (on) autoEquip();
+    changed();
     if (typeof sound === 'function') sound('buy');
     return true;
   }
@@ -561,7 +562,6 @@ var SYS = window.SYS || (() => {
   const currencies = () => ({ gold: G.money, food: G.food, ore: G.mineral, gems: on ? G.gems : 0, diamonds: on ? G.diamonds : 0, parts: on ? G.comps : 0, medals: on ? G.medals : 0 });
 
   /* ================= combat: what a shooter's shot does ================= */
-  const FAM = () => Object.fromEntries(Lg.FAMILIES.map(f => [f.key, f]));
   const NEUTRAL = { mul: 1, crit: 0, critMul: 1, rate: 1, crowd: 0, pierce: 0, burn: 0, slow: 0, chain: 0, boss: 1, noReload: false, reload: 1 };
   const shotCache = new Map();
   let shotVer = -1;
@@ -571,7 +571,7 @@ var SYS = window.SYS || (() => {
     const key = keyOf(s);
     let w = shotCache.get(key);
     if (w) return w;
-    const st = stats(), i = G.equipW[key], has = i != null && G.wInv.owned[i], fam = has ? FAM()[Lg.WEAPONS[i].family] : {}, tags = has ? Lg.WEAPONS[i].tags : {};
+    const st = stats(), i = G.equipW[key], has = i != null && G.wInv.owned[i], fam = has ? FAMS[Lg.WEAPONS[i].family] : {}, tags = has ? Lg.WEAPONS[i].tags : {};
     const eq = has ? Lg.weaponEquipMul(i, G.wInv.enh[i]) : .5, crew = s.hero ? 1 : st.crew;
     // the real fire stops at 12 shots a second; any rate beyond it becomes damage
     const raw = (1 + (fam.rate || 0)) * st.rate, cap = tun().workshop.maxShots / Math.max(.01, gunStat('spd')), rate = Math.min(raw, cap);
@@ -589,7 +589,7 @@ var SYS = window.SYS || (() => {
   const towers = [];
   let towerSig = '';
   function turretDps(i) {
-    const role = ROLE()[Lg.TURRETS[i].role], rate = gunStat('spd'), mag = gunStat('mag'), fire = (mag / rate) / (mag / rate + reloadTime());
+    const role = ROLES[Lg.TURRETS[i].role], rate = gunStat('spd'), mag = gunStat('mag'), fire = (mag / rate) / (mag / rate + reloadTime());
     return gunStat('atk') * rate * fire * role.coef * Lg.turretMul(i, G.tInv.enh[i]) * stats().turret * (1 + tun().base.turretPerLevel * G.bunker);
   }
   function syncTowers() {
@@ -619,7 +619,7 @@ var SYS = window.SYS || (() => {
   }
   function near(z, r, skip) { return G.zombies.filter(o => o !== skip && alive(o) && Math.hypot(o.x - z.x, o.y - z.y) < r); }
   function towerFire(t, z) {
-    const role = ROLE()[t.role], st = stats(), boss = z.type === 'boss';
+    const role = ROLES[t.role], st = stats(), boss = z.type === 'boss';
     const dmg = turretDps(t.i) / TFIRE[t.role].rate * (boss ? role.boss * st.turretBoss * st.boss : 1);
     t.flash = 1; t.recoil = 1; t.shots++;
     const mz = t.muzzle || [project(t.x, t.y, t.z + .3).sx, project(t.x, t.y, t.z + .3).sy], hit = project(z.x, z.y, .8);
@@ -818,7 +818,11 @@ var SYS = window.SYS || (() => {
   function found(r) { if (r && r.result !== 'shard') notify(r.result === 'new' ? '새 유물' : '유물', Lg.RELICS[r.id].name, 'new'); autoEquip(); changed(); }
 
   /* ================= start ================= */
-  function attach() { Lg = window.LOGIC || null; on = !!Lg; api.ok = on; return on; }
+  function attach() {
+    Lg = window.LOGIC || null; on = !!Lg; api.ok = on;
+    if (on) { ROLES = Object.fromEntries(Lg.TURRET_ROLES.map(r => [r.key, r])); FAMS = Object.fromEntries(Lg.FAMILIES.map(f => [f.key, f])); }
+    return on;
+  }
   function start() {
     if (on) {
       autoEquip();

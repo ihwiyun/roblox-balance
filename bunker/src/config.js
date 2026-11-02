@@ -1,7 +1,9 @@
 'use strict';
 // Tuning: every number that shapes the game (costs, growth curves, zombie types, names).
 /* ================= tuning ================= */
-const FIELD = PP_SCENE.field, FENCE_R = 3.6, MAX_ZOMBIES = 60, OFFLINE_CAP = 2 * 3600, SAVE_KEY = 'bunker-idle:v3';
+const FIELD = PP_SCENE.field, FENCE_R = 3.6, MAX_ZOMBIES = 60, OFFLINE_CAP = 2 * 3600, SAVE_KEY = 'bunker-idle:v5';
+// the save before the systems (version 4, under the old key): moved once into SAVE_KEY, the original kept under BACKUP_KEY
+const OLD_SAVE_KEY = 'bunker-idle:v3', BACKUP_KEY = 'bunker-idle:v4-backup';
 // time away up to CATCH_UP seconds is played out (fights and all) when the page comes back; longer is credited
 const CATCH_UP = 30;
 // the bunker and the fence each have 40 levels: the building changes form six times, and every level
@@ -70,9 +72,11 @@ const ZTYPES = {
   burrower:    { name: '땅굴 좀비', desc: '땅속으로 와서 울타리 안에서 튀어나온다', from: 26, hp: 2.4, hit: 1.6, speed: .6, reward: 3.2, every: 1.1, special: 'burrow' },
   regenerator: { name: '재생 좀비', desc: '맞지 않으면 상처가 아문다', from: 29, hp: 3, hit: 1.2, speed: .5, reward: 3.4, every: 1.2, special: 'regen' },
   giant:       { name: '거인', desc: '거대하고 느리다. 울타리를 크게 부순다', from: 33, hp: 16, hit: 9, speed: .25, reward: 12, every: 2.4 },
-  boss:        { name: '변이체 보스', desc: '쓰러뜨려야 다음 웨이브로 넘어간다', from: 10, hp: 45, hit: 14, speed: .22, reward: 40, every: 2.6, special: 'boss' },
+  boss:        { name: '보스', desc: '', from: 10, hp: 45, hit: 14, speed: .22, reward: 40, every: 2.6, special: 'boss' },
 };
 const isBossWave = w => w % 10 === 0;
+// a titan closes every hundred: a boss 2.5 times as tough (the logic's 1,000x against 400x) with a longer clock
+const TITAN_HP = 2.5;
 const MUTANT_ORDER = Object.keys(ZTYPES).filter(k => k !== 'boss').sort((a, b) => ZTYPES[a].from - ZTYPES[b].from);
 const nextMutant = () => MUTANT_ORDER.map(k => ZTYPES[k]).find(t => t.from > G.wave) || null;
 const NAMES = ['민준', '서연', '도윤', '하은', '지호'];
