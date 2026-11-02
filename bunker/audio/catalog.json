@@ -251,7 +251,7 @@
      "members": []
     }
    ],
-   "bpm_est": 150.0,
+   "bpm_est": 75.0,
    "loop_start": 0.0,
    "loop_end": 96.0,
    "seam": {
@@ -260,7 +260,7 @@
     "gap_db": -16.7,
     "ok": true
    },
-   "loop_beats": 240.0
+   "loop_beats": 120.0
   },
   {
    "id": "bgm_boss_epic",
@@ -338,7 +338,7 @@
      "members": []
     }
    ],
-   "bpm_est": 79.0,
+   "bpm_est": 157.5,
    "loop_start": 0.0,
    "loop_end": 133.686,
    "seam": {
@@ -347,7 +347,7 @@
     "gap_db": -3.1,
     "ok": true
    },
-   "loop_beats": 176.02
+   "loop_beats": 350.93
   },
   {
    "id": "bgm_boss_metal9",
@@ -879,17 +879,17 @@
    "fade_out": 0.2,
    "author": "Ben Jaszczak, et al.",
    "file": "candidates/sfx-gun/sfx_gun_pistol_a.ogg",
-   "bytes": 11470,
+   "bytes": 11463,
    "seconds": 0.904,
-   "lufs_i": -24.9,
+   "lufs_i": -25.0,
    "true_peak": -1.2,
-   "lufs_m_max": -24.9,
+   "lufs_m_max": -25.0,
    "changes": [
     "파일 안의 소리 2개 중 1번째만 사용",
     "20Hz 이하 제거(직류 성분 제거)",
     "0.2초 페이드아웃",
     "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -4.2 dB)",
-    "OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 -0.45 dB 조정)"
+    "OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 -0.50 dB 조정)"
    ],
    "source_files": [
     "Prepared SFX Library/1911/A_42P.wav"
@@ -904,8 +904,8 @@
      ]
     }
    ],
-   "punch_db": -19.3,
-   "preview_gain_db": -0.7
+   "punch_db": -19.4,
+   "preview_gain_db": -0.6
   },
   {
    "id": "sfx_gun_pistol_b",
@@ -922,18 +922,18 @@
    "fade_out": 0.2,
    "author": "Ben Jaszczak, et al.",
    "file": "candidates/sfx-gun/sfx_gun_pistol_b.ogg",
-   "bytes": 9718,
+   "bytes": 9762,
    "seconds": 0.689,
-   "lufs_i": -23.6,
-   "true_peak": -1.2,
-   "lufs_m_max": -23.6,
+   "lufs_i": -23.2,
+   "true_peak": -1.0,
+   "lufs_m_max": -23.2,
    "changes": [
     "파일 안의 소리 3개 중 1번째만 사용",
     "앞뒤 무음 0.02초 제거",
     "20Hz 이하 제거(직류 성분 제거)",
     "0.2초 페이드아웃",
     "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 +1.0 dB)",
-    "OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 -0.45 dB 조정)"
+    "OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 +0.20 dB 조정)"
    ],
    "source_files": [
     "Prepared SFX Library/Walther PPQ/X_39P.wav"
@@ -948,8 +948,8 @@
      ]
     }
    ],
-   "punch_db": -18.6,
-   "preview_gain_db": -1.4
+   "punch_db": -18.2,
+   "preview_gain_db": -1.8
   },
   {
    "id": "sfx_gun_smg_a",
@@ -967,17 +967,17 @@
    "fade_out": 0.2,
    "author": "Ben Jaszczak, et al.",
    "file": "candidates/sfx-gun/sfx_gun_smg_a.ogg",
-   "bytes": 10532,
+   "bytes": 10557,
    "seconds": 0.827,
-   "lufs_i": -23.6,
+   "lufs_i": -23.4,
    "true_peak": -1.2,
-   "lufs_m_max": -23.6,
+   "lufs_m_max": -23.4,
    "changes": [
     "파일 안의 소리 5개 중 1번째만 사용",
     "20Hz 이하 제거(직류 성분 제거)",
     "0.2초 페이드아웃",
     "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 +0.5 dB)",
-    "OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 -0.45 dB 조정)"
+    "OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 -0.20 dB 조정)"
    ],
    "source_files": [
     "Prepared SFX Library/PPSh/P_30P.wav"
@@ -992,8 +992,8 @@
      ]
     }
    ],
-   "punch_db": -18.6,
-   "preview_gain_db": -1.4
+   "punch_db": -18.5,
+   "preview_gain_db": -1.5
   },
   {
    "id": "sfx_gun_smg_b",
@@ -1010,17 +1010,17 @@
    "fade_out": 0.2,
    "author": "Ben Jaszczak, et al.",
    "file": "candidates/sfx-gun/sfx_gun_smg_b.ogg",
-   "bytes": 10480,
+   "bytes": 10495,
    "seconds": 0.825,
    "lufs_i": -25.8,
    "true_peak": -1.0,
-   "lufs_m_max": -25.7,
+   "lufs_m_max": -25.8,
    "changes": [
     "파일 안의 소리 3개 중 1번째만 사용",
     "20Hz 이하 제거(직류 성분 제거)",
     "0.2초 페이드아웃",
     "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -1.8 dB)",
-    "OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 -0.30 dB 조정)"
+    "OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 -0.20 dB 조정)"
    ],
    "source_files": [
     "Prepared SFX Library/Carl Gustav M45/G_31P.wav"
@@ -1054,17 +1054,17 @@
    "fade_out": 0.2,
    "author": "Ben Jaszczak, et al.",
    "file": "candidates/sfx-gun/sfx_gun_rifle_a.ogg",
-   "bytes": 10081,
+   "bytes": 10042,
    "seconds": 0.789,
-   "lufs_i": -26.1,
-   "true_peak": -1.1,
-   "lufs_m_max": -26.1,
+   "lufs_i": -26.3,
+   "true_peak": -1.2,
+   "lufs_m_max": -26.3,
    "changes": [
     "파일 안의 소리 2개 중 1번째만 사용",
     "20Hz 이하 제거(직류 성분 제거)",
     "0.2초 페이드아웃",
     "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -3.6 dB)",
-    "OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 +0.15 dB 조정)"
+    "OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 -0.10 dB 조정)"
    ],
    "source_files": [
     "Prepared SFX Library/AR-15/D_32P.wav"
@@ -1079,7 +1079,7 @@
      ]
     }
    ],
-   "punch_db": -20.1,
+   "punch_db": -20.3,
    "preview_gain_db": 0.0
   },
   {
@@ -1097,17 +1097,17 @@
    "fade_out": 0.2,
    "author": "Ben Jaszczak, et al.",
    "file": "candidates/sfx-gun/sfx_gun_rifle_b.ogg",
-   "bytes": 10471,
+   "bytes": 10450,
    "seconds": 0.836,
-   "lufs_i": -23.4,
-   "true_peak": -1.1,
-   "lufs_m_max": -23.4,
+   "lufs_i": -23.2,
+   "true_peak": -1.0,
+   "lufs_m_max": -23.2,
    "changes": [
     "파일 안의 소리 4개 중 1번째만 사용",
     "20Hz 이하 제거(직류 성분 제거)",
     "0.2초 페이드아웃",
     "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -1.6 dB)",
-    "OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 -0.15 dB 조정)"
+    "OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 +0.10 dB 조정)"
    ],
    "source_files": [
     "Prepared SFX Library/AK-47/C_28P.wav"
@@ -1122,8 +1122,8 @@
      ]
     }
    ],
-   "punch_db": -17.3,
-   "preview_gain_db": -2.7
+   "punch_db": -17.1,
+   "preview_gain_db": -2.9
   },
   {
    "id": "sfx_gun_shotgun_a",
@@ -1184,17 +1184,17 @@
    "fade_out": 0.2,
    "author": "Ben Jaszczak, et al.",
    "file": "candidates/sfx-gun/sfx_gun_shotgun_b.ogg",
-   "bytes": 11508,
+   "bytes": 11506,
    "seconds": 0.903,
    "lufs_i": -24.2,
-   "true_peak": -1.1,
+   "true_peak": -1.0,
    "lufs_m_max": -24.2,
    "changes": [
     "파일 안의 소리 2개 중 1번째만 사용",
     "20Hz 이하 제거(직류 성분 제거)",
     "0.2초 페이드아웃",
     "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -3.5 dB)",
-    "OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 -0.15 dB 조정)"
+    "OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 -0.10 dB 조정)"
    ],
    "source_files": [
     "Prepared SFX Library/Model 12/K_22P.wav"
@@ -1209,8 +1209,8 @@
      ]
     }
    ],
-   "punch_db": -18.4,
-   "preview_gain_db": -1.6
+   "punch_db": -18.3,
+   "preview_gain_db": -1.7
   },
   {
    "id": "sfx_gun_sniper_a",
@@ -1228,17 +1228,17 @@
    "fade_out": 0.3,
    "author": "Ben Jaszczak, et al.",
    "file": "candidates/sfx-gun/sfx_gun_sniper_a.ogg",
-   "bytes": 13075,
+   "bytes": 13110,
    "seconds": 1.172,
    "lufs_i": -22.6,
-   "true_peak": -1.2,
+   "true_peak": -1.3,
    "lufs_m_max": -22.6,
    "changes": [
     "파일 안의 소리 2개 중 1번째만 사용",
     "20Hz 이하 제거(직류 성분 제거)",
     "0.3초 페이드아웃",
     "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -0.4 dB)",
-    "OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 -0.15 dB 조정)"
+    "OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 -0.20 dB 조정)"
    ],
    "source_files": [
     "Prepared SFX Library/Tikka/W_29P.wav"
@@ -1253,8 +1253,8 @@
      ]
     }
    ],
-   "punch_db": -15.9,
-   "preview_gain_db": -4.1
+   "punch_db": -16.0,
+   "preview_gain_db": -4.0
   },
   {
    "id": "sfx_gun_sniper_b",
@@ -1358,17 +1358,17 @@
    "fade_out": 0.25,
    "author": "Ben Jaszczak, et al.",
    "file": "candidates/sfx-gun/sfx_gun_mg_b.ogg",
-   "bytes": 21876,
+   "bytes": 21877,
    "seconds": 1.851,
-   "lufs_i": -17.8,
+   "lufs_i": -17.9,
    "true_peak": -1.1,
-   "lufs_m_max": -16.9,
+   "lufs_m_max": -17.0,
    "changes": [
     "파일 안의 소리 1개 중 1번째만 사용",
     "20Hz 이하 제거(직류 성분 제거)",
     "0.25초 페이드아웃",
     "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -1.0 dB)",
-    "OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 +0.15 dB 조정)"
+    "OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 +0.10 dB 조정)"
    ],
    "source_files": [
     "Prepared SFX Library/PPSh/P_34P.wav"
@@ -1383,8 +1383,8 @@
      ]
     }
    ],
-   "punch_db": -16.7,
-   "preview_gain_db": -3.3
+   "punch_db": -16.8,
+   "preview_gain_db": -3.2
   },
   {
    "id": "sfx_gun_flame_a",
@@ -1404,17 +1404,17 @@
    "fade_out": 0.3,
    "author": "LEGIT Audio",
    "file": "candidates/sfx-gun/sfx_gun_flame_a.ogg",
-   "bytes": 19425,
+   "bytes": 19399,
    "seconds": 1.8,
    "lufs_i": -16.9,
-   "true_peak": -1.2,
-   "lufs_m_max": -14.0,
+   "true_peak": -1.1,
+   "lufs_m_max": -13.9,
    "changes": [
     "원본 0.00–1.80초 구간만 사용",
     "20Hz 이하 제거(직류 성분 제거)",
     "0.3초 페이드아웃",
     "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -4.0 dB)",
-    "OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 +0.45 dB 조정)"
+    "OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 +0.50 dB 조정)"
    ],
    "source_files": [
     "LEGIT Audio_FIRE STAFF - FREE/Wavs/LEGIT_FIR_Fire_Staff 17-Audio.wav"
@@ -1429,8 +1429,8 @@
      ]
     }
    ],
-   "punch_db": -11.2,
-   "preview_gain_db": -8.8
+   "punch_db": -11.1,
+   "preview_gain_db": -8.9
   },
   {
    "id": "sfx_gun_flame_b",
@@ -1444,15 +1444,15 @@
    "mood": "점화 후 으르렁대는 불길, 지직거리는 불꽃.",
    "author": "synth.mjs (이 프로젝트)",
    "file": "candidates/sfx-gun/sfx_gun_flame_b.ogg",
-   "bytes": 19027,
+   "bytes": 18997,
    "seconds": 1.61,
-   "lufs_i": -12.6,
-   "true_peak": -1.2,
-   "lufs_m_max": -12.1,
+   "lufs_i": -12.5,
+   "true_peak": -1.1,
+   "lufs_m_max": -12.0,
    "changes": [
     "20Hz 이하 제거(직류 성분 제거)",
     "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 +0.0 dB)",
-    "OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 +0.45 dB 조정)"
+    "OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 +0.50 dB 조정)"
    ],
    "source_files": [],
    "generated_desc": "Flamethrower: ignition whump, 1.4 s roaring noise with slow flutter and crackle, soft cut-off",
@@ -1470,17 +1470,19 @@
    "title": "테슬라 방전",
    "mood": "작은 테슬라 발전기를 녹음한 실제 방전음.",
    "star": true,
+   "head_db": -18,
    "author": "BMacZero",
    "file": "candidates/sfx-gun/sfx_gun_electric_a.ogg",
-   "bytes": 6849,
-   "seconds": 0.334,
+   "bytes": 5631,
+   "seconds": 0.198,
    "lufs_i": -70.0,
-   "true_peak": -1.6,
+   "true_peak": -1.2,
    "lufs_m_max": -120.7,
    "changes": [
+    "앞뒤 무음 0.14초 제거",
     "20Hz 이하 제거(직류 성분 제거)",
     "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 +2.0 dB)",
-    "OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 -1.50 dB 조정)"
+    "OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 +0.20 dB 조정)"
    ],
    "source_files": [
     "spark.wav"
@@ -1493,7 +1495,7 @@
      "members": []
     }
    ],
-   "punch_db": -25.2,
+   "punch_db": -23.7,
    "preview_gain_db": 0.0
   },
   {

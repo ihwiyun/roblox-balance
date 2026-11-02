@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Cut, normalise and encode every candidate, then measure it.
 
-Usage:  python3 -I process.py <tools-dir> <cache-dir> <audio-dir> [candidate-id ...]
+Usage:  python3 -I process.py <tools-dir> <cache-dir> <audio-dir> [candidate-id ...] [--meta]
+(--meta: only copy title/mood/star/slot/bpm text from candidates.json into catalog.json, no audio work)
 
 Reads  <tools-dir>/candidates.json + sources.json, the downloads in <cache-dir> (from fetch.py)
 and the generated WAVs in <cache-dir>/gen (from synth.mjs).  Writes OGG Vorbis files to
@@ -414,9 +415,15 @@ def build(c, sources, fetch_log, generated, cache, audio):
     return item
 
 
+META_KEYS = ('title', 'mood', 'star', 'slot', 'slot_label', 'bpm')   # text fields: can be refreshed without re-encoding
+
+
 def main():
-    tools, cache, audio = sys.argv[1:4]
-    only = set(sys.argv[4:])
+    flags = [a for a in sys.argv[1:] if a.startswith('--')]
+    args = [a for a in sys.argv[1:] if not a.startswith('--')]
+    tools, cache, audio = args[:3]
+    only = set(args[3:])
+    meta_only = '--meta' in flags   # copy the text fields of candidates.json into catalog.json, no audio work
     cands = json.load(open(os.path.join(tools, 'candidates.json')))['candidates']
     sources = {s['id']: s for s in json.load(open(os.path.join(tools, 'sources.json')))['sources']}
     fetch_log = json.load(open(os.path.join(cache, 'fetch-log.json')))
@@ -430,6 +437,18 @@ def main():
         tmp = cat_path + '.tmp'
         json.dump({'items': items}, open(tmp, 'w'), ensure_ascii=False, indent=1)
         os.replace(tmp, cat_path)
+
+    if meta_only:
+        for c in cands:
+            if c['id'] in catalog and (not only or c['id'] in only):
+                for k in META_KEYS:
+                    if k in c:
+                        catalog[c['id']][k] = c[k]
+                    else:
+                        catalog[c['id']].pop(k, None)
+        save()
+        print('catalog.json text fields refreshed')
+        return
 
     failed = []
     for c in cands:

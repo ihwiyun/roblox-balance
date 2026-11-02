@@ -49,6 +49,8 @@ def card(it, letter=None):
     if it['kind'] == 'sfx' and it.get('preview_gain_db'):
         vol = f" data-vol=\"{max(0.1, min(1.0, 10 ** (it['preview_gain_db'] / 20))):.2f}\""
     name = it['title']
+    if it['kind'] == 'sfx' and not letter:                  # only candidate of its slot: the slot label is the heading
+        name = f"{it['slot_label']} · {name}" if name else it['slot_label']
     label = f"{it['slot_label']} {letter} · {name}" if letter else name
     return (
         f'<article class="cand{" rec" if it.get("star") else ""}" data-id="{esc(it["id"])}" data-slot="{esc(it.get("slot", it["group"]))}" '
@@ -57,7 +59,7 @@ def card(it, letter=None):
         f'<label class="pick"><input type="checkbox"><span>선택</span></label></div>'
         f'<audio controls preload="none"{" loop" if music else ""}{vol} aria-label="{esc(label)}" src="{esc(it["file"])}"></audio>'
         f'<p class="meta">{"".join(f"<span>{esc(m)}</span>" for m in meta)}</p>'
-        f'<p class="meta dim"><span>{esc(it["author"])}</span>{lic(it)}</p>'
+        f'<p class="meta dim"><span>{esc(it["author"].replace(" (이 프로젝트)", ""))}</span>{lic(it)}</p>'
         f'<p class="mood">{esc(it["mood"])}</p></article>')
 
 
@@ -86,7 +88,7 @@ for g in groups:
             slots.setdefault(it['slot'], []).append(it)
         body.append('<div class="slots">')
         for slot, alts in slots.items():
-            body.append(f'<div class="slot"><h5>{esc(alts[0]["slot_label"])}</h5>')
+            body.append('<div class="slot">' + (f'<h5>{esc(alts[0]["slot_label"])}</h5>' if len(alts) > 1 else ''))
             body.extend(card(it, 'ABCD'[i] if len(alts) > 1 else None) for i, it in enumerate(alts))
             body.append('</div>')
         body.append('</div>')
@@ -133,6 +135,7 @@ audio { display: block; width: 100%; height: 36px; margin: 4px 0 2px; }
 .meta { display: flex; flex-wrap: wrap; gap: 0 6px; margin: 2px 0 0; font-size: 12px; font-variant-numeric: tabular-nums; }
 .meta span + span::before, .meta span + a::before { content: "·"; margin-right: 6px; color: var(--muted); }
 .meta.dim { color: var(--muted); }
+.meta span + a::before { display: inline-block; text-decoration: none; }
 .mood { margin: 4px 0 0; font-size: 12px; }
 .out { margin-top: 30px; border: 1px solid var(--ink); padding: 8px 10px; }
 .out summary { cursor: pointer; min-height: 28px; }

@@ -356,9 +356,22 @@ const BUNKER_ART = (() => {
   const MOUNT_DIRS = [[-1, 1], [1, -1], [-1, -1], [-1, 0], [0, -1], [1, 1]];
   const mountsAt = (F, q, z, fn) => { for (let i = 0; i < F.mounts; i++) { const [dx, dy] = MOUNT_DIRS[i]; fn(dx * q, dy * q, z, dx, dy); } };
   const RED = [190, 58, 46], YEL = [226, 184, 52];
+  // a box with a darker frame round every face and, if given, a stencil band across its walls
+  const framed = (x, y, z, sx, sy, sz, c, seed, band = 0) => solid(x - sx, y - sy, z, x + sx, y + sy, z + sz, c, seed, (f, a, b) => {
+    if (f === 0) return Math.abs(a - x) > sx - .05 || Math.abs(b - y) > sy - .05 ? -1 : .3;
+    const rel = (a - (f === 1 ? x : y)) / (f === 1 ? sx : sy), rz = (b - z) / sz;
+    if (Math.abs(rel) > .78 || rz < .14 || rz > .84) return -1.3;
+    return band && Math.abs(rz - .5) < .13 && Math.abs(rel) < .6 ? band : 0;
+  }, .4);
+  // a turntable on a mount: a steel plate with a dark rim and a pivot in the middle
+  const turntable = (x, y, z, s, c) => pbox(x - s, y - s, z, x + s, y + s, z + .04, c, 26, (f, a, b) => {
+    if (f) return -.6;
+    const r = Math.max(Math.abs(a - x), Math.abs(b - y));
+    return r > s - .045 ? -1.6 : r < .04 ? -2 : .5;
+  }, .2);
 
   /* ---- era 0 · 임시: the foxhole of level 1; its walls then raise it into a dugout of logs ---- */
-  const R0 = 1.55, COURSE = 3 * PXZ, LOGS = [[134, 96, 62], [118, 84, 54]];
+  const R0 = 1.55, COURSE = 3 * PXZ, LOGS = [[134, 96, 62], [118, 84, 54]], CRIB = [WOOD, [176, 132, 84]];
   // round logs laid in courses three pixels tall: a lit upper edge, a dark seam under each, every log its own brown
   const logWall = (f, a, b) => {
     if (!f) return 0;
@@ -370,11 +383,11 @@ const BUNKER_ART = (() => {
   // a crib of logs laid crosswise, three layers, with an iron pivot plate on top: a turret mount
   const logCrib = (x, y, z, g) => {
     for (let i = 0; i < 3; i++) {
-      const zz = z + i * .11, c = LOGS[i & 1], pat = (f, a, b) => f && rep(b - zz, .11) < PXZ ? -1.3 : 0;
+      const zz = z + i * .11, c = CRIB[i & 1], pat = (f, a, b) => f && rep(b - zz, .11) < PXZ ? -1.3 : 0;
       for (const o of [-.15, .15]) i & 1 ? pbox(x + o - .055, y - .25, zz, x + o + .055, y + .25, zz + .11, c, 20 + i, pat) : pbox(x - .25, y + o - .055, zz, x + .25, y + o + .055, zz + .11, c, 20 + i, pat);
     }
     const t = z + .33;
-    pbox(x - .13, y - .13, t, x + .13, y + .13, t + .04, trimOf(g, [70, 74, 82]), 26, (f, a, b) => f === 0 && Math.abs(a - x) < .045 && Math.abs(b - y) < .045 ? 1.4 : f === 0 && Math.max(Math.abs(a - x), Math.abs(b - y)) > .09 ? -1 : 0);
+    turntable(x, y, t, .16, trimOf(g, METAL));
     shade(x - .25, y - .25, x + .25, y + .25, z, t + .04);
     SITES.mounts.push([x, y, t + .04]);
   };
@@ -446,24 +459,33 @@ const BUNKER_ART = (() => {
       null,
       // supply crates stacked by every wall: a plank crate, a dark one and an olive one, a small olive one on top
       (F, g) => byWalls(F.m, .8, .3, (x, y, nx) => {
-        const at = s => nx ? [x, y + s] : [x + s, y], mark = col(...trimOf(g, [214, 178, 60]));
-        crateAt(...at(-.26), 0, .17, .17, .34, PLANK, 5);
-        crateAt(...at(.06), 0, .14, .14, .26, [150, 112, 72], 6);
-        crateAt(...at(.36), 0, ...(nx ? [.15, .17] : [.17, .15]), .3, OLIVE, 7, mark);
-        crateAt(...at(-.26), .34, .12, .12, .2, OLIVE, 8, mark);
+        const at = s => nx ? [x, y + s] : [x + s, y], band = col(...trimOf(g, [214, 178, 60]));
+        framed(...at(-.22), 0, .19, .19, .38, PLANK, 5);
+        framed(...at(.2), 0, .17, .17, .32, [150, 112, 72], 6);
+        framed(...at(-.2), .38, .14, .14, .26, PLANK, 7);
+        framed(...at(.52), 0, ...(nx ? [.1, .15] : [.15, .1]), .2, OLIVE, 8, band);
       }),
     ],
     workshop: [
       null,
       // a workbench by every wall: a plank top on four legs, a vice, a red toolbox and a saw-horse beside it
-      (F, g) => byWalls(F.m, -.8, .26, (x, y, nx) => {
-        const L = .34, D = .14;
-        wallBox(x, y, nx, L, D, .4, .46, PLANK, 25, (f, a) => f === 0 && rep(a, .2) < PXA ? -1 : 0);
-        for (const p of [-L + .04, L - .04]) for (const q of [-D + .04, D - .04]) nx ? post(x + q, y + p, 0, .4, .03, WOOD, 26) : post(x + p, y + q, 0, .4, .03, WOOD, 26);
-        const [vx, vy] = nx ? [x, y - L + .1] : [x - L + .1, y], [tx, ty] = nx ? [x, y + .08] : [x + .08, y];
-        pbox(vx - .07, vy - .07, .46, vx + .07, vy + .07, .56, [70, 74, 80], 27);
-        pbox(tx - .12, ty - .12, .46, tx + .12, ty + .12, .62, trimOf(g, [196, 56, 44]), 28, (f, a, b) => f && Math.abs(b - .55) < .02 ? -1.5 : 0);
-        shade(x - .36, y - .36, x + .36, y + .36, 0, .62);
+      (F, g) => byWalls(F.m, -.8, .22, (x, y, nx, ny) => {
+        const L = .38, D = .15, at = (s, o) => nx ? [x + nx * o, y + s] : [x + s, y + ny * o];
+        wallBox(x, y, nx, L, D, .4, .47, PLANK, 25, (f, a, b) => f === 0 ? (rep(nx ? b : a, .19) < PXA ? -1 : .3) : -.4, .3);
+        for (const p of [-L + .04, L - .04]) for (const q of [-D + .04, D - .04]) post(...at(p, q), 0, .4, .03, WOOD, 26);
+        const [vx, vy] = at(-L + .09, 0), [tx, ty] = at(.12, 0), [bx, by] = at(0, -.15);
+        pbox(vx - .06, vy - .06, .47, vx + .06, vy + .06, .58, [112, 122, 132], 27, (f, a, b) => f && b > .53 ? 1 : 0);
+        pbox(tx - .11, ty - .11, .47, tx + .11, ty + .11, .6, trimOf(g, [196, 56, 44]), 28, (f, a, b) => f && Math.abs(b - .55) < .02 ? -1.6 : f === 0 ? .4 : 0);
+        // the tool board on the wall behind it: a hammer, a saw and a wrench drawn dark on pale boards
+        wallBox(bx, by, nx, .3, .0125, .5, .84, [222, 204, 170], 29, (f, a, b) => {
+          if (!f) return 0;
+          const u = a - (nx ? by : bx), v = b - .5, ink = col(54, 50, 56);
+          if (Math.abs(u) > .27 || v < .03 || v > .31) return -1.2;
+          if (u < -.09) return Math.abs(u + .18) < .022 && v > .06 && v < .22 || v > .2 && v < .26 && Math.abs(u + .18) < .07 ? ink : 0;
+          if (u < .09) return v > .08 && v < .26 && Math.abs(u) < .06 - (v - .08) * .15 ? ink : 0;
+          return Math.abs(u - .18) < .022 && v > .06 && v < .22 || v > .2 && v < .27 && Math.abs(u - .18) < .06 && Math.abs(u - .18) > .02 ? ink : 0;
+        }, .2);
+        shade(x - .4, y - .4, x + .4, y + .4, 0, .6);
       }),
     ],
   };
@@ -482,7 +504,7 @@ const BUNKER_ART = (() => {
       solid(-m - .12, -m - .12, 0, m + .12, m + .12, .22, [150, 146, 136], 1, concrete());
       solid(-m, -m, 0, m, m, F.top - .1, CONCRETE, 2, pats(...F.wallPats, slits(sl, sl, F.top - .82, F.top - .7), concrete()), .5);
     }],
-    roof: [F => pbox(-F.m + .06, -F.m + .06, F.top - .1, F.m - .06, F.m - .06, F.top, [168, 164, 152], 3, concrete(), .5)],
+    roof: [F => pbox(-F.m + .06, -F.m + .06, F.top - .1, F.m - .06, F.m - .06, F.top, [168, 164, 152], 3, (f, a, b) => f === 0 ? (rep(a, 1.1, .15) < PXA * .9 || rep(b, 1.1, .15) < PXA * .9 ? -.9 : hash(Math.floor(a * 6), Math.floor(b * 6)) > .97 ? -.6 : 0) : concrete()(f, a, b), .25)],
     // the parapet all round, low at the front so the gunners show
     post: [F => { F.ringTop = F.top + .26; ring(F.m - .06, .17, F.top, F.top + .26, [180, 176, 164], 4, concrete(), .5, F.top + .2); }],
     // steel angles down every corner and a steel rim along the parapet
@@ -493,11 +515,9 @@ const BUNKER_ART = (() => {
     }],
     // concrete pads on the deck with a steel ring and a pivot
     mounts: [(F, g) => mountsAt(F, F.m - .55, F.top, (x, y, z) => {
-      solid(x - .27, y - .27, z, x + .27, y + .27, z + .1, [172, 168, 156], 30, concrete(), .4);
-      const c = trimOf(g, [70, 74, 82]);
-      pbox(x - .2, y - .2, z + .1, x + .2, y + .2, z + .14, c, 31, (f, a, b) => f === 0 && Math.max(Math.abs(a - x), Math.abs(b - y)) < .13 ? -1.2 : 0);
-      pbox(x - .05, y - .05, z + .1, x + .05, y + .05, z + .2, [56, 60, 68], 32);
-      SITES.mounts.push([x, y, z + .14]);
+      solid(x - .28, y - .28, z, x + .28, y + .28, z + .12, [182, 178, 166], 30, (f, a, b) => f ? (b > z + .08 ? .8 : 0) : Math.max(Math.abs(a - x), Math.abs(b - y)) > .24 ? .6 : 0, .2);
+      turntable(x, y, z + .12, .2, trimOf(g, METAL));
+      SITES.mounts.push([x, y, z + .16]);
     })],
     // caged lamps on every wall
     lights: [(F, g) => { for (const s of [-1.1, 1.1]) byWalls(F.m, s, 0, (x, y, nx, ny) => {
@@ -514,16 +534,24 @@ const BUNKER_ART = (() => {
     // a steel tool locker by every wall, a red jerrycan beside it
     workshop: [(F, g) => byWalls(F.m + .12, -.95, .17, (x, y, nx) => {
       const c = trimOf(g, ARMY);
-      wallBox(x, y, nx, .25, .15, 0, .76, c, 50, (f, a, b) => f ? (Math.abs(a - (nx ? y : x)) < PXA * .6 ? -1.4 : b > .62 && b < .68 ? tone(YEL, f) : rep(b, .07) < PXZ && b > .3 && b < .5 ? -1 : 0) : 0, .4);
+      wallBox(x, y, nx, .25, .15, 0, .76, c, 50, (f, a, b) => {
+        if (!f) return .3;
+        const u = a - (nx ? y : x);
+        if (Math.abs(u) > .21 || b < .05 || b > .72) return -1.3;
+        if (Math.abs(u) < PXA * .6) return -1.6;
+        if (b > .58 && b < .66 && rep(b, .04) < PXZ * .8) return -1.2;
+        if (Math.abs(Math.abs(u) - .05) < .02 && Math.abs(b - .4) < .03) return col(214, 210, 196);
+        return b < .14 ? tone(YEL, f) : 0;
+      }, .4);
       const [jx, jy] = nx ? [x, y + .4] : [x + .4, y];
       solid(jx - .09, jy - .09, 0, jx + .09, jy + .09, .3, [196, 56, 44], 51, (f, a, b) => f && Math.abs(b - .24) < .02 ? -1.4 : 0);
     })],
     // olive ammunition boxes stacked by every wall
     storage: [(F, g) => byWalls(F.m + .12, .95, .2, (x, y, nx) => {
       const mark = col(...trimOf(g, [214, 178, 60])), [ax, ay] = nx ? [0, .2] : [.2, 0];
-      crateAt(x - ax, y - ay, 0, ...(nx ? [.15, .17] : [.17, .15]), .26, OLIVE, 52, mark);
-      crateAt(x + ax, y + ay, 0, ...(nx ? [.15, .17] : [.17, .15]), .26, OLIVE, 53, mark);
-      crateAt(x, y, .26, ...(nx ? [.13, .2] : [.2, .13]), .22, ARMY, 54, mark);
+      framed(x - ax, y - ay, 0, ...(nx ? [.15, .18] : [.18, .15]), .26, OLIVE, 52, mark);
+      framed(x + ax, y + ay, 0, ...(nx ? [.15, .18] : [.18, .15]), .26, OLIVE, 53, mark);
+      framed(x, y, .26, ...(nx ? [.13, .2] : [.2, .13]), .22, ARMY, 54, mark);
     })],
     flags: [() => {}],
     // a white star on a blue disc in a gold ring, painted in the middle of every wall

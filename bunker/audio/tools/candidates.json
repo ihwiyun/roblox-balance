@@ -174,7 +174,7 @@
    "member": "Juhani Junkala - Epic Boss Battle [Seamlessly Looping].wav",
    "title": "Epic Boss Battle",
    "loop": "whole",
-   "mood": "웅장한 오케스트라풍. 작곡가가 이음새 없는 반복으로 표기.",
+   "mood": "갓 오브 워에서 영감을 받은 웅장한 보스곡. 이음새 없는 반복으로 표기.",
    "star": true
   },
   {
@@ -217,7 +217,7 @@
    "member": "urban_shop_bpm92.ogg",
    "title": "Urban Shop",
    "loop": "whole",
-   "mood": "작곡가가 상점 테마로 만든 곡. 차분하고 편안함.",
+   "mood": "작곡가가 상점 테마로 만든 곡.",
    "bpm": 92
   },
   {
@@ -486,7 +486,7 @@
    "source": "ffsl",
    "member": "Prepared SFX Library/AK-47/C_27P.wav",
    "title": "AK-47 긴 점사",
-   "mood": "연발 약 1초, 실제 녹음.",
+   "mood": "점사 약 1초, 실제 녹음.",
    "star": true,
    "event": 0,
    "event_tail": 0.5,
@@ -501,7 +501,7 @@
    "source": "ffsl",
    "member": "Prepared SFX Library/PPSh/P_34P.wav",
    "title": "PPSh-41 긴 점사",
-   "mood": "연발 약 1.3초, 실제 녹음.",
+   "mood": "점사 약 1.3초, 실제 녹음.",
    "event": 0,
    "event_tail": 0.5,
    "fade_out": 0.25
@@ -531,7 +531,7 @@
    "kind": "sfx",
    "source": "generated",
    "member": "flamethrower",
-   "title": "생성: 점화와 불길",
+   "title": "점화와 불길",
    "mood": "점화 후 으르렁대는 불길, 지직거리는 불꽃."
   },
   {
@@ -571,7 +571,7 @@
    "kind": "sfx",
    "source": "generated",
    "member": "electric_zap",
-   "title": "생성: 지직",
+   "title": "지직",
    "mood": "빠르게 떨어지는 소리와 지직거림, 낮은 쿵."
   },
   {
@@ -642,7 +642,7 @@
    "kind": "sfx",
    "source": "generated",
    "member": "shell_casing",
-   "title": "생성: 탄피 소리",
+   "title": "탄피 소리",
    "mood": "황동 탄피가 바닥에 세 번 튕김.",
    "star": true
   },
@@ -735,7 +735,7 @@
    "source": "emo_zombie_moans",
    "member": "ZombieMoans - Track 5 - ZombieMoan1.wav",
    "title": "사람 목소리 신음",
-   "mood": "약 2초, 중간 높이.",
+   "mood": "사람 목소리로 녹음한 신음, 약 2초.",
    "star": true,
    "fade_out": 0.25
   },
@@ -747,8 +747,8 @@
    "kind": "sfx",
    "source": "ad_zombies",
    "member": "zombies/zombie-17.wav",
-   "title": "낮고 긴 신음",
-   "mood": "약 1.6초, 목소리가 뚜렷함.",
+   "title": "뚜렷한 신음",
+   "mood": "목소리가 뚜렷한 신음, 약 1.5초.",
    "star": true,
    "fade_out": 0.25
   },
@@ -761,7 +761,7 @@
    "source": "dar_zombie_moans",
    "member": "darsycho__zombie-moans.ogg",
    "title": "길게 끄는 신음",
-   "mood": "약 3초, 서서히 사라짐.",
+   "mood": "약 3초, 서서히 잦아듦.",
    "star": true,
    "event": 0,
    "event_tail": 0.15,
@@ -776,7 +776,7 @@
    "source": "antum_undead",
    "member": "undead-2.ogg",
    "title": "언데드 신음",
-   "mood": "약 1.9초, 낮은 울림.",
+   "mood": "사람이 낸 언데드 소리, 약 1.8초.",
    "star": true,
    "segment": [
     0,
@@ -793,7 +793,7 @@
    "source": "ian_zombie_noises",
    "member": "zombienoise1.ogg",
    "title": "거친 신음",
-   "mood": "약 2초, 숨소리가 섞임.",
+   "mood": "숨소리가 섞인 거친 신음, 약 2초.",
    "star": true,
    "fade_out": 0.3
   },
@@ -805,8 +805,8 @@
    "kind": "sfx",
    "source": "dar_zombie_moans",
    "member": "darsycho__zombie-moans.ogg",
-   "title": "짧은 신음",
-   "mood": "약 2.7초, 음이 오르내림.",
+   "title": "다른 목소리 신음",
+   "mood": "같은 작가의 다른 신음, 약 2.7초.",
    "star": true,
    "segment": [
     6.5,
@@ -822,8 +822,8 @@
    "kind": "sfx",
    "source": "arcade_voices",
    "member": "Voice Effects Zombie-Skeleton-Monster Human Male/zombieDeath1.wav",
-   "title": "쓰러지는 비명 1",
-   "mood": "약 0.6~0.8초, 목소리 효과.",
+   "title": "쓰러지는 소리 1",
+   "mood": "쓰러지며 내는 소리, 약 0.6~0.8초.",
    "star": true,
    "fade_out": 0.08
   },
@@ -835,8 +835,8 @@
    "kind": "sfx",
    "source": "arcade_voices",
    "member": "Voice Effects Zombie-Skeleton-Monster Human Male/zombieDeath2.wav",
-   "title": "쓰러지는 비명 2",
-   "mood": "약 0.6~0.8초, 목소리 효과.",
+   "title": "쓰러지는 소리 2",
+   "mood": "쓰러지며 내는 소리, 약 0.6~0.8초.",
    "star": true,
    "fade_out": 0.08
   },
@@ -848,8 +848,8 @@
    "kind": "sfx",
    "source": "arcade_voices",
    "member": "Voice Effects Zombie-Skeleton-Monster Human Male/zombieDeath3.wav",
-   "title": "쓰러지는 비명 3",
-   "mood": "약 0.6~0.8초, 목소리 효과.",
+   "title": "쓰러지는 소리 3",
+   "mood": "쓰러지며 내는 소리, 약 0.6~0.8초.",
    "star": true,
    "fade_out": 0.08
   },
@@ -861,8 +861,8 @@
    "kind": "sfx",
    "source": "arcade_voices",
    "member": "Voice Effects Zombie-Skeleton-Monster Human Male/zombieDeath4.wav",
-   "title": "쓰러지는 비명 4",
-   "mood": "약 0.6~0.8초, 목소리 효과.",
+   "title": "쓰러지는 소리 4",
+   "mood": "쓰러지며 내는 소리, 약 0.6~0.8초.",
    "star": true,
    "fade_out": 0.08
   },
@@ -944,7 +944,7 @@
    "kind": "sfx",
    "source": "generated",
    "member": "boss_stomp",
-   "title": "생성: 육중한 쿵",
+   "title": "육중한 쿵",
    "mood": "중음 쿵과 저음 낙하, 짧은 먼지 소리."
   },
   {
@@ -979,7 +979,7 @@
    "source": "rd_breaking",
    "member": "bfh1_breaking_01.ogg",
    "title": "무너지는 소리",
-   "mood": "약 1초, 부서지며 쏟아짐.",
+   "mood": "약 1초, 부서져 무너지는 소리.",
    "star": true
   },
   {
@@ -1078,7 +1078,7 @@
    "kind": "sfx",
    "source": "generated",
    "member": "breakthrough_fanfare",
-   "title": "생성: 금관 팡파르",
+   "title": "금관 팡파르",
    "mood": "짧은 도입 후 큰 화음, 스네어와 심벌.",
    "star": true
   },
@@ -1106,7 +1106,7 @@
    "kind": "sfx",
    "source": "generated",
    "member": "ui_button",
-   "title": "생성: 블립",
+   "title": "블립",
    "mood": "짧고 부드러운 사각파.",
    "star": true
   },
@@ -1129,7 +1129,7 @@
    "kind": "sfx",
    "source": "generated",
    "member": "ui_tab",
-   "title": "생성: 두 번 톡",
+   "title": "두 번 톡",
    "mood": "두 음의 가벼운 틱.",
    "star": true
   },
@@ -1152,7 +1152,7 @@
    "kind": "sfx",
    "source": "generated",
    "member": "ui_purchase",
-   "title": "생성: 동전",
+   "title": "동전",
    "mood": "동전 \"챙\", 두 음과 반짝임.",
    "star": true
   },
@@ -1175,7 +1175,7 @@
    "kind": "sfx",
    "source": "generated",
    "member": "ui_levelup",
-   "title": "생성: 상승 아르페지오",
+   "title": "상승 아르페지오",
    "mood": "올라가는 아르페지오와 길게 끄는 높은 음.",
    "star": true
   },
@@ -1198,7 +1198,7 @@
    "kind": "sfx",
    "source": "generated",
    "member": "ui_stage_clear",
-   "title": "생성: 클리어 징글",
+   "title": "클리어 징글",
    "mood": "상승 음 뒤 C장조 화음, 가벼운 드럼.",
    "star": true
   },
@@ -1226,7 +1226,7 @@
    "kind": "sfx",
    "source": "generated",
    "member": "ui_warning",
-   "title": "생성: 경보",
+   "title": "경보",
    "mood": "두 음 경보를 두 번.",
    "star": true
   },
@@ -1249,7 +1249,7 @@
    "kind": "sfx",
    "source": "generated",
    "member": "ui_notify",
-   "title": "생성: 차임",
+   "title": "차임",
    "mood": "두 음의 부드러운 종소리.",
    "star": true
   },
@@ -1272,7 +1272,7 @@
    "kind": "sfx",
    "source": "generated",
    "member": "gacha_roll",
-   "title": "생성: 굴림",
+   "title": "굴림",
    "mood": "점점 빨라지는 딸깍과 북소리, 마지막에 상승.",
    "star": true
   },
@@ -1300,7 +1300,7 @@
    "kind": "sfx",
    "source": "generated",
    "member": "reveal_1_common",
-   "title": "생성: 일반",
+   "title": "",
    "mood": "중립적인 작은 \"퐁\".",
    "star": true
   },
@@ -1312,7 +1312,7 @@
    "kind": "sfx",
    "source": "generated",
    "member": "reveal_2_uncommon",
-   "title": "생성: 고급",
+   "title": "",
    "mood": "밝은 두 음이 올라감.",
    "star": true
   },
@@ -1324,7 +1324,7 @@
    "kind": "sfx",
    "source": "generated",
    "member": "reveal_3_rare",
-   "title": "생성: 희귀",
+   "title": "",
    "mood": "아르페지오와 반짝임 몇 개.",
    "star": true
   },
@@ -1336,7 +1336,7 @@
    "kind": "sfx",
    "source": "generated",
    "member": "reveal_4_epic",
-   "title": "생성: 영웅",
+   "title": "",
    "mood": "휙 하는 소리 뒤 D장조 아르페지오와 화음.",
    "star": true
   },
@@ -1348,7 +1348,7 @@
    "kind": "sfx",
    "source": "generated",
    "member": "reveal_5_legendary",
-   "title": "생성: 전설",
+   "title": "",
    "mood": "상승음, 충격, 금관 화음, 반짝이는 소리.",
    "star": true
   },
@@ -1360,7 +1360,7 @@
    "kind": "sfx",
    "source": "generated",
    "member": "reveal_6_immortal",
-   "title": "생성: 불멸",
+   "title": "",
    "mood": "이중 충격, 저음과 큰 화음, 합창 패드.",
    "star": true
   },
@@ -1372,7 +1372,7 @@
    "kind": "sfx",
    "source": "generated",
    "member": "reveal_7_mythic",
-   "title": "생성: 신화",
+   "title": "",
    "mood": "긴 상승음, 충격, 종소리 폭포, 금관 화음.",
    "star": true
   },
@@ -1384,7 +1384,7 @@
    "kind": "sfx",
    "source": "generated",
    "member": "reveal_8_eternal",
-   "title": "생성: 영원",
+   "title": "",
    "mood": "가장 긴 상승, 거대한 충격, 무지개 음계, 합창과 종.",
    "star": true
   },
@@ -1396,7 +1396,7 @@
    "kind": "sfx",
    "source": "generated",
    "member": "relic_pickup",
-   "title": "생성: 마법 습득",
+   "title": "마법 습득",
    "mood": "오음계 종소리가 빠르게 올라가고 부드러운 패드.",
    "star": true
   },
@@ -1419,7 +1419,7 @@
    "kind": "sfx",
    "source": "generated",
    "member": "raid_start",
-   "title": "생성: 전쟁 나팔",
+   "title": "전쟁 나팔",
    "mood": "낮은 뿔피리와 북 두 번, 상승하는 경보.",
    "star": true
   },

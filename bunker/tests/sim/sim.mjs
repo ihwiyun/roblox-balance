@@ -28,7 +28,8 @@ export function powerOf(st) {
   const sb = Math.min(T.stage.cap, Math.ceil(s / 10) * 10);
   const pool = { fence: S.fenceMax, bunker: S.bunkerMax, fenceMax: S.fenceMax, bunkerMax: S.bunkerMax };
   const rb = L.resolveBoss(sb, S, pool);
-  return Math.max(1e-300, Math.min(S.dpsCrowd / L.reqDps(sn), rb.have / rb.need));
+  // the boss side counts its regeneration as extra need, so the ratio stays positive and every upgrade shows
+  return Math.max(1e-300, Math.min(S.dpsCrowd / L.reqDps(sn), (rb.have + rb.regen) / (rb.need + rb.regen)));
 }
 function trial(st, key) {
   const [a, b, c] = key.split(':');
@@ -248,7 +249,7 @@ export function run(opts = {}) {
   const chip = () => { const r = rng.next(); return r < 0.15 ? 1 : r < 0.4 ? 5 : r < 0.75 ? 10 : 100; };
   function spendGold() {
     const auto = L.auto(st);
-    const picks = human ? 2 + rng.int(0, 6) : 400;
+    const picks = human ? 2 + rng.int(0, 6) : 80;
     for (let n = 0; n < picks; n++) {
       const base = powerOf(st), rate = Math.max(1e-9, st.goldRate, 0.02 * st.gold);
       const scored = [];
@@ -269,7 +270,8 @@ export function run(opts = {}) {
       // off-best: now and then a person taps whatever looks nice (less once the workshop runs itself)
       if (human && rng.chance(auto.autoWorkshop ? 0.05 : 0.15)) { const ok = scored.filter(x => x.ok); if (ok.length) pick = rng.pick(ok); }
       if (!pick) return;
-      const times = human ? chip() : 1;
+      // the greedy bot re-weighs after a few steps of the same line (cheap to run, still near the best order)
+      const times = human ? chip() : 4;
       let got = 0;
       for (let t = 0; t < times && buy(pick.key); t++) got++;
       if (!got) return;

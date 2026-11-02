@@ -255,7 +255,7 @@ const screens = [
     <div class="chiprow">${chip('전체', 'on')}${GR.map((g, n) => chip(g, '', n)).join('')}</div>
     <div class="list">${OWN.slice(0, 6).map((own, g) => sec2(`<span class="gr q${g}">${GR[g]}</span>`, own.length + '/5') + `<div class="grid2 c5">${[0, 1, 2, 3, 4].map(k => wslot(g, k, own[k])).join('')}</div>`).join('')}</div>
     <div class="foot2">${B('sub', '도감')}${B('sub', '일괄 강화')}${B('pri grow', '일괄 합성')}</div></div>`, 1],
-  ['4. 캐릭터 (대기 동작으로 서 있음, 무기 칸은 사수·나만, 바뀜)', charBody(), 1],
+  ['4. 캐릭터 (대기 동작, 무기 칸은 사수·나만, 바뀜)', charBody(), 1],
   ['5. 장비 · 유물 (보관함, 바뀜)', `<div class="fs">${head('장비', ['무기', '터렛', '유물'], '유물')}
     ${strip('소환 Lv 4', 20, 300, '3,000')}
     <div class="list">${sec2('장착 칸', '3/8')}<div class="grid2 c4">${[4, 2, 1].map(g => `<span class="slot2 q${g} tap">${img('', '', '')}<em>Lv 3</em></span>`).join('')}${['200', '400', '700', '1,000', '2,000'].map(n => `<span class="slot2 lock">${ico('lock')}<span class="aux">스테이지<br>${n}</span></span>`).join('')}</div>
