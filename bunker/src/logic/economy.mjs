@@ -8,7 +8,7 @@ import { workshopCost, bunkerGold, fenceGold, needsBreakthrough, breakthroughCos
 import { newCommander, addXp } from './player.mjs';
 import { medalGain, medalUpCost, medalUpMaxed, automation, researchCost, researchSeconds, RESEARCH_UNLOCK } from './medals.mjs';
 import { makeRng, newInventory, newSummon, addCopy, summonWeapon, summonTurret, mergeAll, enhCap, enhCost, enhNeedsBt, enhBtCost,
-  bestOwned, WEAPONS, TURRETS } from './gear.mjs';
+  bestOwned, turretMul, WEAPONS, TURRETS } from './gear.mjs';
 import { newRelics, rollRelic, relicSlots, RELICS } from './relics.mjs';
 import { newCrew, addCard, recruit, STORY_RECRUITS, levelGold, needsBt, btCost, canLevel, autoAssign } from './crew.mjs';
 import { newShop, PRICES, PASSES, SEASON_FREE, grant } from './shop.mjs';
@@ -54,7 +54,7 @@ export function equipBest(st) {
   const order = roof.map((id, j) => j).sort((a, b) => strength(roof[b]) - strength(roof[a]));
   st.equipW = new Array(roof.length).fill(-1);
   order.forEach((j, k) => { st.equipW[j] = best[k] ?? -1; });
-  st.equipT = bestOwned(st.turrets, turretSlots(st.bunker));
+  st.equipT = bestOwned(st.turrets, turretSlots(st.bunker), turretMul);
   const n = relicSlots(st.record), score = id => (RELICS[id].grade + 1) * (4 + st.relics.level[id]);
   st.relics.equipped = RELICS.map(r => r.id).filter(id => st.relics.level[id] > 0).sort((a, b) => score(b) - score(a)).slice(0, n);
   dirty(st);

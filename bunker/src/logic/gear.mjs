@@ -150,9 +150,10 @@ export function codexBonus(inv, perGrade) {
   }
   return T.gear.codexPer * n + T.gear.codexGradeSet * sets;
 }
-// the best k distinct owned steps, best first
-export function bestOwned(inv, k) {
+// the best k distinct owned pieces, best first, by what they multiply (step and enhancement: a fresh step-up can be
+// weaker than a fully enhanced piece one step below). mul(i, enh) defaults to the weapon multiplier
+export function bestOwned(inv, k, mul = weaponEquipMul) {
   const out = [];
-  for (let i = inv.owned.length - 1; i >= 0 && out.length < k; i--) if (inv.owned[i]) out.push(i);
-  return out;
+  for (let i = 0; i < inv.owned.length; i++) if (inv.owned[i]) out.push(i);
+  return out.sort((a, b) => mul(b, inv.enh[b]) - mul(a, inv.enh[a]) || b - a).slice(0, k);
 }

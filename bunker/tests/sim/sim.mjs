@@ -294,6 +294,17 @@ export function run(opts = {}) {
     // the kitchen trims upkeep: a small steady share
     const kc = L.price(st, 'sec:bed:lv'); if (kc && !btKey('sec:bed:lv') && goldOf(kc) < 0.05 * st.gold) buy('sec:bed:lv');
     for (const k of [...st.equipW.map(i => 'enh:w:' + i), ...st.equipT.map(i => 'enh:t:' + i)]) if (!k.endsWith(':-1') && btKey(k)) buy(k);
+    // a new top piece is weaker than the maxed one it should replace until it is enhanced: a person enhances it first
+    for (const [w, inv, mul, n] of [['w', st.weapons, L.weaponEquipMul, st.equipW.length], ['t', st.turrets, L.turretMul, st.equipT.length]]) {
+      const eq = w === 'w' ? st.equipW : st.equipT, weakest = Math.min(...eq.filter(i => i >= 0).map(i => mul(i, inv.enh[i])), Infinity);
+      const grades = w === 'w' ? L.WEAPONS : L.TURRETS;
+      for (let i = inv.owned.length - 1, tried = 0; i >= 0 && tried < 3; i--) {
+        if (!inv.owned[i] || eq.includes(i) || !n) continue;
+        if (mul(i, L.enhCap(grades[i].grade)) <= weakest) continue;
+        tried++;
+        for (let k = 0; k < 30; k++) { const c = L.price(st, `enh:${w}:${i}`); if (!c || goldOf(c) > 0.2 * st.gold || !buy(`enh:${w}:${i}`)) break; }
+      }
+    }
     // a full parts box: enhance the rest of the collection (the owned effect), best weapons first
     if (st.parts > 0.5 * S.caps.parts) for (const [w, inv] of [['w', st.weapons], ['t', st.turrets]])
       for (let i = inv.owned.length - 1; i >= 0 && st.parts > 0.35 * S.caps.parts; i--) {

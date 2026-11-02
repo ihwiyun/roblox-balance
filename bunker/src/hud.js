@@ -47,6 +47,19 @@ function face(person, size) {
 }
 const nodes = {};
 for (const id of ['app', 'stage', 'tabs', 'menu', 'menuTitle', 'menuTabs', 'panel', 'menuFoot', 'bunkerFill', 'bunkerText', 'bunkerTrack', 'fenceFill', 'fenceText', 'speed', 'notes', 'ammo', 'ammoNum', 'ammoBar', 'waveBtn', 'wavePrev', 'waveNext', 'waveBar', 'saver', 'svWave', 'svGold', 'svTime']) nodes[id] = document.getElementById(id);
+/* ================= the systems (src/systems.js: inventories, summons, the shop, prestige, records) ================= */
+// The screens read SYS once it says it is ready; until then they show what the game itself has
+let sysOk = typeof SYS !== 'undefined';
+const sys = () => (sysOk && typeof SYS !== 'undefined' ? SYS : null);
+const sysCall = (fn, ...a) => { const S = sys(); return S && typeof S[fn] === 'function' ? S[fn](...a) : null; };
+addEventListener('sys-ready', () => { sysOk = true; refreshTop(); renderPanel(true); });
+addEventListener('sys-change', () => { refreshTop(); renderPanel(true); if (sheet.render && !sheet.el.hidden) sheet.body.innerHTML = sheet.render(); });
+// prices from the systems: a number is gold, or an object of currencies; red when short
+const CUR_ICON = { gold: 'coin', money: 'coin', food: 'food', ore: 'mineral', mineral: 'mineral', gems: 'ruby', diamonds: 'diamond', parts: 'drill', medals: 'medal' };
+const curOf = () => sysCall('currencies') || { gold: G.money, food: G.food, ore: G.mineral };
+const priceObj = p => (typeof p === 'number' ? { gold: p } : p || {});
+const canAfford = p => { const c = curOf(); return Object.entries(priceObj(p)).every(([k, v]) => (c[k] ?? 0) >= v); };
+const priceHtml = p => { const c = curOf(); return Object.entries(priceObj(p)).filter(([, v]) => v > 0).map(([k, v]) => `<span class="cost${(c[k] ?? 0) < v ? ' short' : ''}">${ic(CUR_ICON[k] || 'coin')}<span class="num">${fmt(v)}</span></span>`).join(''); };
 // the HUD is looked at often and written only where something changed
 function setText(el, text) { if (el._t !== text) { el._t = text; el.textContent = text; } }
 function setWidth(el, frac) { const w = Math.round(clamp(frac, 0, 1) * 1000) / 10 + '%'; if (el._w !== w) { el._w = w; el.style.width = w; } }
@@ -349,15 +362,23 @@ function crewHtml() {
   const jobs = ui.jobs && !p.hero ? `<div class="tool"><div class="chipset">${JOBS.map(j => `<button class="fchip tap" type="button" data-job="${j}" aria-pressed="${p.job === j}">${j}</button>`).join('')}</div></div>` : '';
   const beds = bedsOf(G.live);
   const cells = [crewCell(-1, G.hero, p === G.hero), ...G.crew.map((c, i) => c ? crewCell(i, c, p === c) : i < beds ? hireCell(i, 50, '50px') : shutCell(50, '???', true, '50px')), ...Array.from({ length: 6 }, () => shutCell(50, '???', false, '50px'))];
-  return top + btns + jobs + sec('보유 동료', 1 + hired().length + '/24') + strip('동료 모집 Lv 1', 200, 'mid') + grid(4, cells);
+  return top + btns + jobs + sec('보유 동료', 1 + hired().length + '/24') + strip('crew', '동료 모집', 200, 'mid') + grid(4, cells);
 }
 // buttons: the primary filled (one a screen), the secondary an outline; small icons and labels go inside
 const B = (cls, inner, attrs = '') => `<button class="b ${cls} tap" type="button"${attrs ? ' ' + attrs : ''}>${inner}</button>`;
 const gemCost = n => `${ic('ruby')}<span class="num">${n.toLocaleString('en')}</span>`;
 // the summon strip at the top of each 장비 tab (and 동료 모집): its level, the odds, one pull and ten. Pulls are not in
 // the game yet: the buttons are there, switched off
-const strip = (label, price, cls = '') => `<div class="strip ${cls}"><div class="lv tap" aria-label="소환 확률"><b>${label}</b><span><span class="prog2"><i style="width:0"></i></span><span class="link">확률</span></span></div>`
-  + B('sub sm', '1회 ' + gemCost(price), 'disabled') + B('sub sm', '10회 ' + gemCost(price * 10), 'disabled') + '</div>';
+// the summon strip at the top of each 장비 tab and in 캐릭터 (동료 모집): its level and the way to the rates, one pull
+// and ten. Until the systems are ready the buttons are there, switched off
+function strip(kind, label, price, cls = '') {
+  const I = sysCall('summonInfo', kind), cur = I && I.currency === 'diamonds' ? 'diamond' : 'ruby';
+  const lv = I ? I.level : 1, fill = I && I.nextAt ? Math.min(1, (I.pulls - (I.prevAt || 0)) / Math.max(1, I.nextAt - (I.prevAt || 0))) : 0;
+  const one = I ? I.price : price, ten = I ? I.price10 : price * 10, have = I ? (curOf()[I.currency] ?? 0) : 0;
+  const cost = n => `${ic(cur)}<span class="num">${n.toLocaleString('en')}</span>`;
+  return `<div class="strip ${cls}"><button class="lv tap" type="button" data-rates="${kind}"${I ? '' : ' disabled'}><b>${label} Lv ${lv}</b><span><span class="prog2"><i style="width:${fill * 100}%"></i></span><span class="link">확률</span></span></button>`
+    + B('sub sm', '1회 ' + cost(one), I && have >= one ? `data-summon="${kind}:1"` : 'disabled') + B('sub sm', '10회 ' + cost(ten), I && have >= ten ? `data-summon="${kind}:10"` : 'disabled') + '</div>';
+}
 // the rifles as the game draws them in the hands (actors.js drawGun), one a family, as small pictures for the weapon
 // slots until the 40 weapons are drawn: drawGun paints through putPx, pointed at a small buffer for a moment
 const gunPics = [];
@@ -374,9 +395,38 @@ function gunPic(fam) {
   return (gunPics[fam] = { url: c.toDataURL(), w: cw, h: ch });
 }
 const gunImg = (fam, s = 2) => { const g = gunPic(fam); return `<img class="gun" src="${g.url}" alt="" style="width:${g.w * s}px;height:${g.h * s}px">`; };
-const PULL_PRICE = { gun: 100, turret: 150, relic: 300 };
+const PULL_PRICE = { gun: 100, turret: 150, relic: 300 }, PULL_KIND = { gun: 'weapon', turret: 'turret', relic: 'relic' };
+/* ================= the collections' pictures: the art agents' files when they are there ================= */
+// ART_WEAPONS, ART_TURRETS, ART_RELICS: per item, rows of letters and each letter's colour (as art/portraits.js), any
+// size: the size is read from the rows and drawn at 2x. Until a picture exists: the game's rifle drawings for the
+// weapons, a pixel icon for the rest; not owned yet: the same picture as a dark silhouette
+const artPics = new Map();
+const artSet = kind => kind === 'weapon' ? (typeof ART_WEAPONS !== 'undefined' ? ART_WEAPONS : null)
+  : kind === 'turret' ? (typeof ART_TURRETS !== 'undefined' ? ART_TURRETS : null) : kind === 'relic' ? (typeof ART_RELICS !== 'undefined' ? ART_RELICS : null) : null;
+function artPic(kind, i) {
+  const key = kind + ':' + i;
+  if (artPics.has(key)) return artPics.get(key);
+  const set = artSet(kind), e = set && (Array.isArray(set) ? set[i] : set[i] ?? (set.items && set.items[i]));
+  let pic = null;
+  if (e && e.rows && e.rows.length) {
+    const pal = e.pal || set.pal || ART.iconPal, h = e.rows.length, w = e.rows[0].length, c = document.createElement('canvas'), g = c.getContext('2d');
+    c.width = w; c.height = h;
+    e.rows.forEach((row, y) => [...row].forEach((ch, x) => { const col = ch !== '.' && pal[ch]; if (col) { g.fillStyle = `rgb(${col[0]},${col[1]},${col[2]})`; g.fillRect(x, y, 1, 1); } }));
+    pic = { url: c.toDataURL(), w, h };
+  }
+  artPics.set(key, pic);
+  return pic;
+}
+// the size a kind's pictures take at 2x (slots and cards are sized from it): the art agents' size, or the stand-ins'
+const artBox = kind => { const p = artPic(kind, 0); return p ? { w: p.w * 2, h: p.h * 2 } : kind === 'weapon' ? { w: 96, h: 48 } : { w: 64, h: 64 }; };
+function itemArt(kind, i, owned) {
+  const p = i >= 0 ? artPic(kind, i) : null, sil = owned ? '' : ' sil';
+  if (p) return `<img class="art${sil}" src="${p.url}" alt="" style="width:${p.w * 2}px;height:${p.h * 2}px">`;
+  if (kind === 'weapon') { const g = gunPic(i >= 0 ? i % 5 : 0); return `<img class="gun${sil}" src="${g.url}" alt="" style="width:${g.w * 3}px;height:${g.h * 3}px">`; }
+  return `<i class="ic ic-${kind === 'turret' ? 'bunker' : kind === 'relic' ? 'relic' : 'person'}${sil}" style="--s:2"></i>`;
+}
 function gearHtml() {
-  const tab = ui.sub.gear, top = strip('소환 Lv 1', PULL_PRICE[tab]);
+  const tab = ui.sub.gear, top = strip(PULL_KIND[tab], '소환', PULL_PRICE[tab]);
   if (tab === 'relic') {
     const all = GRADES.flatMap((g, k) => Array.from({ length: 6 }, () => slot('g' + k + ' off'))).slice(0, 48);
     return top + sec('장착 칸', '0/' + RELIC_AT.length)
@@ -469,6 +519,8 @@ nodes.panel.addEventListener('click', e => {
   else if (d.grade) { ui.grade = +d.grade; renderPanel(true); }
   else if (d.sel) { ui.sel = +d.sel; ui.jobs = false; ui.pick = false; renderPanel(true); }
   else if ('jobs' in d) { ui.jobs = !ui.jobs; renderPanel(true); }
+  else if (d.rates) openSheet('확률', () => ratesHtml(d.rates));
+  else if (d.summon) { const [kind, n] = d.summon.split(':'); summonNow(kind, +n); }
   else if ('pick' in d) { ui.pick = true; renderPanel(true); }
   else if ('unpick' in d) { ui.pick = false; renderPanel(true); }
   else if ('gogear' in d) { ui.pick = false; ui.sub.gear = 'gun'; openMenu('gear'); }
@@ -524,6 +576,7 @@ function act(id, want = ui.bulk) {
 
 /* ================= over the picture ================= */
 const resNodes = ['money', 'food', 'mineral'].map(r => [r, document.getElementById('r-' + r), document.getElementById('rr-' + r)]);
+const gemNode = document.getElementById('r-gem'), diaNode = document.getElementById('r-dia');
 function refreshTop() {
   sampleEarn();
   const pm = perMinute();
@@ -535,6 +588,7 @@ function refreshTop() {
     setText(rate, full && net > 0 ? '가득' : Math.abs(net) > .005 ? (net > 0 ? '+' : '−') + Math.abs(net).toFixed(1) + '/초' : '');
     rate.classList.toggle('neg', net < 0 && !full);
   }
+  { const c = sysCall('currencies'); setText(gemNode, fmt(c ? c.gems || 0 : 0)); setText(diaNode, fmt(c ? c.diamonds || 0 : 0)); }
   setText(nodes.waveBtn, '스테이지 ' + G.wave);
   setWidth(nodes.waveBar, G.waveKills / killsNeeded(G.wave));
   setOff(nodes.wavePrev, G.wave <= 1); setOff(nodes.waveNext, G.wave >= G.best);
@@ -575,19 +629,84 @@ function fitStage() {
 }
 
 /* ================= the wave window: repeat or move on, and what the last two minutes earned ================= */
-const stageDlg = document.getElementById('stageDlg');
-const sd = { title: document.getElementById('sdTitle'), gold: document.getElementById('sdGold'), kills: document.getElementById('sdKills'), rep: document.getElementById('modeRepeat'), adv: document.getElementById('modeAdvance') };
+const stageDlg = document.getElementById('stageDlg'), sdBody = document.getElementById('sdBody');
+// a zombie kind as the game draws it walking towards us (its first frame), for the stage window
+const foePics = new Map();
+function foeImg(type) {
+  let f = foePics.get(type);
+  if (f === undefined) {
+    const set = SPR[type], pal = ZPALS[type];
+    f = null;
+    if (set && pal) {
+      const fr = (set.anims.walk || Object.values(set.anims)[0]).F[0];
+      let x0 = 1e9, y0 = 1e9, x1 = -1, y1 = -1;
+      for (let k = 0; k < fr.cells.length; k += 3) { x0 = Math.min(x0, fr.cells[k]); x1 = Math.max(x1, fr.cells[k]); y0 = Math.min(y0, fr.cells[k + 1]); y1 = Math.max(y1, fr.cells[k + 1]); }
+      const w = x1 - x0 + 1, h = y1 - y0 + 1, buf = new Uint32Array(w * h), c = document.createElement('canvas');
+      for (let k = 0; k < fr.cells.length; k += 3) buf[(fr.cells[k + 1] - y0) * w + fr.cells[k] - x0] = pal[fr.cells[k + 2]];
+      c.width = w; c.height = h; c.getContext('2d').putImageData(new ImageData(new Uint8ClampedArray(buf.buffer), w, h), 0, 0);
+      f = { url: c.toDataURL(), w, h };
+    }
+    foePics.set(type, f);
+  }
+  if (!f) return ic('zombie', 2);
+  const k = f.h > 36 ? 1 : 2;
+  return `<img class="gun" src="${f.url}" alt="" style="width:${f.w * k}px;height:${f.h * k}px">`;
+}
 function paintStage(pm = perMinute()) {
-  setText(sd.title, '스테이지 ' + G.wave);
-  sd.rep.setAttribute('aria-pressed', String(G.repeat)); sd.adv.setAttribute('aria-pressed', String(!G.repeat));
-  setText(sd.gold, fmt(pm.gold) + '/분'); setText(sd.kills, fmt(pm.kills) + '/분');
+  const info = sysCall('stageInfo', G.wave), r = info && info.rewards || {};
+  sdBody.innerHTML = `<div class="dh"><b class="t16">스테이지 ${G.wave}</b>${info ? `<span class="aux">${info.theme}</span>` : ''}<button class="ib tap" type="button" data-close aria-label="닫기">${ic('close', 1.5)}</button></div>`
+    + (info ? `<div class="foes">${info.zombies.map(z => `<span class="foe">${foeImg(z.key)}<span>${z.name}</span></span>`).join('')}</div>` : '')
+    + (info && info.boss ? `<div class="boss">${foeImg('boss')}<b>${info.boss.name}</b><span class="num">${info.boss.time}초</span><span class="aux">${info.boss.desc}</span></div>` : '')
+    + (info ? line('처치', `<b class="num">${info.kills}</b>`) + line('보상', priceHtml(r)) : '')
+    + `<div class="mode"><button class="fchip tap" type="button" data-mode="repeat" aria-pressed="${G.repeat}">반복</button><button class="fchip tap" type="button" data-mode="advance" aria-pressed="${!G.repeat}">진행</button></div>`
+    + line('금화', `<b class="num">${fmt(pm.gold)}/분</b>`) + line('처치', `<b class="num">${fmt(pm.kills)}/분</b>`);
 }
 nodes.waveBtn.addEventListener('click', () => { ensureAudio(); sampleEarn(); paintStage(); stageDlg.showModal(); });
-stageDlg.addEventListener('click', e => { if (e.target === stageDlg) stageDlg.close(); });
-sd.rep.addEventListener('click', () => { G.repeat = true; paintStage(); });
-sd.adv.addEventListener('click', () => { G.repeat = false; paintStage(); });
+stageDlg.addEventListener('click', e => {
+  if (e.target === stageDlg || e.target.closest('[data-close]')) { stageDlg.close(); return; }
+  const m = e.target.closest('[data-mode]');
+  if (m) { G.repeat = m.dataset.mode === 'repeat'; paintStage(); }
+});
 nodes.wavePrev.addEventListener('click', () => { goWave(G.wave - 1); refreshTop(); });
 nodes.waveNext.addEventListener('click', () => { goWave(G.wave + 1); refreshTop(); });
+
+/* ================= the sheet: rates, picks, a product, results and confirmations come up over a screen ================= */
+function summonNow(kind, n) {
+  const got = sysCall('summon', kind, n);
+  if (!got || !got.length) return;
+  sound('buy');
+  const list = kind === 'weapon' ? sysCall('weapons') : kind === 'turret' ? sysCall('turrets') : kind === 'relic' ? sysCall('relics') : null;
+  const cells = got.map(g => {
+    const it = list && list.find(x => (x.i ?? x.id) === g.i), grade = it ? it.grade : kind === 'crew' ? g.i : 0;
+    return `<div class="rc"><span class="slot g${grade}${g.isNew ? ' new' : ''}">${itemArt(kind, it ? (it.i ?? it.id) : -1, true)}${g.isNew ? ic('star') : ''}</span>`
+      + (g.toNextMerge != null ? `<span class="aux">합성까지 ${g.toNextMerge}</span>` : '') + '</div>';
+  }).join('');
+  openSheet(n > 1 ? n + '회 소환' : '소환', () => `<div class="rgrid">${cells}</div><div class="tool">${B('pri', '확인', 'data-close')}</div>`);
+}
+const sheet = { el: document.getElementById('sheet'), title: document.getElementById('shTitle'), body: document.getElementById('shBody'), render: null, act: null };
+function openSheet(title, render, act) {
+  sheet.render = render; sheet.act = act || null;
+  sheet.title.textContent = title; sheet.body.innerHTML = render(); sheet.el.hidden = false;
+  sheet.el.querySelector('.shp').scrollTop = 0;
+}
+function closeSheet() { sheet.el.hidden = true; sheet.render = null; sheet.act = null; }
+sheet.el.addEventListener('click', e => {
+  if (e.target.closest('[data-close]')) { closeSheet(); return; }
+  const b = e.target.closest('button');
+  if (b && !b.disabled && sheet.act) sheet.act(b.dataset, b);
+});
+addEventListener('keydown', e => { if (e.key === 'Escape' && !sheet.el.hidden) closeSheet(); });
+// summon rates: every grade at this level and the next, how many pulls to the next level, and the pity left
+const pct = r => (r * 100 >= 1 ? (r * 100).toFixed(1) : r * 100 >= .01 ? (r * 100).toFixed(2) : (r * 100).toFixed(3)) + '%';
+function ratesHtml(kind) {
+  const I = sysCall('summonInfo', kind);
+  if (!I) return '';
+  const next = I.nextRates;
+  return `<div class="rates"><span></span><span class="aux">Lv ${I.level}</span>${next ? `<span class="aux">Lv ${I.level + 1}</span>` : ''}`
+    + GRADES.map((g, n) => `<span class="gr g${n}">${g}</span><b class="num">${pct(I.rates[n])}</b>${next ? `<span class="num muted">${pct(next[n])}</span>` : ''}`).join('') + '</div>'
+    + (I.nextAt != null ? line('다음 레벨까지', `<b class="num">${Math.max(0, I.nextAt - I.pulls)}회</b>`) : '')
+    + sec('천장') + (I.pity || []).map(p => line(`<span class="gr g${p.minGrade}">${GRADES[p.minGrade]}</span> 이상`, `<b class="num">${p.left}회</b>`)).join('');
+}
 
 /* ================= settings ================= */
 const settings = { sound: true, volume: .7, music: .7, wind: true };

@@ -63,7 +63,7 @@ export function ability(id, crew) {
   for (const [k, v] of Object.entries(CARD[id].ab)) out[k] = typeof v === 'number' && k !== 'freeRepair' && k !== 'autoResearch' ? v * starMul(c.stars) : v;
   return out;
 }
-export const levelMul = l => 1 + T.crew.gunnerPerLevel * l;    // doc: x(1 + 0.04 l) on the roof; same for workers here
+export const levelMul = l => 1 + T.crew.gunnerPerLevel * l;    // doc: x(1 + 0.04 l) for a gunner on the roof
 // food a second for one crew member (the hero eats from the commander's ration)
 export const upkeepOf = l => T.crew.upkeep0 * (1 + T.crew.upkeepPerLevel * l);
 export const members = crew => Object.values(crew.assign).flat();
@@ -83,7 +83,9 @@ export function canLevel(crew, id, foodPerSec, upMul = 1, lock = T.crew.lock) {
 // a default assignment: the hero and the best gunners on the roof, farmers and miners below, repairmen in
 // the workshop, researchers in the lab; anyone left fills the production floors. slots: { roof, food, ... }
 export function autoAssign(crew, slots, totalBeds) {
-  const owned = Object.keys(crew.cards), score = id => CARD[id].grade * 100 + crew.cards[id].level + crew.cards[id].stars * 10;
+  // rank by what a card brings now: a level-1 legend must not push a level-300 gunner off the roof (packages made the
+  // base weaker under the old grade-first score)
+  const owned = Object.keys(crew.cards), score = id => levelMul(crew.cards[id].level) * starMul(crew.cards[id].stars) * (1 + 0.15 * CARD[id].grade);
   const pool = owned.filter(id => id !== 'me').sort((a, b) => score(b) - score(a));
   const a = { roof: ['me'], food: [], mine: [], shop: [], lab: [] };
   let room = Math.max(0, totalBeds - 1);

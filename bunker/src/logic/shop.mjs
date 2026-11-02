@@ -1,6 +1,6 @@
 // The shop: diamond packs, passes, convenience items (time savers, not power) and the step packages, the only
 // place power is sold, opened one step at a time behind a stage gate. Prices in KRW.
-import { addCopy } from './gear.mjs';
+import { addCopy, enhCap, WEAPONS, TURRETS } from './gear.mjs';
 import { addCard, CARDS_BY_GRADE } from './crew.mjs';
 
 // Assumption: 10 KRW a diamond at the smallest pack, a bonus up to +26% on the largest; first purchase of each x2.
@@ -60,8 +60,11 @@ export function grant(st, items, rng, onChest) {
   if (items.gems) st.gems += items.gems;
   if (items.diamonds) st.diamonds += items.diamonds;
   if (items.food) st.food += items.food;
-  if (items.weapon != null) addCopy(st.weapons, items.weapon);
-  if (items.turret != null) addCopy(st.turrets, items.turret);
+  // package gear arrives enhanced to its grade's cap (doc 12 lists the contents as examples to settle in the sim; a bare
+  // step-up sat below the player's maxed gear and the package changed nothing until it was enhanced)
+  const ready = (inv, i, grade) => { addCopy(inv, i); inv.enh[i] = Math.max(inv.enh[i], enhCap(grade)); inv.bt[i] = Math.max(inv.bt[i], Math.floor(inv.enh[i] / 10)); };
+  if (items.weapon != null) ready(st.weapons, items.weapon, WEAPONS[items.weapon].grade);
+  if (items.turret != null) ready(st.turrets, items.turret, TURRETS[items.turret].grade);
   if (items.card != null) addCard(st.crew, rng.pick(CARDS_BY_GRADE[items.card]));
   if (items.relicChests) for (let k = 0; k < items.relicChests; k++) onChest();
 }

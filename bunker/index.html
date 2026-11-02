@@ -55,7 +55,7 @@
   .ibl { width: 48px; height: 48px; padding: 0; border: 0; background: none; display: grid; justify-items: center; align-content: start; gap: 2px; font-size: 11px; line-height: 14px; font-weight: 700; color: var(--ink); cursor: pointer; }
   /* notifications: a translucent band across the picture, faded at both ends, with a thin line above and below.
      It stays between the resources and the side buttons, under the wave, so it never covers a button */
-  #notes { position: absolute; left: calc(var(--sl) + 84px); right: calc(var(--sr) + 56px); top: calc(var(--st) + 58px); display: grid; justify-items: center; pointer-events: none; z-index: 4; }
+  #notes { position: absolute; left: calc(var(--sl) + 84px); right: calc(var(--sr) + 84px); top: calc(var(--st) + 58px); display: grid; justify-items: center; pointer-events: none; z-index: 4; }
   .note { position: relative; width: 100%; padding: 8px 12px; text-align: center; color: #fff;
     background: linear-gradient(90deg, transparent, rgba(28, 27, 25, .72) 18%, rgba(28, 27, 25, .72) 82%, transparent);
     animation: note 2.7s ease-out forwards; }
@@ -88,8 +88,12 @@
   #ammo .bar i { display: block; height: 100%; width: 0; background: #e0a72c; }
   #ammo.empty .n { color: var(--bad); }
   /* a sheet up: the picture keeps the resources; a full-screen menu covers all of it */
-  .ui-sheet .res small, .ui-sheet .res.gem, .ui-sheet #wave, .ui-sheet #settingsBtn, .ui-sheet #side, .ui-sheet #hp, .ui-sheet #br { display: none; }
-  .ui-full #res, .ui-full #wave, .ui-full #settingsBtn, .ui-full #side, .ui-full #hp, .ui-full #br, .ui-full #notes { display: none; }
+  .ui-sheet #wave, .ui-sheet #settingsBtn, .ui-sheet #side, .ui-sheet #hp, .ui-sheet #br, .ui-sheet #cmd { display: none; }
+  .ui-full #wave, .ui-full #settingsBtn, .ui-full #side, .ui-full #hp, .ui-full #br, .ui-full #notes, .ui-full #cmd { display: none; }
+  /* a menu up: the currencies stay on top as one bar (white, over everything), and the menu or the picture starts under it */
+  .ui-sheet #res, .ui-full #res { display: flex; left: 0; right: 0; top: 0; width: auto; height: calc(var(--st) + 40px); padding: var(--st) var(--sr) 0 var(--sl); justify-content: space-between; align-items: center; background: var(--paper); border-bottom: 1px solid var(--line); z-index: 9; }
+  .ui-sheet .res small, .ui-full .res small { display: none; }
+  .ui-sheet #stage { top: calc(var(--st) + 40px); }
 
   /* the bottom bar */
   #tabs { position: absolute; left: 0; right: 0; bottom: 0; height: var(--nav); padding-bottom: env(safe-area-inset-bottom, 0px); display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); border-top: 1px solid var(--ink); background: var(--paper); z-index: 6; }
@@ -100,7 +104,7 @@
   #menu[hidden] { display: none; }
   .ui-up #menu { height: var(--sheet-up); border-top: 1px solid var(--ink); }
   .ui-ug #menu { height: var(--sheet-ug); border-top: 1px solid var(--ink); }
-  .ui-full #menu { top: 0; bottom: 0; padding: var(--st) 0 env(safe-area-inset-bottom, 0px); z-index: 8; }
+  .ui-full #menu { top: calc(var(--st) + 40px); bottom: 0; padding: 0 0 env(safe-area-inset-bottom, 0px); z-index: 8; }
   #menuHead { display: none; }
   .ui-full #menuHead { display: flex; flex: none; height: 48px; align-items: center; justify-content: space-between; padding-left: 12px; border-bottom: 1px solid var(--ink); font-size: 16px; }
   #menuClose { width: 48px; height: 48px; border: 0; background: none; display: grid; place-items: center; cursor: pointer; }
@@ -192,11 +196,18 @@
   .chiprow::-webkit-scrollbar { display: none; }
   .chiprow.end { -webkit-mask-image: none; mask-image: none; }
   .gq { font-weight: 700; }
-  .slot img.gun { filter: brightness(0); opacity: .35; }
+  .sil { filter: brightness(0); opacity: .3; }
+  img.art { image-rendering: pixelated; display: block; }
+  /* summon results: each item in its grade colour, new ones marked with a star, the next merge under it */
+  .rgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: 8px; padding: 4px 0 8px; }
+  .rc { display: grid; justify-items: center; gap: 4px; }
+  .rc .slot { width: 100%; aspect-ratio: auto; height: 72px; }
+  .slot > i.ic-star { position: absolute; left: 4px; top: 4px; }
+  button.lv { border: 0; background: none; padding: 0; font: inherit; color: inherit; text-align: left; cursor: pointer; }
+  button.lv:active:not([disabled]) .link { color: var(--ink); }
   .slot.lock { border-color: var(--line); background: var(--paper); align-content: center; gap: 2px; }
   .slot em { position: absolute; left: 3px; bottom: 1px; font-style: normal; font-size: 11px; line-height: 14px; font-weight: 700; color: var(--ink); }
   .slot.ring { outline: 2px solid var(--ink); outline-offset: 2px; overflow: visible; }
-  .wslot img.gun, .slot.ring img.gun { filter: none; opacity: 1; }
   .strip.mid { margin: 0 -12px 8px; }
   /* 캐릭터: the one picked standing (the game's sprite x4, idle), the weapon slot beside them, then who they are */
   .hero { display: flex; align-items: flex-end; justify-content: center; gap: 24px; height: 168px; margin: -8px -12px 0; padding-bottom: 16px; background: var(--soft); }
@@ -235,6 +246,24 @@
   #saver span { display: inline-flex; align-items: center; gap: 6px; }
 
   dialog { border: 1px solid var(--ink); padding: 16px; width: min(320px, calc(100vw - 32px)); font: inherit; color: var(--ink); background: var(--paper); }
+  /* the stage window: what the stage is, who comes, the boss, then repeat or move on and what a minute earns */
+  dialog.dlg { padding: 0 12px 12px; width: min(344px, calc(100vw - 32px)); }
+  .dh { display: flex; align-items: center; gap: 8px; height: 48px; } .dh .t16 { flex: 1; } .dh .aux { flex: none; }
+  .foes { display: flex; gap: 8px; margin: 4px 0 8px; }
+  .foe { flex: 1; min-width: 0; display: grid; justify-items: center; align-content: end; gap: 4px; padding: 8px 4px; background: var(--soft); font-size: 11px; font-weight: 700; text-align: center; }
+  .boss { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 4px 8px; padding: 8px; margin-bottom: 8px; border: 1px solid var(--bad); }
+  .boss img { grid-row: span 2; } .boss .aux { grid-column: 2 / 4; }
+  .mode { display: flex; justify-content: flex-end; gap: 8px; padding: 12px 0 4px; }
+  /* the sheet over a screen: a white scrim, a panel from the bottom with its title and close */
+  #sheet { position: absolute; inset: 0; z-index: 12; }
+  #sheet[hidden] { display: none; }
+  #sheet .scrim { position: absolute; inset: 0; background: rgba(255, 255, 255, .6); }
+  #sheet .shp { position: absolute; left: 0; right: 0; bottom: 0; max-height: 82%; overflow-y: auto; overscroll-behavior: contain; padding: 0 12px calc(12px + env(safe-area-inset-bottom, 0px)); background: var(--paper); border-top: 1px solid var(--ink); }
+  .shh { position: sticky; top: 0; display: flex; align-items: center; justify-content: space-between; height: 48px; background: var(--paper); font-size: 16px; z-index: 1; }
+  /* summon rates: grade, now, the next level */
+  .rates { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 8px 16px; align-items: baseline; padding: 4px 0 8px; }
+  .rates > :not(:first-child):not(.gr) { text-align: right; }
+  .muted .num, .num.muted { color: var(--muted); }
   dialog::backdrop { background: rgba(255, 255, 255, .75); }
   dialog h2 { margin: 0 0 12px; font-size: 14px; }
   .set { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--line); }
@@ -251,6 +280,7 @@
     <div class="res" data-ico="food" data-s="1"><b id="r-food">0</b><small id="rr-food"></small></div>
     <div class="res" data-ico="mineral" data-s="1"><b id="r-mineral">0</b><small id="rr-mineral"></small></div>
     <div class="res gem" data-ico="ruby" data-s="1"><b id="r-gem">0</b></div>
+    <div class="res dia" data-ico="diamond" data-s="1"><b id="r-dia">0</b></div>
   </div>
   <div id="wave">
     <div class="pill"><button class="arr tap" id="wavePrev" type="button" aria-label="이전 스테이지" data-ico="prev" data-s="1"></button><button id="waveBtn" class="tap" type="button">스테이지 1</button><button class="arr tap" id="waveNext" type="button" aria-label="다음 스테이지" data-ico="next" data-s="1"></button></div>
@@ -273,6 +303,7 @@
     <div id="panel"></div>
     <div id="menuFoot"></div>
   </section>
+  <div id="sheet" hidden><div class="scrim" data-close></div><section class="shp" role="dialog" aria-modal="true" aria-labelledby="shTitle"><div class="shh"><b id="shTitle"></b><button class="ib tap" type="button" data-close aria-label="닫기" data-ico="close" data-s="1.5"></button></div><div id="shBody"></div></section></div>
   <nav id="tabs" role="tablist">
     <button class="tab" role="tab" type="button" data-tab="up" data-ico="bullet" data-s="2" aria-selected="false">강화</button>
     <button class="tab" role="tab" type="button" data-tab="gear" data-ico="mag" data-s="2" aria-selected="false">장비</button>
@@ -294,12 +325,8 @@
   <div class="set"><span>진행 초기화</span><button class="mini danger" id="resetBtn" type="button">초기화</button></div>
   <form method="dialog" style="text-align:right;margin-top:12px"><button class="mini">닫기</button></form>
 </dialog>
-<dialog id="stageDlg">
-  <h2 id="sdTitle">스테이지 1</h2>
-  <div class="set"><div class="row"><button class="mini" id="modeRepeat" type="button" aria-pressed="false">반복</button><button class="mini" id="modeAdvance" type="button" aria-pressed="true">진행</button></div></div>
-  <div class="set"><span>금화</span><b id="sdGold">0/분</b></div>
-  <div class="set"><span>처치</span><b id="sdKills">0/분</b></div>
-  <form method="dialog" style="text-align:right;margin-top:12px"><button class="mini">닫기</button></form>
+<dialog id="stageDlg" class="dlg" aria-label="스테이지">
+  <div id="sdBody"></div>
 </dialog>
 <script>
 // the canvas: about 360-480 game pixels across, blown up by a whole number of device pixels so every game
