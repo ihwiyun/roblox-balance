@@ -85,6 +85,7 @@ function setView(v) {
   nodes.viewBtn.textContent = v === 'under' ? '지상' : '지하';
   nodes.viewBtn.setAttribute('aria-pressed', String(v === 'under'));
   nodes.floors.hidden = v !== 'under';
+  document.documentElement.classList.toggle('under', v === 'under');
   markFloorButtons();
   fitStage();
 }
@@ -98,7 +99,7 @@ function markFloorButtons() {
   const lv = [G.live, G.farm, G.mine];
   [...nodes.floors.children].forEach((b, k) => {
     b.setAttribute('aria-pressed', String(k === (G.floorView || 0)));
-    b.querySelector('span').textContent = (['생활', '식량', '채굴'][k]) + ' Lv ' + lv[k];
+    b.title = ['지하 1층 생활', '지하 2층 식량', '지하 3층 채굴'][k] + ' Lv ' + lv[k];
   });
 }
 document.querySelectorAll('.tab').forEach(b => b.addEventListener('click', () => {

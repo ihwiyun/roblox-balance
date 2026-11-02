@@ -65,7 +65,8 @@ function drawSurvivor(c, zOff = 0) {
   const fr = info.fr, front = view === 'F';
   if (fr.head) {
     // the person's own face, then the headgear over the hair
-    const [hx, hy] = frameSpot(info, fr.head), d = info.p.d + (set.ay - fr.head[1]) * perPx + .06;
+    // seen from behind, raised arms reach away from us: the head is drawn in front of them
+    const [hx, hy] = frameSpot(info, fr.head), d = info.p.d + (set.ay - fr.head[1]) * perPx + (view === 'B' ? .6 : .06);
     const head = ART_HUMANS.heads[c.look.key] || ART_HUMANS.heads.hero;
     stampAnchored(head, head[view], hx, hy, mirror, pal, d);
     const hat = gear.head && ART_HUMANS.gear[gear.head];

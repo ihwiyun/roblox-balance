@@ -22,13 +22,13 @@ function layoutFloors() {
   // the floor is as long as the zoomed view allows (at most 20 units), and sits centred in the picture
   const V = PP_SCENE.underView || { w: W, h: H }, yr = UG.y1 - UG.y0;
   const byW = (V.w - 26) * R2 / S - yr;
-  const byH = (V.h - 64 - (UG.h + UG.slab + 1.6) * COS * S) / (SIN * S) * R2 - yr;
+  const byH = (V.h - 40 - (UG.h + UG.slab + 1.6) * COS * S) / (SIN * S) * R2 - yr;
   const xr = clamp(Math.min(byW, byH), 8, 20);
   UG.x0 = -xr / 2; UG.x1 = xr / 2;
   SHAFT.x = UG.x0 + .55;
   PIT.x = AX(3.75); PIT.y = UG.y0 + 2.45;
   const top = project(UG.x0 - .4, UG.y0 - .4, UG.h + 1.5).sy, bot = project(UG.x1, UG.y1, -UG.slab).sy;
-  const z = ((top + bot) / 2 - H / 2 - 14) / (COS * S); // a little low: the floor buttons sit at the top
+  const z = ((top + bot) / 2 - H / 2 - 4) / (COS * S);
   for (let k = 0; k < 3; k++) FLOOR_Z[k] = z;
 }
 // where people stand, work and sleep below ground (the crew code asks here, so the floor plan stays in one file)

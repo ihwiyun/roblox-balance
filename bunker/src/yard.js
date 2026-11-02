@@ -203,7 +203,7 @@ const YARD_ART = (() => {
     const free = (x, y, m) => x > x0 + m && x < x1 - m && y > y0 + m && y < y1 - m && !list.some(([a, b, c, d]) => x > a - m && x < c + m && y > b - m && y < d + m);
     const seen = (x, y) => {
       let hid = 0;
-      for (let h = .5; h <= 1.75; h += .25) for (const o of [-.16, 0, .16]) {
+      for (let h = .5; h <= 1.76; h += .14) for (const o of [-.17, 0, .17]) {
         const q = project(x + o / R2, y - o / R2, z + h), ix = Math.round(q.sx), iy = Math.round(q.sy);
         if (ix < 0 || iy < 0 || ix >= W || iy >= H || zb[iy * W + ix] > q.d + .02) hid++;
       }
@@ -301,137 +301,6 @@ const BUNKER_ART = (() => {
   const logPat = (f, a) => f && rep(a, .1) < .035 ? -.9 : 0;
   // horizontal boards on walls
   const boards = (h = .2, o = 0) => (f, a, b) => f && rep(b, h, o) < PXZ * 1.1 ? -1.2 : 0;
-
-  /* ---- 1. a foxhole: a plank floor ringed with sandbags ---- */
-  function foxhole(k, I) {
-    const h = I.half, d = I.deck, top = I.roof, has = n => k >= n, r = h - .15;
-    deck(-d, -d, d, d, top, [150, 112, 72]);
-    solid(-d, -d, 0, d, d, top, PLANK, 3, plankTop(.32));
-    // the dug-out soil heaped behind
-    for (const [x0, y0, x1, y1, z] of [[-h - .5, -h - .5, h - .3, -h - .05, .22], [-h - .5, -h - .05, -h - .05, h - .3, .22], [-h - .35, -h - .35, -.2, -h - .1, .38], [-h - .35, -h - .1, -h - .1, -.2, .38]]) solid(x0, y0, 0, x1, y1, z, DIRT, 8, null, 1.4);
-    // two courses of sandbags all round
-    bagLine(-r, r, r, r, 0, 2); bagLine(r, -r, r, r, 0, 2); bagLine(-r, -r, r, -r, 0, 2); bagLine(-r, -r, -r, r, 0, 2);
-    // a shovel stuck in the heap and a loose plank
-    wire([-h - .25, -.9, .25], [-h - .3, -.95, 1.05], rampOf(WOOD)[2]);
-    pbox(-h - .37, -1.0, .1, -h - .23, -.9, .32, METAL, 2);
-    pbox(.2, h + .2, 0, 1.0, h + .36, .05, PLANK, 4);
-    if (has(1)) { // ammo crates, olive with a yellow stencil band
-      crateAt(-.75, h + .42, 0, .22, .16, .3, OLIVE, 4, col(214, 178, 60));
-      crateAt(-.25, h + .42, 0, .2, .16, .28, OLIVE, 5, col(214, 178, 60));
-      crateAt(-.55, h + .42, .3, .2, .15, .26, [92, 104, 70], 6, col(214, 178, 60));
-    }
-    if (has(2)) { // a plank shield wall on the back bags, with a gun slit
-      const z0 = .31, z1 = .95, slit = (f, a, b) => f && b > .6 && b < .7 && rep(a, 1.1, .3) < .35 ? col(30, 28, 34) : 0;
-      solid(-r - .08, -r - .08, z0, -r + .02, r - .25, z1, WOOD, 3, pats(slit, boards(.16, z0)));
-      solid(-r - .08, -r - .08, z0, r - .25, -r + .02, z1, WOOD, 4, pats(slit, boards(.16, z0)));
-      for (const [x, y] of [[-r - .03, -r - .03], [-r - .03, r - .3], [r - .3, -r - .03], [-r - .03, -.2], [-.2, -r - .03]]) post(x, y, 0, z1 + .08, .05, [118, 84, 54], 3, logPat);
-    }
-    if (has(3)) { // a machine gun on a tripod at the front corner
-      const x = r - .05, y = r - .05, z = .31;
-      for (const [dx, dy] of [[-.22, .05], [.05, -.22], [.12, .12]]) wire([x + dx, y + dy, z], [x, y, z + .3], rampOf(DARK)[1], 1, false);
-      pbox(x - .12, y - .12, z + .3, x + .1, y + .1, z + .42, DARK, 5);
-      pbox(x - .05, y - .05, z + .27, x + .08, y + .08, z + .35, OLIVE, 6);
-      for (const w of [0, .02]) line3([x + .05 + w, y + .05, z + .38], [x + .55 + w, y + .55, z + .43], rampOf(DARK)[w ? 0 : 2]);
-      pbox(x - .26, y - .02, z + .26, x - .1, y + .14, z + .38, OLIVE, 7);
-    }
-    if (has(4)) { // the pit was dug wider: a firing step of planks along the front
-      pbox(-d + .1, d - .25, top, d - .2, d - .05, top + .08, [150, 112, 72], 9);
-      pbox(d - .25, -d + .1, top, d - .05, d - .2, top + .08, [150, 112, 72], 9);
-    }
-    if (has(5)) { // a lantern on a pole at the right corner
-      const x = r + .2, y = -r - .2;
-      post(x, y, 0, 1.45, .045, WOOD, 3, logPat);
-      bar(x - .02, y, x + .3, y, 1.38, .02, .04, WOOD);
-      lamp(x + .3, y, 1.12, [255, 206, 110], .06);
-      wire([x + .3, y, 1.24], [x + .3, y, 1.38], rampOf(DARK)[1], 1, false);
-    }
-    if (has(6)) { // a camouflage net on two poles over the ammo corner
-      const x0 = -1.15, x1 = .05, y0 = h + .05, y1 = h + .8;
-      for (const [x, y] of [[x0, y1], [x1, y1]]) post(x, y, 0, .95, .03, WOOD, 5);
-      for (let x = x0; x <= x1; x += PXA * .8) for (let y = y0; y <= y1; y += PXA * .8) {
-        const n = noise(x * 3.1, y * 3.1), z = .95 - (y1 - y) * .55 + Math.sin(x * 9) * .02;
-        if (hash(x * 40 | 0, y * 40 | 0) < .3) continue;
-        plot(x, y, z, n > .6 ? col(92, 104, 62) : n > .42 ? col(122, 128, 78) : n > .3 ? col(134, 110, 74) : col(70, 84, 56));
-      }
-      shade(x0, y0, x1, y1, .6, .95);
-    }
-    if (has(7)) { // a field radio with a whip antenna, on a crate
-      const x = h + .38, y = -.55;
-      crateAt(x, y, 0, .18, .2, .24, [120, 110, 80], 8);
-      pbox(x - .14, y - .15, .24, x + .12, y + .13, .46, [84, 96, 70], 9, (f, a, b) => f === 2 && b > .3 && b < .4 && rep(a, .08) < .04 ? col(220, 200, 120) : 0);
-      wire([x - .08, y - .1, .46], [x - .12, y - .14, 1.75], rampOf(DARK)[1]);
-      bulb(x + .125, y - .05, .4, [120, 255, 140]);
-    }
-    if (has(8)) { // barbed wire on crossed stakes round the front
-      const o = h + .55, barb = rampOf(DARK)[1], wireC = rampOf(METAL)[2];
-      for (const side of [0, 1]) {
-        const at = t => side ? [o, t] : [t, o];
-        for (let t = -h; t <= h + .01; t += (2 * h) / 4) { const [x, y] = at(t); wire([x - .1, y - .1, 0], [x + .08, y + .08, .42], rampOf(WOOD)[1]); wire([x + .1, y - .1, 0], [x - .08, y + .08, .42], rampOf(WOOD)[1]); }
-        for (const z of [.18, .34]) for (let t = -h; t <= h; t += PXA * .5) { const [x, y] = at(t); plot(x, y, z + Math.sin(t * 13) * .015, hash(t * 90 | 0, z * 9 | 0) > .82 ? barb : wireC); }
-      }
-    }
-    if (has(9)) flag(-r - .05, -r - .05, .95, 1.5, [196, 60, 48]);
-  }
-
-  /* ---- 2. a wooden watchtower ---- */
-  function watchtower(k, I) {
-    const h = I.half, top = I.roof, p = 1.12, has = n => k >= n, logs = [118, 84, 54];
-    deck(-h, -h, h, h, top, [150, 112, 72]);
-    for (const [x, y] of [[-p, -p], [p, -p], [-p, p], [p, p]]) post(x, y, 0, top - .14, .11, logs, 1, logPat);
-    if (has(1)) { // X braces between the posts on every side
-      const br = rampOf(WOOD);
-      for (const w of [0, .03]) {
-        line3([-p, p + .12 + w, .2], [p, p + .12 + w, top - .3], br[2]); line3([p, p + .12 + w, .2], [-p, p + .12 + w, top - .3], br[1]);
-        line3([p + .12 + w, -p, .2], [p + .12 + w, p, top - .3], br[1]); line3([p + .12 + w, p, .2], [p + .12 + w, -p, top - .3], br[0]);
-      }
-      bar(-p, p + .1, p, p + .1, .55, .04, .07, WOOD); bar(p + .1, -p, p + .1, p, .55, .04, .07, WOOD);
-    }
-    if (has(3)) { // the lower floor is boarded in: a door and a small window
-      const z1 = 1.25, door = (f, a, b) => f === 1 && Math.abs(a + .3) < .24 && b < 1.0 ? (Math.abs(a + .3) > .2 || b > .95 ? col(70, 50, 36) : rep(a, .13) < .03 ? col(84, 60, 40) : col(110, 78, 50)) : 0;
-      const win = (f, a, b) => f === 2 && Math.abs(a - .2) < .22 && b > .6 && b < .95 ? (Math.abs(a - .2) > .18 || b < .64 || b > .91 ? col(70, 50, 36) : Math.abs(a - .2) < .02 ? col(70, 50, 36) : col(255, 214, 130)) : 0;
-      solid(-p + .02, -p + .02, 0, p - .02, p - .02, z1, [160, 118, 76], 12, pats(door, win, boards(.17)));
-      bulb(p - .02, .2, .78, [255, 214, 130]);
-    }
-    // the platform: planks, with the joist ends showing on the sides
-    const ends = (f, a, b) => f && b < top - .05 && rep(a, .4, .1) < .1 ? -1.4 : 0;
-    solid(-h, -h, top - .17, h, h, top, PLANK, 2, pats(plankTop(.26), ends));
-    if (has(4)) for (const [x, y, dx, dy] of [[p, p, 1, 1], [-p, p, -1, 1], [p, -p, 1, -1]]) { // brackets under the wider platform
-      for (const w of [0, .03]) { line3([x + dx * .02, y + w, top - .8], [x + dx * (h - p), y + w, top - .2], rampOf(WOOD)[1]); line3([x + w, y + dy * .02, top - .8], [x + w, y + dy * (h - p), top - .2], rampOf(WOOD)[2]); }
-    }
-    ladder('y', .45, h + .02, 0, top + .45, [150, 112, 72]);
-    if (has(2)) railing(-h + .04, -h + .04, h - .04, h - .04, top, .46, WOOD, [0, 1, 2, 3], .6, .03);
-    const hx = -h + .06, hut = .8;
-    if (has(5)) { // a lookout hut on the back corner: plank walls, a window each way, a stepped roof
-      const win = (f, a, b) => f && b > top + .45 && b < top + .78 && Math.abs(a - (hx + hut / 2)) < .22 ? (Math.abs(a - (hx + hut / 2)) > .18 || b < top + .49 ? col(70, 50, 36) : col(40, 34, 40)) : 0;
-      solid(hx, hx, top, hx + hut, hx + hut, top + 1.05, [164, 120, 78], 14, pats(win, boards(.17, top)));
-      for (let s = 0; s < 4; s++) pbox(hx - .12 + s * .07, hx - .12 + s * .07, top + 1.05 + s * .07, hx + hut + .12 - s * .07, hx + hut + .12 - s * .07, top + 1.12 + s * .07, s & 1 ? [120, 86, 58] : [134, 96, 62], 15 + s, (f, a, b) => f === 0 ? 0 : -.4);
-    }
-    if (has(6)) for (const [x, y] of [[h - .04, h - .04], [-h + .04, h - .04], [h - .04, -h + .04]]) { // lanterns hung from the railing
-      wire([x, y, top + .46], [x + .04, y + .04, top + .3], rampOf(DARK)[1], 1, false);
-      lamp(x + .04, y + .04, top + .14, [255, 206, 110], .06);
-    }
-    if (has(7)) for (let t = -h; t <= h; t += .32) for (const [x, y, dx, dy] of [[t, h + .35, 0, 1], [h + .35, t, 1, 0]]) { // sharpened stakes round the base
-      const tip = [x + dx * .32, y + dy * .32, .62], c = rampOf(WOOD)[2];
-      for (const w of [0, .025]) line3([x + w, y + w, 0], tip, c);
-      plot(...tip, rampOf([226, 200, 160])[3]);
-      castShadow(x + dx * .15, y + dy * .15, .3, .05, 1, 0);
-    }
-    if (has(8)) { // loudspeaker horns on a pole over the hut
-      const x = hx + hut / 2, y = hx + hut / 2, z = top + 1.35;
-      post(x, y, z - .1, z + .7, .03, DARK, 11);
-      for (const [dx, dy] of [[1, 0], [0, 1]]) for (let s = 0; s < 4; s++) { const o = .08 + s * .05, w = .05 + s * .025; pbox(x + dx * o - (dx ? .03 : w), y + dy * o - (dy ? .03 : w), z + .55 - w, x + dx * o + (dx ? .03 : w), y + dy * o + (dy ? .03 : w), z + .55 + w, s === 3 ? [70, 74, 80] : [196, 200, 190], 12); }
-    }
-    if (has(9)) { // a pulley hoist: a jib over the +x side, a rope and a crate on the way up
-      const y = -.98, x0 = h - .22, x1 = h + .55, z = top + 1.05;
-      post(x0, y, top, z + .05, .05, logs, 3, logPat);
-      bar(x0, y, x1, y, z, .045, .09, logs);
-      wire([x1 - .05, y, z], [x1 - .05, y, .82], rampOf(ROPE)[2]);
-      crateAt(x1 - .05, y, .42, .19, .19, .38, PLANK, 16, -1.2);
-      wire([x1 - .05, y, .8], [x1 - .2, y - .15, .8], rampOf(ROPE)[2], 1, false); wire([x1 - .05, y, .8], [x1 + .1, y + .15, .8], rampOf(ROPE)[2], 1, false);
-    }
-  }
-
-  /* ---- 3. a container post: two shipping containers side by side, later a third stacked on top ---- */
   const ribs = (a, b, lo, hi, z0, z1) => {
     if (b < z0 + .1 || b > z1 - .1) return -.7;
     if (a < lo + .08 || a > hi - .08) return -1.3;
@@ -447,56 +316,6 @@ const BUNKER_ART = (() => {
     return rep(b - z0, .3) < PXZ ? -.6 : 0;
   };
   const dents = (a) => rep(a, .3) < PXA ? -.6 : 0;
-  function containers(k, I) {
-    const hx = I.half, hy = I.half - .2, top = I.roof, has = n => k >= n, white = col(232, 230, 220);
-    deck(-hx, -hy, hx, hy, top);
-    const ORANGE = [178, 86, 52], BLUE = [62, 104, 138], GREEN = [88, 116, 74];
-    const marks = has(1) ? (f, a, b) => f === 1 ? (b > 1.6 && b < 1.68 ? white : textAt('27', -.2, 1.48, white, 1, 2)(a, b)) : 0 : null;
-    const win = has(3) ? (f, a, b) => f === 1 && a > -.95 && a < -.42 && b > .82 && b < 1.3 ? (a < -.9 || a > -.47 || b < .87 || b > 1.25 ? col(64, 60, 62) : col(34, 30, 38)) : 0 : null;
-    solid(-hx, .02, 0, hx, hy, top, ORANGE, 1, pats(marks, win, (f, a, b) => f === 0 ? dents(a) : f === 1 ? ribs(a, b, -hx, hx, 0, top) : doorEnd(a, b, .02, hy, 0, top)));
-    const winB = has(3) ? (f, a, b) => f === 2 && a > -1.05 && a < -.55 && b > .82 && b < 1.3 ? (a < -1.0 || a > -.6 || b < .87 || b > 1.25 ? col(60, 64, 70) : col(30, 30, 38)) : 0 : null;
-    const markB = has(1) ? (f, a, b) => f === 2 ? textAt('B2', -.15, 1.62, white, -1, 1)(a, b) : 0 : null;
-    solid(-hx, -hy, 0, hx, -.02, top, BLUE, 2, pats(markB, winB, (f, a, b) => f === 0 ? dents(a) : f === 1 ? ribs(a, b, -hx, hx, 0, top) : doorEnd(a, b, -hy, -.02, 0, top)));
-    if (has(3)) { // the gun ports' shutters, propped open like awnings
-      for (const [x0, x1] of [[-.97, -.4]]) { pbox(x0, hy, 1.3, x1, hy + .3, 1.34, ORANGE, 3); for (const x of [x0 + .04, x1 - .04]) line3([x, hy + .01, 1.0], [x, hy + .28, 1.3], rampOf(DARK)[1]); }
-      pbox(hx, -1.07, 1.3, hx + .3, -.53, 1.34, BLUE, 3); for (const y of [-1.03, -.57]) line3([hx + .01, y, 1.0], [hx + .28, y, 1.3], rampOf(DARK)[1]);
-    }
-    if (!has(4)) ladder('y', -1.2, hy + .02, 0, top + .32, [196, 200, 196]);
-    else { // a steel stair up the door end, from the right corner to the roof
-      const n = 9, y0 = -hy + .2, y1 = hy - .45, dy = (y1 - y0) / n, dz = top / n, x0 = hx + .04, x1 = hx + .44, gal = [176, 180, 176];
-      for (let i = 0; i < n; i++) { const yc = y0 + (i + .5) * dy, z = (i + 1) * dz; pbox(x0, yc - dy / 2, z - .05, x1, yc + dy / 2, z, gal, 20 + i, (f, a, b) => f === 0 && rep(a, .08) < .03 ? -1 : 0); }
-      pbox(x0, y1, top - .06, x1, hy, top, gal, 30);
-      for (const w of [0, .03]) { line3([x1 + w, y0 - .1, 0], [x1 + w, y1 + .05, top], rampOf(STEEL)[1]); line3([x1 + w, y0 - .05, .55], [x1 + w, hy, top + .5], rampOf(YEL)[2]); }
-      for (let i = 0; i <= n; i += 3) { const y = y0 + i * dy; line3([x1, y, i * dz], [x1, y, i * dz + .5], rampOf(STEEL)[2]); }
-      shade(x0, y0, x1, hy, 0, top);
-    }
-    if (has(2)) railing(-hx + .05, -hy + .05, hx - .05, hy - .05, top, .42, YEL, [0, 1, 2, 3], .55, .022);
-    // the third container, stacked across the back
-    const sx1 = -hx + 1.15, zt = top + 1.6;
-    if (has(5)) {
-      const markC = (f, a, b) => f === 2 && Math.abs(b - (top + .95)) < .05 && rep(a, .6) < .4 ? col(230, 214, 120) : 0;
-      solid(-hx, -hy, top, sx1, hy, zt, GREEN, 6, pats(markC, (f, a, b) => f === 0 ? dents(b) : f === 2 ? ribs(a, b, -hy, hy, top, zt) : doorEnd(a, b, -hx, sx1, top, zt)));
-    }
-    if (has(6)) { pbox(sx1 - .3, hy - .3, zt, sx1 - .14, hy - .14, zt + .06, DARK, 7); pbox(sx1 - .28, hy - .28, zt + .06, sx1 - .16, hy - .16, zt + .2, [255, 170, 40], 8, null, 0); glow(sx1 - .14, hy - .14, zt + .14, [255, 180, 60]); }
-    if (has(7)) for (const y of [-.95, .15]) { // air conditioners on the stacked container
-      pbox(sx1, y - .25, top + .25, sx1 + .26, y + .25, top + .72, [196, 198, 192], 9, (f, a, b) => f === 2 ? (Math.abs(a - y) < .17 && Math.abs(b - top - .48) < .17 ? (rep(a, .07) < PXA || rep(b, .07) < PXZ ? col(60, 62, 66) : col(110, 114, 118)) : 0) : 0);
-      line3([sx1 + .27, y - .14, top + .48], [sx1 + .27, y + .14, top + .48], rampOf(DARK)[1]); line3([sx1 + .27, y, top + .34], [sx1 + .27, y, top + .62], rampOf(DARK)[1]);
-    }
-    if (has(8)) { // a camouflage net over the stacked container
-      const netC = (x, y) => { const n = noise(x * 3, y * 3); return n > .62 ? col(96, 108, 64) : n > .45 ? col(126, 130, 80) : n > .32 ? col(132, 108, 72) : col(70, 84, 58); };
-      for (let x = -hx - .05; x <= sx1 + .05; x += PXA * .8) for (let y = -hy - .05; y <= hy + .05; y += PXA * .8) if (hash(x * 50 | 0, y * 50 | 0) > .25) plot(x, y, zt + .04 + noise(x * 2, y * 2) * .06, netC(x, y));
-      for (let y = -hy; y <= hy; y += PXA * .8) { const drop = .45 + noise(y * 2.2, 3) * .5; for (let z = zt; z > zt - drop; z -= PXZ * .8) if (hash(y * 60 | 0, z * 60 | 0) > .3) plot(sx1 + .05, y, z, netC(sx1, y + z)); }
-    }
-    if (has(9)) { // a big searchlight on a yoke, aimed out past the front corner
-      const x = -hx + .5, y = -hy + .55;
-      post(x, y, zt, zt + .3, .06, DARK, 10); bar(x - .22, y + .22, x + .22, y - .22, zt + .3, .03, .05, DARK);
-      pbox(x - .2, y - .2, zt + .32, x + .2, y + .2, zt + .66, [70, 74, 82], 11);
-      pbox(x + .2, y - .15, zt + .36, x + .23, y + .15, zt + .62, [255, 250, 220], 12, null, 0); pbox(x - .15, y + .2, zt + .36, x + .15, y + .23, zt + .62, [255, 250, 220], 12, null, 0);
-      glow(x + .23, y, zt + .49, [255, 250, 220]); glow(x, y + .23, zt + .49, [255, 250, 220]);
-    }
-  }
-
-  /* ---- 4. a fort of corrugated iron on a timber frame ---- */
   const SHEETS = [[200, 204, 206], [206, 138, 92], [156, 184, 166], [218, 210, 186], [186, 120, 84], [150, 172, 196]];
   // corrugated iron: ribs every .12, bolts along the top and bottom with rust running down from them
   const tin = (lo, z0, z1) => (f, a, b) => {
@@ -506,81 +325,6 @@ const BUNKER_ART = (() => {
     if (b < z1 - .17 && b > z1 - .7 && rep(a, .24, .06) < PXA * 1.2 && noise(a * 9, 1) > .45) return col(150, 92, 58);
     return m < PXA ? -.9 : m < PXA * 2 ? .7 : 0;
   };
-  function shack(k, I) {
-    const m = 1.5, top = I.roof, has = n => k >= n, timber = [96, 72, 52];
-    deck(-m, -m, m, m, top, [150, 112, 72]);
-    solid(-m, -m, 0, m, m, top, [150, 116, 80], 3, plankTop(.28));
-    // the sheets on the two walls you can see: each its own colour, a little uneven
-    for (let i = 0; i < 6; i++) {
-      const c = SHEETS[(hash(i, 3) * SHEETS.length) | 0], c2 = SHEETS[(hash(i, 7) * SHEETS.length) | 0], a0 = -m + i * .5 - .02, zb0 = .02 + hash(i, 1) * .08, zt0 = top - .04 - hash(i, 2) * .12;
-      pbox(a0, m, zb0, a0 + .54, m + .03 + (i & 1) * .015, zt0, c, 30 + i, tin(a0, zb0, zt0));
-      pbox(m, a0, zb0, m + .03 + (i & 1) * .015, a0 + .54, zt0, c2, 40 + i, tin(a0, zb0, zt0));
-    }
-    for (const [x, y] of [[m + .02, m + .02], [m + .02, -m], [-m, m + .02]]) post(x, y, 0, top + .12, .07, timber, 4, logPat);
-    // a sheet parapet along the back edges of the roof, posts at the front
-    pbox(-m, -m, top, -m + .05, m, top + .32, SHEETS[0], 5, tin(-m, top, top + .32)); pbox(-m, -m, top, m, -m + .05, top + .32, SHEETS[2], 6, tin(-m, top, top + .32));
-    // a plank door
-    pbox(-.5, m + .04, 0, .1, m + .08, 1.28, [150, 108, 70], 7, (f, a, b) => f === 1 ? (rep(a, .15) < PXA ? -1.2 : Math.abs(b - .3) < .04 || Math.abs(b - 1.0) < .04 ? -.8 : 0) : 0);
-    if (has(1)) for (const [f, a0, z0] of [[1, -1.35, 1.15], [1, .35, .25], [2, .95, .3], [2, -1.3, 1.42]]) { // rusty plates bolted over holes
-      const a1 = a0 + .5, z1 = z0 + .48, pat = (ff, a, b) => ff && (Math.abs(a - a0 - .05) < .03 || Math.abs(a - a1 + .05) < .03) && (Math.abs(b - z0 - .06) < .03 || Math.abs(b - z1 + .06) < .03) ? col(214, 170, 120) : ff && noise(a * 7, b * 7) > .66 ? -1 : 0;
-      if (f === 1) pbox(a0, m + .05, z0, a1, m + .08, z1, RUST, 50, pat); else pbox(m + .05, a0, z0, m + .08, a1, z1, RUST, 51, pat);
-    }
-    if (has(2)) { // windows behind wire mesh, lit inside
-      const mesh = (lo, hi, z0, z1) => (f, a, b) => a < lo + .04 || a > hi - .04 || b < z0 + .04 || b > z1 - .04 ? col(84, 66, 52) : (rep(a + b, .1) < PXA * .8 || rep(a - b, .1) < PXA * .8) ? col(70, 70, 76) : col(255, 206, 120);
-      pbox(.45, m + .05, .85, 1.05, m + .07, 1.35, DARK, 52, (f, a, b) => f === 1 ? mesh(.45, 1.05, .85, 1.35)(f, a, b) : 0);
-      pbox(m + .05, .2, .85, m + .07, .8, 1.35, DARK, 53, (f, a, b) => f === 2 ? mesh(.2, .8, .85, 1.35)(f, a, b) : 0);
-      glow(.75, m + .08, 1.1, [255, 206, 120]); glow(m + .08, .5, 1.1, [255, 206, 120]);
-    }
-    if (has(3)) { // a square stovepipe with a cap
-      const x = -1.25, y = .55;
-      post(x, y, top, top + 1.35, .07, [70, 72, 76], 8, (f, a, b) => f && rep(b, .45) < PXZ ? -1.2 : 0);
-      pbox(x - .13, y - .13, top + 1.35, x + .13, y + .13, top + 1.42, [70, 72, 76], 9); pbox(x - .09, y - .09, top + 1.42, x + .09, y + .09, top + 1.52, [70, 72, 76], 9);
-      line3([x, y, top + .9], [-m + .03, y, top + .32], rampOf(DARK)[1]);
-    }
-    if (has(4)) { // a lean-to wing on the right, faded blue sheets, a sloping roof
-      const x0 = m + .03, x1 = I.half, y0 = -1.5, y1 = -.32, z1 = 1.3;
-      // a skull painted on its side, red paint running down under it (level 8 of the form)
-      const SK = ['..XXXXX..', '.XXXXXXX.', 'XXXXXXXXX', 'XX..X..XX', 'XX..X..XX', 'XXXX.XXXX', '.XXXXXXX.', '..X.X.X..'], ca = -.5, cz0 = 1.05;
-      const skull = has(7) ? (f, a, b) => {
-        if (f !== 2) return 0;
-        const cx = Math.floor((ca - a) / PXA), cz = Math.floor((cz0 - b) / PXZ);
-        if (cx >= 0 && cx < 9 && cz >= 0 && cz < 8 && SK[cz][cx] === 'X') return col(238, 234, 222);
-        if (cz >= 8 && b > .15 && cx >= 0 && cx < 9 && (cx & 1) && hash(cx, 3) * .7 > (cz0 - b - .6)) return col(196, 46, 38);
-        return 0;
-      } : null;
-      solid(x0, y0, 0, x1, y1, z1 - .15, [140, 160, 184], 60, pats(skull, (f, a, b) => f ? tin(0, 0, z1 - .15)(f, a, b) : 0));
-      pbox(x0 + .06, y1, 0, x1 - .06, y1 + .03, .95, [150, 108, 70], 64, (f, a) => f === 1 && rep(a, .12) < PXA ? -1.2 : 0);
-      for (let s = 0; s < 4; s++) pbox(x0 - .05 + s * .1, y0 - .06, z1 - .15 + (3 - s) * .06, x0 + .07 + s * .1 + (s === 3 ? .07 : 0), y1 + .06, z1 - .09 + (3 - s) * .06, [150, 156, 160], 61 + s, (f, a, b) => f === 0 && rep(b, .12) < PXA ? -1 : 0);
-    }
-    if (has(5)) for (const [x, c] of [[-1.28, [168, 64, 48]], [-.96, [64, 96, 140]], [.4, [106, 118, 72]], [.72, [214, 170, 56]]]) drum(x, m + .32, 0, .14, c, 80 + x * 9);
-    const nx = -.62; // the crow's nest on the back corner reaches out to here
-    if (has(6)) {
-      const z = top + 1.2;
-      for (const [x, y] of [[-m + .08, -m + .08], [nx, -m + .08], [-m + .08, nx], [nx, nx]]) post(x, y, top, z, .05, timber, 9, logPat);
-      line3([nx, nx + .02, top + .1], [-m + .1, nx + .02, z - .1], rampOf(timber)[2]); line3([nx + .02, nx, top + .1], [nx + .02, -m + .1, z - .1], rampOf(timber)[1]);
-      solid(-m - .02, -m - .02, z, nx + .06, nx + .06, z + .1, PLANK, 10, plankTop(.22));
-      railing(-m, -m, nx + .04, nx + .04, z + .1, .38, timber, [0, 1, 2, 3], .45, .025);
-      ladder('y', -1.0, nx + .06, top, z + .4, [150, 112, 72]);
-    }
-    if (has(8)) { // barbed wire along the roof edges
-      const barb = rampOf(DARK)[1], wc = rampOf(METAL)[3];
-      const run = (ax, ay, bx, by, z) => { const n = Math.ceil(Math.hypot(bx - ax, by - ay) / (PXA * .5)); for (let i = 0; i <= n; i++) { const t = i / n, x = lerp(ax, bx, t), y = lerp(ay, by, t), w = Math.sin(t * n * .55) * .05; plot(x + w * (ay === by ? 0 : 1), y + w * (ax === bx ? 0 : 1), z + Math.abs(Math.cos(t * n * .55)) * .1, i % 9 === 0 ? barb : wc); } };
-      run(-m, -m + .03, m, -m + .03, top + .38); run(-m + .03, -m, -m + .03, m, top + .38);
-      run(-m, m - .02, m, m - .02, top + .04); run(m - .02, -m, m - .02, m, top + .04);
-      for (const [x, y] of [[m - .02, m - .02], [m - .02, -m + .1], [-m + .1, m - .02], [0, m - .02], [m - .02, 0]]) post(x, y, top, top + .22, .025, DARK, 12);
-    }
-    if (has(9)) { // strings of coloured bulbs from the nest down to the corners
-      const BUL = [[255, 90, 70], [255, 214, 90], [120, 220, 120], [110, 180, 255]], src = [nx + .05, nx + .05, top + 1.55];
-      for (const [src2, dst] of [[src, [-m + .1, m - .05, top + .22]], [src, [m - .05, -m + .1, top + .22]], [[-m + .1, m - .05, top + .4], [m - .05, m - .05, top + .4]], [[m - .05, -m + .1, top + .4], [m - .05, m - .05, top + .4]]]) {
-        const n = 7;
-        for (let i = 0; i <= n * 6; i++) { const t = i / (n * 6), z = lerp(src2[2], dst[2], t) - Math.sin(t * Math.PI) * .2; plot(lerp(src2[0], dst[0], t), lerp(src2[1], dst[1], t), z, rampOf(DARK)[1]); }
-        for (let i = 1; i < n; i++) { const t = i / n, z = lerp(src2[2], dst[2], t) - Math.sin(t * Math.PI) * .2 - .04, c = BUL[(i + (dst[0] + src2[1]) * 3 | 0) & 3]; bulb(lerp(src2[0], dst[0], t), lerp(src2[1], dst[1], t), z, c); }
-      }
-      if (!has(6)) post(nx, nx, top, top + 1.55, .03, DARK);
-      for (const [x, y] of [[-m + .1, m - .05], [m - .05, -m + .1], [m - .05, m - .05]]) post(x, y, top, top + .42, .025, DARK, 13);
-    }
-  }
-
   /* ---- shared parts for the heavier forms ---- */
   // cast concrete: formwork lines, joints and pits
   const concrete = (lift = .33) => (f, a, b) => {
@@ -645,161 +389,6 @@ const BUNKER_ART = (() => {
     else { pbox(x - s * .75, y + s, z + s * .2, x + s * .75, y + s + .02, z + s * 1.3, [255, 250, 220], 26, null, 0); glow(x, y + s + .02, z + s * .75, [255, 250, 220]); }
   }
 
-  /* ---- 5. a concrete pillbox ---- */
-  function pillbox(k, I) {
-    const m = k >= 4 ? 1.62 : 1.5, top = I.roof, has = n => k >= n, pl = m + .12;
-    deck(-m + .06, -m + .06, m - .06, m - .06, top);
-    const camo = has(9) ? camoPat(1.2) : null;
-    const pil = has(4) ? (f, a, b) => f && b > .25 && b < top - .1 && Math.abs(rep(a, 1.08, .32) - .54) > .47 ? -.9 : 0 : null;
-    const door = has(1) ? (f, a, b) => f === 1 && Math.abs(a + .05) < .38 && b > .22 && b < 1.3 ? (Math.abs(a + .05) > .33 || b > 1.25 ? col(52, 54, 60) : Math.abs(b - .55) < .04 || Math.abs(b - .95) < .04 ? col(84, 88, 96) : Math.abs(a - .2) < .03 && Math.abs(b - .78) < .1 ? col(220, 200, 120) : col(118, 124, 132)) : 0 : null;
-    solid(-pl, -pl, 0, pl, pl, .22, [150, 146, 136], 1, concrete());
-    solid(-m, -m, 0, m, m, top - .1, CONCRETE, 2, pats(door, slits([[-1.15, -.55], [.45, 1.05]], [[-1.15, -.55], [.35, .95]], 1.2, 1.32), camo, pil, concrete()), .5);
-    pbox(-m + .06, -m + .06, top - .1, m - .06, m - .06, top, [168, 164, 152], 3, concrete(), .5);
-    // the parapet
-    const t = .17, pz = top + .26, pzF = top + .2;
-    for (const [x0, y0, x1, y1, z1] of [[-m + .06, -m + .06, m - .06, -m + .06 + t, pz], [-m + .06, -m + .06, -m + .06 + t, m - .06, pz], [-m + .06, m - .06 - t, m - .06, m - .06, pzF], [m - .06 - t, -m + .06, m - .06, m - .06, pzF]]) pbox(x0, y0, top, x1, y1, z1, [180, 176, 164], 4, pats(camo, concrete()), .5);
-    if (has(2)) { // earth heaped against the walls, grass on top, a cut for the door
-      const steps = [[.72, .2], [.48, .4], [.24, .6]];
-      for (const [h, o] of steps) {
-        pbox(m, -m, 0, m + o, m, h, DIRT, 70, null, 1.6); pbox(-m, m, 0, -.5, m + o, h, DIRT, 71, null, 1.6); pbox(.42, m, 0, m, m + o, h, DIRT, 72, null, 1.6);
-      }
-      for (let i = 0; i < 160; i++) { const t2 = hash(i, 5), o = hash(i, 6) * .6, side = i & 1, a = -m + t2 * 2 * m; if (!side && Math.abs(a + .05) < .5) continue; const h = o < .2 ? .72 : o < .4 ? .48 : .24; const [x, y] = side ? [m + o, a] : [a, m + o]; line3([x, y, h], [x, y, h + .05 + hash(i, 7) * .08], rampOf([110, 140, 70])[2 + (i % 3 === 0)]); }
-      shade(m, -m, m + .6, m, 0, .7); shade(-m, m, m, m + .6, 0, .7);
-    }
-    if (has(3)) { // a machine gun nest on the right corner: a steel shield and the gun aimed out
-      const x = m - .5, y = -m + .5;
-      pbox(x - .3, y - .38, top, x + .36, y - .3, top + .55, OLIVE, 30, platePat(.3, top, top + .55)); pbox(x + .28, y - .38, top, x + .36, y + .28, top + .55, OLIVE, 31, platePat(.3, top, top + .55));
-      post(x, y, top, top + .32, .04, DARK, 32);
-      pbox(x - .12, y - .06, top + .3, x + .2, y + .06, top + .42, DARK, 33);
-      for (const w of [0, .02]) line3([x + .2, y + w, top + .37], [x + .75, y - .25 + w, top + .4], rampOf(DARK)[w ? 0 : 2]);
-      crateAt(x - .1, y + .25, top, .12, .1, .16, OLIVE, 34, col(214, 178, 60));
-    }
-    if (has(5)) for (const [x, y] of [[-m + .42, -.35], [-.35, -m + .42], [-m + .42, .6]]) { // periscopes
-      post(x, y, top, top + .62, .07, [96, 104, 88], 35);
-      pbox(x - .13, y - .13, top + .62, x + .13, y + .13, top + .82, [96, 104, 88], 36);
-      pbox(x + .13, y - .08, top + .66, x + .15, y + .08, top + .76, [150, 220, 240], 37, null, 0); pbox(x - .08, y + .13, top + .66, x + .08, y + .15, top + .76, [150, 220, 240], 37, null, 0);
-    }
-    if (has(6)) for (const [f, a] of [[1, -1.25], [1, 1.2], [2, -1.25], [2, 1.15]]) { // caged lamps on the walls
-      const [x, y] = f === 1 ? [a, m + .02] : [m + .02, a], z = 1.62;
-      if (f === 1) { pbox(x - .1, y, z, x + .1, y + .12, z + .18, DARK, 38); for (const o of [-.07, 0, .07]) line3([x + o, y + .13, z + .02], [x + o, y + .13, z + .16], rampOf(METAL)[3]); }
-      else { pbox(x, y - .1, z, x + .12, y + .1, z + .18, DARK, 38); for (const o of [-.07, 0, .07]) line3([x + .13, y + o, z + .02], [x + .13, y + o, z + .16], rampOf(METAL)[3]); }
-      glow(x + (f === 2 ? .13 : 0), y + (f === 1 ? .13 : 0), z + .09, [255, 236, 170]);
-    }
-    if (has(7)) for (const [x, y] of [[-.95, -.2], [-.2, -.95]]) { // mushroom vents
-      post(x, y, top, top + .45, .09, [160, 160, 154], 39, (f, a, b) => f && rep(b, .1) < PXZ ? -1.2 : 0);
-      pbox(x - .24, y - .24, top + .42, x + .24, y + .24, top + .5, [110, 114, 112], 40); pbox(x - .16, y - .16, top + .5, x + .16, y + .16, top + .57, [110, 114, 112], 40);
-    }
-    if (has(8)) { // a long-range radio mast with guy wires
-      const x = -m + .35, y = -m + .35;
-      lattice(x, y, top, 2.5, .14);
-      for (const [gx, gy] of [[m - .2, -m + .2], [-m + .2, m - .2]]) { line3([x, y, top + 1.7], [gx, gy, top + .02], rampOf(METAL)[2], .6); block(gx - .25, gy - .25, gx + .25, gy + .25); }
-      for (const z of [top + .9, top + 1.6]) { pbox(x - .03, y + .1, z, x + .03, y + .45, z + .05, DARK, 41); }
-    }
-  }
-
-  /* ---- 6. a reinforced bunker: concrete in bolted steel plate ---- */
-  function reinforced(k, I) {
-    const m = k >= 4 ? 1.66 : 1.55, top = I.roof, has = n => k >= n, OD = [112, 118, 92], PL = [120, 128, 136];
-    deck(-m + .05, -m + .05, m - .05, m - .05, top);
-    const camo = camoPat(1.1), star = has(9) ? (f, a, b) => {
-      if (f !== 1) return 0;
-      const cx = .55, cz = 1.6, dx = (a - cx) / .36, dz = (b - cz) / .36;
-      if (Math.abs(dx) > 1.25 || Math.abs(dz) > 1.25) return 0;
-      const ang = Math.atan2(dz, dx), r = Math.hypot(dx, dz), lim = .45 + .55 * Math.pow(Math.abs(Math.cos(2.5 * (ang - Math.PI / 2))), 6);
-      if (r < lim) return col(236, 232, 220);
-      return Math.abs(dx) < 1.18 && Math.abs(dz) < 1.18 ? col(48, 58, 84) : col(214, 176, 60);
-    } : null;
-    const num = has(9) ? (f, a, b) => f === 1 ? textAt('51', -1.2, 1.78, col(236, 232, 220), 1, 2)(a, b) : 0 : null;
-    solid(-m - .1, -m - .1, 0, m + .1, m + .1, .2, [120, 122, 112], 1, has(3) ? (f, a, b) => f ? hazard(a, b, f) : 0 : concrete());
-    solid(-m, -m, 0, m, m, top - .08, OD, 2, pats(star, num, camo, concrete(.4)), .5);
-    // steel plates over the lower walls
-    pbox(-m, m, .2, m, m + .05, 1.3, PL, 3, platePat(.62, .2, 1.3)); pbox(m, -m, .2, m + .05, m, 1.3, PL, 4, platePat(.62, .2, 1.3));
-    pbox(-m + .05, -m + .05, top - .08, m - .05, m - .05, top, [104, 110, 88], 5, concrete());
-    // a steel parapet, lower at the front
-    const t = .12;
-    for (const [x0, y0, x1, y1, z1] of [[-m, -m, m, -m + t, top + .36], [-m, -m, -m + t, m, top + .36], [-m, m - t, m, m, top + .24], [m - t, -m, m, m, top + .24]]) pbox(x0, y0, top, x1, y1, z1, PL, 6, has(3) && z1 < top + .3 ? (f, a, b) => f && b > top + .1 ? hazard(a, b, f) : 0 : platePat(.5, top, z1));
-    if (has(1)) for (const [f, a] of [[1, -.9], [1, .75], [2, -.85], [2, .7]]) { // armoured gun ports
-      const z = 1.45;
-      const port = (ff, aa, bb) => ff && Math.abs(aa - a) < .22 && Math.abs(bb - z - .2) < .06 ? col(24, 22, 28) : ff && (Math.abs(aa - a) > .27 || bb < z + .05 || bb > z + .35) ? 1.2 : 0;
-      if (f === 1) pbox(a - .32, m, z, a + .32, m + .2, z + .4, [150, 158, 166], 7, port); else pbox(m, a - .32, z, m + .2, a + .32, z + .4, [150, 158, 166], 7, port);
-    }
-    if (has(2)) { // a louvred ventilation tower on the left corner
-      const x0 = -m + .1, y0 = m - .62, x1 = -m + .55, y1 = m - .12, z1 = top + 1.0;
-      solid(x0, y0, top, x1, y1, z1, [128, 132, 120], 8, (f, a, b) => f && b > top + .2 && b < z1 - .15 ? (rep(b, .1) < PXZ * 1.3 ? col(40, 40, 46) : .6) : 0);
-      pbox(x0 - .06, y0 - .06, z1, x1 + .06, y1 + .06, z1 + .07, [100, 104, 96], 9);
-    }
-    const s0 = -m + 1.12;
-    if (has(4)) { // a second storey on the back corner: a command room with slit windows
-      solid(-m, -m, top, s0, s0, top + 1.05, OD, 10, pats((f, a, b) => f && b > top + .55 && b < top + .7 && rep(a, .5, .12) < .3 ? col(40, 44, 50) : 0, camo, concrete(.4)), .5);
-      pbox(-m - .04, -m - .04, top + 1.05, s0 + .06, s0 + .06, top + 1.13, PL, 11, platePat(.4, 0, 9));
-    }
-    if (has(5)) { flood(s0 - .15, -m + .25, top + 1.13, 'x'); flood(-m + .25, s0 - .15, top + 1.13, 'y'); flood(s0 - .2, s0 - .2, top + 1.13, 'x'); }
-    if (has(6)) for (const [x, y] of [[m + .45, .9], [m + .45, -.75], [.9, m + .45], [-.75, m + .45]]) { // anti-tank hedgehogs
-      const c = rampOf([92, 96, 102]);
-      for (const [a, b] of [[[-.28, 0, 0], [.28, 0, .5]], [[.28, 0, 0], [-.28, 0, .5]], [[0, -.28, 0], [0, .28, .5]], [[0, .28, 0], [0, -.28, .5]]]) for (const w of [0, .03]) line3([x + a[0] + w, y + a[1], a[2]], [x + b[0] + w, y + b[1], b[2]], c[w ? 1 : 3]);
-      castShadow(x, y, .25, .25);
-    }
-    if (has(7)) dish(-m + .5, -m + .5, top + 1.13, .38);
-    if (has(8)) { // razor wire coils on the parapet
-      const r = rampOf([190, 196, 204]);
-      const coil = (ax, ay, bx, by, z) => { const n = Math.ceil(Math.hypot(bx - ax, by - ay) / .09); for (let i = 0; i <= n; i++) { const t2 = i / n, x = lerp(ax, bx, t2), y = lerp(ay, by, t2); for (let q = 0; q < 8; q++) { const an = q / 8 * 6.283 + i * .9, ox = Math.cos(an) * .08; plot(x + (ax === bx ? ox : 0), y + (ay === by ? ox : 0), z + .08 + Math.sin(an) * .08, r[q & 1 ? 2 : 4]); } } };
-      coil(-m + .05, m - .06, m - .05, m - .06, top + .24); coil(m - .06, -m + .05, m - .06, m - .05, top + .24);
-      coil(-m + .05, -m + .06, m - .05, -m + .06, top + .36); coil(-m + .06, -m + .05, -m + .06, m - .05, top + .36);
-    }
-  }
-
-  /* ---- 7. a command bunker: a control cabin, radar, antennas ---- */
-  function command(k, I) {
-    const m = k >= 4 ? 1.72 : 1.62, top = I.roof, has = n => k >= n, GR = [198, 198, 190], BAND = [82, 88, 98], c1 = -m + 1.12, ct = top + 1.15;
-    deck(-m, -m, m, m, top);
-    const ops = has(3) ? (f, a, b) => f && b > 1.32 && b < 1.72 && Math.abs(a) < m - .3 && rep(a, .55, .1) < .45 ? (b < 1.36 || b > 1.68 || rep(a, .55, .1) < .03 ? col(60, 66, 78) : hash(Math.floor(a * 14), Math.floor(b * 12)) > .7 ? col(170, 240, 255) : col(60, 150, 190)) : 0 : null;
-    const banner = has(8) ? (f, a, b) => {
-      if (f !== 1) return 0;
-      for (const cx of [-.95, .95]) if (Math.abs(a - cx) < .2 && b > .55 && b < top - .3) { const e = Math.abs(a - cx); if (b < .55 + (.2 - e) * .8) return 0; return e > .16 ? col(214, 176, 60) : Math.abs(b - 1.95) < .14 && e < .1 ? col(236, 232, 220) : col(48, 62, 120); }
-      return 0;
-    } : null;
-    const walls = (f, a, b) => {
-      if (!f) return rep(a, .6) < PXA || rep(b, .6) < PXA ? -.5 : 0;
-      if (b < .32) return tone(BAND, f);
-      if (b > top - .3) return b > top - .2 && b < top - .14 ? col(214, 110, 60) : -1.6;
-      return rep(b, .55, .32) < PXZ ? -.6 : rep(a, 1.1, .3) < PXA ? -.5 : 0;
-    };
-    solid(-m, -m, 0, m, m, top, GR, 1, pats(banner, ops, walls), .4);
-    if (has(4)) { // an annex on the right with a door and a vent
-      const x0 = m, x1 = I.half, y0 = -m + .1, y1 = .15, z1 = 1.15;
-      solid(x0, y0, 0, x1, y1, z1, GR, 2, (f, a, b) => f === 2 && Math.abs(a - (y0 + y1) / 2) < .22 && b < .9 ? (Math.abs(a - (y0 + y1) / 2) > .19 || b > .86 ? col(60, 64, 72) : col(110, 118, 130)) : f && b < .3 ? -1.4 : 0, .4);
-      pbox(x0 + .1, y0 + .2, z1, x0 + .32, y0 + .5, z1 + .2, [150, 152, 150], 3, (f, a, b) => f && rep(b, .06) < PXZ ? -1.2 : 0);
-    }
-    railing(-m + .05, -m + .05, m - .05, m - .05, top, .4, [120, 126, 134], [0, 1, 2, 3], .6, .02);
-    // the control cabin on the back corner: a band of windows lit by screens
-    solid(-m, -m, top, c1, c1, ct, GR, 4, (f, a, b) => f && b > top + .45 && b < top + .85 ? (b < top + .48 || b > top + .82 || rep(a, .3) < PXA ? col(56, 60, 70) : hash(Math.floor(a * 12), Math.floor(b * 9)) > .72 ? col(160, 236, 255) : col(46, 96, 130)) : f && b < top + .1 ? -1.2 : 0, .4);
-    pbox(-m - .08, -m - .08, ct, c1 + .1, c1 + .1, ct + .08, BAND, 5);
-    glow(c1 + .01, -m + .5, top + .65, [140, 230, 255]); glow(-m + .5, c1 + .01, top + .65, [140, 230, 255]);
-    if (has(1)) radar(-m + .55, -m + .55, ct + .08, .62, .36);
-    if (has(2)) for (const [x, y, h] of [[c1 - .08, -m + .1, 1.3], [-m + .1, c1 - .08, 1.1], [c1 - .08, c1 - .08, .9]]) { post(x, y, ct + .08, ct + .08 + h, .018, DARK, 26); bar(x - .15, y, x + .15, y, ct + h * .8, .012, .025, DARK); }
-    if (has(5)) for (const [x, y, d] of [[c1 + .02, -m + .2, 'x'], [-m + .2, c1 + .02, 'y']]) { // sirens and red lights
-      if (d === 'x') { pbox(x, y - .1, ct - .3, x + .22, y + .1, ct - .1, [200, 60, 50], 27); pbox(x + .18, y - .14, ct - .34, x + .24, y + .14, ct - .06, [60, 60, 66], 28); }
-      else { pbox(x - .1, y, ct - .3, x + .1, y + .22, ct - .1, [200, 60, 50], 27); pbox(x - .14, y + .18, ct - .34, x + .14, y + .24, ct - .06, [60, 60, 66], 28); }
-      glow(d === 'x' ? x + .1 : x, d === 'x' ? y : y + .1, ct - .05, [255, 70, 50]);
-    }
-    if (has(6)) { // cable trays along the walls, conduits dropping to junction boxes
-      pbox(-m + .1, m, 1.95, m - .1, m + .1, 2.02, [150, 154, 158], 29, (f, a) => rep(a, .3) < PXA ? -1 : 0); pbox(m, -m + .1, 1.95, m + .1, m - .1, 2.02, [150, 154, 158], 29, (f, a) => rep(a, .3) < PXA ? -1 : 0);
-      for (const x of [-1.25, .2, 1.3]) { pbox(x - .025, m + .03, .7, x + .025, m + .08, 1.95, [70, 74, 80], 30); pbox(x - .1, m, .5, x + .1, m + .1, .75, [96, 100, 108], 31); }
-      for (const y of [-1.2, .5]) { pbox(m + .03, y - .025, .7, m + .08, y + .025, 1.95, [70, 74, 80], 30); pbox(m, y - .1, .5, m + .1, y + .1, .75, [96, 100, 108], 31); }
-    }
-    if (has(7)) { // a microwave relay: square horns on a frame
-      const x = c1 - .3, y = c1 - .3;
-      post(x, y, ct + .08, ct + 1.25, .05, STEEL, 32);
-      for (const z of [ct + .35, ct + .75, ct + 1.1]) bar(x - .2, y, x + .2, y, z, .015, .03, STEEL);
-      pbox(x + .05, y - .27, ct + .7, x + .2, y + .27, ct + 1.22, [232, 234, 236], 33, (f, a, b) => f === 2 && Math.abs(a - y) < .2 && Math.abs(b - ct - .96) < .2 ? -1.2 : 0);
-      pbox(x - .27, y + .05, ct + .2, x + .27, y + .2, ct + .72, [232, 234, 236], 33, (f, a, b) => f === 1 && Math.abs(a - x) < .2 && Math.abs(b - ct - .46) < .2 ? -1.2 : 0);
-    }
-    if (has(9)) { // helicopter approach lights along the front edges
-      for (let t = -m + .2; t <= m - .1; t += .42) { bulb(t, m + .01, top - .1, [120, 255, 140]); bulb(m + .01, t, top - .1, [120, 255, 140]); }
-      for (const [x, y] of [[m, m], [-m, m], [m, -m]]) lamp(x - .05, y - .05, top + .4, [255, 255, 255], .06);
-    }
-  }
-
   // dressed stone: courses .36 high, blocks .7 long, each a little different
   const stone = (f, a, b) => {
     if (!f) return 0;
@@ -843,59 +432,376 @@ const BUNKER_ART = (() => {
     }
   }
 
-  /* ---- 8. a fortress of dressed stone: battlements, turrets, missiles ---- */
-  function turretFort(k, I) {
-    const m = k >= 4 ? 1.75 : 1.7, top = I.roof, has = n => k >= n, ST_ = [164, 154, 138], ARM = [92, 100, 104];
-    deck(-m, -m, m, m, top);
-    solid(-m - .12, -m - .12, 0, m + .12, m + .12, .3, [128, 120, 108], 1, stone);
-    solid(-m, -m, 0, m, m, top, ST_, 2, pats(slits([[-1.1, -.7], [.6, 1.0]], [[-1.1, -.7], [.5, .9]], 1.6, 1.85), stone), .4);
-    if (has(3)) { // armour skirts round the foot of the walls
-      pbox(-m - .02, m + .02, 0, m + .02, m + .1, .9, ARM, 3, platePat(.5, 0, .9)); pbox(m + .02, -m - .02, 0, m + .1, m + .02, .9, ARM, 4, platePat(.5, 0, .9));
+
+  /* ---- symmetric builders: whatever a level adds goes right round the building, so the two walls the camera
+     sees always show it ---- */
+  const CY = [120, 230, 255], GOLD = [226, 182, 66];
+  const CORNERS = [[1, 1], [-1, 1], [1, -1], [-1, -1]];
+  const corners = (m, fn) => { for (const [sx, sy] of CORNERS) fn(sx * m, sy * m, sx, sy); };
+  // four boxes round a square: outer half m, t thick, z0..z1 (the two front sides may stop lower, at zf)
+  function ring(m, t, z0, z1, c, seed = 1, pat = null, grain = 1, zf = z1) {
+    pbox(-m, -m, z0, m, -m + t, z1, c, seed, pat, grain); pbox(-m, -m, z0, -m + t, m, z1, c, seed + 1, pat, grain);
+    pbox(-m, m - t, z0, m, m, zf, c, seed + 2, pat, grain); pbox(m - t, -m, z0, m, m, zf, c, seed + 3, pat, grain);
+    shade(-m, -m, m, m, z0, Math.max(z1, zf));
+  }
+  // points along all four sides of a square of half m, about `step` apart, without the corners: fn(x, y, nx, ny, s)
+  function around(m, step, fn) {
+    const n = Math.max(2, Math.round(2 * m / step));
+    for (let i = 1; i < n; i++) { const s = -m + 2 * m * i / n; fn(s, m, 0, 1, s); fn(m, s, 1, 0, s); fn(s, -m, 0, -1, s); fn(-m, s, -1, 0, s); }
+  }
+  // a box standing out of every wall at each position in list (measured along the wall): 2w wide, d deep, z0..z1;
+  // patOf(s) patterns each one (seen on face 1 on the +y wall, face 2 on the +x wall, a measured along the wall)
+  function onWalls(m, list, w, d, z0, z1, c, seed = 1, patOf = null, grain = 1) {
+    for (const s of list) {
+      const pat = patOf ? patOf(s) : null;
+      pbox(s - w, -m - d, z0, s + w, -m, z1, c, seed, pat, grain); pbox(-m - d, s - w, z0, -m, s + w, z1, c, seed, pat, grain);
+      pbox(s - w, m, z0, s + w, m + d, z1, c, seed, pat, grain); pbox(m, s - w, z0, m + d, s + w, z1, c, seed, pat, grain);
     }
-    if (has(4)) for (const [cx, cy] of [[m, m], [-m, m], [m, -m]]) { // bastions on the corners
-      const x0 = cx - .55, x1 = cx + .25, y0 = cy - .55, y1 = cy + .25;
-      solid(Math.min(x0, cx - .25), Math.min(y0, cy - .25), 0, Math.max(x1, cx + .25), Math.max(y1, cy + .25), top + .15, [156, 146, 130], 5, stone, .4);
-    }
-    battlement(-m + .02, -m + .02, m - .02, m - .02, top, .18, .58, .32, [170, 160, 144], stone);
-    // the main turret on the back corner, barrels to the right
-    const tx = -m + .58, ty = -m + .58, tz = top + .62;
-    solid(-m + .04, -m + .04, top, -m + 1.12, -m + 1.12, tz, [158, 148, 132], 30, stone, .4);
-    turret(tx, ty, tz, .46, [118, 112, 104], 'x', has(7) ? 1 : 2, has(7) ? 1.7 : 1.0, has(7) ? .075 : .045);
-    if (has(7)) { const bz = tz + .23 + .46 * .14; pbox(tx + .37, ty - .1, bz - .03, tx + .75, ty + .1, bz + .18, [96, 92, 88], 35); }
-    if (has(1)) { solid(-m + .06, m - .86, top, -m + .86, m - .06, top + .42, [158, 148, 132], 30, stone, .4); turret(-m + .46, m - .46, top + .42, .36, [118, 112, 104], 'y', 2, .75); }
-    if (has(2)) { solid(m - .86, -m + .06, top, m - .1, -m + .82, top + .3, [158, 148, 132], 30, stone, .4); missiles(m - .5, -m + .45, top + .3, [96, 108, 84]); }
-    if (has(5)) { // an ammunition hoist up the right wall
-      const y0 = .25, y1 = .7, x = m + .12;
-      for (const y of [y0, y1]) post(x, y, 0, top + .75, .04, DARK, 36);
-      bar(x, y0, x, y1, top + .7, .04, .06, DARK); bar(x, y1 - .05, x + .4, y1 - .05, top + .7, .035, .05, DARK);
-      wire([x + .37, y1 - .05, top + .7], [x + .37, y1 - .05, 1.5], rampOf(DARK)[1], 1, false);
-      pbox(x - .02, y0 + .02, 1.2, x + .3, y1 - .02, 1.26, STEEL, 37);
-      crateAt(x + .14, (y0 + y1) / 2, 1.26, .12, .17, .22, OLIVE, 38, col(214, 178, 60));
-    }
-    if (has(6)) { const bx = tx - .1, by = ty - .1, bz = tz + .23 + .46 * .48 + .02; pbox(bx - .08, by - .08, bz, bx + .08, by + .08, bz + .12, DARK, 39); BEACON = [bx, by, bz + .18]; }
-    if (has(8)) for (let i = 0; i < 6; i++) { // pennants on the front merlons
-      const t = -m + .35 + i * (2 * m - .7) / 5, c = i & 1 ? [230, 186, 50] : [196, 52, 44];
-      for (const [x, y, dx, dy] of [[t, m - .1, 1, 0], [m - .1, t, 0, -1]]) {
-        if (Math.abs(x) > m - .3 && Math.abs(y) > m - .3) continue;
-        const z = top + .32;
-        line3([x, y, z], [x, y, z + .55], rampOf(DARK)[2]);
-        for (let a = 0; a < .3; a += PXA * .6) for (let zz = 0; zz < .2 - a * .6; zz += PXZ * .6) plot(x + dx * a, y + dy * a, z + .55 - .02 - zz - a * .1, rampOf(c)[a > .15 ? 2 : 3]);
+  }
+  // a barrel drawn as pixel lines, pointing out from a corner along the diagonal
+  function barrel(x, y, z, sx, sy, len, c = DARK, thick = 2) {
+    const r = rampOf(c);
+    for (let i = 0; i < thick; i++) line3([x, y + i * .025, z + i * .02], [x + sx * len * .707, y + sy * len * .707 + i * .025, z + i * .02 + .03], r[i ? 1 : 2]);
+  }
+  // a turret hanging off each corner of the roof: corbel steps under it, a body h tall over the roof, then dress()
+  function bartizans(m, top, s, h, c, pat, dress) {
+    corners(m - s * .55, (x, y, sx, sy) => {
+      for (let i = 0; i < 3; i++) { const w = s * (.5 + i * .17); pbox(x - w, y - w, top - .5 + i * .16, x + w, y + w, top - .34 + i * .16, c, 70 + i, pat); }
+      solid(x - s, y - s, top - .02, x + s, y + s, top + h, c, 73, pat);
+      if (dress) dress(x, y, sx, sy);
+    });
+  }
+  // a crenellated cap on each corner turret
+  const turretCap = (s, z, c) => (x, y) => { for (const [dx, dy] of CORNERS) pbox(x + dx * s * .6 - s * .3, y + dy * s * .6 - s * .3, z, x + dx * s * .6 + s * .3, y + dy * s * .6 + s * .3, z + .14, c, 74); };
+  // sandbags all round a square of half m (bag centres), `courses` high
+  const bagRing = (m, z, courses) => { for (const [ax, ay, bx, by] of [[-m, m, m, m], [m, -m, m, m], [-m, -m, m, -m], [-m, -m, -m, m]]) bagLine(ax, ay, bx, by, z, courses); };
+  // barbed or razor wire looping along all four edges of a square at height z
+  function wireRing(m, z, c = rampOf([176, 182, 190]), barb = rampOf(DARK)[1], r = .07) {
+    for (const [ax, ay, bx, by] of [[-m, m, m, m], [m, -m, m, m], [-m, -m, m, -m], [-m, -m, -m, m]]) {
+      const n = Math.ceil(Math.hypot(bx - ax, by - ay) / .09);
+      for (let i = 0; i <= n; i++) {
+        const t = i / n, x = lerp(ax, bx, t), y = lerp(ay, by, t);
+        for (let q = 0; q < 8; q++) { const an = q / 8 * 6.283 + i * .9, o = Math.cos(an) * r; plot(x + (ax === bx ? o : 0), y + (ay === by ? o : 0), z + r + Math.sin(an) * r, q === 3 ? barb : c[q & 1 ? 2 : 4]); }
       }
-    }
-    if (has(9)) { // an anti-aircraft gun with four barrels on the front bastion
-      const x = m - .25, y = m - .25, z = top + .15;
-      post(x, y, z, z + .2, .1, DARK, 40);
-      pbox(x - .16, y - .16, z + .2, x + .16, y + .16, z + .38, [96, 108, 84], 41);
-      for (const [o1, o2] of [[-.07, -.07], [.07, -.07], [-.07, .07], [.07, .07]]) for (const w of [0, .02]) line3([x + o1 + w, y + o2, z + .32], [x + o1 + .42 + w, y + o2 + .42, z + .95], rampOf(DARK)[w ? 0 : 2]);
     }
   }
 
-  /* ---- 9. a high-tech armoured citadel: gunmetal hull, white plates, cyan light ---- */
-  const CY = [120, 230, 255];
+  /* ---- 1. a foxhole: a plank floor ringed with sandbags, then stakes, planks, steel, wire and logs all round ---- */
+  function foxhole(k, I) {
+    const h = I.half, d = I.deck, top = I.roof, has = n => k >= n, r = h - .15;
+    deck(-d, -d, d, d, top, [150, 112, 72]);
+    solid(-d, -d, 0, d, d, top, PLANK, 3, plankTop(.32));
+    // the dug-out soil heaped round the pit, a second higher step once the pit is widened
+    ring(h + .55, .42, 0, .12, DIRT, 8, null, 1.4);
+    if (has(4)) ring(h + .3, .28, 0, .24, [140, 108, 76], 9, null, 1.4);
+    const courses = has(2) ? 2 : 1, wallTop = courses * .155;
+    bagRing(r, 0, courses);
+    if (has(1)) around(r - .2, .34, (x, y) => post(x, y, 0, wallTop + .2, .034, [118, 84, 54], 3, logPat));
+    let zTop = wallTop;
+    if (has(3)) { ring(r + .17, .34, zTop, zTop + .07, PLANK, 10, (f, a, b) => f === 0 ? (rep(a + b, .25) < PXA ? -1.1 : 0) : f ? -.3 : 0); zTop += .07; }
+    if (has(9)) { ring(r + .16, .3, zTop, zTop + .11, [126, 90, 58], 11, (f, a, b) => f ? (rep(b - zTop, .055) < PXZ ? -1.3 : rep(a, .5) < PXA ? -1 : .3) : 0); zTop += .11; }
+    if (has(5)) corners(r + .02, (x, y) => { post(x, y, 0, 1.25, .05, [118, 84, 54], 4, logPat); lamp(x, y, 1.25, [255, 206, 110], .075); });
+    if (has(6)) around(r + .19, .62, (x, y, nx, ny) => { // corrugated sheets propped against the bags
+      const w = .25, z1 = wallTop + .14, c = [160, 166, 170], pat = (f, a) => f && rep(a, .1) < PXA ? -1 : 0;
+      if (nx) pbox(Math.min(x, x + nx * .04), y - w, 0, Math.max(x, x + nx * .04), y + w, z1, c, 12, pat); else pbox(x - w, Math.min(y, y + ny * .04), 0, x + w, Math.max(y, y + ny * .04), z1, c, 12, pat);
+    });
+    if (has(7)) { // barbed wire on crossed stakes right round the pit
+      const o = h + .5, wc = rampOf(METAL)[3], barb = rampOf(DARK)[1], st = rampOf(WOOD)[1];
+      around(o, .55, (x, y, nx, ny) => { const tx = ny ? .1 : 0, ty = nx ? .1 : 0; line3([x - tx, y - ty, 0], [x + tx, y + ty, .42], st); line3([x + tx, y + ty, 0], [x - tx, y - ty, .42], st); });
+      for (const z of [.17, .33]) for (const [ax, ay, bx, by] of [[-o, o, o, o], [o, -o, o, o], [-o, -o, o, -o], [-o, -o, -o, o]]) {
+        const n = Math.ceil(2 * o / (PXA * .5));
+        for (let i = 0; i <= n; i++) { const t = i / n; plot(lerp(ax, bx, t), lerp(ay, by, t), z + Math.sin(i * .7) * .015, i % 7 === 3 ? barb : wc); }
+      }
+    }
+    if (has(8)) corners(r, (x, y) => { // log cribs on the corners: logs laid crosswise, four layers
+      for (let i = 0; i < 4; i++) {
+        const z = zTop + i * .11, c = i & 1 ? [134, 96, 62] : [118, 84, 54], pat = (f, a, b) => f && rep(b - z, .11) < PXZ ? -1.3 : 0;
+        for (const o of [-.17, .17]) i & 1 ? pbox(x + o - .055, y - .27, z, x + o + .055, y + .27, z + .11, c, 20 + i, pat) : pbox(x - .27, y + o - .055, z, x + .27, y + o + .055, z + .11, c, 20 + i, pat);
+      }
+      shade(x - .27, y - .27, x + .27, y + .27, zTop, zTop + .44);
+    });
+  }
+
+  /* ---- 2. a wooden watchtower: braces, railing, walls, shields and lookouts on every side ---- */
+  function watchtower(k, I) {
+    const h = I.half, top = I.roof, p = 1.12, has = n => k >= n, logs = [118, 84, 54], wallZ = has(8) ? 1.62 : 1.25;
+    deck(-h, -h, h, h, top, [150, 112, 72]);
+    corners(p, (x, y) => post(x, y, 0, top - .14, .11, logs, 1, logPat));
+    if (has(1)) { // X braces on all four sides, a rail round the middle
+      const br = rampOf(WOOD), o = p + .12;
+      for (const w of [0, .03]) for (const [ax, ay, bx, by, c] of [[-p, o + w, p, o + w, 2], [o + w, -p, o + w, p, 1], [-p, -o - w, p, -o - w, 1], [-o - w, -p, -o - w, p, 1]]) {
+        line3([ax, ay, .2], [bx, by, top - .3], br[c]); line3([bx, by, .2], [ax, ay, top - .3], br[c === 2 ? 1 : 0]);
+      }
+      ring(p + .16, .08, .5, .58, WOOD, 3);
+    }
+    if (has(3)) { // the lower storey boarded in on every side: a window on each, a door at the front
+      const win = (f, a, b) => f && Math.abs(Math.abs(a) - .55) < .2 && b > .62 && b < .95 ? (Math.abs(Math.abs(a) - .55) > .16 || b < .66 || b > .91 ? col(70, 50, 36) : col(255, 214, 130)) : 0;
+      const door = (f, a, b) => f === 1 && Math.abs(a) < .2 && b < 1.0 ? (Math.abs(a) > .16 || b > .95 ? col(70, 50, 36) : rep(a, .13) < .03 ? col(84, 60, 40) : col(110, 78, 50)) : 0;
+      const band = has(8) ? (f, a, b) => f && Math.abs(b - 1.27) < .04 ? -1.6 : 0 : null;
+      solid(-p + .02, -p + .02, 0, p - .02, p - .02, wallZ, [160, 118, 76], 12, pats(door, win, band, boards(.17)));
+      for (const [x, y] of [[.55, p], [-.55, p], [p, .55], [p, -.55]]) glow(x, y, .8, [255, 214, 130]);
+    }
+    // the platform: planks, joist ends round its edge
+    const ends = (f, a, b) => f && b < top - .05 && rep(a, .4, .1) < .1 ? -1.4 : 0;
+    solid(-h, -h, top - .17, h, h, top, PLANK, 2, pats(plankTop(.26), ends));
+    if (has(4)) corners(p, (x, y, sx, sy) => { // brackets under the wider platform at every corner
+      for (const w of [0, .03]) { line3([x + sx * .05, y + w, top - .85], [x + sx * (h - p + .02), y + w, top - .2], rampOf(WOOD)[1]); line3([x + w, y + sy * .05, top - .85], [x + w, y + sy * (h - p + .02), top - .2], rampOf(WOOD)[2]); }
+    });
+    ladder('y', .45, h + .02, 0, top + .45, [150, 112, 72]);
+    if (has(2)) railing(-h + .04, -h + .04, h - .04, h - .04, top, .46, WOOD, [0, 1, 2, 3], .6, .03);
+    if (has(5)) ring(h - .03, .06, top, top + .42, [168, 124, 80], 14, boards(.1, top), 1, top + .28);
+    if (has(6)) corners(h - .04, (x, y, sx, sy) => { wire([x, y, top + .46], [x + sx * .07, y + sy * .07, top + .28], rampOf(DARK)[1], 1, false); lamp(x + sx * .07, y + sy * .07, top + .12, [255, 206, 110], .065); });
+    if (has(7)) around(h + .38, .3, (x, y, nx, ny) => { // sharpened stakes all round the foot
+      const tip = [x + nx * .3, y + ny * .3, .6];
+      for (const w of [0, .025]) line3([x + (ny ? w : 0), y + (nx ? w : 0), 0], tip, rampOf(WOOD)[2]);
+      plot(...tip, rampOf([226, 200, 160])[3]);
+      castShadow(x + nx * .15, y + ny * .15, .3, .05, 1, 0);
+    });
+    if (has(9)) bartizans(h + .05, top, .22, .5, [168, 124, 80], boards(.1, top), (x, y) => {
+      for (let s = 0; s < 3; s++) pbox(x - .3 + s * .08, y - .3 + s * .08, top + .5 + s * .06, x + .3 - s * .08, y + .3 - s * .08, top + .56 + s * .06, [120, 86, 58], 16 + s);
+      bulb(x + .22, y, top + .33, [255, 214, 130]);
+    });
+  }
+
+  /* ---- 3. a container post: two containers, then rails, paint, ports, corner steel, a plinth, sandbags, lights ---- */
+  function containers(k, I) {
+    const hx = I.half, hy = I.half - .2, top = I.roof, has = n => k >= n, z0 = has(5) ? .35 : 0, white = col(232, 230, 220);
+    const ORANGE = [178, 86, 52], BLUE = [62, 104, 138];
+    deck(-hx, -hy, hx, hy, top);
+    if (has(5)) solid(-hx - .14, -hy - .14, 0, hx + .14, hy + .14, z0, [168, 164, 154], 1, concrete());
+    const band = has(2) ? (f, a, b) => f && Math.abs(b - (z0 + 1.62)) < .045 ? white : 0 : null;
+    const portAt = (lo, hi) => (a, b) => a > lo && a < hi && b > z0 + .3 && b < z0 + .74 ? (a < lo + .05 || a > hi - .05 || b < z0 + .35 || b > z0 + .69 ? col(64, 60, 62) : col(34, 30, 38)) : 0;
+    const portsA = has(3) ? (f, a, b) => f === 1 ? portAt(-1.1, -.55)(a, b) || portAt(.55, 1.1)(a, b) : f === 2 ? portAt(.45, 1.0)(a, b) : 0 : null;
+    const portsB = has(3) ? (f, a, b) => f === 2 ? portAt(-1.0, -.45)(a, b) : 0 : null;
+    const markA = has(2) ? (f, a, b) => f === 1 ? textAt('27', -.62, z0 + 1.55, white, 1, 2)(a, b) : f === 2 ? textAt('A1', hy - .3, z0 + 1.5, white, -1, 1)(a, b) : 0 : null;
+    const markB = has(2) ? (f, a, b) => f === 2 ? textAt('B2', -.3, z0 + 1.5, white, -1, 1)(a, b) : 0 : null;
+    solid(-hx, .02, z0, hx, hy, top, ORANGE, 1, pats(band, markA, portsA, (f, a, b) => f === 0 ? dents(a) : f === 1 ? ribs(a, b, -hx, hx, z0, top) : doorEnd(a, b, .02, hy, z0, top)));
+    solid(-hx, -hy, z0, hx, -.02, top, BLUE, 2, pats(band, markB, portsB, (f, a, b) => f === 0 ? dents(a) : f === 1 ? ribs(a, b, -hx, hx, z0, top) : doorEnd(a, b, -hy, -.02, z0, top)));
+    if (has(3)) { // the ports' shutters propped open like awnings, on every wall
+      for (const x of [-.83, .83]) { pbox(x - .3, hy, z0 + .74, x + .3, hy + .3, z0 + .78, ORANGE, 3); pbox(x - .3, -hy - .3, z0 + .74, x + .3, -hy, z0 + .78, BLUE, 3); }
+      for (const [y, c] of [[.72, ORANGE], [-.72, BLUE]]) { pbox(hx, y - .3, z0 + .74, hx + .3, y + .3, z0 + .78, c, 3); pbox(-hx - .3, y - .3, z0 + .74, -hx, y + .3, z0 + .78, c, 3); }
+    }
+    if (has(4)) corners(1, (sx, sy) => { // steel guards down every corner, bolted
+      const x = sx * hx, y = sy * hy;
+      pbox(x - .1, y - .1, z0, x + .1, y + .1, top + .05, [84, 88, 96], 4, (f, a, b) => f && rep(b, .25) < PXZ * 1.4 ? col(200, 204, 210) : 0);
+    });
+    ladder('y', -1.2, hy + .02, 0, top + .32, [196, 200, 196]);
+    if (has(1)) railing(-hx + .05, -hy + .05, hx - .05, hy - .05, top, .42, YEL, [0, 1, 2, 3], .55, .022);
+    if (has(6)) bagRing(hx + .26, 0, 2);
+    if (has(7)) corners(1, (sx, sy) => { // amber beacons on every corner of the roof
+      const x = sx * (hx - .14), y = sy * (hy - .14);
+      post(x, y, top, top + .34, .04, DARK, 5);
+      pbox(x - .12, y - .12, top + .34, x + .12, y + .12, top + .4, DARK, 6);
+      pbox(x - .1, y - .1, top + .4, x + .1, y + .1, top + .56, [255, 170, 40], 6, null, 0); glow(x + .1, y + .1, top + .48, [255, 180, 60]);
+      if (has(9)) { // and a big searchlight above each, aimed out past its corner
+        pbox(x - .17, y - .17, top + .58, x + .17, y + .17, top + .9, [70, 74, 82], 7);
+        if (sx > 0) pbox(x + .17, y - .12, top + .62, x + .2, y + .12, top + .86, [255, 250, 220], 8, null, 0);
+        if (sy > 0) pbox(x - .12, y + .17, top + .62, x + .12, y + .2, top + .86, [255, 250, 220], 8, null, 0);
+        glow(x + sx * .2, y + sy * .2, top + .74, [255, 250, 220]);
+      }
+    });
+    if (has(8)) { // a camouflage net hung from the roof edge down every wall
+      const netC = (a, z) => { const n = noise(a * 3, z * 3); return n > .62 ? col(96, 108, 64) : n > .45 ? col(126, 130, 80) : n > .32 ? col(132, 108, 72) : col(70, 84, 58); };
+      for (let a = -hx; a <= hx; a += PXA * .8) { const drop = .45 + noise(a * 2.2, 3) * .45; for (let z = top; z > top - drop; z -= PXZ * .8) if (hash(a * 60 | 0, z * 60 | 0) > .3) plot(a, hy + .04, z, netC(a, z)); }
+      for (let a = -hy; a <= hy; a += PXA * .8) { const drop = .45 + noise(a * 2.2, 7) * .45; for (let z = top; z > top - drop; z -= PXZ * .8) if (hash(a * 60 | 0, z * 50 | 0) > .3) plot(hx + .04, a, z, netC(a + 9, z)); }
+    }
+  }
+
+  /* ---- 4. a fort of corrugated iron: patches, windows, a parapet, eaves, drums, lookouts, wire, lights ---- */
+  function shack(k, I) {
+    const m = 1.5, top = I.roof, has = n => k >= n, timber = [96, 72, 52];
+    deck(-m, -m, m, m, top, [150, 112, 72]);
+    solid(-m, -m, 0, m, m, top, [150, 116, 80], 3, plankTop(.28));
+    const SK = ['..XXXXX..', '.XXXXXXX.', 'XXXXXXXXX', 'XX..X..XX', 'XX..X..XX', 'XXXX.XXXX', '.XXXXXXX.', '..X.X.X..'];
+    const skull = has(7) ? (f, a, b) => {
+      if (!f) return 0;
+      const cx = Math.floor((f === 1 ? a + .4 : .4 - a) / PXA), cz = Math.floor((1.95 - b) / PXZ);
+      if (cx >= 0 && cx < 9 && cz >= 0 && cz < 8 && SK[cz][cx] === 'X') return col(238, 234, 222);
+      return cz >= 8 && cx >= 0 && cx < 9 && (cx & 1) && b > 1.0 && hash(cx, 3) * .45 > 1.95 - 8 * PXZ - b ? col(196, 46, 38) : 0;
+    } : null;
+    // the walls: sheets, each its own colour; a skull painted on every wall later
+    for (let i = 0; i < 6; i++) {
+      const c = SHEETS[(hash(i, 3) * SHEETS.length) | 0], c2 = SHEETS[(hash(i, 7) * SHEETS.length) | 0], a0 = -m + i * .5 - .02, zb0 = .02 + hash(i, 1) * .08, zt0 = top - .04 - hash(i, 2) * .12;
+      pbox(a0, m, zb0, a0 + .54, m + .03 + (i & 1) * .015, zt0, c, 30 + i, pats(skull, tin(a0, zb0, zt0)));
+      pbox(m, a0, zb0, m + .03 + (i & 1) * .015, a0 + .54, zt0, c2, 40 + i, pats(skull, tin(a0, zb0, zt0)));
+    }
+    corners(m + .02, (x, y) => post(x, y, 0, top + .12, .07, timber, 4, logPat));
+    pbox(-.3, m + .04, 0, .3, m + .08, 1.28, [150, 108, 70], 7, (f, a, b) => f === 1 ? (rep(a, .15) < PXA ? -1.2 : Math.abs(b - .3) < .04 || Math.abs(b - 1.0) < .04 ? -.8 : 0) : 0);
+    // things on every wall at the same places: patches, windows
+    const onFront = (a0, a1, z0, z1, c, seed, pat) => { pbox(a0, m + .05, z0, a1, m + .08, z1, c, seed, pat); pbox(m + .05, a0, z0, m + .08, a1, z1, c, seed, pat); };
+    if (has(1)) for (const [a0, z0] of [[-1.35, 1.42], [.85, .22]]) {
+      const a1 = a0 + .5, z1 = z0 + .45;
+      onFront(a0, a1, z0, z1, RUST, 50, (f, a, b) => f && (Math.abs(a - a0 - .05) < .03 || Math.abs(a - a1 + .05) < .03) && (Math.abs(b - z0 - .06) < .03 || Math.abs(b - z1 + .06) < .03) ? col(214, 170, 120) : f && noise(a * 7, b * 7) > .66 ? -1 : 0);
+    }
+    if (has(2)) {
+      const mesh = (lo, hi) => (f, a, b) => a < lo + .04 || a > hi - .04 || b < .89 || b > 1.31 ? col(84, 66, 52) : (rep(a + b, .1) < PXA * .8 || rep(a - b, .1) < PXA * .8) ? col(70, 70, 76) : col(255, 206, 120);
+      for (const [lo, hi] of [[-1.15, -.6], [.6, 1.15]]) { onFront(lo, hi, .85, 1.35, DARK, 52, (f, a, b) => f ? mesh(lo, hi)(f, a, b) : 0); glow((lo + hi) / 2, m + .08, 1.1, [255, 206, 120]); glow(m + .08, (lo + hi) / 2, 1.1, [255, 206, 120]); }
+    }
+    if (has(3)) ring(m + .02, .06, top, top + .34, SHEETS[0], 5, tin(-m, top, top + .34), 1, top + .22);
+    if (has(4)) { // tin eaves stepping out all round the walls
+      for (let s = 0; s < 3; s++) ring(m + .4 - s * .12, .16, 1.42 + s * .06, 1.48 + s * .06, [150, 156, 160], 61 + s, (f, a) => f === 0 && rep(a, .12) < PXA ? -1 : 0);
+      around(m + .2, .75, (x, y, nx, ny) => line3([x - nx * .18, y - ny * .18, 1.15], [x + nx * .15, y + ny * .15, 1.43], rampOf(timber)[2]));
+    }
+    if (has(5)) around(m + .27, .46, (x, y, nx, ny) => { if (ny > 0 && Math.abs(x) < .45) return; drum(x, y, 0, .13, [[168, 64, 48], [64, 96, 140], [106, 118, 72], [214, 170, 56]][((x + y) * 7 & 3 + 4) & 3], x * 9 + y); });
+    if (has(6)) bartizans(m + .04, top, .25, .55, SHEETS[3], tin(-m, top, top + .55), (x, y) => {
+      for (let s = 0; s < 2; s++) pbox(x - .32 + s * .1, y - .32 + s * .1, top + .55 + s * .07, x + .32 - s * .1, y + .32 - s * .1, top + .62 + s * .07, [150, 156, 160], 66 + s);
+    });
+    if (has(8)) wireRing(m - .02, top + .34, rampOf(METAL), rampOf(DARK)[1], .06);
+    if (has(9)) { // strings of bulbs along every edge of the roof, corner to corner
+      const BUL = [[255, 90, 70], [255, 214, 90], [120, 220, 120], [110, 180, 255]], zc = top + (has(6) ? .6 : .45);
+      if (!has(6)) corners(m - .05, (x, y) => post(x, y, top, zc, .025, DARK, 13));
+      for (const [ax, ay, bx, by] of [[-m, m, m, m], [m, -m, m, m], [-m, -m, m, -m], [-m, -m, -m, m]]) {
+        for (let i = 0; i <= 60; i++) { const t = i / 60; plot(lerp(ax, bx, t) * .97, lerp(ay, by, t) * .97, zc - Math.sin(t * Math.PI) * .2, rampOf(DARK)[1]); }
+        for (let i = 1; i < 7; i++) { const t = i / 7; bulb(lerp(ax, bx, t) * .97, lerp(ay, by, t) * .97, zc - Math.sin(t * Math.PI) * .2 - .04, BUL[(i + (ax + ay > 0 ? 1 : 0)) & 3]); }
+      }
+    }
+  }
+
+  /* ---- 5. a concrete pillbox: steel edges, an earth berm, more slits, buttresses, corner posts, lamps ---- */
+  function pillbox(k, I) {
+    const m = k >= 4 ? 1.62 : 1.5, top = I.roof, has = n => k >= n, pl = m + .12;
+    deck(-m + .06, -m + .06, m - .06, m - .06, top);
+    const camo = has(9) ? camoPat(1.2) : null;
+    const pil = has(4) ? (f, a, b) => f && b > .25 && b < top - .1 && Math.abs(rep(a, 1.08, .32) - .54) > .47 ? -.9 : 0 : null;
+    const sl = [[-1.05, -.45], [.45, 1.05]], sl2 = has(3) ? [[-.55, -.15], [.15, .55]] : [];
+    solid(-pl, -pl, 0, pl, pl, .22, [150, 146, 136], 1, concrete());
+    solid(-m, -m, 0, m, m, top - .1, CONCRETE, 2, pats(slits(sl, sl, 1.2, 1.32), slits(sl2, sl2, .62, .72), camo, pil, concrete()), .5);
+    pbox(-m + .06, -m + .06, top - .1, m - .06, m - .06, top, [168, 164, 152], 3, concrete(), .5);
+    // the parapet all round (raised and capped later), low at the front
+    const pb = top + (has(7) ? .36 : .26), pf = top + (has(7) ? .26 : .2);
+    ring(m - .06, .17, top, pb, [180, 176, 164], 4, pats(camo, concrete()), .5, pf);
+    if (has(7)) ring(m - .03, .23, pb, pb + .05, [196, 192, 182], 5, null, .4, pf + .05);
+    if (has(1)) { // steel angles down every corner and a steel rim along the parapet
+      corners(m, (x, y) => pbox(x - .07, y - .07, .22, x + .07, y + .07, top + .02, [92, 98, 106], 6, (f, a, b) => f && rep(b, .3) < PXZ * 1.4 ? col(196, 200, 206) : 0));
+      ring(m - .04, .2, has(7) ? pb + .05 : pb, (has(7) ? pb + .05 : pb) + .03, [92, 98, 106], 7, null, .3, (has(7) ? pf + .05 : pf) + .03);
+    }
+    if (has(2)) { // earth heaped against every wall, grass on top
+      for (const [h2, o] of [[.72, .2], [.48, .4], [.24, .6]]) ring(m + o, .22, 0, h2, DIRT, 70, null, 1.6);
+      around(m + .3, .09, (x, y, nx, ny) => { const o = hash(x * 31 | 0, y * 17 | 0) * .55, h2 = o < .2 ? .72 : o < .4 ? .48 : .24; line3([x + nx * (o - .1), y + ny * (o - .1), h2], [x + nx * (o - .1), y + ny * (o - .1), h2 + .05 + hash(x * 9 | 0, y * 9 | 0) * .07], rampOf([110, 140, 70])[2 + ((x * 50 | 0) & 1)]); });
+    }
+    if (has(5)) corners(m - .22, (x, y) => { // little observation posts on the corners, a slit each way
+      solid(x - .2, y - .2, top, x + .2, y + .2, top + .5, [172, 168, 156], 30, (f, a, b) => f && Math.abs(b - top - .34) < .04 && Math.abs(a - (f === 1 ? x : y)) < .12 ? col(26, 24, 30) : 0, .4);
+      pbox(x - .25, y - .25, top + .5, x + .25, y + .25, top + .56, [150, 146, 136], 31);
+      if (has(8)) { post(x, y, top + .56, top + 1.6, .02, DARK, 32); bar(x - .12, y, x + .12, y, top + 1.2, .012, .025, DARK); bulb(x, y, top + 1.64, [255, 70, 50]); }
+    });
+    if (has(6)) for (const a of [-1.0, 1.0]) for (const f of [1, 2]) { // caged lamps on every wall
+      const [x, y] = f === 1 ? [a, m + .02] : [m + .02, a], z = 1.62;
+      if (f === 1) { pbox(x - .1, y, z, x + .1, y + .12, z + .18, DARK, 38); for (const o of [-.07, 0, .07]) line3([x + o, y + .13, z + .02], [x + o, y + .13, z + .16], rampOf(METAL)[3]); }
+      else { pbox(x, y - .1, z, x + .12, y + .1, z + .18, DARK, 38); for (const o of [-.07, 0, .07]) line3([x + .13, y + o, z + .02], [x + .13, y + o, z + .16], rampOf(METAL)[3]); }
+      glow(x + (f === 2 ? .13 : 0), y + (f === 1 ? .13 : 0), z + .09, [255, 236, 170]);
+    }
+  }
+
+  /* ---- 6. a reinforced bunker: steel plate, then ports, more plate, stripes, a storey, lights, pillars, wire ---- */
+  function reinforced(k, I) {
+    const m = k >= 4 ? 1.66 : 1.55, top = I.roof, has = n => k >= n, OD = [112, 118, 92], PL = [120, 128, 136];
+    deck(-m + .05, -m + .05, m - .05, m - .05, top);
+    const camo = camoPat(1.1), starZ = top - .75, star = has(9) ? (f, a, b) => {
+      if (!f) return 0;
+      const dx = a / .34, dz = (b - starZ) / .34;
+      if (Math.abs(dx) > 1.25 || Math.abs(dz) > 1.25) return 0;
+      const ang = Math.atan2(dz, dx), r = Math.hypot(dx, dz), lim = .45 + .55 * Math.pow(Math.abs(Math.cos(2.5 * (ang - Math.PI / 2))), 6);
+      return r < lim ? col(236, 232, 220) : Math.abs(dx) < 1.18 && Math.abs(dz) < 1.18 ? tone([48, 58, 84], f, 1) : tone([214, 176, 60], f, 1);
+    } : null;
+    solid(-m - .1, -m - .1, 0, m + .1, m + .1, .2, [120, 122, 112], 1, has(3) ? (f, a, b) => f ? hazard(a, b, f) : 0 : concrete());
+    // the walls: olive concrete; a steel belt marks the storey added later
+    const belt = has(4) ? (f, a, b) => f && Math.abs(b - 2.12) < .06 ? tone(PL, f, rep(a, .3) < .04 ? 1 : 0) : 0 : null;
+    solid(-m, -m, 0, m, m, top - .08, OD, 2, pats(star, belt, camo, concrete(.4)), .5);
+    // steel plates over the lower walls on every side, over the upper walls too later
+    pbox(-m, m, .2, m, m + .05, 1.3, PL, 3, platePat(.62, .2, 1.3)); pbox(m, -m, .2, m + .05, m, 1.3, PL, 4, platePat(.62, .2, 1.3));
+    if (has(2)) { const z0 = 1.45, z1 = top - .38; pbox(-m, m, z0, m, m + .05, z1, PL, 5, pats(star, platePat(.62, z0, z1))); pbox(m, -m, z0, m + .05, m, z1, PL, 6, pats(star, platePat(.62, z0, z1))); }
+    pbox(-m + .05, -m + .05, top - .08, m - .05, m - .05, top, [104, 110, 88], 7, concrete());
+    // a steel parapet all round, lower at the front, striped later
+    ring(m, .12, top, top + .36, PL, 8, has(3) ? (f, a, b) => f && b > top + .1 ? hazard(a, b, f) : 0 : platePat(.5, top, top + .36), 1, top + .24);
+    if (has(1)) onWalls(m + (has(2) ? .05 : 0), [-.85, .85], .32, .2, top - .9, top - .5, [150, 158, 166], 9, s => (f, a, b) => f && Math.abs(a - s) < .22 && Math.abs(b - (top - .7)) < .06 ? col(24, 22, 28) : f && (Math.abs(a - s) > .27 || b < top - .85 || b > top - .55) ? 1.2 : 0);
+    if (has(5)) corners(m - .14, (x, y, sx, sy) => { // floodlights on every corner of the roof, aimed out
+      pbox(x - .14, y - .14, top + .24, x + .14, y + .14, top + .48, [70, 74, 82], 10);
+      if (sx > 0) pbox(x + .14, y - .1, top + .28, x + .17, y + .1, top + .44, [255, 250, 220], 11, null, 0);
+      if (sy > 0) pbox(x - .1, y + .14, top + .28, x + .1, y + .17, top + .44, [255, 250, 220], 11, null, 0);
+      glow(x + sx * .17, y + sy * .17, top + .36, [255, 250, 220]);
+    });
+    if (has(6)) around(m + .4, 1.05, (x, y) => { // anti-tank hedgehogs all round the foot
+      const c = rampOf([92, 96, 102]);
+      for (const [a, b] of [[[-.26, 0, 0], [.26, 0, .48]], [[.26, 0, 0], [-.26, 0, .48]], [[0, -.26, 0], [0, .26, .48]], [[0, .26, 0], [0, -.26, .48]]]) for (const w of [0, .03]) line3([x + a[0] + w, y + a[1], a[2]], [x + b[0] + w, y + b[1], b[2]], c[w ? 1 : 3]);
+      castShadow(x, y, .24, .24);
+    });
+    if (has(7)) corners(m, (x, y) => solid(x - .15, y - .15, 0, x + .15, y + .15, top + .5, [104, 112, 120], 12, (f, a, b) => f && (rep(b, .4) < PXZ * 1.3 ? -1.4 : rep(b, .4, .2) < .03 && Math.abs(a - (f === 1 ? x : y)) < .08 ? 1.4 : 0)));
+    if (has(8)) wireRing(m - .06, top + .36, rampOf([190, 196, 204]), rampOf(DARK)[1], .08);
+  }
+
+  /* ---- 7. a command bunker: a lit control floor, radar and antennas on every corner, a plinth, sirens ---- */
+  function command(k, I) {
+    const m = k >= 4 ? 1.72 : 1.62, top = I.roof, has = n => k >= n, GR = [198, 198, 190], BAND = [82, 88, 98];
+    deck(-m, -m, m, m, top);
+    if (has(4)) { ring(m + .28, .16, 0, .22, [150, 154, 156], 1, (f, a, b) => f && b > .17 ? 1 : 0); ring(m + .14, .14, 0, .42, [170, 172, 170], 2, (f, a, b) => f && b > .37 ? 1 : 0); }
+    const ops = has(3) ? (f, a, b) => f && b > .95 && b < 1.32 && Math.abs(a) < m - .3 && rep(a, .55, .1) < .45 ? (b < .99 || b > 1.28 || rep(a, .55, .1) < .03 ? col(60, 66, 78) : hash(Math.floor(a * 14), Math.floor(b * 12)) > .7 ? col(170, 240, 255) : col(60, 150, 190)) : 0 : null;
+    const banner = has(8) ? (f, a, b) => {
+      if (!f) return 0;
+      for (const cx of [-.95, .95]) if (Math.abs(a - cx) < .2 && b > .45 && b < top - .3) { const e = Math.abs(a - cx); if (b < .45 + (.2 - e) * .8) return 0; return e > .16 ? tone([214, 176, 60], f, 1) : Math.abs(b - (top - .6)) < .14 && e < .1 ? col(236, 232, 220) : tone([48, 62, 120], f, 1); }
+      return 0;
+    } : null;
+    const control = (f, a, b) => f && b > top - .9 && b < top - .42 ? (b < top - .86 || b > top - .46 || rep(a, .3) < PXA ? col(56, 60, 70) : hash(Math.floor(a * 12), Math.floor(b * 9)) > .72 ? col(160, 236, 255) : col(46, 96, 130)) : 0;
+    const walls = (f, a, b) => {
+      if (!f) return rep(a, .6) < PXA || rep(b, .6) < PXA ? -.5 : 0;
+      if (b < .32) return tone(BAND, f);
+      if (b > top - .3) return b > top - .2 && b < top - .14 ? tone([214, 110, 60], f, 1) : -1.6;
+      return rep(b, .55, .32) < PXZ ? -.6 : rep(a, 1.1, .3) < PXA ? -.5 : 0;
+    };
+    solid(-m, -m, 0, m, m, top, GR, 3, pats(banner, ops, control, walls), .4);
+    for (const [x, y] of [[0, m + .01], [m + .01, 0]]) glow(x, y, top - .66, [140, 230, 255]);
+    if (has(6)) { // cable trays along every wall, conduits down to junction boxes
+      pbox(-m + .1, m, 1.6, m - .1, m + .1, 1.67, [150, 154, 158], 4, (f, a) => rep(a, .3) < PXA ? -1 : 0); pbox(m, -m + .1, 1.6, m + .1, m - .1, 1.67, [150, 154, 158], 4, (f, a) => rep(a, .3) < PXA ? -1 : 0);
+      onWalls(m, [-1.25, 1.25], .1, .1, .5, .75, [96, 100, 108], 5);
+      onWalls(m, [-1.25, 1.25], .025, .07, .75, 1.6, [70, 74, 80], 6);
+    }
+    if (has(7)) ring(m - .03, .07, top, top + .4, [126, 134, 144], 7, platePat(.5, top, top + .4), 1, top + .28);
+    else railing(-m + .05, -m + .05, m - .05, m - .05, top, .4, [120, 126, 134], [0, 1, 2, 3], .6, .02);
+    if (has(1)) corners(m - .3, (x, y, sx, sy) => { // a radar panel on every corner, turned to face out
+      post(x, y, top, top + .4, .04, DARK, 8);
+      const e = sx === sy ? [1 / R2, -1 / R2] : [1 / R2, 1 / R2], r = rampOf([210, 214, 218]);
+      for (let s = -.3; s <= .3; s += PXA * .7) for (const zz of [0, .1, .2]) plot(x + e[0] * s, y + e[1] * s, top + .45 + zz, r[zz ? 3 : 2]);
+      for (let s = -.3; s <= .31; s += .1) line3([x + e[0] * s, y + e[1] * s, top + .45], [x + e[0] * s, y + e[1] * s, top + .65], r[2]);
+      if (has(2)) { post(x + sx * .14, y + sy * .14, top, top + 1.35, .016, DARK, 9); bar(x + sx * .14 - .14, y + sy * .14, x + sx * .14 + .14, y + sy * .14, top + 1.05, .012, .024, DARK); }
+      if (has(5)) { pbox(x - .1, y - .1, top + .68, x + .1, y + .1, top + .8, [200, 60, 50], 10); glow(x, y, top + .84, [255, 70, 50]); }
+    });
+    if (has(9)) { // approach lights right round the roof edge
+      for (let t = -m + .2; t <= m - .1; t += .42) for (const [x, y] of [[t, m + .01], [m + .01, t], [t, -m + .05], [-m + .05, t]]) bulb(x, y, top - .1, [120, 255, 140]);
+      corners(m - .05, (x, y) => lamp(x, y, top + .42, [255, 255, 255], .06));
+    }
+  }
+
+  /* ---- 8. a fortress of dressed stone: corner turrets, loopholes, skirts, bastions, a higher wall, big guns ---- */
+  function turretFort(k, I) {
+    const m = 1.7, top = I.roof, has = n => k >= n, STN = [164, 154, 138], ARM = [92, 100, 104];
+    deck(-m, -m, m, m, top);
+    solid(-m - .12, -m - .12, 0, m + .12, m + .12, .3, [128, 120, 108], 1, stone);
+    const sl = [[-1.1, -.7], [.6, 1.0]], loops = has(2) ? [[-.45, -.32], [-.05, .08], [.32, .45], [1.2, 1.33], [-1.38, -1.25]] : [];
+    const course = has(5) ? (f, a, b) => f && Math.abs(b - 2.62) < .05 ? tone([180, 170, 152], f, 1) : 0 : null;
+    solid(-m, -m, 0, m, m, top, STN, 2, pats(course, slits(sl, sl, 1.6, 1.85), slits(loops, loops, .95, 1.3), slits(loops, loops, 2.0, 2.3), stone), .4);
+    if (has(3)) { pbox(-m - .02, m + .02, 0, m + .02, m + .1, .9, ARM, 3, platePat(.5, 0, .9)); pbox(m + .02, -m - .02, 0, m + .1, m + .02, .9, ARM, 4, platePat(.5, 0, .9)); }
+    if (has(4)) corners(m, (x, y) => solid(x - .3, y - .3, 0, x + .3, y + .3, top - .48, [156, 146, 130], 5, stone, .4));
+    battlement(-m + .02, -m + .02, m - .02, m - .02, top, .18, .58, .32, [170, 160, 144], stone);
+    if (has(1)) bartizans(m + .02, top, .38, .55, [158, 148, 132], stone, (x, y, sx, sy) => {
+      turretCap(.38, top + .55, [170, 160, 144])(x, y);
+      barrel(x + sx * .3, y + sy * .3, top + .32, sx, sy, has(7) ? .95 : .45, DARK, has(7) ? 3 : 2);
+      if (has(6)) { pbox(x - .07, y - .07, top + .55, x + .07, y + .07, top + .67, [255, 170, 40], 76, null, 0); glow(x + .07, y + .07, top + .62, [255, 180, 60]); }
+      if (has(9)) { pbox(x - .18, y - .14, top + .69, x + .14, y + .14, top + .9, [96, 108, 84], 77); for (const o of [-.07, .07]) { pbox(x + .14, y + o - .035, top + .75, x + .22, y + o + .035, top + .82, [232, 232, 226], 78); pbox(x + .22, y + o - .025, top + .76, x + .27, y + o + .025, top + .81, [200, 52, 44], 79); } }
+    });
+    if (has(8)) for (const [ax, ay, bx, by] of [[-m, m - .1, m, m - .1], [m - .1, -m, m - .1, m], [-m, -m + .1, m, -m + .1], [-m + .1, -m, -m + .1, m]]) { // pennants on the merlons all round
+      for (let i = 1; i < 6; i++) {
+        const t = i / 6, x = lerp(ax, bx, t), y = lerp(ay, by, t), front = ax + ay > 0 || bx + by > 2 * m - .5, z = top + (Math.abs(ay - by) < .01 && ay > 0 || Math.abs(ax - bx) < .01 && ax > 0 ? .32 : .58), c = i & 1 ? [230, 186, 50] : [196, 52, 44];
+        line3([x, y, z], [x, y, z + .5], rampOf(DARK)[2]);
+        for (let a = 0; a < .28; a += PXA * .6) for (let zz = 0; zz < .18 - a * .6; zz += PXZ * .6) plot(x + (ax === bx ? 0 : a), y + (ax === bx ? -a : 0), z + .48 - zz - a * .1, rampOf(c)[a > .14 ? 2 : 3]);
+      }
+    }
+  }
+
+  /* ---- 9. a high-tech citadel: sensors, laser turrets, cores, fins, radiators, holograms, armour, a crown of light ---- */
   function citadel(k, I) {
     const m = k >= 4 ? 1.84 : 1.78, top = I.roof, has = n => k >= n, HULL = [74, 82, 98], PLT = [212, 218, 224];
     deck(-m + .08, -m + .08, m - .08, m - .08, top, [90, 98, 112]);
-    const core = has(3) ? (f, a, b) => f === 1 && Math.abs(a - .1) < .3 && b > .5 && b < top - .7 ? (Math.abs(a - .1) > .25 || b < .55 || b > top - .75 ? col(40, 46, 56) : rgb(...[[150, 240, 255], [190, 250, 255], [120, 220, 255]][Math.floor((b * 9 + Math.abs(a - .1) * 20)) % 3])) : 0 : null;
+    const core = has(3) ? (f, a, b) => f && Math.abs(a) < .28 && b > .5 && b < top - .7 ? (Math.abs(a) > .23 || b < .55 || b > top - .75 ? col(40, 46, 56) : rgb(...[[150, 240, 255], [190, 250, 255], [120, 220, 255]][Math.floor(b * 9 + Math.abs(a) * 20) % 3])) : 0 : null;
+    const louver = has(5) ? (f, a, b) => f && b > .55 && b < 1.0 && Math.abs(a) > .45 && Math.abs(a) < m - .25 ? (rep(b, .09) < PXZ * 1.4 ? col(30, 34, 42) : 1) : 0 : null;
     const hull = (f, a, b) => {
       if (!f) return rep(a, .5) < PXA || rep(b, .5) < PXA ? -.6 : 0;
       if (Math.abs(b - .4) < .035 || Math.abs(b - (top - .42)) < .035) return col(...CY);
@@ -903,138 +809,95 @@ const BUNKER_ART = (() => {
       if (b > 1.05 && b < top - .6 && u > .12 && u < 1.05 && (u - .12) + (b - 1.05) * .5 > .18) return tone(PLT, f, (u < .16 || b > top - .64) ? -1 : 0);
       return rep(a, .6, .1) < PXA ? -1 : rep(b, .7) < PXZ ? -.8 : 0;
     };
-    solid(-m - .1, -m - .1, 0, m + .1, m + .1, .25, [56, 62, 74], 1, (f, a, b) => f && rep(a, .3) < PXA ? -1 : 0);
-    solid(-m, -m, 0, m, m, top - .16, HULL, 2, pats(core, hull), .35);
+    solid(-m - .1, -m - .1, 0, m + .1, m + .1, .25, [56, 62, 74], 1, (f, a) => f && rep(a, .3) < PXA ? -1 : 0);
+    solid(-m, -m, 0, m, m, top - .16, HULL, 2, pats(core, louver, hull), .35);
     pbox(-m + .08, -m + .08, top - .16, m - .08, m - .08, top, [84, 92, 108], 3, (f, a, b) => f === 0 && (rep(a, .55) < PXA || rep(b, .55) < PXA) ? -.7 : 0, .35);
-    if (has(3)) { glow(.1, m + .01, 1.2, CY); glow(.1, m + .01, 1.9, CY); }
-    // a low white parapet with a light line
-    for (const [x0, y0, x1, y1, h] of [[-m + .08, -m + .08, m - .08, -m + .22, .4], [-m + .08, -m + .08, -m + .22, m - .08, .4], [-m + .08, m - .22, m - .08, m - .08, .26], [m - .22, -m + .08, m - .08, m - .08, .26]]) pbox(x0, y0, top, x1, y1, top + h, PLT, 4, (f, a, b) => f && Math.abs(b - top - h + .08) < .03 ? col(...CY) : 0, .3);
-    if (has(4)) for (const [f, a] of [[1, -1.25], [1, 1.25], [2, -1.25], [2, 1.25]]) { // angled armour fins
-      for (let s = 0; s < 3; s++) {
-        const o0 = 0, o1 = .34 - s * .1, z0 = .3 + s * .1, z1 = top - .35 - s * .45;
-        if (f === 1) pbox(a - .05, m + o0, z0, a + .05, m + o1, z1, PLT, 50 + s, (ff, aa, bb) => ff && rep(bb, .5) < PXZ * 1.5 ? -1.5 : 0);
-        else pbox(m + o0, a - .05, z0, m + o1, a + .05, z1, PLT, 50 + s, (ff, aa, bb) => ff && rep(bb, .5) < PXZ * 1.5 ? -1.5 : 0);
-      }
+    if (has(3)) for (const [x, y] of [[0, m + .01], [m + .01, 0]]) { glow(x, y, 1.2, CY); glow(x, y, 1.9, CY); }
+    if (has(7)) { pbox(-m - .12, m, .25, m + .12, m + .12, 1.05, PLT, 4, (f, a, b) => f && (rep(a, .6) < PXA * 1.4 || b > 1.0) ? -1.3 : f && Math.abs(b - .65) < .03 ? col(...CY) : 0, .3); pbox(m, -m - .12, .25, m + .12, m + .12, 1.05, PLT, 5, (f, a, b) => f && (rep(a, .6) < PXA * 1.4 || b > 1.0) ? -1.3 : f && Math.abs(b - .65) < .03 ? col(...CY) : 0, .3); }
+    // a white parapet all round with a light line; at the end the whole crown glows
+    const crown = has(9);
+    ring(m - .08, .14, top, top + .4, PLT, 6, (f, a, b) => f && (Math.abs(b - top - .32) < .03 || (crown && b > top + .2)) ? col(...(crown && b > top + .2 && b < top + .3 ? [200, 250, 255] : CY)) : 0, .3, top + .26);
+    if (crown) { for (let t = -1; t <= 1; t += .5) for (const [x, y] of [[t * m, m - .1], [m - .1, t * m], [t * m, -m + .1], [-m + .1, t * m]]) glow(x, y, top + .28, CY); }
+    if (has(4)) onWalls(m, [-1.25, 1.25], .05, .34, .3, top - .35, PLT, 7, () => (f, a, b) => f && rep(b, .5) < PXZ * 1.5 ? -1.5 : 0);
+    if (has(1)) around(m - .1, m * .99, (x, y) => { // sensor masts in the middle of every edge
+      post(x, y, top, top + 1.1, .04, [90, 98, 112], 8);
+      pbox(x - .1, y - .1, top + 1.1, x + .1, y + .1, top + 1.26, PLT, 9, (f, a, b) => f && Math.abs(b - top - 1.18) < .03 ? col(255, 80, 60) : 0);
+      glow(x + .1, y + .1, top + 1.18, [255, 90, 70]);
+    });
+    if (has(2)) corners(m - .3, (x, y, sx, sy) => { // a laser turret on every corner, aimed out
+      for (let s = 0; s < 2; s++) pbox(x - .26 + s * .07, y - .26 + s * .07, top + s * .14, x + .26 - s * .07, y + .26 - s * .07, top + (s + 1) * .14, s ? PLT : HULL, 10 + s);
+      pbox(x - .16, y - .16, top + .28, x + .16, y + .16, top + .48, PLT, 12, (f, a, b) => f && Math.abs(b - top - .38) < .03 ? col(...CY) : 0);
+      barrel(x + sx * .12, y + sy * .12, top + .4, sx, sy, .75, [60, 66, 78], 2);
+      glow(x + sx * .65, y + sy * .65, top + .42, CY);
+    });
+    if (has(6)) for (const [x, y, alongX] of [[-.95, m + .3, true], [.95, m + .3, true], [m + .3, -.95, false], [m + .3, .95, false]]) { // holograms over every wall
+      const c = rgb(150, 240, 255), z0 = 1.85;
+      for (let t = 0; t < 1; t += .015) { const ang = t * 6.283, r = .3 / (Math.abs(Math.cos(ang)) + Math.abs(Math.sin(ang))); plot(alongX ? x + Math.cos(ang) * r : x, alongX ? y : y + Math.cos(ang) * r, z0 + Math.sin(ang) * r, c); }
+      for (let s = -.15; s <= .15; s += PXA * .7) { plot(alongX ? x + s : x, alongX ? y : y + s, z0, c); plot(x, y, z0 + s, c); }
+      glow(x, y, z0, CY);
     }
-    if (has(1)) for (const [x, y] of [[-m + .3, m - .3], [m - .3, -m + .3]]) { // sensor pylons
-      post(x, y, top, top + 1.25, .045, [90, 98, 112], 5);
-      pbox(x - .12, y - .12, top + 1.25, x + .12, y + .12, top + 1.45, PLT, 6, (f, a, b) => f && Math.abs(b - top - 1.35) < .03 ? col(255, 80, 60) : 0);
-      glow(x + .12, y + .12, top + 1.35, [255, 90, 70]);
-    }
-    // the laser turret on the back corner (and the uplink mast behind it)
-    const lx = -m + .55, ly = -m + .55;
-    if (has(2)) {
-      for (let s = 0; s < 3; s++) pbox(lx - .5 + s * .08, ly - .5 + s * .08, top + s * .16, lx + .5 - s * .08, ly + .5 - s * .08, top + (s + 1) * .16, s & 1 ? PLT : HULL, 7 + s);
-      pbox(lx - .26, ly - .26, top + .48, lx + .26, ly + .26, top + .82, PLT, 10, (f, a, b) => f && Math.abs(b - top - .65) < .03 ? col(...CY) : 0);
-      pbox(lx + .26, ly - .035, top + .62, lx + 1.55, ly + .035, top + .69, [60, 66, 78], 11);
-      pbox(lx + 1.55, ly - .05, top + .6, lx + 1.62, ly + .05, top + .71, CY, 12, null, 0); glow(lx + 1.63, ly, top + .655, CY);
-      shade(lx - .5, ly - .5, lx + .5, ly + .5, top, top + .82);
-    }
-    if (has(9)) { // an uplink mast with a square dish
-      const x = -m + .18, y = -m + .18;
-      post(x, y, top, top + 2.6, .04, [180, 186, 196], 13);
-      for (let z = top + .4; z < top + 2.4; z += .4) bar(x - .12, y, x + .12, y, z, .015, .03, [180, 186, 196]);
-      dish(x, y, top + 2.3, .32); bulb(x, y, top + 2.68, [255, 70, 50]);
-    }
-    if (has(5)) { // a drone on its pad at the right corner
-      const x = m - .55, y = -m + .55;
-      pbox(x - .36, y - .36, top, x + .36, y + .36, top + .04, [52, 56, 66], 14, (f, a, b) => f === 0 && (Math.abs(Math.abs(a - x) - .28) < .04 && Math.abs(Math.abs(b - y) - .28) < .1 || Math.abs(Math.abs(b - y) - .28) < .04 && Math.abs(Math.abs(a - x) - .28) < .1) ? col(236, 190, 50) : 0);
-      const z = top + .2;
-      pbox(x - .1, y - .1, z, x + .1, y + .1, z + .1, PLT, 15);
-      for (const [dx, dy] of [[1, 1], [1, -1], [-1, 1], [-1, -1]]) { line3([x, y, z + .06], [x + dx * .24, y + dy * .24, z + .08], rampOf(DARK)[2]); pbox(x + dx * .24 - .09, y + dy * .24 - .09, z + .1, x + dx * .24 + .09, y + dy * .24 + .09, z + .115, [150, 156, 166], 16); }
-      glow(x + .1, y + .1, z + .05, [120, 255, 140]);
-    }
-    if (has(6)) { // a hologram floating over the right wall: a turning diamond with a cross
-      const y0 = .2, z0 = 1.8, c = rgb(150, 240, 255);
-      for (let t = 0; t < 1; t += .012) { const ang = t * 6.283, r = .38 / (Math.abs(Math.cos(ang)) + Math.abs(Math.sin(ang))); plot(m + .25, y0 + Math.cos(ang) * r, z0 + Math.sin(ang) * r, c); }
-      for (let s = -.2; s <= .2; s += PXA * .7) { plot(m + .25, y0 + s, z0, c); plot(m + .25, y0, z0 + s, c); }
-      pbox(m, y0 - .1, 1.15, m + .14, y0 + .1, 1.27, [60, 66, 78], 17); glow(m + .25, y0, z0, CY);
-    }
-    if (has(7)) { // a railgun: two long rails over the left corner, a charge glowing between them
-      const x = -m + .45, y = m - .45, z = top + .45;
-      pbox(x - .22, y - .22, top, x + .22, y + .22, z, HULL, 18);
-      for (const o of [-.07, .07]) pbox(x + o - .025, y - .1, z, x + o + .025, y + 1.35, z + .1, PLT, 19);
-      for (let yy = y; yy < y + 1.3; yy += PXA * .7) plot(x, yy, z + .05, rgb(170, 240, 255));
-      glow(x, y + 1.3, z + .05, CY);
-    }
-    if (has(8)) for (const [x, y] of [[-m - .2, m + .2], [m + .2, -m - .2]]) { // shield emitters on the ground
-      post(x, y, 0, 2.3, .07, PLT, 20, (f, a, b) => f && rep(b, .4) < PXZ * 1.5 ? col(...CY) : 0);
-      pbox(x - .14, y - .14, 0, x + .14, y + .14, .25, HULL, 21);
-      pbox(x - .1, y - .1, 2.3, x + .1, y + .1, 2.55, CY, 22, null, .3); glow(x + .1, y + .1, 2.42, CY);
-    }
+    if (has(8)) corners(m + .22, (x, y) => { // shield emitters on the ground at every corner
+      post(x, y, 0, 2.2, .07, PLT, 13, (f, a, b) => f && rep(b, .4) < PXZ * 1.5 ? col(...CY) : 0);
+      pbox(x - .14, y - .14, 0, x + .14, y + .14, .25, HULL, 14);
+      pbox(x - .1, y - .1, 2.2, x + .1, y + .1, 2.45, CY, 15, null, .3); glow(x + .1, y + .1, 2.32, CY);
+    });
   }
 
-  /* ---- 10. the final fortress: black armour, gold, a keep with a spire ---- */
-  const GOLD = [226, 182, 66];
+  /* ---- 10. the final fortress: emblems, corner turrets, banners, spires, a gold plinth, plasma, a higher wall ---- */
   function finalFort(k, I) {
-    const m = 1.85, top = I.roof, has = n => k >= n, BLK = [62, 58, 70], RED = [176, 40, 40], kx = -m + 1.15, kt = top + 1.5;
+    const m = 1.85, top = I.roof, has = n => k >= n, BLK = [62, 58, 70], RED = [176, 40, 40];
     deck(-m, -m, m, m, top, [92, 86, 100]);
+    if (has(5)) { ring(m + .5, .22, 0, .16, [70, 66, 78], 1, (f, a, b) => f && b > .1 ? tone(GOLD, f) : 0); ring(m + .3, .2, 0, .3, [70, 66, 78], 2, (f, a, b) => f && b > .24 ? tone(GOLD, f) : 0); }
     const emblem = has(1) ? (f, a, b) => {
-      if (f !== 1 && f !== 2) return 0;
-      // a shield with spread wings
-      const cx = f === 1 ? .1 : -.1, cz = 1.05, dx = Math.abs(a - cx), dz = b - cz;
+      if (!f) return 0;
+      const cz = 1.15, dx = Math.abs(a), dz = b - cz;
       if (dz > -.45 && dz < .38 && dx < .27 - Math.max(0, -dz - .15) * .7) return Math.abs(dz) < .05 && dx < .2 ? tone(RED, f) : tone(GOLD, f, dx < .07 ? 1 : 0);
       if (dz > -.08 && dz < .34 && dx < .95 && dx > .27 && (dz + .08) > (dx - .27) * .5 && rep(dx, .12) > PXA * 1.2) return tone(GOLD, f, dz > .2 ? 1 : 0);
       return 0;
     } : null;
+    const banners = has(3) ? (f, a, b) => {
+      if (!f) return 0;
+      for (const cx of [-1.3, 1.3]) {
+        const e = Math.abs(a - cx);
+        if (e > .2 || b < .7 || b > top - .05) continue;
+        if (b < .7 + .22 - e * 1.1) return 0;
+        if (e > .17) return tone(GOLD, f);
+        return Math.abs(b - (top - .9)) < .14 && e < .09 && Math.abs(b - (top - .9)) + e < .15 ? tone(GOLD, f, 1) : tone(RED, f);
+      }
+      return 0;
+    } : null;
+    const raised = has(7) ? (f, a, b) => f && b > 2.92 && b < 3.04 ? tone([96, 90, 104], f, rep(a, .35) < .05 ? 1 : 0) : 0 : null;
     const trim = (f, a, b) => {
       if (!f) return 0;
       if (Math.abs(b - .38) < .05 || Math.abs(b - 1.72) < .035 || b > top - .14) return tone(GOLD, f, b > top - .07 ? 1 : 0);
       if (Math.abs(b - 2.3) < .07 && rep(a, .7, .2) < .3) return rgb(255, 120, 60);
       return rep(a, .7, .2) < PXA ? -1.1 : rep(b, .48) < PXZ ? -.7 : 0;
     };
-    solid(-m - .15, -m - .15, 0, m + .15, m + .15, .3, [48, 44, 54], 1, (f, a, b) => f && b > .24 ? tone(GOLD, f) : 0);
-    solid(-m, -m, 0, m, m, top, BLK, 2, pats(emblem, trim), .35);
-    for (const [x, y] of [[m, m], [-m, m], [m, -m]]) pbox(x - .1, y - .1, .3, x + .1, y + .1, top + .05, GOLD, 3, (f, a, b) => f && rep(b, .5) < PXZ ? -1.2 : 0, .3);
-    if (has(3)) for (const [f, a] of [[1, -1.05], [1, 1.2], [2, -1.15], [2, 1.0]]) { // red banners hanging from the parapet
-      const z0 = .7, z1 = top - .05, emb = (ff, aa, bb) => {
-        const e = Math.abs(aa - a);
-        if (bb < z0 + .22 - e * 1.1) return 0;
-        if (e > .17) return tone(GOLD, ff);
-        return Math.abs(bb - 2.05) < .14 && e < .09 && Math.abs(bb - 2.05) + e < .15 ? tone(GOLD, ff, 1) : tone(RED, ff);
-      };
-      if (f === 1) pbox(a - .2, m + .02, z0, a + .2, m + .05, z1, RED, 4, emb, .4); else pbox(m + .02, a - .2, z0, m + .05, a + .2, z1, RED, 4, emb, .4);
+    solid(-m - .15, -m - .15, 0, m + .15, m + .15, .3, [48, 44, 54], 3, (f, a, b) => f && b > .24 ? tone(GOLD, f) : 0);
+    solid(-m, -m, 0, m, m, top, BLK, 4, pats(emblem, banners, raised, trim), .35);
+    corners(m, (x, y) => pbox(x - .1, y - .1, .3, x + .1, y + .1, top + .05, GOLD, 5, (f, a, b) => f && rep(b, .5) < PXZ ? -1.2 : 0, .3));
+    // the parapet: black with a gold cap, low at the front; a crown of gold merlons at the end
+    ring(m, .16, top, top + .42, BLK, 6, (f, a, b) => f && b > top + .36 ? tone(GOLD, f, 1) : 0, .3, top + .3);
+    if (has(9)) for (const [ax, ay, bx, by, z] of [[-m, m - .16, m, m - .16, top + .3], [m - .16, -m, m - .16, m, top + .3], [-m, -m + .16, m, -m + .16, top + .42], [-m + .16, -m, -m + .16, m, top + .42]]) {
+      const alongX = ay === by, n = 7;
+      for (let i = 0; i < n; i++) { const s = -m + (i + .5) * 2 * m / n; alongX ? pbox(s - .12, Math.min(ay, ay + (ay > 0 ? .16 : -.16)), z, s + .12, Math.max(ay, ay + (ay > 0 ? .16 : -.16)), z + .16, GOLD, 7 + i) : pbox(Math.min(ax, ax + (ax > 0 ? .16 : -.16)), s - .12, z, Math.max(ax, ax + (ax > 0 ? .16 : -.16)), s + .12, z + .16, GOLD, 7 + i); }
     }
-    // the parapet: black with a gold cap, low at the front
-    for (const [x0, y0, x1, y1, h] of [[-m, -m, m, -m + .16, .42], [-m, -m, -m + .16, m, .42], [-m, m - .16, m, m, .3], [m - .16, -m, m, m, .3]]) {
-      pbox(x0, y0, top, x1, y1, top + h, BLK, 5, (f, a, b) => f && b > top + h - .06 ? tone(GOLD, f, 1) : 0, .3);
-    }
-    // the keep on the back corner
-    solid(-m, -m, top, kx, kx, kt, BLK, 6, (f, a, b) => f && (Math.abs(b - top - .9) < .035 || b > kt - .06) ? tone(GOLD, f) : f && Math.abs(b - top - .55) < .12 && rep(a, .35, .1) < .1 ? rgb(255, 120, 60) : f && rep(b, .5) < PXZ ? -.8 : 0, .35);
-    glow(kx + .01, -m + .45, top + .55, [255, 140, 70]); glow(-m + .45, kx + .01, top + .55, [255, 140, 70]);
-    const mer = has(9) ? GOLD : [80, 76, 88];
-    for (let i = 0; i < 3; i++) { const s = -m + .08 + i * .4; pbox(s, kx - .14, kt, s + .24, kx, kt + .26, mer, 7 + i); pbox(kx - .14, s, kt, kx, s + .24, kt + .26, mer, 7 + i); }
-    const sx = -m + .58, sy = -m + .58;
-    if (has(4)) { // a stepped spire on the keep
-      for (let s = 0; s < 3; s++) { const w = .42 - s * .12; pbox(sx - w, sy - w, kt + s * .32, sx + w, sy + w, kt + (s + 1) * .32, s === 1 ? [92, 86, 100] : BLK, 11 + s, (f, a, b) => f && b > kt + (s + 1) * .32 - .05 ? tone(GOLD, f) : 0); }
-      post(sx, sy, kt + .96, kt + 1.7, .035, GOLD, 14);
-      if (has(9)) for (const [dx, dy] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) pbox(sx + dx * .14 - .04, sy + dy * .14 - .04, kt + 1.25, sx + dx * .14 + .04, sy + dy * .14 + .04, kt + 1.38, GOLD, 15);
-    }
-    if (has(5)) { pbox(sx - .07, sy - .07, kt + 1.7, sx + .07, sy + .07, kt + 1.82, [200, 50, 40], 16); BEACON = [sx, sy, kt + 1.86]; }
-    if (has(2)) for (const [x, y, d] of [[-m + .5, m - .5, 'y'], [m - .5, -m + .5, 'x']]) {
-      solid(x - .44, y - .44, top, x + .44, y + .44, top + .36, BLK, 27, (f, a, b) => f && b > top + .3 ? tone(GOLD, f) : 0, .3);
-      turret(x, y, top + .36, .4, [118, 114, 130], d, 2, .95, .055, GOLD);
-    }
-    if (has(6)) for (const x of [.3, .95]) { // missile silos: open doors, noses showing
-      const y = -m + .45;
-      pbox(x - .24, y - .24, top, x + .24, y + .24, top + .06, [40, 38, 46], 17);
-      pbox(x - .26, y - .28, top + .06, x + .26, y - .22, top + .5, [92, 86, 100], 18, (f, a, b) => f && Math.abs(b - top - .3) < .1 && rep(a, .16) < .08 ? tone([236, 190, 50], f) : 0);
-      pbox(x - .1, y - .1, top + .06, x + .1, y + .1, top + .45, [236, 236, 230], 19); pbox(x - .06, y - .06, top + .45, x + .06, y + .06, top + .58, [200, 50, 40], 20);
-    }
-    if (has(7)) { // a plasma cannon out of the keep, coils glowing along it
-      const y = -m + .5, z = top + .95;
-      pbox(kx, y - .16, z - .12, kx + .35, y + .16, z + .2, [92, 86, 100], 21);
-      pbox(kx + .35, y - .07, z - .02, kx + 1.85, y + .07, z + .1, [70, 66, 78], 22, (f, a) => f && rep(a, .3) < .1 ? rgb(230, 120, 255) : 0);
-      pbox(kx + 1.85, y - .1, z - .05, kx + 1.95, y + .1, z + .13, [240, 170, 255], 23, null, 0); glow(kx + 1.96, y, z + .04, [240, 160, 255]); glow(kx + 1.0, y + .08, z + .1, [230, 120, 255]);
-    }
-    if (has(8)) for (const x of [-1.0, 1.05]) { // braziers by the gate, burning
-      const y = m + .4;
+    if (has(2)) bartizans(m + .02, top, .42, .6, [96, 90, 108], (f, a, b) => f && Math.abs(b - top - .3) < .04 ? tone(GOLD, f, 1) : 0, (x, y, sx, sy) => {
+      for (const [dx, dy] of CORNERS) pbox(x + dx * .26 - .1, y + dy * .26 - .1, top + .6, x + dx * .26 + .1, y + dy * .26 + .1, top + .76, has(9) ? GOLD : [118, 112, 130], 80);
+      barrel(x + sx * .34, y + sy * .34, top + .38, sx, sy, has(6) ? 1.0 : .5, has(6) ? [70, 66, 78] : DARK, 3);
+      if (has(6)) { for (let t = .25; t < .95; t += .22) plot(x + sx * (.34 + t * .707), y + sy * (.34 + t * .707), top + .45 + t * .03, rgb(230, 120, 255)); glow(x + sx * (.34 + .7), y + sy * (.34 + .7), top + .42, [240, 160, 255]); }
+      if (has(4)) {
+        for (let s = 0; s < 3; s++) { const w = .26 - s * .07; pbox(x - w, y - w, top + .6 + s * .2, x + w, y + w, top + .8 + s * .2, s === 1 ? [92, 86, 100] : [62, 58, 70], 81 + s, (f, a, b) => f && b > top + .74 + s * .2 ? tone(GOLD, f) : 0); }
+        post(x, y, top + 1.2, top + 1.75, .03, GOLD, 84);
+        if (has(9)) pbox(x - .06, y - .06, top + 1.55, x + .06, y + .06, top + 1.66, [255, 220, 120], 85);
+      }
+    });
+    if (has(8)) corners(m + .2, (x, y) => { // braziers burning at every corner
       pbox(x - .12, y - .12, 0, x + .12, y + .12, .55, BLK, 24, (f, a, b) => f && b > .48 ? tone(GOLD, f) : 0);
-      pbox(x - .2, y - .2, .55, x + .2, y + .2, .7, GOLD, 25);
-      for (let i = 0; i < 26; i++) { const fx = x + (hash(i, 1) - .5) * .3, fy = y + (hash(i, 2) - .5) * .3, h = .1 + hash(i, 3) * .3; line3([fx, fy, .7], [fx, fy, .7 + h], rgb(...(h > .3 ? [255, 230, 120] : h > .2 ? [255, 160, 60] : [230, 80, 40]))); }
-      glow(x, y, .95, [255, 190, 90]);
-    }
-    if (has(9)) for (const [x, y] of [[m - .08, m - .08], [-m + .08, m - .08], [m - .08, -m + .08]]) pbox(x - .1, y - .1, top + .3, x + .1, y + .1, top + .55, GOLD, 26, (f, a, b) => f && b > top + .48 ? 1 : 0);
+      pbox(x - .18, y - .18, .55, x + .18, y + .18, .7, GOLD, 25);
+      for (let i = 0; i < 26; i++) { const fx = x + (hash(i, 1) - .5) * .28, fy = y + (hash(i, 2) - .5) * .28, h = .1 + hash(i, 3) * .32; line3([fx, fy, .7], [fx, fy, .7 + h], rgb(...(h > .32 ? [255, 230, 120] : h > .22 ? [255, 160, 60] : [230, 80, 40]))); }
+      glow(x, y, .98, [255, 190, 90]);
+    });
   }
 
   YARD_ART.radar = radar; YARD_ART.lattice = lattice; YARD_ART.dish = dish;
