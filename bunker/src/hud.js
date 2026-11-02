@@ -42,7 +42,7 @@ function portraitOld(person, scale = 5) {
 }
 document.querySelectorAll('[data-ico]').forEach(el => el.prepend(iconCanvas(el.dataset.ico, el.classList.contains('tab') ? 1.5 : 1.25)));
 const nodes = {};
-for (const id of ['floors', 'status', 'panel', 'bunkerFill', 'bunkerText', 'bunkerTrack', 'fenceFill', 'fenceText', 'waveLine', 'stage', 'speed', 'viewBtn', 'labels', 'notes', 'ammo', 'ammoNum', 'ammoBar']) nodes[id] = document.getElementById(id);
+for (const id of ['status', 'panel', 'bunkerFill', 'bunkerText', 'bunkerTrack', 'fenceFill', 'fenceText', 'waveLine', 'stage', 'speed', 'labels', 'notes', 'ammo', 'ammoNum', 'ammoBar']) nodes[id] = document.getElementById(id);
 // notifications: one band at a time, queued; kind is '' | 'good' | 'new' | 'danger'
 const noteQueue = [];
 let noteBusy = false;
@@ -82,33 +82,27 @@ let tab = 'gun';
 function setView(v) {
   G.view = v;
   if (v === 'under') refreshUnder(); else showYard();
-  nodes.viewBtn.textContent = v === 'under' ? '지상' : '지하';
-  nodes.viewBtn.setAttribute('aria-pressed', String(v === 'under'));
-  nodes.floors.hidden = v !== 'under';
   document.documentElement.classList.toggle('under', v === 'under');
-  markFloorButtons();
   fitStage();
 }
-// below ground one floor is shown at a time: the buttons over the picture pick it
+// below ground one floor is shown at a time: the floor cards in the 지하 tab pick it (and a purchase there
+// shows its floor)
 function viewFloor(k) {
   G.floorView = k;
+  if (tab !== 'under') { tab = 'under'; document.querySelectorAll('.tab').forEach(t => t.setAttribute('aria-selected', String(t.dataset.tab === 'under'))); }
   if (G.view !== 'under') setView('under'); else showFloor(k);
-  markFloorButtons();
-}
-function markFloorButtons() {
-  const lv = [G.live, G.farm, G.mine];
-  [...nodes.floors.children].forEach((b, k) => {
-    b.setAttribute('aria-pressed', String(k === (G.floorView || 0)));
-    b.title = ['지하 1층 생활', '지하 2층 식량', '지하 3층 채굴'][k] + ' Lv ' + lv[k];
-  });
+  renderPanel(true);
 }
 document.querySelectorAll('.tab').forEach(b => b.addEventListener('click', () => {
   tab = b.dataset.tab;
   document.querySelectorAll('.tab').forEach(t => t.setAttribute('aria-selected', String(t === b)));
   setView(tab === 'under' ? 'under' : 'yard');
+  nodes.panel.scrollTop = 0; // a new tab starts at its top
   renderPanel(true);
+  // below ground, the card of the floor on show is the one in view
+  const on = nodes.panel.querySelector('.card.on');
+  if (on) on.scrollIntoView({ block: 'nearest' });
 }));
-nodes.viewBtn.addEventListener('click', () => setView(G.view === 'under' ? 'yard' : 'under'));
 // the price of the next level of anything: what the cards show is exactly what a purchase takes
 function priceOf(id) {
   const [kind, key] = id.split(':');
@@ -149,9 +143,9 @@ function cards() {
   if (tab === 'under') {
     const Lv = G.live, Fm = G.farm, Mn = G.mine;
     return [
-      { id: 'live', ico: 'bed', name: '지하 1층 · 생활층', lv: 'Lv ' + Lv + '/' + LIVE.max, desc: Lv >= LIVE.max ? '최대 레벨' : `침대 ${bedsOf(Lv)}/5 · 휴식 속도 +${Lv * 5}%<br>다음: ${LIVE_ITEMS[Lv]}${LIVE.beds.includes(Lv + 1) ? ' (고용 자리 +1)' : ''}`, cost: priceOf('live'), max: Lv >= LIVE.max, prog: Lv / LIVE.max },
-      { id: 'farm', ico: 'farm', name: '지하 2층 · 식량층' + (Fm ? ' · ' + FARM_TIERS[facTier(Fm)] : ''), lv: Fm ? 'Lv ' + Fm + '/' + FARM.max : '미개척', desc: Fm >= FARM.max ? '최대 레벨' : `식량 초당 ${fmt(FARM.rate(Fm))} → ${fmt(FARM.rate(Fm + 1))} (농부 1명당 +100%)<br>다음: ${FARM_ITEMS[Fm]}`, cost: priceOf('farm'), max: Fm >= FARM.max, prog: Fm / FARM.max },
-      { id: 'mine', ico: 'pick', name: '지하 3층 · 채굴층' + (Mn ? ' · ' + MINE_TIERS[facTier(Mn)] : ''), lv: Mn ? 'Lv ' + Mn + '/' + MINE.max : '미개척', desc: Mn >= MINE.max ? '최대 레벨' : `광물 초당 ${fmt(MINE.rate(Mn))} → ${fmt(MINE.rate(Mn + 1))} (광부 1명당 +100%)<br>다음: ${MINE_ITEMS[Mn]}`, cost: priceOf('mine'), max: Mn >= MINE.max, prog: Mn / MINE.max },
+      { id: 'live', floor: 0, ico: 'bed', name: '지하 1층 · 생활층', lv: 'Lv ' + Lv + '/' + LIVE.max, desc: Lv >= LIVE.max ? '최대 레벨' : `침대 ${bedsOf(Lv)}/5 · 휴식 속도 +${Lv * 5}%<br>다음: ${LIVE_ITEMS[Lv]}${LIVE.beds.includes(Lv + 1) ? ' (고용 자리 +1)' : ''}`, cost: priceOf('live'), max: Lv >= LIVE.max, prog: Lv / LIVE.max },
+      { id: 'farm', floor: 1, ico: 'farm', name: '지하 2층 · 식량층' + (Fm ? ' · ' + FARM_TIERS[facTier(Fm)] : ''), lv: Fm ? 'Lv ' + Fm + '/' + FARM.max : '미개척', desc: Fm >= FARM.max ? '최대 레벨' : `식량 초당 ${fmt(FARM.rate(Fm))} → ${fmt(FARM.rate(Fm + 1))} (농부 1명당 +100%)<br>다음: ${FARM_ITEMS[Fm]}`, cost: priceOf('farm'), max: Fm >= FARM.max, prog: Fm / FARM.max },
+      { id: 'mine', floor: 2, ico: 'pick', name: '지하 3층 · 채굴층' + (Mn ? ' · ' + MINE_TIERS[facTier(Mn)] : ''), lv: Mn ? 'Lv ' + Mn + '/' + MINE.max : '미개척', desc: Mn >= MINE.max ? '최대 레벨' : `광물 초당 ${fmt(MINE.rate(Mn))} → ${fmt(MINE.rate(Mn + 1))} (광부 1명당 +100%)<br>다음: ${MINE_ITEMS[Mn]}`, cost: priceOf('mine'), max: Mn >= MINE.max, prog: Mn / MINE.max },
     ];
   }
   const beds = bedsOf(G.live);
@@ -169,7 +163,7 @@ addEventListener('pointerup', () => { pressing = false; }); addEventListener('po
 function renderPanel(force) {
   const list = cards();
   // fatigue is not part of the key: its bars are updated in place below, so cards are not rebuilt for it
-  const key = tab + JSON.stringify(list.map(c => [c.id, c.name, c.lv, c.desc, c.cost && Object.entries(c.cost).map(([k, v]) => [v, G[k] >= v])]));
+  const key = tab + G.view + (G.floorView || 0) + JSON.stringify(list.map(c => [c.id, c.name, c.lv, c.desc, c.cost && Object.entries(c.cost).map(([k, v]) => [v, G[k] >= v])]));
   if (!force && (key === panelKey || pressing)) {
     list.forEach((c, n) => { if (c.fatigue != null) { const bar = nodes.panel.children[n] && nodes.panel.children[n].querySelector('.tired span'); if (bar) bar.style.width = clamp(c.fatigue, 0, 100) + '%'; } });
     return;
@@ -178,7 +172,8 @@ function renderPanel(force) {
   nodes.panel.innerHTML = '';
   for (const c of list) {
     const el = document.createElement('div');
-    el.className = 'card';
+    el.className = 'card' + (c.floor != null ? ' pick' + (c.floor === (G.floorView || 0) && G.view === 'under' ? ' on' : '') : '');
+    if (c.floor != null) el.addEventListener('click', e => { if (!e.target.closest('button')) { ensureAudio(); viewFloor(c.floor); } });
     const ic = document.createElement('div');
     ic.className = 'icon'; ic.append(c.person ? portrait(c.person) : iconCanvas(c.ico, 2));
     el.append(ic);
@@ -316,7 +311,6 @@ resetBtn.addEventListener('click', () => {
   skipSave = true; location.reload();
 });
 
-document.querySelectorAll('#floors button').forEach(b => b.addEventListener('click', () => { ensureAudio(); viewFloor(+b.dataset.floor); sound('buy'); }));
 
 // resource icons for the price chips, drawn once from the same pixel art as the top bar
 {

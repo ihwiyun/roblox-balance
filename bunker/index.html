@@ -53,12 +53,6 @@
   #status.alert { color: var(--bad); font-weight: 700; }
   #labels span { position: fixed; transform: translate(0, -100%); font-size: 11px; font-weight: 700; color: var(--ink); background: rgba(255, 255, 255, .85); padding: 0 4px; pointer-events: none; white-space: nowrap; }
   /* floor buttons over the underground picture */
-  /* floor buttons below ground: a small lift panel in the top-left corner of the picture */
-  #floors { position: fixed; left: max(6px, env(safe-area-inset-left)); top: calc(var(--top) + 6px); display: grid; gap: 3px; z-index: 3; }
-  #floors[hidden] { display: none; }
-  .fbtn { width: 42px; padding: 2px 0 3px; background: rgba(255, 255, 255, .9); border: 1px solid var(--line); cursor: pointer; display: grid; justify-items: center; line-height: 1.15; font-size: 10px; color: var(--muted); }
-  .fbtn b { font-size: 13px; }
-  .fbtn[aria-pressed="true"] { border-color: var(--ink); color: var(--ink); background: #fff; box-shadow: inset 3px 0 0 var(--ink); }
   /* below ground the hero's magazine does not matter */
   .under #ammo { display: none; }
   #labels span.fl { transform: translate(0, -50%); display: grid; text-align: right; line-height: 1.25; }
@@ -87,12 +81,17 @@
   #ammo.empty .n { color: var(--bad); }
   .wide #ammo { right: calc(var(--side) + 10px); bottom: 10px; }
   .wide #notes { right: var(--side); }
+  /* below ground the band sits low, so the room stays in view */
+  .under #notes { top: auto; bottom: calc(var(--bottom) + 60px); }
 
   #bottom { position: fixed; left: 0; right: 0; bottom: 0; height: var(--bottom); border-top: 1px solid var(--ink); background: var(--paper); display: flex; flex-direction: column; padding-bottom: env(safe-area-inset-bottom); }
   #panel { flex: 1; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); align-content: start; }
   #tabs { display: grid; grid-template-columns: repeat(4, 1fr); flex: none; border-top: 1px solid var(--ink); }
   .tab { background: var(--paper); border: 0; padding: 5px 2px 6px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 1px; color: var(--muted); }
   .tab[aria-selected="true"] { color: var(--ink); font-weight: 700; box-shadow: inset 0 2px 0 var(--ink); }
+  /* below ground, the floor cards are also how you pick the floor on show */
+  .card.pick { cursor: pointer; }
+  .card.on { box-shadow: inset 3px 0 0 var(--ink); background: var(--soft); }
   .card { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; gap: 2px 10px; align-items: center; padding: 8px 10px; border-bottom: 1px solid var(--line); }
   .card .icon { grid-row: span 2; width: 40px; height: 40px; display: grid; place-items: center; background: var(--soft); border: 1px solid var(--line); align-self: start; overflow: hidden; }
   .card .body { min-width: 0; }
@@ -139,7 +138,6 @@
     <span id="waveLine"></span>
   </div>
   <div id="topBtns">
-    <button class="tbtn" id="viewBtn" type="button" aria-pressed="false">지하</button>
     <button class="tbtn" id="speed" type="button" aria-pressed="false">1배속</button>
     <button class="tbtn" id="settingsBtn" type="button">설정</button>
   </div>
@@ -147,11 +145,6 @@
 <div id="stage"><canvas id="c" tabindex="0" aria-label="흰 바탕에 떠 있는 섬 한가운데 벙커. 섬 가장자리 너머에서 좀비가 몰려온다. 좀비를 누르면 직접 쏜다."></canvas></div>
 <div id="status" role="status" aria-live="polite"></div>
 <div id="labels" hidden></div>
-<div id="floors" hidden role="group" aria-label="지하 층 선택">
-  <button type="button" class="fbtn" data-floor="0" aria-label="지하 1층 생활"><b>B1</b><span>생활</span></button>
-  <button type="button" class="fbtn" data-floor="1" aria-label="지하 2층 식량"><b>B2</b><span>식량</span></button>
-  <button type="button" class="fbtn" data-floor="2" aria-label="지하 3층 채굴"><b>B3</b><span>채굴</span></button>
-</div>
 <div id="notes" aria-live="polite"></div>
 <div id="ammo" aria-label="탄약"><span data-ico="bullet"></span><span class="n" id="ammoNum">0<small>/0</small></span><div class="bar"><i id="ammoBar"></i></div></div>
 <div id="hp">
