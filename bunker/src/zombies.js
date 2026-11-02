@@ -196,7 +196,7 @@ function kill(z) {
   z.state = 'dying'; z.t = 0;
   if (z.type === 'bloater') { splatter(z); z.gone = true; }
   if (z.zh) z.zh = 0;
-  G.money += z.reward; G.totalKills++;
+  G.money += z.reward; G.totalKills++; G.earned += z.reward;
   if (z.type === 'boss') notify('보스 처치', '+$' + fmt(z.reward), 'good');
   float(z.x, z.y, 2.85, '+$' + fmt(z.reward), SIGNAL); // high enough not to overlap the damage number
   sound('kill');
@@ -210,7 +210,10 @@ function kill(z) {
   // a boss wave only ends with the boss
   G.waveKills = Math.min(G.waveKills + 1, bossAlive() ? killsNeeded(G.wave) - 1 : Infinity);
   if (G.waveKills >= killsNeeded(G.wave)) {
-    G.wave++; G.waveKills = 0;
+    G.waveKills = 0;
+    // repeat: the same wave again (a boss wave brings its boss back)
+    if (G.repeat) { G.bossFor = 0; return; }
+    G.wave++; G.best = Math.max(G.best, G.wave);
     const fresh = MUTANT_ORDER.map(k => ZTYPES[k]).find(t => t.from === G.wave);
     const key = fresh && MUTANT_ORDER.find(k => ZTYPES[k] === fresh);
     if (fresh && !G.seen.includes(key)) { G.seen.push(key); notify('새 변이체 · ' + fresh.name, fresh.desc, 'new'); }
@@ -227,6 +230,15 @@ function fall() {
   G.hp = bunkerHp(G.bunker);
   if (G.fence) { G.fenceHp = fenceHp(G.fence); G.fenceDown = false; G.sideDmg = [0, 0, 0, 0]; G.sideStage = [0, 0, 0, 0]; composeYard(); }
   G.spawnIn = 3;
+}
+
+// a wave picked with the arrows (1 to the best reached): the field is cleared and that wave starts from its
+// first zombie (a boss wave with its boss)
+function goWave(w) {
+  w = clamp(Math.round(w), 1, G.best);
+  if (w === G.wave || G.over) return;
+  for (const z of G.zombies) z.gone = true;
+  G.wave = w; G.waveKills = 0; G.zombies = []; G.spits = []; G.bossFor = 0; G.spawnIn = 1;
 }
 
 // the end: the base fell with nothing left to eat. The run is over; the overlay offers a fresh start

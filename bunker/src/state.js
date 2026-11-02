@@ -5,7 +5,7 @@ const G = {
   money: 0, food: 0, mineral: 0,
   lv: { atk: 0, spd: 0, mag: 0 }, bunker: 1, fence: 0, live: 0, farm: 0, mine: 0,
   crew: [null, null, null, null, null],
-  wave: 1, waveKills: 0, totalKills: 0,
+  wave: 1, waveKills: 0, totalKills: 0, best: 1, repeat: false, earned: 0,
   hp: 150, fenceHp: 0, fenceDown: false, sideDmg: [0, 0, 0, 0], sideStage: [0, 0, 0, 0],
   zombies: [], spits: [], tracers: [], parts: [], uparts: [], decals: [], floats: [], bossFor: 0, seen: [], floorView: 0,
   hero: null, time: 0, spawnIn: 2, speed: 1, hurt: 0, hungry: false, saveIn: 5, view: 'yard',
@@ -30,7 +30,7 @@ function save() {
   try {
     localStorage.setItem(SAVE_KEY, JSON.stringify({
       money: G.money, food: G.food, mineral: G.mineral, lv: G.lv, bunker: G.bunker, fence: G.fence, live: G.live, farm: G.farm, mine: G.mine,
-      crew: G.crew.map(c => c && { job: c.job, fatigue: c.fatigue }), wave: G.wave, waveKills: G.waveKills, totalKills: G.totalKills, at: Date.now(),
+      crew: G.crew.map(c => c && { job: c.job, fatigue: c.fatigue }), wave: G.wave, waveKills: G.waveKills, totalKills: G.totalKills, best: G.best, repeat: G.repeat, at: Date.now(),
       hp: G.hp, fenceHp: G.fenceHp, fenceDown: G.fenceDown, seen: G.seen, bossFor: bossAlive() ? 0 : G.bossFor, ver: 4,
     }));
   } catch { /* saving is a convenience */ }
@@ -41,6 +41,8 @@ function load() {
   if (d && d.lv) {
     for (const k of ['money', 'food', 'mineral', 'waveKills', 'totalKills']) G[k] = +d[k] || 0;
     G.wave = Math.max(1, +d.wave || 1);
+    // the best wave reached (saves from before it was kept start from the wave they were on)
+    G.best = Math.max(G.wave, +d.best || 0); G.repeat = d.repeat === true;
     for (const k of Object.keys(G.lv)) G.lv[k] = clamp(+d.lv[k] || 0, 0, GUN[k].max);
     // saves from before the 100-level buildings (40 levels): the same strength sits at a higher level now
     const old = !(d.ver >= 4), up = L => L > 0 ? 1 + Math.round((L - 1) / LEVEL_STRETCH) : 0;

@@ -25,12 +25,12 @@ const DEFAULTS = {
     reload: { base: 1.6, grow: 0.965, min: 0.2, cost0: 10, costGrow: 1.16 },
     maxShots: 12,            // doc: real fire stops at 12 shots/s, the rest becomes damage
   },
-  base: {                    // bunker and fence: no level cap, a breakthrough every 10 levels
+  base: {                    // bunker, fence and sections: no level cap, a breakthrough every 50 levels (client)
     bunkerHp: 300, bunkerHpGrow: 1.12, bunkerCost0: 40, bunkerCostGrow: 1.135,
     fenceHp: 240, fenceHpGrow: 1.12, fenceCost0: 30, fenceCostGrow: 1.135,
     roofSlotsAt: [1, 11, 31, 61, 91], roofSlotsBase: 1,     // doc: hero + 1 -> hero + 5 (2 -> 6 shooters)
     turretSlotsAt: [25, 50, 100, 200, 400, 700],            // doc
-    btEvery: 10, btPow: 1.6,
+    btEvery: 50, btPow: 1.6, eraEvery: 25,
     breakthroughStoreShare: 0.8,                            // doc: never above 80% of the store
   },
   sections: {
@@ -67,7 +67,7 @@ const DEFAULTS = {
   relics: { chestCost: 300, killsPerDrop: 2000, bossDrop: 0.05, titanDrop: 1, maxLevel: 10,
     slotsAt: [20, 50, 100, 200, 400, 700, 1000, 2000] },   // doc
   economy: {
-    offlineBaseH: 2, offlineBaseEff: 0.25, offlineMaxH: 12, offlineMaxEff: 0.75, // doc
+    offlineBaseH: 2, offlineBaseEff: 0.8, offlineMaxH: 12, offlineMaxEff: 1, offlineGold: 0, // doc: as the current game (production at 80%, no gold, 2 h)
     activityGemsPer10Min: 110, dailyGems: 300, bossFirstGems: 50, titanFirstGems: 500, // doc + activity rate
     evacGems0: 40, evacGemsPerStage: 0.05,
     adBoostMin: 30, adBoostsPerDay: 6, adSeconds: 30,

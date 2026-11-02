@@ -36,7 +36,7 @@ export const MEDAL_UPS = {
   supply: { name: '보급', desc: '생산 +5%/레벨', cost0: 5, grow: 1.32, add: 0.05 },
   drill: { name: '전훈', desc: '경험치 +10%/레벨', cost0: 8, grow: 1.35, add: 0.10 },
   watch: { name: '야간 경계', desc: '오프라인 최대 +1시간/레벨', cost0: 25, grow: 2.5, max: 10 },
-  sentry: { name: '자동 보초', desc: '오프라인 효율 +5%/레벨', cost0: 25, grow: 2.5, max: 10 },
+  sentry: { name: '자동 보초', desc: '오프라인 생산 +2%/레벨', cost0: 25, grow: 2.5, max: 10 },
 };
 export const MEDAL_KEYS = Object.keys(MEDAL_UPS);
 export const medalUpCost = (key, L) => Math.ceil(MEDAL_UPS[key].cost0 * MEDAL_UPS[key].grow ** L);
@@ -44,7 +44,7 @@ export const medalUpMaxed = (key, L) => MEDAL_UPS[key].max != null && L >= MEDAL
 export function medalMuls(lv) {
   const L = k => lv[k] || 0;
   return { dmg: 1.15 ** L('fire'), gold: 1.15 ** L('funds'), crew: 1.10 ** L('command'), prod: 1 + 0.05 * L('supply'),
-    xp: 1 + 0.10 * L('drill'), offlineH: L('watch'), offlineEff: 0.05 * L('sentry') };
+    xp: 1 + 0.10 * L('drill'), offlineH: L('watch'), offlineEff: 0.02 * L('sentry') };
 }
 
 // doc 5: what the evacuation count opens
@@ -54,7 +54,7 @@ export const AUTOMATION = [
   { evacs: 5, key: 'startSkip', name: '시작 스테이지 건너뛰기' },
   { evacs: 8, key: 'autoMerge', name: '자동 합성' },
   { evacs: 12, key: 'skip5x', name: '자동 스킵 기준 10배 → 5배' },
-  { evacs: 20, key: 'autoEvac', name: '목표 배수에 닿으면 자동 철수' },
+  { evacs: 20, key: 'autoEvac', name: '목표 배수에 닿으면 자동 환생' },
 ];
 // early: keys bought in the shop (auto-merge can be bought before 8 evacuations)
 export function automation(evacs, early = {}) {

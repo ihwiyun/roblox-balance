@@ -65,8 +65,8 @@ function tone({ dur, f0, f1 = f0, wave = 'square', duty = 0.5, vib = 0, vibRate 
       if (wave === 'sine') s = Math.sin(2 * Math.PI * ph);
       else if (wave === 'tri') s = 1 - 4 * Math.abs(ph - 0.5);
       else if (wave === 'saw') s = 2 * ph - 1 - polyblep(ph, dt);
-      else { // band-limited pulse
-        s = (ph < duty ? 1 : -1) + polyblep(ph, dt) - polyblep((ph - duty + 1) % 1, dt);
+      else { // band-limited pulse, centred on zero (a 25 % pulse has a DC offset of -0.5 that would thump on every note)
+        s = (ph < duty ? 1 : -1) + polyblep(ph, dt) - polyblep((ph - duty + 1) % 1, dt) - (2 * duty - 1);
       }
       out[i] += (s * env(tt, dur, envp) * gain) / Math.sqrt(voices);
     }

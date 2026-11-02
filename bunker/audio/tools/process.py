@@ -12,7 +12,12 @@ Loudness rules (EBU R128 via ffmpeg's ebur128 filter), checked on the encoded OG
   sting  : same as music but -16 LUFS is measured on the short clip (stereo kept)
   sfx    : true peak -1.0 .. about -1.25 dBTP (mono); loudness is NOT matched between sounds
 Music loops are never trimmed (that would break the loop); stings and sfx lose leading and
-trailing silence.  BPM needs librosa (run with the venv python), otherwise it is left blank.
+trailing silence.  The only edit a loop gets is `trim_edges`: up to ~80 ms of digital silence that an MP3 decoder
+adds at the start/end of a file is dropped so the wrap has no gap.  sfx and stings also get a 20 Hz DC blocker
+(several sources carry a DC offset that eats headroom and thumps at the start/end) and a short fade-in/out.
+Optional per-candidate fields: segment [from, to] (s), event N / event_tail / event_gap (pick the N-th separate
+sound of a recording), intro (file played once before the loop), fade_in / fade_out (s), repeat, trim.
+BPM needs librosa (run with the venv python), otherwise it is left blank.
 Run with:  <venv>/bin/python -I process.py ...   (-I: nothing from the current folder is imported)
 """
 import json, math, os, re, shutil, subprocess, sys, tempfile
@@ -50,7 +55,7 @@ def write_f32(path, x):
 
 def measure(path):
     """Integrated LUFS, true peak dBTP, momentary-max LUFS (EBU R128)."""
-    r = subprocess.run(['ffmpeg', '-v', 'info', '-nostats', '-i', path, '-filter_complex', 'ebur128=peak=true:framelog=verbose',
+    r = subprocess.run(['ffmpeg', '-v', 'info', '-nostats', '-i', path, '-filter_complex', 'ebur128=peak=true:framelog=info',
                         '-f', 'null', '-'], capture_output=True, text=True)
     log = r.stderr
     m = re.findall(r'M:\s*(-?[\d.]+|-inf)', log)
@@ -60,6 +65,44 @@ def measure(path):
     tp = re.search(r'Peak:\s*(-?[\d.]+|-inf) dBFS', summ)
     f = lambda v: -120.0 if v is None or v.group(1) == '-inf' else float(v.group(1))
     return {'lufs_i': f(i), 'true_peak': f(tp), 'lufs_m_max': mmax}
+
+
+def dc_block(x, fc=20.0):
+    """Zero-phase 2nd-order high-pass: removes DC offset and sub-20 Hz rumble without changing the timing."""
+    from scipy.signal import butter, sosfiltfilt
+    sos = butter(2, fc / (SR / 2), btype='highpass', output='sos')
+    n = len(x)
+    if n < 64:
+        return x - x.mean(axis=0, keepdims=True)
+    pad = min(n - 1, int(0.05 * SR))
+    y = sosfiltfilt(sos, x, axis=0, padlen=pad)
+    return y.astype(np.float32)
+
+
+def fade_edges(x, fade_in=0.0, fade_out=0.0):
+    x = x.copy()
+    a = min(len(x) // 2, int(fade_in * SR))
+    b = min(len(x) // 2, int(fade_out * SR))
+    if a > 0:
+        x[:a] *= np.linspace(0, 1, a, endpoint=False)[:, None]
+    if b > 0:
+        x[-b:] *= np.linspace(1, 0, b)[:, None]
+    return x
+
+
+def trim_loop_edges(x, max_ms=80, floor_db=-80):
+    """Drop digital silence (an MP3 decoder's padding) from the very start/end of a loop.  Silence longer than
+    max_ms is musical (a rest) and is kept.  Returns (trimmed, head_ms, tail_ms)."""
+    mono = np.abs(x).max(axis=1)
+    thr = 10 ** (floor_db / 20)
+    loud = np.where(mono > thr)[0]
+    if len(loud) == 0:
+        return x, 0.0, 0.0
+    head, tail = loud[0], len(x) - 1 - loud[-1]
+    lim = int(max_ms / 1000 * SR)
+    a = head if head <= lim else 0
+    b = tail if tail <= lim else 0
+    return x[a:len(x) - b], a / SR * 1000, b / SR * 1000
 
 
 def trim_silence(x, head_db=-45, tail_db=-60, pre=0.004, post=0.03):
@@ -255,20 +298,31 @@ def main():
         dur_src = len(x) / SR
         loop = c.get('loop', 'none')
         loop_start = 0.0
+        if kind != 'music':
+            x = dc_block(x)   # before any silence detection: a DC offset hides the silence
+        edge_note = None
+        if kind == 'music' and c.get('trim_edges'):
+            x, h_ms, t_ms = trim_loop_edges(x)
+            if h_ms or t_ms:
+                edge_note = f'dropped {h_ms:.0f} ms (start) and {t_ms:.0f} ms (end) of decoder-padding silence so the loop has no gap'
         if c.get('segment'):
             a, b = c['segment']
             x = x[int(a * SR): int(b * SR) if b else None]
             changes.append(f'cut {a:.2f}–{(b or dur_src):.2f} s from the original')
         if c.get('event') is not None:
-            segs = events(x, gap=c.get('event_gap', 0.12))
+            segs = events(x, gap=c.get('event_gap', 0.12), thr_db=c.get('event_thr', -38))
             a, b = segs[c['event']]
             x = x[max(0, a - int(0.005 * SR)): min(len(x), b + int(c.get('event_tail', 0.05) * SR))]
             changes.append(f"took sound #{c['event'] + 1} of {len(segs)} in the file")
         if c.get('intro'):
             intro = decode(find(c['intro']), ch)
+            if c.get('trim_edges'):
+                intro, _, _ = trim_loop_edges(intro)
             loop_start = len(intro) / SR
             x = np.concatenate([intro, x])
             changes.append(f"joined the intro file and the loop file (loop starts at {loop_start:.3f} s)")
+        if edge_note:
+            changes.append(edge_note)
         if c.get('repeat'):
             x = np.concatenate([x] * c['repeat'])
             changes.append(f"repeated {c['repeat']}× so the short loop is easier to judge")
@@ -277,9 +331,14 @@ def main():
             x, _ = trim_silence(x)
             if before - len(x) > 0.01 * SR:
                 changes.append(f'trimmed {(before - len(x)) / SR:.2f} s of leading/trailing silence')
+        if kind != 'music':
+            fin = c.get('fade_in', 0.002 if kind == 'sfx' else 0.004)
+            x = fade_edges(x, fade_in=fin)
+            changes.append('20 Hz high-pass (removes DC offset)')
+            if c.get('fade_in'):
+                changes.append(f"{c['fade_in'] * 1000:.0f} ms fade-in")
         if c.get('fade_out'):
-            n = int(c['fade_out'] * SR)
-            x[-n:] *= np.linspace(1, 0, n)[:, None]
+            x = fade_edges(x, fade_out=c['fade_out'])
             changes.append(f"{c['fade_out']} s fade-out")
 
         with tempfile.TemporaryDirectory() as tmp:
@@ -315,8 +374,23 @@ def main():
                     used.append({'url': f['url'], 'name': f['name'], 'sha256': lg.get('sha256'), 'members': inside})
             item['direct_files'] = used
         if kind == 'music':
-            est = bpm_of(out)
+            if loop_start > 0:   # tempo of the repeating part only (not the one-off intro)
+                with tempfile.TemporaryDirectory() as t2:
+                    part = os.path.join(t2, 'loop.wav')
+                    write_f32(part, final[int(loop_start * SR):])
+                    est = bpm_of(part)
+            else:
+                est = bpm_of(out)
             item['bpm_est'] = est[0] if est else None
+        if kind in ('sfx', 'sting'):
+            m = final.mean(axis=1)
+            w = int(0.1 * SR)
+            if len(m) > w:
+                csum = np.concatenate([[0.0], np.cumsum(m.astype(np.float64) ** 2)])
+                rms = np.sqrt((csum[w:] - csum[:-w]) / w)
+            else:
+                rms = np.array([np.sqrt((m.astype(np.float64) ** 2).mean())])
+            item['punch_db'] = round(20 * math.log10(float(rms.max()) + 1e-9), 1)   # loudest 100 ms, dBFS
         if loop in ('whole', 'intro'):
             a = int(loop_start * SR)
             item['loop_start'] = round(loop_start, 3)

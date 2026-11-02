@@ -19,7 +19,7 @@ export const SEASON_FREE = { everyStages: 20, gems: 40 };
 // time savers: what each saves is modelled in the simulation (tests/sim/bots.mjs), none adds power
 export const CONVENIENCE = {
   adRemoval: { krw: 6600, desc: '광고 보상을 광고 없이 바로 받기' },
-  autoMerge: { krw: 4400, desc: '철수 8회에 열리는 자동 합성을 바로' },
+  autoMerge: { krw: 4400, desc: '환생 8회에 열리는 자동 합성을 바로' },
   offline12: { krw: 5500, desc: '오프라인 최대 +12시간' },
   presets: { krw: 2200, desc: '무기·유물 조합 저장' },
   researchSlot: { krw: 9900, desc: '연구 두 개를 동시에' },

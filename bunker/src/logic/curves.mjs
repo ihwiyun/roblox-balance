@@ -26,12 +26,12 @@ export const fenceGold = L => Math.ceil(B().fenceCost0 * B().fenceCostGrow ** L)
 // shooters on the roof (the hero counts) and turret slots, from the bunker level (doc)
 export const shooterSlots = bunker => B().roofSlotsBase + B().roofSlotsAt.filter(l => bunker >= l).length;
 export const turretSlots = bunker => B().turretSlotsAt.filter(l => bunker >= l).length;
-// the look changes every 10 levels; three eras
-export const eraOf = bunker => (bunker < 100 ? 0 : bunker < 300 ? 1 : 2);
-export const ERA_NAMES = ['임시', '군용', '미래'];
+// the look changes at every breakthrough (50 levels); a new era every 25 breakthroughs
+export const eraOf = L => Math.floor(Math.floor(L / B().btEvery) / B().eraEvery);
+export const ERA_NAMES = ['임시', '군용', '산업', '미래'];
 
-/* ---------- breakthroughs: every 10 levels, never above 80% of the store ---------- */
-// at level L (a multiple of 10, not 0) the next level needs a breakthrough first
+/* ---------- breakthroughs: every btEvery levels, never above 80% of the store ---------- */
+// at level L (a multiple of btEvery, not 0) the next level needs a breakthrough first
 export const needsBreakthrough = (L, done) => L > 0 && L % B().btEvery === 0 && done < L / B().btEvery;
 export function capToStores(cost, caps) {
   const out = {};

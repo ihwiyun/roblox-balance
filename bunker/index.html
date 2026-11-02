@@ -6,56 +6,51 @@
 <title>벙커 – 좀비 방치형</title>
 <style>
   /* the pixel-plays look: a picture on white paper, small monospace text, thin ink lines */
-  :root { --ink: #1c1b19; --muted: #8b877f; --paper: #fff; --line: #e4e0d8; --soft: #f6f4ef; --bad: #c0392b; --top: 48px; --bottom: 256px; }
+  :root { --ink: #1c1b19; --muted: #8b877f; --paper: #fff; --line: #e4e0d8; --soft: #f6f4ef; --bad: #c0392b; --glass: rgba(255, 255, 255, .92);
+    /* the status bar and the screen edges; the bottom bar; the two sheets that slide up over the picture */
+    --st: env(safe-area-inset-top, 0px); --sl: max(8px, env(safe-area-inset-left, 0px)); --sr: max(8px, env(safe-area-inset-right, 0px));
+    --nav: calc(56px + env(safe-area-inset-bottom, 0px)); --sheet-up: clamp(220px, 47vh, 300px); --sheet-ug: clamp(240px, 45vh, 380px); }
   * { box-sizing: border-box; }
   html, body { height: 100%; margin: 0; background: var(--paper); color: var(--ink); }
   body { word-break: keep-all; font: 13px/1.4 ui-monospace, "Cascadia Mono", Consolas, Menlo, monospace; overflow: hidden; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; }
   button { font: inherit; color: inherit; }
   canvas.ico { image-rendering: pixelated; flex: none; display: block; }
+  i.ic { display: inline-block; flex: none; width: calc(16px * var(--s, 1)); height: calc(16px * var(--s, 1)); background: center / 100% 100% no-repeat; image-rendering: pixelated; vertical-align: middle; }
+  img.por { display: block; flex: none; image-rendering: pixelated; }
 
-  #top { position: fixed; top: 0; left: 0; right: 0; height: var(--top); padding: max(6px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) 0 max(10px, env(safe-area-inset-left)); display: flex; gap: 8px; align-items: flex-start; justify-content: space-between; z-index: 3; pointer-events: none; }
-  #res { display: flex; flex-wrap: wrap; gap: 0 12px; align-items: center; min-width: 0; }
-  .chip { display: inline-flex; align-items: center; gap: 4px; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
-  .rate { color: var(--muted); font-weight: 400; font-size: 11px; }
-  .rate.neg { color: var(--bad); }
-  /* how full the pantry and the ore store are: a thin bar under the number */
-  .chip.store { position: relative; padding-bottom: 3px; }
-  .chip .cap { position: absolute; left: 20px; right: 0; bottom: 0; height: 2px; background: var(--line); }
-  .chip .cap b { display: block; height: 100%; width: 0; background: #8a8; }
-  .chip .cap b.full { background: #d08a2a; }
-  /* prices on the buy buttons: a resource icon and the amount, red when short */
-  .cost { display: inline-flex; align-items: center; gap: 3px; white-space: nowrap; }
-  .cost .ci { width: 12px; height: 12px; background-size: 12px 12px; image-rendering: pixelated; flex: none; }
-  .buy { gap: 1px; }
-  .buy .short { color: var(--bad); }
-  /* the end of a run */
-  #over { position: fixed; inset: 0; z-index: 10; display: grid; place-items: center; background: rgba(255, 255, 255, .86); }
-  #over[hidden] { display: none; }
-  #over .box { border: 1px solid var(--ink); background: #fff; padding: 18px 22px; text-align: center; width: min(320px, calc(100vw - 32px)); }
-  #over h2 { margin: 0 0 6px; font-size: 18px; color: var(--bad); }
-  #over p { margin: 4px 0 14px; color: var(--muted); }
-  #waveLine { flex-basis: 100%; color: var(--muted); font-size: 12px; word-break: keep-all; }
-  #waveLine b { color: var(--ink); }
-  #topBtns { display: flex; flex: none; pointer-events: auto; }
-  .tbtn { background: none; border: 0; color: var(--muted); padding: 6px 7px; cursor: pointer; white-space: nowrap; }
-  .tbtn:hover, .tbtn[aria-pressed="true"] { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
-
-  #stage { position: fixed; left: 0; right: 0; top: var(--top); bottom: var(--bottom); overflow: hidden; }
-  /* always centred, also when it is bigger than the stage (the closer view below ground) */
+  /* one portrait frame: phones use the whole screen, wider screens get the same frame in the middle (480 px at most) */
+  #app { position: fixed; top: 0; bottom: 0; left: 0; right: 0; max-width: 480px; margin: 0 auto; overflow: hidden; background: var(--paper); }
+  @media (min-width: 481px) { #app { box-shadow: 0 0 0 1px var(--line); } }
+  #stage { position: absolute; left: 0; right: 0; top: 0; bottom: var(--nav); overflow: hidden; }
+  .ui-up #stage { bottom: calc(var(--nav) + var(--sheet-up)); }
+  .ui-ug #stage { bottom: calc(var(--nav) + var(--sheet-ug)); }
+  /* always centred, also when it is bigger than the stage (the closer view below ground, or a sheet is up) */
   canvas#c { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); display: block; image-rendering: pixelated; touch-action: manipulation; cursor: crosshair; outline: none; }
-  #hp { position: fixed; left: max(8px, env(safe-area-inset-left)); bottom: calc(var(--bottom) + 6px); background: rgba(255, 255, 255, .92); border: 1px solid var(--ink); padding: 5px 7px; display: grid; grid-template-columns: auto 72px; gap: 4px 8px; align-items: center; pointer-events: none; font-size: 11px; }
-  #hp .lbl { white-space: nowrap; font-variant-numeric: tabular-nums; }
-  .track { height: 7px; border: 1px solid var(--ink); background: #fff; }
-  .fill { height: 100%; background: #6aa64a; width: 0; }
-  #fenceFill { background: #a0784a; }
-  .hurt .fill { background: #d0503c; }
-  /* below ground the hero's magazine does not matter */
-  .under #ammo { display: none; }
-  /* below ground the health box is smaller, so the bottom corner of the wider room stays clear of it */
-  .under #hp { grid-template-columns: auto 44px; gap: 3px 6px; padding: 3px 5px; font-size: 10px; }
-  /* notifications: a translucent band across the picture, faded at both ends, with a thin line above and below */
-  #notes { position: fixed; left: 0; right: 0; top: calc(var(--top) + 9vh); display: grid; justify-items: center; pointer-events: none; z-index: 4; }
-  .note { position: relative; width: min(600px, 100%); padding: 10px 28px 11px; text-align: center; color: #fff;
+
+  /* top left: the resources, one under the other, each with its rate on the line below */
+  #res { position: absolute; left: var(--sl); top: calc(var(--st) + 6px); width: 76px; display: grid; gap: 4px; z-index: 3; pointer-events: none; }
+  .res { display: grid; grid-template-columns: 16px minmax(0, 1fr); column-gap: 4px; align-items: center; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; line-height: 1.25; }
+  .res small { grid-column: 2; min-height: 12px; color: var(--muted); font-weight: 400; font-size: 10px; line-height: 1.2; }
+  .res small.neg { color: var(--bad); }
+  /* top middle: the wave, stepped with the arrows; the bar is this wave's kills */
+  #wave { position: absolute; top: calc(var(--st) + 6px); left: 0; right: 0; width: max-content; margin: 0 auto; display: grid; justify-items: center; gap: 4px; z-index: 3; }
+  .pill { display: flex; align-items: stretch; height: 44px; border: 1px solid var(--ink); background: var(--glass); font-weight: 700; }
+  .pill button { border: 0; background: none; padding: 0; font-weight: 700; cursor: pointer; }
+  .pill .arr { width: 44px; }
+  .pill .arr[disabled] { color: #b3afa7; cursor: default; }
+  #waveBtn { min-width: 84px; padding: 0 2px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  #wave .bar { width: 140px; height: 4px; background: var(--line); }
+  #wave .bar i { display: block; height: 100%; width: 0; background: var(--ink); }
+  /* top right: settings, and under it the side buttons */
+  .hbtn { width: 44px; height: 44px; padding: 0; border: 1px solid var(--ink); background: var(--glass); font-size: 18px; line-height: 1; cursor: pointer; }
+  #settingsBtn { position: absolute; right: var(--sr); top: calc(var(--st) + 6px); z-index: 3; }
+  #side { position: absolute; right: var(--sr); top: calc(var(--st) + 58px); display: grid; gap: 8px; z-index: 3; }
+  .sbtn { width: 52px; min-height: 44px; padding: 6px 4px; background: var(--glass); border: 1px solid var(--ink); cursor: pointer; font-weight: 700; color: var(--ink); }
+  .sbtn:active { transform: translateY(1px); }
+  /* notifications: a translucent band across the picture, faded at both ends, with a thin line above and below.
+     It stays between the resources and the side buttons, under the wave, so it never covers a button */
+  #notes { position: absolute; left: calc(var(--sl) + 80px); right: calc(var(--sr) + 56px); top: calc(var(--st) + 62px); display: grid; justify-items: center; pointer-events: none; z-index: 4; }
+  .note { position: relative; width: 100%; padding: 10px 14px 11px; text-align: center; color: #fff;
     background: linear-gradient(90deg, transparent, rgba(28, 27, 25, .72) 18%, rgba(28, 27, 25, .72) 82%, transparent);
     animation: note 2.7s ease-out forwards; }
   .note::before, .note::after { content: ''; position: absolute; left: 0; right: 0; height: 1px;
@@ -68,146 +63,207 @@
   .note.good { --line-c: #9fe07a; }
   .note.long { animation-duration: 3.4s; }
   @keyframes note { 0% { opacity: 0; transform: translateY(10px) scaleY(.7); } 9% { opacity: 1; transform: none; } 84% { opacity: 1; transform: none; } 100% { opacity: 0; transform: translateY(-8px); } }
-  /* the hero's magazine: a big number at the bottom right, a bar while reloading */
-  #ammo { position: fixed; right: max(8px, env(safe-area-inset-right)); bottom: calc(var(--bottom) + 6px); background: rgba(255, 255, 255, .92); border: 1px solid var(--ink); padding: 4px 8px 5px; display: grid; grid-template-columns: auto auto; align-items: center; gap: 0 6px; pointer-events: none; font-variant-numeric: tabular-nums; }
+  /* bottom left: the bunker and the fence */
+  #hp { position: absolute; left: var(--sl); bottom: calc(var(--nav) + 8px); z-index: 3; background: var(--glass); border: 1px solid var(--ink); padding: 5px 7px; display: grid; grid-template-columns: auto 72px; gap: 4px 8px; align-items: center; pointer-events: none; font-size: 11px; }
+  #hp .lbl { white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .track { height: 7px; border: 1px solid var(--ink); background: #fff; }
+  .fill { height: 100%; background: #6aa64a; width: 0; }
+  #fenceFill { background: #a0784a; }
+  .hurt .fill { background: #d0503c; }
+  /* bottom right: the hero's magazine (a big number, a bar while reloading), the speed button right above it */
+  #br { position: absolute; right: var(--sr); bottom: calc(var(--nav) + 8px); display: grid; justify-items: end; gap: 8px; z-index: 3; }
+  #speed { min-width: 48px; height: 44px; padding: 0 10px; border: 1px solid var(--ink); background: var(--glass); font-weight: 700; cursor: pointer; }
+  #speed[aria-pressed="true"] { background: var(--ink); color: #fff; }
+  #ammo { background: var(--glass); border: 1px solid var(--ink); padding: 4px 8px 5px; display: grid; grid-template-columns: auto auto; align-items: center; gap: 0 6px; pointer-events: none; font-variant-numeric: tabular-nums; }
   #ammo .n { font-size: 22px; font-weight: 700; line-height: 1; }
   #ammo .n small { font-size: 12px; font-weight: 400; color: var(--muted); }
   #ammo .bar { grid-column: 1 / -1; height: 4px; margin-top: 3px; background: var(--line); }
   #ammo .bar i { display: block; height: 100%; width: 0; background: #e0a72c; }
   #ammo.empty .n { color: var(--bad); }
-  .wide #ammo { right: calc(var(--side) + 10px); bottom: 10px; }
-  .wide #notes { right: var(--side); }
-  /* below ground the band sits low, so the room stays in view */
+  /* a sheet up: the picture keeps the resources; a full-screen menu covers all of it */
+  .ui-sheet .res small, .ui-sheet .res.gem, .ui-sheet #wave, .ui-sheet #settingsBtn, .ui-sheet #side, .ui-sheet #hp, .ui-sheet #br { display: none; }
+  .ui-full #res, .ui-full #wave, .ui-full #settingsBtn, .ui-full #side, .ui-full #hp, .ui-full #br, .ui-full #notes { display: none; }
 
-  #bottom { position: fixed; left: 0; right: 0; bottom: 0; height: var(--bottom); border-top: 1px solid var(--ink); background: var(--paper); display: flex; flex-direction: column; padding-bottom: env(safe-area-inset-bottom); }
-  #panel { flex: 1; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); align-content: start; }
-  #tabs { display: grid; grid-template-columns: repeat(5, 1fr); flex: none; border-top: 1px solid var(--ink); }
-  /* each bottom tab splits into its own pages */
-  #subtabs { display: flex; gap: 4px; padding: 6px 8px; border-bottom: 1px solid var(--line); overflow-x: auto; flex: none; }
-  #subtabs .mini { white-space: nowrap; }
-  /* shop, rebirth and ranking: their own buttons beside the picture, apart from the tabs */
-  #side { position: fixed; right: max(8px, env(safe-area-inset-right)); top: calc(var(--top) + 8px); display: grid; gap: 6px; z-index: 3; }
-  .wide #side { right: calc(var(--side) + 8px); }
-  .sbtn { background: rgba(255, 255, 255, .92); border: 1px solid var(--ink); padding: 6px 8px; min-width: 52px; min-height: 36px; cursor: pointer; font: inherit; font-weight: 700; color: var(--ink); }
-  .sbtn:active { transform: translateY(1px); }
-  /* grids of slots: weapons, relics, turrets, the codex */
-  .block { grid-column: 1 / -1; padding: 8px 10px; border-bottom: 1px solid var(--line); }
-  .block h3 { margin: 0 0 6px; font-size: 12px; display: flex; justify-content: space-between; gap: 8px; }
-  .slots { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
-  .slots.six { grid-template-columns: repeat(6, minmax(0, 1fr)); }
-  .slots.eight { grid-template-columns: repeat(8, minmax(0, 1fr)); }
-  .slot { border: 2px solid var(--g, var(--line)); background: var(--soft); min-height: 40px; display: grid; place-items: center; font-size: 10px; color: var(--muted); text-align: center; padding: 2px; overflow-wrap: anywhere; }
-  .slot.off { opacity: .45; }
+  /* the bottom bar */
+  #tabs { position: absolute; left: 0; right: 0; bottom: 0; height: var(--nav); padding-bottom: env(safe-area-inset-bottom, 0px); display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); border-top: 1px solid var(--ink); background: var(--paper); z-index: 6; }
+  .tab { background: var(--paper); border: 0; padding: 5px 0 6px; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; color: var(--muted); font-size: 11px; white-space: nowrap; }
+  .tab[aria-selected="true"] { color: var(--ink); font-weight: 700; box-shadow: inset 0 3px 0 var(--ink); }
+  /* the menus: a sheet over the bottom of the picture (강화, 기지 지하), or the whole screen with a title and ✕ */
+  #menu { position: absolute; left: 0; right: 0; bottom: var(--nav); display: flex; flex-direction: column; background: var(--paper); z-index: 5; }
+  #menu[hidden] { display: none; }
+  .ui-up #menu { height: var(--sheet-up); border-top: 1px solid var(--ink); }
+  .ui-ug #menu { height: var(--sheet-ug); border-top: 1px solid var(--ink); }
+  .ui-full #menu { top: 0; bottom: 0; padding: var(--st) 0 env(safe-area-inset-bottom, 0px); z-index: 8; }
+  #menuHead { display: none; }
+  .ui-full #menuHead { display: flex; flex: none; height: 44px; align-items: center; justify-content: space-between; padding-left: 10px; border-bottom: 1px solid var(--ink); font-size: 14px; }
+  #menuClose { width: 44px; height: 44px; border: 0; background: none; font-size: 18px; cursor: pointer; }
+  #menuTabs { display: flex; flex: none; border-bottom: 1px solid var(--line); }
+  #menuTabs:empty { display: none; }
+  #menuTabs button { flex: 1; min-width: 0; min-height: 44px; padding: 0 2px; border: 0; background: none; color: var(--muted); cursor: pointer; white-space: nowrap; }
+  #menuTabs button[aria-selected="true"] { color: var(--ink); font-weight: 700; box-shadow: inset 0 -2px 0 var(--ink); }
+  #panel { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 8px 10px; }
+  #menuFoot { flex: none; display: flex; gap: 6px; align-items: center; padding: 8px 10px; border-top: 1px solid var(--ink); background: var(--paper); }
+  #menuFoot:empty { display: none; }
+  #menuFoot .btn { flex: 1; }
+
+  /* what the menus are made of */
+  .sec { display: flex; justify-content: space-between; gap: 8px; margin: 10px 0 4px; font-weight: 700; }
+  #panel > .sec:first-child { margin-top: 2px; }
+  .grid { display: grid; gap: 5px; }
+  .c2 { grid-template-columns: repeat(2, minmax(0, 1fr)); } .c3 { grid-template-columns: repeat(3, minmax(0, 1fr)); } .c4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .c5 { grid-template-columns: repeat(5, minmax(0, 1fr)); } .c6 { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  .muted { color: var(--muted); font-weight: 400; }
+  .ph { background: var(--soft); border: 1px solid var(--line); display: grid; place-items: center; overflow: hidden; }
+  .off { opacity: .45; }
   .gr { font-weight: 700; color: var(--g); }
   .g0 { --g: #9a9a9a; } .g1 { --g: #4caf50; } .g2 { --g: #3d7be0; } .g3 { --g: #9b4fd1; }
   .g4 { --g: #f08a24; } .g5 { --g: #d63a3a; } .g6 { --g: #c99a10; } .g7 { --g: #e0459b; }
+  /* square slots of the collections (weapons, turrets, relics), framed in the colour of their grade */
+  .slot { position: relative; aspect-ratio: 1; border: 2px solid var(--g, var(--line)); background: var(--soft); display: grid; place-items: center; color: var(--muted); font-size: 10px; text-align: center; overflow: hidden; }
   .g7.slot { border-image: linear-gradient(90deg, #e04545, #f0b020, #45c070, #4590e0, #a050e0) 1; }
-  .rowline { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px solid var(--line); }
-  .rowline:last-child { border-bottom: 0; }
-  dialog.big { width: min(380px, calc(100vw - 24px)); max-height: calc(100vh - 48px); overflow-y: auto; padding: 12px; }
-  dialog.big h3 { margin: 14px 0 6px; font-size: 13px; }
-  .tab { background: var(--paper); border: 0; padding: 5px 2px 6px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 1px; color: var(--muted); }
-  .tab[aria-selected="true"] { color: var(--ink); font-weight: 700; box-shadow: inset 0 2px 0 var(--ink); }
-  /* below ground, the floor cards are also how you pick the floor on show */
-  .card.pick { cursor: pointer; }
-  .card.on { box-shadow: inset 3px 0 0 var(--ink); background: var(--soft); }
-  .card { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto; gap: 2px 10px; align-items: center; padding: 8px 10px; border-bottom: 1px solid var(--line); }
-  .card .icon { grid-row: span 2; width: 40px; height: 40px; display: grid; place-items: center; background: var(--soft); border: 1px solid var(--line); align-self: start; overflow: hidden; }
-  .card .body { min-width: 0; }
-  .card .head { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
-  .card .name { font-weight: 700; }
-  .card .lv { color: var(--muted); }
-  .card .desc { color: var(--muted); font-size: 12px; overflow-wrap: anywhere; }
-  .prog { height: 3px; background: var(--line); margin: 3px 0 2px; max-width: 220px; }
+  .slot .sil { position: absolute; inset: 18%; background: var(--ink); opacity: .16; }
+  /* a box with a picture and a label: crew, workers, turret and relic upgrades */
+  .cell { display: grid; justify-items: center; align-content: start; gap: 2px; min-width: 0; min-height: 44px; padding: 4px 3px; border: 1px solid var(--line); background: var(--paper); font-size: 10px; text-align: center; }
+  button.cell { cursor: pointer; font-size: 10px; }
+  .cell .ph { width: 100%; }
+  .cell[aria-pressed="true"] { border-color: var(--ink); }
+  .cell .cost { font-size: 10px; }
+  .chips { display: grid; gap: 4px; margin: 0 0 6px; }
+  .chip { min-width: 0; min-height: 44px; padding: 0 2px; border: 1px solid var(--line); background: var(--paper); font-size: 12px; cursor: pointer; white-space: nowrap; }
+  .chip[aria-pressed="true"] { border-color: var(--ink); font-weight: 700; }
+  .chip[disabled] { opacity: .45; cursor: default; }
+  .bulk { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; margin: 0 0 6px; }
+  /* an upgrade: picture, name and level, progress, and the price to pay */
+  .ucard { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; padding: 6px; border: 1px solid var(--line); }
+  .ucard .body { flex: 1; min-width: 0; }
+  .ucard .name { font-weight: 700; }
+  .ucard .sub { color: var(--muted); }
+  .pic { flex: none; } .pic.lg { width: 72px; height: 56px; } .pic.md { width: 72px; height: 44px; } .pic.sm { width: 40px; height: 40px; }
+  .prog { width: 120px; max-width: 100%; height: 4px; margin-top: 3px; background: var(--line); }
   .prog i { display: block; height: 100%; background: var(--ink); }
-  .tired { height: 4px; background: var(--line); margin-top: 3px; max-width: 160px; }
+  .tired { width: 120px; max-width: 100%; height: 4px; margin-top: 3px; background: var(--line); }
   .tired span { display: block; height: 100%; background: #c8935a; }
-  .buy { min-width: 76px; display: flex; flex-direction: column; align-items: center; background: var(--paper); border: 1px solid var(--ink); padding: 5px 8px; cursor: pointer; font-weight: 700; font-variant-numeric: tabular-nums; font-size: 12px; }
+  /* prices on the buy buttons: a resource icon and the amount, red when short */
+  .cost { display: inline-flex; align-items: center; gap: 3px; white-space: nowrap; }
+  .cost .ci { width: 12px; height: 12px; background-size: 12px 12px; image-rendering: pixelated; flex: none; }
+  .buy { flex: none; min-width: 76px; min-height: 44px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; background: var(--paper); border: 1px solid var(--ink); padding: 5px 8px; cursor: pointer; font-weight: 700; font-variant-numeric: tabular-nums; font-size: 12px; }
   .buy:hover:not([disabled]) { background: var(--ink); color: #fff; }
   .buy:active:not([disabled]) { transform: translateY(1px); }
   .buy[disabled] { border-color: var(--line); color: #b3afa7; cursor: default; }
-  .row { grid-column: 2 / -1; display: flex; gap: 4px; flex-wrap: wrap; }
-  .mini { background: var(--paper); border: 1px solid var(--line); padding: 4px 9px; cursor: pointer; font-size: 12px; }
+  .buy .short { color: var(--bad); }
+  .btn { min-height: 44px; display: inline-flex; align-items: center; justify-content: center; gap: 4px; padding: 6px 8px; border: 1px solid var(--ink); background: var(--paper); font-weight: 700; text-align: center; cursor: pointer; }
+  .btn.dark { background: var(--ink); color: #fff; }
+  .btn[disabled] { cursor: default; }
+  .rowline { display: flex; justify-content: space-between; align-items: center; gap: 8px; min-height: 32px; padding: 5px 0; border-bottom: 1px solid var(--line); }
+  .rowline > span:last-child { display: flex; align-items: center; gap: 6px; }
+  .go { width: 100%; display: flex; align-items: center; gap: 8px; margin-bottom: 4px; padding: 6px; border: 1px solid var(--line); background: var(--paper); text-align: left; cursor: pointer; }
+  .go > span { flex: 1; }
+  .mini { min-height: 44px; min-width: 44px; background: var(--paper); border: 1px solid var(--line); padding: 4px 9px; cursor: pointer; font-size: 12px; }
   .mini[aria-pressed="true"] { background: var(--ink); color: #fff; border-color: var(--ink); }
+  .mini[disabled] { color: #b3afa7; cursor: default; }
+  .row { display: flex; gap: 6px; }
+  .row > * { flex: 1; min-width: 0; }
+
+  /* the end of a run */
+  #over { position: absolute; inset: 0; z-index: 10; display: grid; place-items: center; background: rgba(255, 255, 255, .86); }
+  #over[hidden] { display: none; }
+  #over .box { border: 1px solid var(--ink); background: #fff; padding: 18px 22px; text-align: center; width: min(320px, calc(100% - 32px)); }
+  #over h2 { margin: 0 0 6px; font-size: 18px; color: var(--bad); }
+  #over p { margin: 4px 0 14px; color: var(--muted); }
+  /* power saving: black, only the wave, the gold a minute and the time since it began */
+  #saver { position: fixed; inset: 0; z-index: 30; display: grid; place-items: center; background: #000; color: var(--muted); font-variant-numeric: tabular-nums; touch-action: manipulation; cursor: default; }
+  #saver[hidden] { display: none; }
+  #saver > div { display: grid; justify-items: center; gap: 12px; }
+  #saver b { font-size: 18px; color: var(--line); }
+  #saver span { display: inline-flex; align-items: center; gap: 6px; }
 
   dialog { border: 1px solid var(--ink); padding: 16px; width: min(320px, calc(100vw - 32px)); font: inherit; color: var(--ink); background: var(--paper); }
   dialog::backdrop { background: rgba(255, 255, 255, .75); }
   dialog h2 { margin: 0 0 12px; font-size: 14px; }
   .set { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--line); }
-  .set input[type=range] { width: 130px; accent-color: var(--ink); }
+  .set input[type=range] { width: 130px; height: 44px; margin: 0; accent-color: var(--ink); }
+  .set .row { flex: 1; }
   .danger { color: var(--bad); border-color: var(--bad); }
-  @media (max-width: 440px) { :root { --top: 76px; --bottom: 266px; } #panel { grid-template-columns: 1fr; } }
-  /* short phones: a lower panel leaves the picture room for the three floors below ground */
-  @media (max-width: 440px) and (max-height: 720px) { :root { --bottom: 206px; } }
-  /* wide screens: the panel stands on the right, the picture takes the rest */
-  .wide { --side: 400px; }
-  .wide #bottom { left: auto; top: var(--top); width: var(--side); height: auto; border-top: 0; border-left: 1px solid var(--ink); }
-  .wide #panel { grid-template-columns: 1fr; }
-  .wide #stage { right: var(--side); bottom: 0; }
-  .wide #hp { bottom: 10px; }
 </style>
 </head>
 <body>
-<div id="top">
+<div id="app">
+  <div id="stage"><canvas id="c" tabindex="0" aria-label="흰 바탕에 떠 있는 섬 한가운데 벙커. 섬 가장자리 너머에서 좀비가 몰려온다. 좀비를 누르면 직접 쏜다."></canvas></div>
   <div id="res">
-    <span class="chip" data-ico="coin"><span id="r-money">0</span></span>
-    <span class="chip store" data-ico="food"><span id="r-food">0</span><span class="rate" id="rr-food"></span><i class="cap"><b id="cap-food"></b></i></span>
-    <span class="chip store" data-ico="mineral"><span id="r-mineral">0</span><span class="rate" id="rr-mineral"></span><i class="cap"><b id="cap-mineral"></b></i></span>
-    <span id="waveLine"></span>
+    <div class="res" data-ico="coin" data-s="1"><b id="r-money">0</b><small id="rr-money"></small></div>
+    <div class="res" data-ico="food" data-s="1"><b id="r-food">0</b><small id="rr-food"></small></div>
+    <div class="res" data-ico="mineral" data-s="1"><b id="r-mineral">0</b><small id="rr-mineral"></small></div>
+    <div class="res gem" data-ico="mineral" data-s="1"><b id="r-gem">0</b><small>보석</small></div>
   </div>
-  <div id="topBtns">
-    <button class="tbtn" id="speed" type="button" aria-pressed="false">1배속</button>
-    <button class="tbtn" id="settingsBtn" type="button">설정</button>
+  <div id="wave">
+    <div class="pill"><button class="arr" id="wavePrev" type="button">◀︎</button><button id="waveBtn" type="button">웨이브 1</button><button class="arr" id="waveNext" type="button">▶︎</button></div>
+    <div class="bar"><i id="waveBar"></i></div>
   </div>
-</div>
-<div id="stage"><canvas id="c" tabindex="0" aria-label="흰 바탕에 떠 있는 섬 한가운데 벙커. 섬 가장자리 너머에서 좀비가 몰려온다. 좀비를 누르면 직접 쏜다."></canvas></div>
-<div id="notes" aria-live="polite"></div>
-<div id="ammo" aria-label="탄약"><span data-ico="bullet"></span><span class="n" id="ammoNum">0<small>/0</small></span><div class="bar"><i id="ammoBar"></i></div></div>
-<div id="hp">
-  <span class="lbl" id="bunkerText">벙커</span><div class="track" id="bunkerTrack"><div class="fill" id="bunkerFill"></div></div>
-  <span class="lbl" id="fenceText">울타리 없음</span><div class="track"><div class="fill" id="fenceFill"></div></div>
-</div>
-<div id="bottom">
-  <div id="subtabs" role="tablist"></div>
-  <div id="panel"></div>
-  <div id="tabs" role="tablist">
-    <button class="tab" role="tab" data-tab="gun" data-ico="bullet" aria-selected="true">무기</button>
-    <button class="tab" role="tab" data-tab="def" data-ico="bunker" aria-selected="false">방어</button>
-    <button class="tab" role="tab" data-tab="under" data-ico="bed" aria-selected="false">지하</button>
-    <button class="tab" role="tab" data-tab="crew" data-ico="person" aria-selected="false">인원</button>
-    <button class="tab" role="tab" data-tab="relic" data-ico="relic" aria-selected="false">유물</button>
+  <button class="hbtn" id="settingsBtn" type="button" aria-label="설정">⚙︎</button>
+  <div id="side"><button class="sbtn" type="button" data-open="rebirth">환생</button><button class="sbtn" type="button" data-open="rank">랭킹</button></div>
+  <div id="notes" aria-live="polite"></div>
+  <div id="hp">
+    <span class="lbl" id="bunkerText">벙커</span><div class="track" id="bunkerTrack"><div class="fill" id="bunkerFill"></div></div>
+    <span class="lbl" id="fenceText">울타리 없음</span><div class="track"><div class="fill" id="fenceFill"></div></div>
   </div>
+  <div id="br">
+    <button id="speed" type="button" aria-pressed="false">x2</button>
+    <div id="ammo" aria-label="탄약"><span data-ico="bullet"></span><span class="n" id="ammoNum">0<small>/0</small></span><div class="bar"><i id="ammoBar"></i></div></div>
+  </div>
+  <section id="menu" hidden aria-labelledby="menuTitle">
+    <div id="menuHead"><b id="menuTitle"></b><button id="menuClose" type="button" aria-label="닫기">✕</button></div>
+    <div id="menuTabs" role="tablist"></div>
+    <div id="panel"></div>
+    <div id="menuFoot"></div>
+  </section>
+  <nav id="tabs" role="tablist">
+    <button class="tab" role="tab" type="button" data-tab="up" data-ico="bullet" aria-selected="false">강화</button>
+    <button class="tab" role="tab" type="button" data-tab="gear" data-ico="mag" aria-selected="false">장비</button>
+    <button class="tab" role="tab" type="button" data-tab="crew" data-ico="person" aria-selected="false">캐릭터</button>
+    <button class="tab" role="tab" type="button" data-tab="relic" data-ico="relic" aria-selected="false">유물</button>
+    <button class="tab" role="tab" type="button" data-tab="base" data-ico="bunker" aria-selected="false">기지</button>
+    <button class="tab" role="tab" type="button" data-tab="shop" data-ico="coin" aria-selected="false">상점</button>
+  </nav>
+  <div id="over" hidden role="alertdialog" aria-labelledby="overTitle"><div class="box"><h2 id="overTitle">기지 함락</h2><p>식량이 떨어진 채로 기지가 무너졌다</p><p class="stats"></p><button class="mini danger" id="restart" type="button">처음부터 다시</button></div></div>
 </div>
-<div id="over" hidden role="alertdialog" aria-labelledby="overTitle"><div class="box"><h2 id="overTitle">기지 함락</h2><p>식량이 떨어진 채로 기지가 무너졌다</p><p class="stats"></p><button class="mini danger" id="restart" type="button">처음부터 다시</button></div></div>
-<div id="side"><button class="sbtn" type="button" data-dlg="shopDlg">상점</button><button class="sbtn" type="button" data-dlg="rebirthDlg">환생</button><button class="sbtn" type="button" data-dlg="rankDlg">랭킹</button></div>
-<dialog id="shopDlg" class="big"><h2>상점</h2><div class="dbody"></div><form method="dialog" style="text-align:right;margin-top:12px"><button class="mini">닫기</button></form></dialog>
-<dialog id="rebirthDlg" class="big"><h2>환생</h2><div class="dbody"></div><form method="dialog" style="text-align:right;margin-top:12px"><button class="mini">닫기</button></form></dialog>
-<dialog id="rankDlg" class="big"><h2>랭킹</h2><div class="dbody"></div><form method="dialog" style="text-align:right;margin-top:12px"><button class="mini">닫기</button></form></dialog>
+<div id="saver" hidden><div><b id="svWave">웨이브 1</b><span data-ico="coin" data-s="1"><span id="svGold">0/분</span></span><span id="svTime">0:00:00</span></div></div>
 <dialog id="settings">
   <h2>설정</h2>
   <div class="set"><span>효과음</span><button class="mini" id="soundToggle" type="button">켜짐</button></div>
   <div class="set"><span>음량</span><input type="range" id="volume" min="0" max="100" value="70"></div>
+  <div class="set"><span>배경음악</span><input type="range" id="music" min="0" max="100" value="70"></div>
   <div class="set"><span>풀 흔들림</span><button class="mini" id="windToggle" type="button">켜짐</button></div>
+  <div class="set"><span>절전 모드</span><button class="mini" id="saverToggle" type="button">꺼짐</button></div>
+  <div class="set"><span>도감</span><button class="mini" id="codexBtn" type="button">0/40</button></div>
   <div class="set"><span>진행 초기화</span><button class="mini danger" id="resetBtn" type="button">초기화</button></div>
+  <form method="dialog" style="text-align:right;margin-top:12px"><button class="mini">닫기</button></form>
+</dialog>
+<dialog id="stageDlg">
+  <h2 id="sdTitle">웨이브 1</h2>
+  <div class="set"><div class="row"><button class="mini" id="modeRepeat" type="button" aria-pressed="false">반복</button><button class="mini" id="modeAdvance" type="button" aria-pressed="true">진행</button></div></div>
+  <div class="set"><span>금화</span><b id="sdGold">0/분</b></div>
+  <div class="set"><span>처치</span><b id="sdKills">0/분</b></div>
   <form method="dialog" style="text-align:right;margin-top:12px"><button class="mini">닫기</button></form>
 </dialog>
 <script>
 // the canvas: about 360-480 game pixels across, blown up by a whole number of device pixels so every game
-// pixel stays a crisp square. One world unit is 16 pixels, sized for 32x32 characters. Wide screens put the
-// panel on the right so the picture gets the full height (three floors underground need it)
+// pixel stays a crisp square. One world unit is 16 pixels, sized for 32x32 characters. The picture is sized
+// for the stage of the main screen (everything above the bottom bar); a sheet that slides up only moves it
 (() => {
-  const wide = innerWidth >= 900 && innerWidth > innerHeight * 1.15;
-  document.documentElement.classList.toggle('wide', wide);
   const r = document.getElementById('stage').getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
-  // at least 360 game pixels across and 300 down (400 on wide screens, where the height is there for the
-  // three floors below ground); phones keep the biggest pixels
-  const k = Math.max(1, Math.floor(Math.min(r.width * dpr / 360, r.height * dpr / (wide ? 400 : 300))));
+  // at least 360 game pixels across and 300 down; phones keep the biggest pixels
+  const k = Math.max(1, Math.floor(Math.min(r.width * dpr / 360, r.height * dpr / 300)));
   const width = Math.min(480, Math.floor(r.width * dpr / k)), height = Math.min(620, Math.floor(r.height * dpr / k));
   // the island is a diamond that fits the picture with a margin: 2.83 * 16 px wide and 1.41 * 16 px tall per unit
   const field = Math.max(6.4, Math.min(9, (width - 20) / 45.3, (height - 70) / 22.6));
-  // below ground the picture is shown one step closer: the part of it that still fits the stage
+  // below ground the picture is shown one step closer, above the 기지 sheet: the part of it that still fits there
+  const probe = document.createElement('div');
+  probe.style.cssText = 'position:absolute;visibility:hidden;height:var(--sheet-ug)';
+  document.body.append(probe);
+  const ugH = Math.max(1, r.height - probe.offsetHeight);
+  probe.remove();
   const kk = Math.max(1, Math.floor(Math.min(r.width * dpr / width, r.height * dpr / height)));
-  const underView = { w: Math.min(width, Math.floor(r.width * dpr / (kk + 1))), h: Math.min(height, Math.floor(r.height * dpr / (kk + 1))) };
+  const underView = { w: Math.min(width, Math.floor(r.width * dpr / (kk + 1))), h: Math.min(height, Math.floor(ugH * dpr / (kk + 1))) };
   window.PP_SCENE = { width, height, scale: 16, originY: 10, field, grassDensity: .11, underView };
 })();
 </script>

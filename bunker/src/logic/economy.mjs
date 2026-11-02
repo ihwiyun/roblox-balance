@@ -166,7 +166,7 @@ export function offline(st, seconds, adDouble = false) {
   const S = stats(st), extra = (st.t < st.shop.monthlyUntil ? PASSES.monthly.offlineH : 0) + (st.shop.owned.offline12 ? 12 : 0);
   const h = Math.min(seconds, (S.offlineH + extra) * 3600), eff = S.offlineEff * (adDouble ? 2 : 1);
   const before = { gold: st.gold, food: st.food, ore: st.ore, parts: st.parts };
-  earnGold(st, st.goldRate * h * eff);
+  earnGold(st, st.goldRate * h * eff * T.economy.offlineGold);
   st.goldMark = st.goldEarned;
   produce(st, S, h, eff, !S.offlineNoUpkeep);
   research(st, S, seconds, false);
@@ -211,12 +211,12 @@ const bt = (st, c) => { const S = stats(st), o = {}; for (const [k, v] of Object
 export function price(st, key) {
   const S = stats(st), [a, b, c] = key.split(':');
   if (a === 'ws') return { gold: workshopCost(b, st.ws[b]) };
-  if (a === 'bunker') return needsBreakthrough(st.bunker, st.bunkerBt) ? bt(st, breakthroughCost('bunker', st.bunker / 10, S.caps)) : { gold: bunkerGold(st.bunker) };
-  if (a === 'fence') return needsBreakthrough(st.fence, st.fenceBt) ? bt(st, breakthroughCost('fence', st.fence / 10, S.caps)) : { gold: fenceGold(st.fence) };
+  if (a === 'bunker') return needsBreakthrough(st.bunker, st.bunkerBt) ? bt(st, breakthroughCost('bunker', st.bunker / T.base.btEvery, S.caps)) : { gold: bunkerGold(st.bunker) };
+  if (a === 'fence') return needsBreakthrough(st.fence, st.fenceBt) ? bt(st, breakthroughCost('fence', st.fence / T.base.btEvery, S.caps)) : { gold: fenceGold(st.fence) };
   if (a === 'sec') {
     if (!sectionOpen(st, b)) return null;
     const x = st.sec[b];
-    if (c === 'lv') return needsBreakthrough(x.lv, x.bt) ? bt(st, breakthroughCost('section', x.lv / 10, S.caps, SECTIONS[b].aux)) : { gold: sectionLevelGold(b, x.lv) };
+    if (c === 'lv') return needsBreakthrough(x.lv, x.bt) ? bt(st, breakthroughCost('section', x.lv / T.base.btEvery, S.caps, SECTIONS[b].aux)) : { gold: sectionLevelGold(b, x.lv) };
     if (c === 'tier') return capToStores(sectionTierCost(b, x.tier + 1), S.caps);
     return capToStores(sectionCapCost(b, x.cap), S.caps);
   }
