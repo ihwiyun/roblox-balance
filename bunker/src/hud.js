@@ -133,7 +133,7 @@ function layout() {
 }
 function openMenu(m) {
   ensureAudio();
-  if (ui.open !== m) { ui.open = m; ui.jobs = false; nodes.panel.scrollTop = 0; }
+  if (ui.open !== m) { ui.open = m; ui.jobs = false; ui.pick = false; nodes.panel.scrollTop = 0; }
   if (ui.sel >= 0 && !G.crew[ui.sel]) ui.sel = -1;
   layout();
   renderPanel(true);
@@ -300,22 +300,61 @@ function underHtml() {
   return chips + bulkHtml() + card + workers;
 }
 const zonesHtml = () => zoneHtml('지붕 초소', '사수') + zoneHtml('2층 식량', '농부') + zoneHtml('3층 채굴', '광부') + sec('작업장', '잠김') + grid(5, Array.from({ length: 5 }, () => shutCell(40, '')));
+// the one picked, standing as the game draws them: the idle frames side by side (body, then face and headgear by
+// the depth rule of drawPerson), shown four times as large as a CSS strip that steps through them
+const stands = new Map();
+function stand(p) {
+  const gear = gearOf(p), key = p.look.key + JSON.stringify(gear);
+  let st = stands.get(key);
+  if (!st) {
+    const pal = palFor(p, gear), set = SPR[gear.body], a = set.anims.idle || set.anims.walk, n = a.F.length, w0 = 40, h0 = 44, ox = 4, oy = 8, frames = [];
+    for (const fr of a.F) {
+      const buf = new Uint32Array(w0 * h0), z = new Float32Array(w0 * h0).fill(-1e9);
+      const put = (x, y, c, d) => { x += ox; y += oy; if (x < 0 || y < 0 || x >= w0 || y >= h0) return; const i = y * w0 + x; if (d <= z[i]) return; z[i] = d; buf[i] = c; };
+      for (let k = 0; k < fr.cells.length; k += 3) put(fr.cells[k], fr.cells[k + 1], pal[fr.cells[k + 2]], (set.ay - fr.cells[k + 1]) * perPx + .02);
+      if (fr.head) {
+        const [hx, hy] = fr.head, d = (set.ay - hy) * perPx + .06;
+        for (const [stp, dd] of [[ART_HUMANS.heads[p.look.key] || ART_HUMANS.heads.hero, d], [gear.head && ART_HUMANS.gear[gear.head], d + .01]]) {
+          if (stp) stp.F.forEach((row, y) => [...row].forEach((ch, x) => { if (ch !== '.') put(hx - stp.ax + x, hy - stp.ay + y, pal[ch.charCodeAt(0)], dd); }));
+        }
+      }
+      frames.push(buf);
+    }
+    let x0 = w0, y0 = h0, x1 = -1, y1 = -1;
+    for (const f of frames) for (let y = 0; y < h0; y++) for (let x = 0; x < w0; x++) if (f[y * w0 + x]) { x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y); }
+    const w = x1 - x0 + 1, h = y1 - y0 + 1, strip = new Uint32Array(w * n * h), c = document.createElement('canvas');
+    frames.forEach((f, i) => { for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) strip[y * w * n + i * w + x] = f[(y + y0) * w0 + x + x0]; });
+    c.width = w * n; c.height = h; c.getContext('2d').putImageData(new ImageData(new Uint8ClampedArray(strip.buffer), w * n, h), 0, 0);
+    stands.set(key, st = { url: c.toDataURL(), w, h, n, t: n / (a.fps || 3) });
+  }
+  return st;
+}
+const standHtml = (p, k = 4) => { const st = stand(p); return `<span class="stand" role="img" aria-label="${p.name}" style="width:${st.w * k}px;height:${st.h * k}px;background-image:url(${st.url});background-size:${st.w * k * st.n}px ${st.h * k}px;--w:${st.w * k}px;--n:${st.n};--t:${st.t}s"></span>`; };
+// the crew grid: a portrait in a 48 frame (the new busts go in the same frame), the name; the one picked outlined
+const crewCell = (i, c, picked) => `<button type="button" class="cell" data-sel="${i}" aria-pressed="${picked}">${ph('50px', '50px', face(c, 40))}<span>${c.name}</span></button>`;
 function crewHtml() {
-  const p = ui.sel >= 0 && G.crew[ui.sel] || G.hero, shoots = p.hero || p.job === '사수';
-  const info = `<div class="ucard" style="align-items:start">${ph('100px', '100px', face(p, 100))}<div class="body"><div class="name" style="font-size:14px">${p.name}</div><div>${p.hero ? '사수' : p.job}</div>`
-    + (p.hero ? '' : `<div class="tired"><span data-tired="${p.i}"></span></div>`) + line('사격', shoots ? fmt(damageOf()) : '—') + line('체력', '—') + line('능력', '—') + '</div></div>';
-  const btns = `<div class="row" style="margin:6px 0"><button class="btn dark" type="button" disabled>레벨업</button><button class="btn" type="button" data-jobs${p.hero ? ' disabled' : ''}>배치</button><button class="btn" type="button" disabled>대표</button></div>`;
-  const jobs = ui.jobs && !p.hero ? `<div class="row" style="margin-bottom:6px">${JOBS.map(j => `<button class="mini" type="button" data-job="${j}" aria-pressed="${p.job === j}">${j}</button>`).join('')}</div>` : '';
-  const beds = bedsOf(G.live), pick = (i, c) => faceCell(c, 60, `data-sel="${i}" aria-pressed="${p === c}"`);
-  const cells = [pick(-1, G.hero), ...G.crew.map((c, i) => c ? pick(i, c) : i < beds ? hireCell(i, 60) : shutCell(60, '???', true)), ...Array.from({ length: 6 }, () => shutCell(60, '???'))];
-  return info + btns + jobs + sec('보유 동료', 1 + hired().length + '/24') + grid(4, cells);
+  const p = ui.sel >= 0 && G.crew[ui.sel] || G.hero, shoots = p.hero || p.job === '사수', fam = weaponFamily(G.lv.atk);
+  // the weapon slot beside the one standing: only those who shoot carry one. The game has one rifle for all for now
+  const slotHtml = extra => `<span class="slot ${extra}">${gunImg(fam)}<em>Lv ${G.lv.atk}</em></span>`;
+  const weapon = shoots ? `<button class="wslot tap" type="button" data-pick aria-label="무기 고르기">${slotHtml('')}<span class="aux">${weaponLookName(G.lv.atk)}</span></button>` : '';
+  const top = `<div class="hero">${standHtml(p)}${weapon}</div><div class="info"><b class="t16">${p.name}</b><div class="role">${p.hero ? '사수' : p.job}</div>`
+    + (p.hero ? '' : `<div class="tired"><span data-tired="${p.i}"></span></div>`)
+    + line('사격', `<b class="num">${shoots ? fmt(damageOf()) : '—'}</b>`) + line('체력', '<b class="num">—</b>') + line('능력', '<b class="num">—</b>') + '</div>';
+  // the weapons to pick from (a tap on the weapon slot): those owned, the one carried outlined
+  if (ui.pick && shoots) return top + `<div class="wpick"><div class="sh"><b class="t16">무기</b><button class="ib tap" type="button" data-unpick aria-label="닫기">${ic('close', 1.5)}</button></div>`
+    + sec('보유', '1') + grid(5, [slotHtml('ring')]) + '<p class="aux">다른 무기는 장비에서 소환해 얻습니다.</p>' + B('sub', '장비로', 'data-gogear') + '</div>';
+  const btns = `<div class="acts">${B('pri grow', '레벨업', 'disabled')}${B('sub', '배치', p.hero ? 'disabled' : 'data-jobs')}${B('sub', '대표', 'disabled')}</div>`;
+  const jobs = ui.jobs && !p.hero ? `<div class="tool"><div class="chipset">${JOBS.map(j => `<button class="fchip tap" type="button" data-job="${j}" aria-pressed="${p.job === j}">${j}</button>`).join('')}</div></div>` : '';
+  const beds = bedsOf(G.live);
+  const cells = [crewCell(-1, G.hero, p === G.hero), ...G.crew.map((c, i) => c ? crewCell(i, c, p === c) : i < beds ? hireCell(i, 50) : shutCell(50, '???', true)), ...Array.from({ length: 6 }, () => shutCell(50, '???'))];
+  return top + btns + jobs + sec('보유 동료', 1 + hired().length + '/24') + strip('동료 모집 Lv 1', 200, 'mid') + grid(4, cells);
 }
 // buttons: the primary filled (one a screen), the secondary an outline; small icons and labels go inside
 const B = (cls, inner, attrs = '') => `<button class="b ${cls} tap" type="button"${attrs ? ' ' + attrs : ''}>${inner}</button>`;
 const gemCost = n => `${ic('ruby')}<span class="num">${n.toLocaleString('en')}</span>`;
 // the summon strip at the top of each 장비 tab (and 동료 모집): its level, the odds, one pull and ten. Pulls are not in
 // the game yet: the buttons are there, switched off
-const strip = (label, price) => `<div class="strip"><div class="lv tap" aria-label="소환 확률"><b>${label}</b><span><span class="prog2"><i style="width:0"></i></span><span class="link">확률</span></span></div>`
+const strip = (label, price, cls = '') => `<div class="strip ${cls}"><div class="lv tap" aria-label="소환 확률"><b>${label}</b><span><span class="prog2"><i style="width:0"></i></span><span class="link">확률</span></span></div>`
   + B('sub sm', '1회 ' + gemCost(price), 'disabled') + B('sub sm', '10회 ' + gemCost(price * 10), 'disabled') + '</div>';
 // the rifles as the game draws them in the hands (actors.js drawGun), one a family, as small pictures for the weapon
 // slots until the 40 weapons are drawn: drawGun paints through putPx, pointed at a small buffer for a moment
@@ -426,8 +465,11 @@ nodes.panel.addEventListener('click', e => {
   else if ('bulk' in d) { ui.bulk = +d.bulk; renderPanel(true); }
   else if (d.floor) { ensureAudio(); viewFloor(+d.floor); }
   else if (d.grade) { ui.grade = +d.grade; renderPanel(true); }
-  else if (d.sel) { ui.sel = +d.sel; ui.jobs = false; renderPanel(true); }
+  else if (d.sel) { ui.sel = +d.sel; ui.jobs = false; ui.pick = false; renderPanel(true); }
   else if ('jobs' in d) { ui.jobs = !ui.jobs; renderPanel(true); }
+  else if ('pick' in d) { ui.pick = true; renderPanel(true); }
+  else if ('unpick' in d) { ui.pick = false; renderPanel(true); }
+  else if ('gogear' in d) { ui.pick = false; ui.sub.gear = 'gun'; openMenu('gear'); }
   else if (d.job) setJob(ui.sel, d.job);
   else if (d.assign) { const i = G.crew.findIndex(c => c && c.job !== d.assign); if (i >= 0) setJob(i, d.assign); }
 });

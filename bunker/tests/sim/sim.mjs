@@ -233,7 +233,7 @@ export function run(opts = {}) {
     // breakthroughs block levels: they come first
     for (const key of ['bunker', 'fence', ...['roof', 'food', 'mine', 'shop', 'bed'].map(k => `sec:${k}:lv`), ...Object.keys(st.crew.cards).map(id => 'crew:' + id),
       ...st.equipW.filter(i => i >= 0).map(i => 'enh:w:' + i), ...st.equipT.filter(i => i >= 0).map(i => 'enh:t:' + i)]) if (btKey(key)) addC(L.price(st, key));
-    const short0 = Object.fromEntries(Object.keys(need).map(r => [r, need[r] - st[r] > S.prod[r] * 900]));
+    const short0 = Object.fromEntries(Object.keys(need).map(r => [r, need[r] - st[r] > S.prod[r] * 3600 && st[r] < 0.5 * S.caps[r]]));
     const tiers = wantedTiers(S, short0);
     for (const k of tiers) addC(L.price(st, `sec:${k}:tier`));
     for (const [res, sec] of Object.entries(PRODUCER)) {
@@ -241,9 +241,10 @@ export function run(opts = {}) {
       const credit = S.offlineH * 3600 * S.prod[res] * S.offlineEff * 2;
       const biggest = Math.max(0, ...tiers.map(k => (L.price(st, `sec:${k}:tier`) || {})[res] || 0));
       if (credit > 0.9 * S.caps[res] || biggest > 0.9 * S.caps[res] || (st[res] >= 0.9 * S.caps[res] && need[res] > st[res])) buy(`sec:${sec}:cap`);
-      // output: the floor's level (doc 8: base x tier x level) when the wants are more than 15 min of output away
+      // output: the floor's level (doc 8: base x tier x level) when the wants are more than an hour of output away
+      // and the box is not already half full (nobody raises output while the store sits full)
       const lack = need[res] - st[res];
-      if (lack > S.prod[res] * 900 || S.prod[res] <= 0) { const k = `sec:${sec}:lv`, c = L.price(st, k); if (c && !btKey(k) && goldOf(c) < 0.4 * st.gold) buy(k); }
+      if ((lack > S.prod[res] * 3600 && st[res] < 0.5 * S.caps[res]) || S.prod[res] <= 0) { const k = `sec:${sec}:lv`, c = L.price(st, k); if (c && !btKey(k) && goldOf(c) < 0.4 * st.gold) buy(k); }
     }
     // the growth lock (doc 8): food output must cover 1.15x the upkeep after a level-up
     if (S.prod.food < S.upkeep * 1.3) { const c = L.price(st, 'sec:food:lv'); if (c && !btKey('sec:food:lv') && goldOf(c) < 0.6 * st.gold) buy('sec:food:lv'); }

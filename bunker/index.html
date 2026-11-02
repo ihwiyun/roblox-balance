@@ -132,8 +132,8 @@
   .g7.slot { border-image: linear-gradient(90deg, #e04545, #f0b020, #45c070, #4590e0, #a050e0) 1; }
   .slot .sil { position: absolute; inset: 18%; background: var(--ink); opacity: .16; }
   /* a box with a picture and a label: crew, workers, turret and relic upgrades */
-  .cell { display: grid; justify-items: center; align-content: start; gap: 2px; min-width: 0; min-height: 44px; padding: 4px 3px; border: 1px solid var(--line); background: var(--paper); font-size: 10px; text-align: center; }
-  button.cell { cursor: pointer; font-size: 10px; }
+  .cell { display: grid; justify-items: center; align-content: start; gap: 2px; min-width: 0; min-height: 44px; padding: 4px 3px; border: 1px solid var(--line); background: var(--paper); font-size: 11px; text-align: center; }
+  button.cell { cursor: pointer; font-size: 11px; }
   .cell .ph { width: 100%; }
   .cell[aria-pressed="true"] { border-color: var(--ink); }
   .cell .cost { font-size: 10px; }
@@ -193,6 +193,23 @@
   .gq { font-weight: 700; }
   .slot img.gun { filter: brightness(0); opacity: .35; }
   .slot.lock { border-color: var(--line); background: var(--paper); align-content: center; gap: 2px; }
+  .slot em { position: absolute; left: 3px; bottom: 1px; font-style: normal; font-size: 11px; line-height: 14px; font-weight: 700; color: var(--ink); }
+  .slot.ring { outline: 2px solid var(--ink); outline-offset: 2px; overflow: visible; }
+  .wslot img.gun, .slot.ring img.gun { filter: none; opacity: 1; }
+  .strip.mid { margin: 0 -12px 8px; }
+  /* 캐릭터: the one picked standing (the game's sprite x4, idle), the weapon slot beside them, then who they are */
+  .hero { display: flex; align-items: flex-end; justify-content: center; gap: 24px; height: 168px; margin: -8px -12px 0; padding-bottom: 16px; background: var(--soft); }
+  .stand { display: block; flex: none; image-rendering: pixelated; background-repeat: no-repeat; animation: stand var(--t) steps(var(--n)) infinite; }
+  @keyframes stand { to { background-position: calc(var(--w) * var(--n) * -1) 0; } }
+  @media (prefers-reduced-motion: reduce) { .stand { animation: none; } }
+  .wslot { align-self: center; display: grid; justify-items: center; gap: 4px; padding: 0; border: 0; background: none; cursor: pointer; }
+  .wslot .slot { width: 64px; }
+  .wslot:active .slot { background: var(--line); }
+  .info { padding-top: 12px; } .t16 { font-size: 16px; font-weight: 700; } .info .role { margin: 4px 0 8px; }
+  .acts { display: flex; align-items: center; gap: 8px; margin-top: 12px; }
+  .wpick { margin: 12px -12px 0; padding: 0 12px 12px; border-top: 1px solid var(--ink); }
+  .wpick .sh { display: flex; align-items: center; justify-content: space-between; height: 48px; }
+  .wpick p { margin: 8px 0; }
   .rowline { display: flex; justify-content: space-between; align-items: center; gap: 8px; min-height: 32px; padding: 5px 0; border-bottom: 1px solid var(--line); }
   .rowline > span:last-child { display: flex; align-items: center; gap: 6px; }
   .go { width: 100%; display: flex; align-items: center; gap: 8px; margin-bottom: 4px; padding: 6px; border: 1px solid var(--line); background: var(--paper); text-align: left; cursor: pointer; }
