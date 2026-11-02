@@ -66,11 +66,16 @@ CAP_R = ["2.",
          "21",
          "11",
          "1."]
-CAP_R_TIED = ["t.",      # the tied end: a pinched neck with a tuft
+CAP_R_TIED = ["t.",      # a tied end: a pinched neck with a tuft
               "2t",
               "1t",
               "1t",
               "t."]
+CAP_L_TIED = [".t",
+              "t3",
+              "t3",
+              "t2",
+              ".t"]
 BODY = ["4443333333333333",
         "4333333333333333",
         "3332222222222222",
@@ -79,17 +84,18 @@ BODY = ["4443333333333333",
 BAG_H = 5
 
 
-def bag(length, tied=False, sag=False, leak=False):
-    """one sandbag, `length` px long (>= 6), in tones"""
+def bag(length, tie='', sag=False, leak=False):
+    """one sandbag, `length` px long (>= 6), in tones; tie 'l' or 'r' pinches that end"""
     mid = length - 4
     rows = []
     for r in range(BAG_H):
         b = BODY[r][:mid] if mid <= len(BODY[r]) else BODY[r] + BODY[r][-1] * (mid - len(BODY[r]))
-        rows.append(CAP_L[r] + b + (CAP_R_TIED if tied else CAP_R)[r])
+        cl = (CAP_L_TIED if tie == 'l' else CAP_L)[r]
+        cr = (CAP_R_TIED if tie == 'r' else CAP_R)[r]
+        rows.append(cl + b + cr)
     if sag:      # the middle settles: the lit curve dips
         k = 2 + mid // 2
-        rows[0] = rows[0][:k] + '2' + rows[0][k + 1:k + 2] + '2' + rows[0][k + 2:]
-        rows[0] = rows[0][:length]
+        rows[0] = rows[0][:k - 1] + '22' + rows[0][k + 1:]
     if leak:     # a split seam with a trickle of sand
         k = 2 + mid // 3
         rows[3] = rows[3][:k] + 's' + rows[3][k + 1:]
@@ -126,10 +132,8 @@ def bag_wall(width, height, start=0, shift=0):
         top = height - BAG_H * (k + 1)
         while x < width:
             ln, fl = plan[i % len(plan)]
-            b = bag(ln, tied='t' in fl, sag='s' in fl, leak='l' in fl)
-            if 't' in fl and (i + k) % 2:          # this one is tied at its left end instead
-                b = [r[::-1] for r in bag(ln, tied=True)]
-                b = [('o' + r[1:]) if j in (0, 4) else r for j, r in enumerate(b)]
+            tie = ('l' if (i + k) % 2 else 'r') if 't' in fl else ''
+            b = bag(ln, tie=tie, sag='s' in fl, leak='l' in fl)
             for r in range(BAG_H):
                 y = top + r
                 if not 0 <= y < height:

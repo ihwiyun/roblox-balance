@@ -332,3 +332,64 @@ oCCDo....
 ....oooo.
 """, 2, 0, 'leg_up_reach'),
 }
+
+# ---------------------------------------------------------------- arms holding the rifle (F)
+# near (right) arm: elbow tucked down, forearm forward to the pistol grip; hand anchor = knuckles
+ARM_F.update({
+    'aim_n': P("""
+.oo....
+oWVo...
+oWVu...
+oWVu...
+oVVuoo.
+.oVVVuo
+..ooSLo
+....oso
+....oo.
+""", 2, 1, 'arm_aim_n'),
+    # far (left) arm: reaches forward to the handguard; hand under the handguard
+    'aim_f': P("""
+.oo...
+oWVo..
+oWVuo.
+.oWVuo
+..oVVuo
+...oVuo
+...oSLo
+...oSso
+....oo.
+""", 1, 1, 'arm_aim_f'),
+    # far arm going to the magazine / vest / charging handle (reload)
+    'rl_low': P("""
+.oo...
+oWVo..
+oWVuo.
+.oWVuo
+..oVVuo
+...oVVo
+...oLSo
+...osso
+....oo.
+""", 1, 1, 'arm_rl_low'),
+    # far hand at the vest pouch on the chest (pulling a fresh magazine)
+    'rl_vest': P("""
+.oo..
+oWVo.
+oWVuo
+oVVuo
+oVuo.
+oLSo.
+osso.
+.oo..
+""", 1, 1, 'arm_rl_vest'),
+    # far hand up at the charging handle (rear of the receiver, under the cheek)
+    'rl_handle': P("""
+.oo...
+oWVoo.
+oWVVuo
+.oVVuo
+..oLSo
+..osso
+...oo.
+""", 1, 1, 'arm_rl_handle'),
+})
