@@ -9,7 +9,7 @@ Run from this folder:  python3 turrets.py               -> writes ../art/turrets
 
 How a turret is made
 - A frame is 48x40 game pixels so the fire frame's flash, flame, frost, arcs and rockets fit; the turret itself is
-  drawn in a 32x32 box placed at (8, 7) and stands 20-27 px tall. The anchor (ax, ay) = (24, 35) is the middle
+  drawn in a 32x32 box placed at (8, 7) and stands 19-32 px tall (coils tallest). The anchor (ax, ay) = (24, 35) is the middle
   of the turret ring's foot, the point that stands on the bunker's mount (SITES.mounts in src/yard.js).
 - Two parts: the ring (one per grade, with a band in the UI grade colour; it never turns) and the head (one per
   turret; it turns). The head is drawn by hand looking down-right (se: +x in the world) and looking up-left (nw:
