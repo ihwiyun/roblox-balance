@@ -166,7 +166,6 @@ function burst(z, atFence) {
   const amount = zombieHit(G.wave) * 12;
   if (atFence) damageFence(sideOf(z.x, z.y), amount);
   else { G.hp -= amount; G.hurt = .5; }
-  say('부푼 놈이 터졌다!', true);
 }
 function breakFence() {
   G.fenceHp = 0; G.fenceDown = true;

@@ -1,7 +1,6 @@
 'use strict';
 // The simulation step and the per-frame drawing of both views.
 /* ================= the loop ================= */
-function say(text, alert) { G.statusT = 4; nodes.status.textContent = text; nodes.status.classList.toggle('alert', !!alert); }
 // bake the fence overlays of the current level ahead of time: one side and wear stage per frame
 function warmFence() {
   if (!G.fence || fenceCacheLevel === G.fence && fenceCache.size >= 20) return;
@@ -49,7 +48,7 @@ function update(dt) {
     const heal = free + fix;
     G.fenceHp += heal;
     for (let k = 0; k < 4; k++) G.sideDmg[k] = Math.max(0, G.sideDmg[k] - heal / 2);
-    if (G.fenceDown && G.fenceHp >= max * .4) { G.fenceDown = false; G.sideDmg = [0, 0, 0, 0]; G.sideStage = [0, 0, 0, 0]; composeYard(); say('울타리를 다시 세웠다'); sound('hammer'); }
+    if (G.fenceDown && G.fenceHp >= max * .4) { G.fenceDown = false; G.sideDmg = [0, 0, 0, 0]; G.sideStage = [0, 0, 0, 0]; composeYard(); sound('hammer'); }
     else if (!G.fenceDown) fenceStages();
   }
   // a boss wave starts with its boss
@@ -75,7 +74,6 @@ function update(dt) {
   updateParts(dt);
   for (const d of G.decals) d.life -= dt;
   G.decals = G.decals.filter(d => d.life > 0);
-  if (G.statusT > 0 && (G.statusT -= dt) <= 0) nodes.status.textContent = '';
   if ((G.saveIn -= dt) <= 0) { save(); G.saveIn = 5; }
   // the store rooms below show what you hold: rebuild them when a stack grows or shrinks
   // once a second, below ground: a pile that grew or shrank only lays its cached overlay again

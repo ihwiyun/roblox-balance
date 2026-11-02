@@ -49,8 +49,6 @@
   .fill { height: 100%; background: #6aa64a; width: 0; }
   #fenceFill { background: #a0784a; }
   .hurt .fill { background: #d0503c; }
-  #status { position: fixed; left: 0; right: 0; top: calc(var(--top) + 2px); text-align: center; pointer-events: none; color: var(--muted); padding: 0 12px; text-shadow: 0 0 3px #fff, 0 0 3px #fff, 0 0 3px #fff; z-index: 2; }
-  #status.alert { color: var(--bad); font-weight: 700; }
   /* below ground the hero's magazine does not matter */
   .under #ammo { display: none; }
   /* below ground the health box is smaller, so the bottom corner of the wider room stays clear of it */
@@ -80,7 +78,6 @@
   .wide #ammo { right: calc(var(--side) + 10px); bottom: 10px; }
   .wide #notes { right: var(--side); }
   /* below ground the band sits low, so the room stays in view */
-  .under #notes { top: auto; bottom: calc(var(--bottom) + 60px); }
 
   #bottom { position: fixed; left: 0; right: 0; bottom: 0; height: var(--bottom); border-top: 1px solid var(--ink); background: var(--paper); display: flex; flex-direction: column; padding-bottom: env(safe-area-inset-bottom); }
   #panel { flex: 1; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); align-content: start; }
@@ -124,7 +121,6 @@
   .wide #panel { grid-template-columns: 1fr; }
   .wide #stage { right: var(--side); bottom: 0; }
   .wide #hp { bottom: 10px; }
-  .wide #status { right: var(--side); }
 </style>
 </head>
 <body>
@@ -141,7 +137,6 @@
   </div>
 </div>
 <div id="stage"><canvas id="c" tabindex="0" aria-label="흰 바탕에 떠 있는 섬 한가운데 벙커. 섬 가장자리 너머에서 좀비가 몰려온다. 좀비를 누르면 직접 쏜다."></canvas></div>
-<div id="status" role="status" aria-live="polite"></div>
 <div id="notes" aria-live="polite"></div>
 <div id="ammo" aria-label="탄약"><span data-ico="bullet"></span><span class="n" id="ammoNum">0<small>/0</small></span><div class="bar"><i id="ammoBar"></i></div></div>
 <div id="hp">

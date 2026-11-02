@@ -26,7 +26,6 @@ renderPanel(true);
 refreshTop();
 addEventListener('resize', fitStage);
 fitStage();
-if (!nodes.status.textContent) say('섬 가장자리 너머에서 좀비가 몰려온다 · 좀비를 누르면 직접 쏜다');
 let last = performance.now(), hudIn = 0;
 // after the tab was hidden the time away is credited separately (state.js), so the loop starts fresh
 function resumeClock() { last = performance.now(); }

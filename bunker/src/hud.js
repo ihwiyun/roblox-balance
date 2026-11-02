@@ -42,7 +42,7 @@ function portraitOld(person, scale = 5) {
 }
 document.querySelectorAll('[data-ico]').forEach(el => el.prepend(iconCanvas(el.dataset.ico, el.classList.contains('tab') ? 1.5 : 1.25)));
 const nodes = {};
-for (const id of ['status', 'panel', 'bunkerFill', 'bunkerText', 'bunkerTrack', 'fenceFill', 'fenceText', 'waveLine', 'stage', 'speed', 'notes', 'ammo', 'ammoNum', 'ammoBar']) nodes[id] = document.getElementById(id);
+for (const id of ['panel', 'bunkerFill', 'bunkerText', 'bunkerTrack', 'fenceFill', 'fenceText', 'waveLine', 'stage', 'speed', 'notes', 'ammo', 'ammoNum', 'ammoBar']) nodes[id] = document.getElementById(id);
 // notifications: one band at a time, queued; kind is '' | 'good' | 'new' | 'danger'
 const noteQueue = [];
 let noteBusy = false;
@@ -210,28 +210,23 @@ function act(id) {
   if (kind === 'gun') {
     pay(c); G.lv[key]++;
     if (key === 'mag') for (const s of shooters()) if (!s.reload) s.ammo = gunStat('mag');
-    if (key === 'atk' && G.lv.atk % 4 === 0) say('무기 외형이 바뀌었다: ' + weaponLookName(G.lv.atk));
   } else if (kind === 'bunker') {
     pay(c); G.bunker++; G.hp = bunkerHp(G.bunker);
     if (isNewBunkerForm(G.bunker)) notify('새 건물 · ' + bunkerInfo().name, '벙커 Lv ' + G.bunker + ' · 체력 ' + fmt(bunkerHp(G.bunker)), 'good');
-    else say('벙커 Lv ' + G.bunker + ' · ' + bunkerAddName(G.bunker));
     { const before = yardPix.slice(); bakeYard(); flashDiff(before, yardPix, 'yard'); }
     resyncPosts(); palCache.clear(); if (G.view !== 'yard') setView('yard');
   } else if (kind === 'fence') {
     pay(c); G.fence++; G.fenceHp = fenceHp(G.fence); G.fenceDown = false; G.sideDmg = [0, 0, 0, 0]; G.sideStage = [0, 0, 0, 0];
     if (isNewFenceForm(G.fence)) notify('새 울타리 · ' + fenceInfo().name, '울타리 Lv ' + G.fence + ' · 체력 ' + fmt(fenceHp(G.fence)) + (fenceInfo().electric ? ' · 공격한 좀비 감전' : ''), 'good');
-    else say('울타리 Lv ' + G.fence + ' · ' + fenceAddName(G.fence));
     { const before = yardPix.slice(); composeYard(); flashDiff(before, yardPix, 'yard'); } // only the fence overlays change
     if (G.view !== 'yard') setView('yard');
   } else if (kind === 'live') {
     pay(c); G.live++;
-    say('생활층: ' + LIVE_ITEMS[G.live - 1] + (LIVE.beds.includes(G.live) ? ' · 고용할 수 있는 자리가 생겼다' : ''));
     markUnder(0, true); viewFloor(0);
   } else if (kind === 'farm' || kind === 'mine') {
     pay(c); G[kind]++;
     const tiers = kind === 'farm' ? FARM_TIERS : MINE_TIERS, floorName = kind === 'farm' ? '식량층' : '채굴층';
     if (G[kind] === 1 || facTier(G[kind]) !== facTier(G[kind] - 1)) notify(floorName + ' · ' + tiers[facTier(G[kind])], (kind === 'farm' ? '식량' : '광물') + ' 초당 ' + (kind === 'farm' ? FARM : MINE).rate(G[kind]).toFixed(1), 'good');
-    else say(floorName + ' Lv ' + G[kind] + ' · ' + (kind === 'farm' ? FARM_ITEMS : MINE_ITEMS)[G[kind] - 1]);
     markUnder(kind === 'farm' ? 1 : 2, true); viewFloor(kind === 'farm' ? 1 : 2);
   } else if (kind === 'hire') {
     const i = +key;
@@ -239,7 +234,6 @@ function act(id) {
     pay(c); G.crew[i] = makePerson(i);
     G.crew[i].state = 'toWork'; G.crew[i].path = route(G.crew[i], workSpot(G.crew[i]));
     resyncPosts(); // gunner posts follow slot order, so a new hire can move the others
-    say(NAMES[i] + ' 합류 · 직업을 고를 수 있다');
     markUnder(0); // a bed gets its blanket
   } else return;
   sound('buy');

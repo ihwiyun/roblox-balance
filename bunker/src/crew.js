@@ -78,7 +78,7 @@ function updatePeople(dt) {
     if (c.state === 'work') {
       c.fatigue += FATIGUE_WORK * (G.hungry ? 2 : 1) * dt;
       c.act += dt;
-      if (c.fatigue >= 100) { sendTo(c, bedSpot(c), 'toBed'); if (G.view === 'under' || c.job === '사수') say(c.name + ' 피곤해서 자러 간다'); }
+      if (c.fatigue >= 100) sendTo(c, bedSpot(c), 'toBed');
     } else if (c.state === 'sleep') {
       c.fatigue -= rest * dt;
       if (c.fatigue <= 0) { c.fatigue = 0; sendTo(c, workSpot(c), 'toWork'); }
