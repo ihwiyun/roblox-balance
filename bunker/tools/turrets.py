@@ -1293,8 +1293,8 @@ oCLiioo.....
 .......oohhi
 """)
 T[5, 1] = dict(
-    se=[['head', _plat0, 9, 18], ['head', _icecrys5, 11, 8], ['head', _ring5, 11, 9], ['head', _hose0_se, 16, 20], ['gun', _noz5_se, 17, 19]],
-    nw=[['gun', _noz5_nw, 3, 13], ['head', _plat0, 9, 18], ['head', _icecrys5, 14, 10], ['head', _ring5, 14, 11]],
+    se=[['head', _plat0, 9, 18], ['head', _icecrys5, 11, 11], ['head', _ring5, 11, 12], ['head', _hose0_se, 16, 20], ['gun', _noz5_se, 17, 19]],
+    nw=[['gun', _noz5_nw, 3, 13], ['head', _plat0, 9, 18], ['head', _icecrys5, 14, 12], ['head', _ring5, 14, 13]],
     muzzle={'se': (28, 26), 'nw': (3, 14)}, axis={'se': (2, 1), 'nw': (-2, -1)}, recoil={'se': (0, 0), 'nw': (0, 0)},
     fx='frost')
 
@@ -1380,8 +1380,8 @@ XXXoo........
 .......oohhii
 """)
 T[7, 1] = dict(
-    se=[['head', _plat0, 9, 18], ['head', _prism7, 9, 6], ['head', _hose0_se, 16, 20], ['gun', _noz7_se, 17, 19]],
-    nw=[['gun', _noz7_nw, 3, 13], ['head', _plat0, 9, 18], ['head', _prism7, 13, 8]],
+    se=[['head', _plat0, 9, 18], ['head', _prism7, 9, 9], ['head', _hose0_se, 16, 20], ['gun', _noz7_se, 17, 19]],
+    nw=[['gun', _noz7_nw, 3, 13], ['head', _plat0, 9, 18], ['head', _prism7, 13, 10]],
     muzzle={'se': (28, 26), 'nw': (3, 14)}, axis={'se': (2, 1), 'nw': (-2, -1)}, recoil={'se': (0, 0), 'nw': (0, 0)},
     fx='frost', fixed={'L': [255, 255, 255], 'C': [214, 236, 255], 'B': [200, 160, 255], 'N': [150, 110, 230]})
 
@@ -1810,8 +1810,8 @@ ohmmo
 .ooo.
 """)
 T[2, 3] = dict(
-    se=[['head', _plate0, 9, 20], ['head', _can2, 17, 19], ['gun', _tube0_se, 11, 10], ['head', _sightbox2, 10, 15], ['head', _legs0_se, 15, 18]],
-    nw=[['head', _legs0_nw, 9, 17], ['head', _plate0, 9, 20], ['head', _can2, 17, 19], ['gun', _tube0_nw, 9, 8], ['head', _sightbox2, 15, 15]],
+    se=[['head', _plate0, 9, 20], ['head', _bag0, 18, 20], ['gun', _tube0_se, 11, 10], ['head', _sightbox2, 10, 15], ['head', _legs0_se, 15, 18], ['head', _bag0, 9, 23]],
+    nw=[['head', _legs0_nw, 9, 17], ['head', _plate0, 9, 20], ['head', _bag0, 18, 20], ['gun', _tube0_nw, 9, 8], ['head', _sightbox2, 15, 15], ['head', _bag0, 9, 23]],
     muzzle={'se': (19, 11), 'nw': (14, 9)}, axis={'se': (1, -2), 'nw': (-1, -3)}, recoil={'se': (-1, 1), 'nw': (1, 1)},
     fx='blast', pal={'metal': (112, 124, 82), 'mat3': (118, 130, 84)})
 
@@ -1855,39 +1855,37 @@ T[4, 3] = dict(
 
 # mythic mortar: a gold ceremonial mortar with a flared bell mouth, ruby bands, on a gold plate
 _tube6_se = rows("""
-....oooooo
-...ojjjjio
-...oiKKKgo
-....ojhhgo
-....oihhgo
-...omnRnlo
-...oihhgo.
-..oihhgo..
-..omnRnlo.
-.oihhgo...
-.oihhhgo..
-oiihhhggo.
-.ooooooo..
+.....ooooooo
+....ojjjjjjio
+....oiKKKKKgo
+....ojhhhhhgo
+....oihhhhgo.
+...omnnRnnlo.
+...oihhhhgo..
+...oihhhhgo..
+..omnnRnnlo..
+..oihhhhhgo..
+..oiihhhhggo.
+...oooooooo..
 """)
 _tube6_nw = rows("""
-.oooooo...
-ojjjjiio..
-ojiihhggo.
-.oihhhgo..
-.oihhhgo..
-.omnRnlo..
-..oihhgo..
-..oihhgo..
-..omnRnlo.
-...oihhgo.
-...oihhhgo
-...oiihhhggo
-....ooooooo.
+.ooooooo.....
+ojiiiiiijo...
+ojhhhhhhgo...
+.oihhhhgo....
+.omnnRnnlo...
+..oihhhhgo...
+..oihhhhgo...
+..omnnRnnlo..
+...oihhhhgo..
+...oihhhhgo..
+...oiihhhhggo
+....ooooooooo
 """)
 T[6, 3] = dict(
-    se=[['head', _plate0, 9, 20], ['gun', _tube6_se, 12, 10], ['head', _bag0, 18, 20], ['head', _bag0, 9, 23]],
-    nw=[['head', _plate0, 9, 20], ['gun', _tube6_nw, 10, 8], ['head', _bag0, 18, 20], ['head', _bag0, 9, 23]],
-    muzzle={'se': (19, 10), 'nw': (14, 8)}, axis={'se': (1, -2), 'nw': (-1, -3)}, recoil={'se': (-1, 1), 'nw': (1, 1)},
+    se=[['head', _plate0, 9, 20], ['head', _bag0, 18, 20], ['gun', _tube6_se, 10, 11], ['head', _bag0, 9, 23]],
+    nw=[['head', _plate0, 9, 20], ['head', _bag0, 18, 20], ['gun', _tube6_nw, 9, 10], ['head', _bag0, 9, 23]],
+    muzzle={'se': (19, 12), 'nw': (13, 10)}, axis={'se': (1, -2), 'nw': (-1, -3)}, recoil={'se': (-1, 1), 'nw': (1, 1)},
     fx='blast', pal={'metal': (236, 194, 80), 'mat3': (236, 228, 206)},
     fixed={'S': [255, 246, 214], 'T': [236, 214, 160], 'F': [255, 252, 220], 'Y': [255, 230, 110], 'O': [255, 190, 50]})
 
