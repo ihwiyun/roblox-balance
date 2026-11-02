@@ -64,9 +64,12 @@ export function computeStats(st) {
 
   /* ---- turrets: fire like the base gun, scaled by role, step and enhancement ---- */
   const tGlob = cm.dmg * md.dmg * rs.dmg * cm.crew * md.crew * rs.turret * (1 + g('turretPct')) * (1 + ownedT) * (1 + codexT) * (rm.dmgMul ?? 1);
+  // turrets sit on the bunker's mounts under the roof's gun mounts (총좌): they grow with the bunker level like a gunner
+  // with its crew level, and take the roof multiplier. Without this they were ~1e-7 of the damage (a dead axis)
+  const tMount = (1 + T.base.turretPerLevel * st.bunker) * roofMul(st.sec.roof.lv, st.sec.roof.tier);
   let tBoss = 0, tCrowd = 0, tAoe = 0, burnT = 0, slowT = 0;
   for (const i of tIdx) {
-    const role = ROLE[TURRETS[i].role], d = baseFire * atk * role.coef * turretMul(i, st.turrets.enh[i]) * tGlob;
+    const role = ROLE[TURRETS[i].role], d = baseFire * atk * role.coef * turretMul(i, st.turrets.enh[i]) * tGlob * tMount;
     tBoss += d * role.boss; tCrowd += d * role.crowd;
     if (role.key === 'blast' || role.key === 'tesla') tAoe += d;
     if (TURRETS[i].element === 'fire') burnT = 0.5;
@@ -86,7 +89,9 @@ export function computeStats(st) {
 
   /* ---- production, upkeep, stores ---- */
   const prodAll = cm.prod * md.prod * rs.prod * (1 + g('prodAll'));
-  const out = (sec, res, own) => A[sec].reduce((a, id) => a + T.sections.perWorker[res] * levelMul(crew.cards[id].level) * (CARD[id].role === own ? 1 + g(res) : 1), 0)
+  // doc 8: a worker makes base x (1+0.1T)(1+0.04L) of its floor; the crew level (x(1+0.04l)) is the gunners' multiplier.
+  // (Workers used to take it too, which multiplied output ~20x by stage 1000 and made upkeep and the growth lock moot.)
+  const out = (sec, res, own) => A[sec].reduce((a, id) => a + T.sections.perWorker[res] * (CARD[id].role === own ? 1 + g(res) : 1), 0)
     * sectionMul(st.sec[sec].lv, st.sec[sec].tier) * prodAll;
   const food = out('food', 'food', 'farmer') * (1 + g('foodAll')), ore = out('mine', 'ore', 'miner') * (1 + g('oreAll'));
   const parts = out('shop', 'parts', 'mechanic') + ore * g('oreToParts');

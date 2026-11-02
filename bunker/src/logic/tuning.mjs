@@ -30,6 +30,7 @@ const DEFAULTS = {
     fenceHp: 240, fenceHpGrow: 1.12, fenceCost0: 30, fenceCostGrow: 1.135,
     roofSlotsAt: [1, 11, 31, 61, 91], roofSlotsBase: 1,     // doc: hero + 1 -> hero + 5 (2 -> 6 shooters)
     turretSlotsAt: [25, 50, 100, 200, 400, 700],            // doc
+    turretPerLevel: 0.04,                                   // turret damage x(1 + 0.04 x bunker level), like a gunner's crew level
     btEvery: 50, btPow: 1.6, eraEvery: 25,
     breakthroughStoreShare: 0.8,                            // doc: never above 80% of the store
     // materials of the breakthrough at level L (k = L/50) are coef * k^btPow. The coefficients carry the five
@@ -77,7 +78,8 @@ const DEFAULTS = {
     summonXpPerPull: 1, summonLevelPulls: 22,               // level L needs 22 (L-1)^2 pulls in total
     turretStepMul: 1.18, turretPullCost: 50,
   },
-  relics: { chestCost: 300, killsPerDrop: 2000, bossDrop: 0.05, titanDrop: 1, maxLevel: 10,
+  // 광맥 지도 pays 1 gem per 2,000 ore (doc) up to oreGemsPerDay a day: uncapped it grew with production (36k gems/h)
+  relics: { chestCost: 300, killsPerDrop: 2000, bossDrop: 0.05, titanDrop: 1, maxLevel: 10, oreGemsPerDay: 150,
     slotsAt: [20, 50, 100, 200, 400, 700, 1000, 2000] },   // doc
   economy: {
     offlineBaseH: 2, offlineBaseEff: 0.8, offlineMaxH: 12, offlineMaxEff: 1, offlineGold: 0, // doc: as the current game (production at 80%, no gold, 2 h)

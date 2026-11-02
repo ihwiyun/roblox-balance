@@ -128,7 +128,12 @@ function produce(st, S, dt, eff = 1, upkeep = true) {
   store(st, S, 'food', (S.prod.food - (upkeep ? S.upkeep * lowFood : 0)) * dt * eff);
   store(st, S, 'ore', S.prod.ore * dt * eff);
   store(st, S, 'parts', S.prod.parts * dt * eff);
-  st.gems += S.gemsPerOre * S.prod.ore * dt * eff;
+  if (S.gemsPerOre) {               // 광맥 지도: 1 gem per 2,000 ore, at most oreGemsPerDay a day
+    const day = Math.floor(st.t / 86400);
+    if (st.oreGemDay !== day) { st.oreGemDay = day; st.oreGems = 0; }
+    const g = Math.min(S.gemsPerOre * S.prod.ore * dt * eff, T.relics.oreGemsPerDay - st.oreGems);
+    if (g > 0) { st.gems += g; st.oreGems += g; }
+  }
 }
 function research(st, S, dt, active) {
   const slots = st.shop.owned.researchSlot ? 2 : 1, speed = S.researchSpeed * (active ? 1 + S.activeResearch : 1);

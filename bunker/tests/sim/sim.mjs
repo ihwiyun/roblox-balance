@@ -87,9 +87,20 @@ export function run(opts = {}) {
     if (gap > M.maxNoBuy) { M.maxNoBuy = gap; M.maxNoBuyAt = st.record; }
     M.lastBuy = st.active;
   };
+  // what the relics add, measured as the damage with and without them (most relic effects are crit, crowd and boss
+  // numbers that the plain multiplier list does not see)
+  const relicAxis = () => {
+    const S = L.stats(st), keep = st.relics.equipped;
+    st.relics.equipped = []; st.S = null;
+    const bare = L.stats(st);
+    st.relics.equipped = keep; st.S = null;
+    const r = Math.sqrt((S.dpsCrowd / bare.dpsCrowd) * (S.dps / bare.dps));
+    L.stats(st);
+    return r;
+  };
   const snapshot = () => {
-    const S = L.stats(st);
-    return { active: st.active / 3600, days: st.t / DAY, evacs: st.evacs, medals: st.medalsLife, axes: { ...S.axes }, dps: S.dps, cmd: st.cmd.level,
+    const S = L.stats(st), axes = { ...S.axes, relics: relicAxis() };
+    return { active: st.active / 3600, days: st.t / DAY, evacs: st.evacs, medals: st.medalsLife, axes, dps: S.dps, cmd: st.cmd.level,
       ws: { ...st.ws }, bunker: st.bunker, fence: st.fence, bestW: st.equipW[0] ?? 0, sec: JSON.parse(JSON.stringify(st.sec)), gems: st.gems };
   };
   st.ev = (type, data) => {
@@ -205,11 +216,9 @@ export function run(opts = {}) {
       const short = need[res] - st[res];
       const fillMin = short > 0 ? short / Math.max(1e-9, S.prod[res]) / 60 : 0;
       if (fillMin > 8 || S.prod[res] <= 0) {
-        // the cheapest production step for this resource: the floor's level, or a worker's level
-        const keys = [`sec:${sec}:lv`];
-        for (const id of st.crew.assign[sec] || []) keys.push('crew:' + id);
-        keys.sort((a, b) => goldOf(L.price(st, a)) - goldOf(L.price(st, b)));
-        for (const k of keys) { const c = L.price(st, k); if (c && !isBt(c) && goldOf(c) < 0.4 * st.gold && buy(k)) break; }
+        // the production step for this resource is the floor's level (doc 8: workers make base x tier x level)
+        const k = `sec:${sec}:lv`, c = L.price(st, k);
+        if (c && !isBt(c) && goldOf(c) < 0.4 * st.gold) buy(k);
       }
     }
     if (S.prod.food < S.upkeep * 1.3) { const c = L.price(st, 'sec:food:lv'); if (c && !isBt(c) && goldOf(c) < 0.6 * st.gold) buy('sec:food:lv'); }
