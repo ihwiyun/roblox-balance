@@ -39,10 +39,13 @@ export function capToStores(cost, caps) {
   return out;
 }
 const btK = k => k ** B().btPow;
+// bunker, fence and sections: k = L/50; coefficients in tuning (B().bt). Their gold part is added by the economy,
+// which knows the level's price (B().btGold x the next level's gold)
+const btOf = (coef, k, aux) => Object.fromEntries(Object.entries(coef).map(([r, v]) => [r === 'aux' ? aux : r, v * btK(k)]));
 export const BREAKTHROUGHS = {
-  bunker: k => ({ food: 80 * btK(k), ore: 50 * btK(k) }),
-  fence: k => ({ ore: 80 * btK(k), parts: 30 * btK(k) }),
-  section: (k, aux) => ({ [aux]: 60 * btK(k), parts: 15 * btK(k) }),
+  bunker: k => btOf(B().bt.bunker, k),
+  fence: k => btOf(B().bt.fence, k),
+  section: (k, aux) => btOf(B().bt.section, k, aux),
   crew: k => ({ food: T.crew.btFood * k * k, parts: T.crew.btParts * k * k }),          // doc: 60k^2, 15k^2
   gear: (k, grade) => ({ ore: 40 * k * k * (grade + 1), parts: 20 * k * k * (grade + 1) }),
 };
@@ -61,7 +64,7 @@ export const SECTIONS = {
 export const SECTION_KEYS = Object.keys(SECTIONS);
 export const STORE_OF = { food: 'food', ore: 'mine', parts: 'shop' };   // which section's capacity holds what
 export const sectionLevelGold = (key, L) => Math.ceil(SECTIONS[key].cost0 * T.sections.levelGrow ** L);
-export const sectionTierCost = (key, t) => ({ [SECTIONS[key].aux]: T.sections.tierCost * t * t }); // to reach tier t
+export const sectionTierCost = (key, t) => ({ [SECTIONS[key].aux]: T.sections.tierCost * t * t * T.sections.tierGrow ** (t - 1) }); // to reach tier t
 export const sectionCapCost = (key, C) => ({ gold: Math.ceil(T.sections.capCostGold0 * T.sections.capCostGoldGrow ** C),
   [SECTIONS[key].aux]: Math.ceil(T.sections.capCostAux * (C + 1) ** T.sections.capCostPow) });
 export const sectionMul = (L, t) => (1 + T.sections.tierPct * t) * (1 + T.sections.levelPct * L);

@@ -4,8 +4,8 @@
 // B1 living quarters, B2 food, B3 the mine, joined by one ladder shaft in the back corner. The view shows one floor
 // at a time, zoomed in: each floor is a square room from -R to R, as wide as the view allows, with the back walls
 // on its two far sides and the near sides cut away. People climb in and out through the shaft's openings in the
-// ceiling and the floor. Every floor has 40 levels and every level adds something you can see; the front corner of
-// each floor is its store, where what you hold piles up.
+// ceiling and the floor. A floor's look changes only at a breakthrough (every 50 levels): one part moves up a stage
+// (facLook in facilities.js); the front corner of each floor is its store, where what you hold piles up.
 const UG = { x0: -6, x1: 6, y0: -6, y1: 6, h: 2.5, slab: .8, gap: 0, R: 6 };
 // FLOOR_Z: where a floor is drawn (every floor at the same spot, since one is shown at a time);
 // LEVEL_Z: how deep it really is, which is what people climb (and what their z means)
@@ -15,7 +15,7 @@ const toFloorZ = (z, k) => z - LEVEL_Z[k] + FLOOR_Z[k];
 // room; people step off at (SHAFT.x, LADDER_Y), the foot of the ladder
 const SHAFT = { x: UG.x0 + .95, y: UG.y0 + .5 };
 let LADDER_Y = UG.y0 + 1.08;
-// the mine's pit: the windlass, then the drill, stand over it (loop.js animates the rope and the drill bit here)
+// the mine's pit: the windlass, then each drill, stand over it (loop.js animates the rope and the drill bit here)
 const PIT = { x: 0, y: 0, r: .62 };
 // places in a room: a from the left wall (x = -R), b from the back wall (y = -R); RL is the room's side
 const XA = a => UG.x0 + a, yb = b => UG.y0 + b, RL = () => UG.x1 - UG.x0;
@@ -58,15 +58,15 @@ function farmSpot(n) {
   const r = k % (rows.length - 1), [xa, xb, , b1] = rows[r], y = yb(Math.min(b1 + .3, (b1 + rows[r + 1][2]) / 2)), cx = XA(1.75);
   return { ...at, x: xa + .5 + (xb - xa - 1) * FARM_AT[k % 4], y, via: [{ x: cx, y: yb(1.9) }, { x: cx, y }] };
 }
-// miners take turns: the rock of the back wall, the rock of the left wall (the bays between its supports, MINE_BAYS,
-// stay bare rock with ore at every level), the back wall, the left wall, and the north rim of the pit. Every one of
-// them is a straight walk from the foot of the ladder
-const MINE_BAYS = [3.4, 5.4];
+// miners take turns at the rock: the back wall, a bay in the left wall (the bays between its supports, MINE_BAYS,
+// stay bare rock with ore in every era), the back wall, the other bay, the back wall again (MINE_FACE). The strips
+// along those two walls stay clear in every layout, so every post is a straight walk from the foot of the ladder and
+// nobody stands in a machine
+const MINE_BAYS = [3.4, 5.4], MINE_FACE = [3.45, 5.9, 8.4];
 function mineSpot(n) {
   const at = { where: 'ug', floor: 2, z: LEVEL_Z[2] }, k = n % 5;
-  if (k === 4) return { ...at, x: PIT.x, y: PIT.y - PIT.r - .53, yaw: Math.PI / 2, hit: { x: PIT.x, y: PIT.y - PIT.r, z: .1 } };
   if (k & 1) { const y = yb(MINE_BAYS[k >> 1]); return { ...at, x: XA(.75), y, yaw: Math.PI, hit: { x: UG.x0 + .1, y: y + .05, z: .9 } }; }
-  const x = XA(k ? 5.9 : 3.45);
+  const x = XA(MINE_FACE[k >> 1]);
   return { ...at, x, y: yb(.8), yaw: -Math.PI / 2, hit: { x: x + .05, y: UG.y0 + .1, z: .9 } };
 }
 const levelOf = k => [G.live, G.farm, G.mine][k];
@@ -228,10 +228,10 @@ function floorBox(k) {
   return [Math.max(0, Math.floor(a) - 6), Math.max(0, Math.floor(t) - 6), Math.min(W, Math.ceil(b) + 7), Math.min(H, Math.ceil(bt) + 7)];
 }
 function bakeFloor(k) {
-  const fz = FLOOR_Z[k], F = FLOORS[k], L = levelOf(k), { x0, x1, y0, y1, h, slab } = UG;
+  const fz = FLOOR_Z[k], F = FLOORS[k], L = levelOf(k), look = L ? facLook(['live', 'farm', 'mine'][k], L) : null, { x0, x1, y0, y1, h, slab } = UG;
   pix.fill(PAPER); zb.fill(-1e9); ground.fill(0); shadowMask.fill(0); emis.fill(0); EM = 0;
   LIGHTS[k] = []; AMB[k] = .62; HALOS.length = 0;
-  const paint = [livingPaint, farmPaint, minePaint][k](L, fz);
+  const paint = [livingPaint, farmPaint, minePaint][k](L, fz, look);
   const b = floorBox(k);
   // the floor surface: everything drawn so far is ground
   rowsZ(fz, x0, y0, x1, y1, paint.floor);
@@ -249,7 +249,7 @@ function bakeFloor(k) {
   rowsZ(fz + h, x0 - .35, y0, x0, y1, () => capC);
   rowsX(x1, y0 - .35, y0, fz - slab, fz + h, (y, z, ix, iy) => shade(cut(y + 5, z, ix, iy), .8));
   rowsY(y1, x0 - .35, x0, fz - slab, fz + h, cut);
-  [buildLiving, buildFarmFloor, buildMineFloor][k](fz, L);
+  [buildLiving, buildFarmFloor, buildMineFloor][k](fz, L, look);
   EM = 0;
   buildShaft(k);
   // light, contact shadows and cast shadows, only around this floor
@@ -444,6 +444,25 @@ function steelWall(a, z, ix, iy) {
   if (fa < .03 || fz < .05) return STEEL_SEAM;
   if ((Math.abs(fa - .08) < .025 || Math.abs(fa - .92) < .025) && Math.abs(fz - .5) < .08) return RIVET;
   return pick(R_STEELW, 2.2 + nz(a * 2, z * 3) * .7 + (fz > .85 ? .6 : 0), ix, iy, .4);
+}
+
+/* ================= how the floors grow: parts × stages ================= */
+// facLook (facilities.js) gives a floor's era and each part's stage and material grade; each floor lists its parts'
+// drawings by era and stage (LIVE_ART, FARM_ART, MINE_ART) and drawPart draws one part. A stage not drawn yet, or
+// any past the last drawn, shows the last drawing before it in the next material grade (bronze, silver, gold, ...):
+// a drawing takes its main colour through mat(colour, grade)
+const GRADE_C = [[176, 112, 64], [196, 204, 212], [236, 190, 64], [220, 228, 232], [150, 226, 250], [200, 52, 72], [56, 180, 110], [64, 104, 210], [150, 92, 206], [52, 46, 64]];
+const mat = (c, g) => g ? GRADE_C[(g - 1) % GRADE_C.length] : c;
+function drawPart(art, k, look, fz) {
+  const eras = art[k];
+  let e = look.era, s = look.step[k], g = look.grade[k];
+  for (;;) {
+    const f = eras[e] && eras[e][s];
+    if (f) return f(fz, g, look);
+    if (!e && !s) return;
+    g++;
+    if (s > 0) s--; else { e--; s = Math.max(0, (eras[e] || []).length - 1); }
+  }
 }
 
 /* ================= B1: the living floor ================= */
@@ -1267,19 +1286,23 @@ function buildFarmFloor(fz, L) {
 }
 
 /* ================= B3: the mine ================= */
-// plan: the miners work the rock of the back wall and of the bays in the left wall (see mineSpot), one more at the
-// rim of the pit in the middle; the strips along those walls and the line from the ladder to the pit stay clear.
-// Rails along the front edge, machines on the right and at the front, the ore store in the front corner. Five forms:
-// hand picks and a windlass, a timbered tunnel with rails and carts, the drill tower, the excavator and conveyor,
-// the big plant with its crusher.
-// the rails run along x near the front, from the left wall to the ore store; RAIL_B gives their two edges (b)
+// plan: the miners work the rock at the walls (see mineSpot): two bays in the left wall and three places on the
+// back wall, and the strips along those two walls stay clear, so every walk from the ladder is short and straight.
+// The machines stand in the middle (the drill over the pit) and on the right, the rails run along the front edge
+// into the ore store in the front corner. What stands where comes from each part's stage: MINE_ART at the end.
+// the rails run along x near the front, from the left wall to the ore store; railB gives their two edges (b)
 const railB = () => [RL() - 1.95, RL() - 1.65];
 const MINE_POSTS = [2.3, 3.72, 5.17, 6.62, 8.07, 9.52, 10.97];
 // the two rock pillars (centres, a and b): one against the left wall near the front, one on the right, out of the
 // way of every walk from the ladder and of the workers seen behind them
 const MINE_PILLARS = () => [[.45, RL() - 3.0], [RL() * .86, RL() * .28]];
 const R_ROCK = rampOf([112, 106, 102]), R_ROCKD = rampOf([86, 80, 80]), R_ORE = rampOf([84, 136, 210]), R_CRYS = rampOf([120, 220, 255]), R_SHOT = rampOf([150, 150, 146]), R_GRATE = rampOf([110, 116, 122]);
-const RUST = [128, 72, 50], YELLOW = [226, 178, 40], STEEL_B = [104, 112, 122];
+const RUST = [128, 72, 50], YELLOW = [226, 178, 40], STEEL_B = [104, 112, 122], OD = [94, 106, 70], OD_D = [72, 82, 56];
+const ORE_B = [70, 130, 220], ORE_L = [130, 190, 250];
+function oreChunk(x, y, z, s, seed, blue = true) {
+  fbox(x - s, y - s * .8, z, x + s, y + s * .8, z + s * 1.1, blue && hash(seed, 1) > .5 ? ORE_B : hash(seed, 1) > .4 ? [104, 100, 96] : [124, 118, 112], seed);
+  if (blue) { fbox(x - s * .55, y - s * .45, z + s * 1.1, x + s * .35, y + s * .45, z + s * 1.45, hash(seed, 2) > .5 ? ORE_L : ORE_B, seed + 1); pt(x - s * .2, y + s * .46, z + s * 1.3, rgb(230, 245, 255)); }
+}
 function rockFace(a, z, ix, iy, L) {
   const crack = nz(a * 2.2 + 5, z * 2.6);
   if (Math.abs(crack - .5) < .012) return R_ROCKD[0];
@@ -1293,41 +1316,63 @@ function rockFace(a, z, ix, iy, L) {
   const s = nz(a * .7 + 11, z * 3.4) * .7 + nz(a * 3, z * 5) * .3;
   return pick(s > .55 ? R_ROCK : R_ROCKD, 1.6 + s * 2, ix, iy, .45);
 }
-function minePaint(L, fz) {
-  const { x0, y0 } = UG, t = L ? facTier(L) : -1, st = RL() - STORE, pr = PIT.r;
+// how rich the veins in the rock show: each era digs into richer ore (crystal from the third)
+const veinOf = look => look ? [1, 16, 30, 40, 40][look.era] : 0;
+// the floor and walls: bare rock with the pit at first; from the military era a concrete floor with a walkway
+// line and a steel collar round the pit, the rock held by mesh and bolts
+function minePaint(L, fz, look) {
+  const { x0, y0 } = UG, st = RL() - STORE, pr = PIT.r, v = veinOf(look), e = look ? look.era : 0;
   return {
     floor(x, y, ix, iy) {
       const a = x - x0, b = y - y0;
       if (a > st && b > st) return a < st + .12 || b < st + .12 ? hazard(a, b) : pick(R_SHOT, 2.4 + nz(a * 2, b * 2) * .6, ix, iy, .4);
-      if (L) {
+      if (look) {
         const dx = Math.abs(x - PIT.x), dy = Math.abs(y - PIT.y);
         if (dx < pr && dy < pr) return dx > pr - .1 || dy > pr - .1 ? R_ROCKD[1] : rgb(16, 12, 16);
-        if (t >= 2 && dx < pr + .45 && dy < pr + .45) return dx > pr + .3 || dy > pr + .3 ? hazard(a, b) : pick(R_SHOT, 2.6, ix, iy, .3);
+        if (e && dx < pr + .45 && dy < pr + .45) return dx > pr + .3 || dy > pr + .3 ? hazard(a, b) : pick(R_SHOT, 2.6, ix, iy, .3);
       }
-      if (t >= 3) {
-        if (Math.abs(b - 1.5) < .035) return rgb(226, 186, 50);
-        if (t >= 4 && a > RL() * .42 + 1.1 && b > 1.7 && b < st - .3) { const ga = (a * 8) % 1, gb = (b * 8) % 1; return ga < .25 || gb < .25 ? rgb(60, 64, 70) : pick(R_GRATE, 2.8, ix, iy, .2); }
-        return pick(R_SHOT, 2.2 + nz(a * 1.4, b * 1.4) * .8, ix, iy, .5);
+      if (e) {
+        if (Math.abs(b - 1.5) < .035 || Math.abs(a - 1.5) < .035 && b > 1.5) return rgb(226, 186, 50);
+        return (a % 1.8) < .025 || (b % 1.8) < .025 ? R_SHOT[1] : pick(R_SHOT, 2.2 + nz(a * 1.4, b * 1.4) * .8, ix, iy, .5);
       }
       const h = hash(ix, iy);
       return pick(h > .92 ? R_ROCKD : R_ROCK, 1.7 + nz(a * 2, b * 2) * 1.4 + (h > .985 ? 1.4 : 0), ix, iy, .5);
     },
-    back(x, z, ix, iy) { const a = x - x0, zz = z - fz; if (!L) return earthWall(a, zz, ix, iy); return rockFace(a, zz, ix, iy, L); },
+    back(x, z, ix, iy) {
+      const a = x - x0, zz = z - fz;
+      if (!look) return earthWall(a, zz, ix, iy);
+      if (e && (((a + zz) % .25) < .025 || ((a - zz + 9) % .25) < .025)) return rgb(150, 156, 160);
+      return rockFace(a, zz, ix, iy, v);
+    },
     left(y, z, ix, iy) {
       const b = y - y0, zz = z - fz;
-      if (!L) return earthWall(b, zz, ix, iy);
-      // the miners' bays: bare rock with ore at every level, framed once the rest of the wall is meshed or sprayed
+      if (!look) return earthWall(b, zz, ix, iy);
+      // the miners' bays: bare rock with ore, framed once the rest of the wall is meshed
       const bay = MINE_BAYS.reduce((m, c) => Math.min(m, Math.abs(b - c)), 9);
-      if (bay < .75) return t >= 2 && bay > .7 ? R_ROCKD[0] : rockFace(b + 3.5, zz, ix, iy, L);
-      if (t >= 3) return ((b % .9) < .02 || (zz % .9) < .02) ? R_SHOT[1] : pick(R_SHOT, 2.2 + nz(b * 3, zz * 3) * .8, ix, iy, .5);
+      if (bay < .75) return e && bay > .7 ? R_ROCKD[0] : rockFace(b + 3.5, zz, ix, iy, v);
       const r = rockFace(b + 20, zz, ix, iy, 0);
-      if (t >= 2) { if (((b + zz) % .25) < .03 || ((b - zz + 9) % .25) < .03) return rgb(150, 156, 160); if ((b % .8) < .05 && (zz % .8) < .07) return rgb(200, 204, 208); }
+      if (e) { if (((b + zz) % .25) < .025 || ((b - zz + 9) % .25) < .025) return rgb(150, 156, 160); if ((b % .8) < .05 && (zz % .8) < .07) return rgb(200, 204, 208); }
       return r;
     },
     cap: R_ROCKD[2],
   };
 }
-// the windlass over the pit: two timber A-frames and the axle (loop.js lets the rope down from it)
+// white stencil digits (3x5 cells of cu along a face by cz up), e.g. a machine's number: stencil('07', u0, z0)(u, z)
+const DIGIT = ['111101101101111', '010110010010111', '111001111100111', '111001111001111', '101101111001001', '111100111001111', '111100111101111', '111001010010010', '111101111101111', '111101111001111'];
+const stencil = (n, u0, z0, cu = .09, cz = .075) => (u, z) => { const i = Math.floor((u - u0) / cu), r = 4 - Math.floor((z - z0) / cz), d = Math.floor(i / 4), c = i % 4; return r >= 0 && r <= 4 && i >= 0 && d < n.length && c < 3 && DIGIT[+n[d]][r * 3 + c] === '1'; };
+// a brace: a line two pixels thick
+function brace(a, b, c, d = [.07, 0, 0]) { ln(a, b, c); ln([a[0] + d[0], a[1] + d[1], a[2] + d[2]], [b[0] + d[0], b[1] + d[1], b[2] + d[2]], c); }
+// a hose or cable from a to b, sagging to the floor between them when it is long
+function hose(a, b, c, sag = .25) {
+  const n = 8;
+  for (let k = 0; k < n; k++) {
+    const t0 = k / n, t1 = (k + 1) / n, s = t => Math.sin(t * Math.PI) * sag;
+    ln([lerp(a[0], b[0], t0), lerp(a[1], b[1], t0), Math.max(FLOOR_Z[2] + .02, lerp(a[2], b[2], t0) - s(t0))], [lerp(a[0], b[0], t1), lerp(a[1], b[1], t1), Math.max(FLOOR_Z[2] + .02, lerp(a[2], b[2], t1) - s(t1))], c);
+  }
+}
+
+/* ---------- the drill, over the pit (loop.js spins its bit at PIT from the first breakthrough on) ---------- */
+// level 1: the windlass, two timber A-frames and the axle (loop.js lets the rope down from it)
 function windlass(fz) {
   const { x, y } = PIT, wd = WOOD;
   for (const s of [-1, 1]) {
@@ -1340,35 +1385,147 @@ function windlass(fz) {
   fbox(x - .2, y - .07, fz + 1.23, x + .2, y + .07, fz + 1.37, PLANKS, 602);
   fbox(x + .78, y - .04, fz + 1.12, x + .84, y + .04, fz + 1.34, METAL, 603); fbox(x + .78, y - .04, fz + 1.08, x + .84, y + .2, fz + 1.14, METAL, 604);
 }
-// the drill: a timber headframe first, then a steel tower; the bit spins in its middle (drawn by loop.js)
-function headframe(fz) {
-  const { x, y } = PIT, top = fz + 2.05;
-  for (const [dx, dy] of [[-.6, -.5], [.6, -.5], [-.6, .5], [.6, .5]]) { const a = [x + dx, y + dy, fz], b = [x + dx * .3, y + dy * .3, top]; for (let k = 0; k < 3; k++) ln([a[0] + k * .02, a[1], a[2]], [b[0] + k * .02, b[1], b[2]], k === 1 ? rampOf(WOOD)[3] : rgb(...WOOD_D)); }
-  for (const z of [.7, 1.4]) { const w = .6 - z * .21; fbox(x - w, y + w * .8, fz + z, x + w, y + w * .8 + .08, fz + z + .08, WOOD, 610); fbox(x + w, y - w * .8, fz + z, x + w + .08, y + w * .8, fz + z + .08, WOOD, 611); }
-  fbox(x - .26, y - .22, top, x + .26, y + .22, top + .12, WOOD_D, 612);
-  fbox(x - .14, y - .14, top + .12, x + .14, y + .14, top + .28, [96, 100, 108], 613);
-  fbox(x + .26, y - .03, top + .02, x + .5, y + .03, top + .08, METAL, 614); fbox(x + .46, y - .03, top - .12, x + .52, y + .03, top + .08, METAL, 615);
+// the drill motor that turns the bit: a body round the top of the spinning rod (wide enough to hide its end)
+function drillHead(x, y, z0, z1, c, seed, fins) {
+  fbox(x - .08, y - .08, z0 - .08, x + .08, y + .08, z0, DARK, seed);
+  sbox(x - .23, y - .23, z0, x + .23, y + .23, z1, c, seed + 1);
+  if (fins) onY(y + .23, x - .2, x + .2, z0 + .04, z1 - .04, (xx, z) => ((z - z0) % .07) < .025 ? shade(rgb(...c), .6) : 0);
+  onX(x + .23, y - .2, y + .2, z0 + .04, z1 - .04, (yy, z) => Math.abs(z - z1 + .08) < .02 ? shade(rgb(...c), .55) : 0);
 }
-function derrick(fz, t) {
-  const { x, y } = PIT, top = fz + 2.15, steel = rgb(160, 168, 176), dark = rgb(90, 96, 104);
-  const legs = [[-.68, -.6], [.68, -.6], [-.68, .6], [.68, .6]];
-  for (const [dx, dy] of legs) { ln([x + dx, y + dy, fz], [x + dx * .22, y + dy * .22, top], steel); ln([x + dx + .02, y + dy, fz], [x + dx * .22 + .02, y + dy * .22, top], dark); fbox(x + dx - .07, y + dy - .07, fz, x + dx + .07, y + dy + .07, fz + .1, [70, 74, 80], 620); }
-  for (let z = .35; z < 2.1; z += .42) {
-    const w = .68 - (z / 2.15) * .53, w2 = .68 - ((z + .42) / 2.15) * .53, wy = w * .88, wy2 = w2 * .88;
-    ln([x - w, y + wy, fz + z], [x + w, y + wy, fz + z], steel); ln([x + w, y - wy, fz + z], [x + w, y + wy, fz + z], steel);
-    if (z + .42 < 2.1) { ln([x - w, y + wy, fz + z], [x + w2, y + wy2, fz + z + .42], dark); ln([x + w, y - wy, fz + z], [x + w2, y + wy2, fz + z + .42], dark); }
+// breakthrough: a timber frame over the pit with a jackhammer on a chain, fed by a little air compressor
+function jackFrame(fz, g) {
+  const { x, y } = PIT, wd = mat(WOOD, g), top = fz + 2.42;
+  for (const [dx, dy] of [[-.62, -.55], [.62, -.55], [-.62, .55], [.62, .55]]) fbox(x + dx - .07, y + dy - .07, fz, x + dx + .07, y + dy + .07, top, wd, 1100);
+  // beams on top, the middle one carrying the drill; ties at knee height on the two sides seen
+  for (const yy of [y - .55, y, y + .55]) fbox(x - .7, yy - .06, top - .12, x + .7, yy + .06, top, wd, 1101);
+  fbox(x + .56, y - .62, fz + .8, x + .68, y + .62, fz + .92, wd, 1102); fbox(x - .62, y + .49, fz + .8, x + .62, y + .61, fz + .92, wd, 1103);
+  brace([x + .69, y + .48, fz + .12], [x + .69, y - .48, fz + .8], shade(rgb(...wd), .8), [0, 0, .05]);
+  brace([x + .69, y - .48, fz + .93], [x + .69, y + .48, top - .14], shade(rgb(...wd), .8), [0, 0, .05]);
+  for (const [dx, dy, z] of [[.62, .55, .86], [-.62, .55, .86], [.62, -.55, .86], [.62, .55, top - fz - .06]]) fbox(x + dx - .09, y + dy - .09, fz + z - .05, x + dx + .09, y + dy + .09, fz + z + .05, DARK, 1104);
+  // the jackhammer: chain, body (red cap, handles), the chuck; its steel is the spinning rod
+  for (let z = fz + 2.2; z < top - .12; z += .05) pt(x, y, z, rgb(150, 150, 156));
+  drillHead(x, y, fz + 1.86, fz + 2.2, [150, 156, 164], 1105, true);
+  sbox(x - .2, y - .2, fz + 2.2, x + .2, y + .2, fz + 2.26, [190, 60, 44], 1107);
+  for (const s of [-1, 1]) fbox(x - .04, y + s * .23, fz + 2.06, x + .04, y + s * .36, fz + 2.1, DARK, 1108);
+  // the compressor: a red tank on a skid with its little engine, the hose to the drill
+  const cx = x + 1.05, cy = y + .18;
+  fbox(cx, cy, fz, cx + .8, cy + .42, fz + .08, WOOD_D, 1110);
+  sbox(cx + .04, cy + .04, fz + .08, cx + .76, cy + .38, fz + .4, [184, 62, 48], 1111);
+  for (const xx of [cx + .1, cx + .66]) onY(cy + .38, xx - .015, xx + .015, fz + .1, fz + .38, rgb(120, 40, 32));
+  sbox(cx + .44, cy + .08, fz + .4, cx + .72, cy + .34, fz + .62, [70, 72, 78], 1112);
+  onY(cy + .34, cx + .47, cx + .69, fz + .44, fz + .58, (xx, z) => ((z - fz) % .05) < .02 ? rgb(40, 40, 44) : 0);
+  sbox(cx + .12, cy + .12, fz + .4, cx + .26, cy + .26, fz + .46, [210, 214, 220], 1113);
+  pt(cx + .19, cy + .27, fz + .44, rgb(30, 30, 34));
+  hose([x + .23, y + .1, fz + 2.0], [cx + .1, cy + .2, fz + .3], rgb(36, 34, 38), .9);
+  footShadow(x - .7, y - .62, x + .7, y + .62, 1.2); footShadow(cx, cy, cx + .8, cy + .42, .5);
+}
+// breakthrough: a welded steel tower with an electric motor on top, a switch box on a post wired to the wall
+function steelTower(fz, g) {
+  const { x, y } = PIT, st = mat([132, 140, 150], g), top = fz + 2.44, w = .6, d = .55;
+  for (const [dx, dy] of [[-w, -d], [w, -d], [-w, d], [w, d]]) fbox(x + dx - .05, y + dy - .05, fz, x + dx + .05, y + dy + .05, top, st, 1120);
+  for (const z of [.12, .92, 1.72]) { fbox(x - w, y + d - .03, fz + z, x + w, y + d + .03, fz + z + .05, st, 1121); fbox(x + w - .03, y - d, fz + z, x + w + .03, y + d, fz + z + .05, st, 1122); fbox(x - w, y - d - .03, fz + z, x + w, y - d + .03, fz + z + .05, st, 1123); }
+  const dk = shade(rgb(...st), .62);
+  for (const [z0, z1] of [[.17, .92], [.97, 1.72]]) {
+    brace([x - w + .05, y + d + .04, fz + z0], [x + w - .05, y + d + .04, fz + z1], dk, [0, 0, .04]); brace([x - w + .05, y + d + .04, fz + z1], [x + w - .05, y + d + .04, fz + z0], dk, [0, 0, .04]);
+    brace([x + w + .04, y - d + .05, fz + z0], [x + w + .04, y + d - .05, fz + z1], dk, [0, 0, .04]); brace([x + w + .04, y - d + .05, fz + z1], [x + w + .04, y + d - .05, fz + z0], dk, [0, 0, .04]);
   }
-  fbox(x - .22, y - .2, top - .04, x + .22, y + .2, top + .06, [70, 74, 80], 621);
-  fbox(x - .18, y - .16, top + .06, x + .18, y + .16, top + .26, t >= 3 ? YELLOW : [200, 70, 50], 622);
-  onY(y + .16, x - .14, x + .14, top + .1, top + .22, (xx, z) => (Math.floor((xx - x) * 40) & 1) ? rgb(60, 60, 66) : 0);
-  if (t >= 3) { ln([x + .18, y, top + .1], [x + .9, y + .5, fz + .4], rgb(40, 40, 46)); ln([x + .18, y + .04, top + .1], [x + .92, y + .54, fz + .4], rgb(200, 60, 40)); }
+  // the deck, the motor hung under it (cooling fins, a yellow plate), a guard round the pit
+  fbox(x - w - .06, y - d - .06, top - .08, x + w + .06, y + d + .06, top, [96, 102, 110], 1124, .5);
+  drillHead(x, y, fz + 1.84, top - .08, [62, 112, 96], 1125, true);
+  onX(x + .232, y - .08, y + .08, fz + 2.12, fz + 2.24, rgb(232, 190, 50));
+  for (const [x0, y0, x1, y1] of [[x - .74, y - .74, x + .74, y - .66], [x - .74, y + .66, x + .74, y + .74], [x - .74, y - .66, x - .66, y + .66], [x + .66, y - .66, x + .74, y + .66]])
+    fbox(x0, y0, fz, x1, y1, fz + .06, YELLOW, 1126, .4);
+  onZ(fz + .06, x - .74, y + .66, x + .74, y + .74, (xx, yy) => hazard(xx, yy));
+  // the switch box on its post, a cable up the tower and one along the floor to the back wall
+  const bx = x + 1.0, by = y + .62;
+  fbox(bx - .03, by - .03, fz, bx + .03, by + .03, fz + 1.0, DARK, 1127);
+  sbox(bx - .16, by - .1, fz + .9, bx + .16, by + .1, fz + 1.28, [110, 118, 124], 1128);
+  onY(by + .1, bx - .13, bx + .13, fz + .93, fz + 1.25, (xx, z) => Math.abs(z - fz - 1.15) < .04 && Math.abs(xx - bx + .06) < .04 ? lit(rgb(110, 255, 120)) : Math.abs(z - fz - 1.15) < .04 && Math.abs(xx - bx - .06) < .04 ? lit(rgb(255, 80, 60)) : Math.abs(z - fz - 1.0) < .02 ? rgb(60, 64, 70) : 0);
+  ln([x + w, y + d, top - .3], [x + w, y + d, fz + .02], rgb(30, 30, 34)); ln([x + w, y + d, fz + .02], [bx, by, fz + .02], rgb(30, 30, 34));
+  ln([bx, by - .1, fz + .02], [bx, yb(.25), fz + .02], rgb(30, 30, 34)); ln([bx, yb(.25), fz + .02], [bx, UG.y0 + .02, fz + 1.0], rgb(30, 30, 34));
+  sbox(bx - .14, UG.y0, fz + 1.0, bx + .14, UG.y0 + .1, fz + 1.3, [110, 118, 124], 1129);
+  footShadow(x - .74, y - .74, x + .74, y + .74, 1.4);
 }
-function rails(fz, x0, x1) {
+// military era: a core drill on tracks, its mast over the pit, the engine and the cab behind it
+function coreRig(fz, g) {
+  const { x, y } = PIT, body = mat(OD, g), top = fz + 2.44;
+  // the tracks
+  for (const [ya, yz] of [[y - .82, y - .5], [y + .5, y + .82]]) {
+    sbox(x + .1, ya, fz, x + 2.7, yz, fz + .34, [58, 60, 64], 1200);
+    onY(yz, x + .12, x + 2.68, fz + .02, fz + .32, (xx, z) => ((xx - x) % .12) < .03 ? rgb(34, 34, 38) : Math.abs(z - fz - .17) < .1 && (Math.abs(xx - x - .35) < .12 || Math.abs(xx - x - 2.45) < .12) ? rgb(96, 100, 106) : 0);
+  }
+  // the hull: louvres, a number, hazard stripes on the nose
+  const num = stencil('07', .75, .58);
+  sbox(x + .3, y - .62, fz + .34, x + 2.6, y + .62, fz + 1.02, body, 1201);
+  onY(y + .62, x + .32, x + 2.58, fz + .36, fz + 1.0, (xx, z) => {
+    const u = xx - x, zz = z - fz;
+    if (u < .52) return (Math.floor((u + zz) * 6) & 1) ? HZ_Y : HZ_K;
+    if (u > 1.7 && u < 2.45 && zz > .52 && zz < .9) return ((zz - .52) % .08) < .035 ? rgb(40, 44, 34) : 0;
+    return num(u, zz) ? rgb(226, 222, 200) : 0;
+  });
+  onX(x + 2.6, y - .6, y + .6, fz + .36, fz + 1.0, (yy, z) => ((z - fz) % .1) < .03 && Math.abs(yy - y) < .4 ? rgb(46, 52, 36) : 0);
+  // the engine deck and its stack; the cab with its windows
+  sbox(x + 1.7, y - .5, fz + 1.02, x + 2.55, y + .45, fz + 1.3, OD_D, 1202);
+  fbox(x + 2.3, y - .32, fz + 1.3, x + 2.4, y - .22, fz + 2.0, [50, 50, 54], 1203); fbox(x + 2.27, y - .35, fz + 2.0, x + 2.43, y - .19, fz + 2.04, [50, 50, 54], 1204);
+  sbox(x + .95, y - .58, fz + 1.02, x + 1.6, y + .3, fz + 1.8, body, 1205);
+  fbox(x + .92, y - .61, fz + 1.8, x + 1.63, y + .33, fz + 1.86, OD_D, 1206);
+  onY(y + .3, x + 1.0, x + 1.55, fz + 1.3, fz + 1.72, (xx, z) => Math.abs(xx - x - 1.27) < .02 ? rgb(46, 50, 38) : lit(rgb(150, 186, 196)));
+  onX(x + 1.6, y - .5, y + .22, fz + 1.3, fz + 1.72, (yy, z) => Math.abs(yy - y + .14) < .02 ? rgb(46, 50, 38) : rgb(118, 150, 164));
+  // the mast: four corner posts laced together, struts back to the hull, the rotary head on top
+  const mw = .24, md = .22, ms = mat([214, 170, 46], g);
+  fbox(x - .34, y - .34, fz + .3, x + .36, y + .34, fz + .42, OD_D, 1207);
+  for (const [dx, dy] of [[-mw, -md], [mw, -md], [-mw, md], [mw, md]]) fbox(x + dx - .04, y + dy - .04, fz + .42, x + dx + .04, y + dy + .04, top, ms, 1208);
+  for (let z = .42; z < 2.3; z += .38) {
+    fbox(x - mw, y + md - .02, fz + z, x + mw, y + md + .02, fz + z + .04, ms, 1209); fbox(x + mw - .02, y - md, fz + z, x + mw + .02, y + md, fz + z + .04, ms, 1210);
+    if (z + .38 < 2.3) { ln([x - mw, y + md + .03, fz + z + .04], [x + mw, y + md + .03, fz + z + .38], rgb(150, 116, 30)); ln([x + mw + .03, y - md, fz + z + .04], [x + mw + .03, y + md, fz + z + .38], rgb(150, 116, 30)); }
+  }
+  for (const s of [-1, 1]) brace([x + 1.0, y + s * .4, fz + 1.02], [x + mw, y + s * md, fz + 1.9], rgb(...OD_D), [0, 0, .05]);
+  drillHead(x, y, fz + 1.9, fz + 2.3, [70, 74, 80], 1211, false);
+  sbox(x - .15, y - .15, fz + 2.3, x + .15, y + .15, top + .02, [190, 60, 44], 1212);
+  hose([x + .95, y + .2, fz + 1.4], [x + .23, y + .23, fz + 2.1], rgb(30, 30, 34), .35); hose([x + .95, y + .05, fz + 1.5], [x + .23, y + .08, fz + 2.2], rgb(30, 30, 34), .3);
+  // a work light on the mast
+  EM = 1; fbox(x + mw + .02, y + md - .1, fz + 1.62, x + mw + .1, y + md + .02, fz + 1.74, [255, 240, 200], 1213); EM = 0;
+  lamp(2, x + .8, y + 1.0, fz, 2.6, 1.8, WHITE_T);
+  footShadow(x - .34, y - .82, x + 2.7, y + .82, 1.2);
+}
+
+/* ---------- getting the ore out ---------- */
+// level 1: the rubble of the digging lies where it fell; each step of the haulage clears some of it away
+function mineRubble(fz, keep) {
+  const RLx = RL();
+  for (const [ra, rb, k] of [[RLx * .5, RLx * .8, 0], [RLx * .2, RLx * .5, 1], [RLx * .62, RLx * .63, 2], [RLx * .55, RLx * .18, 3], [RLx * .86, RLx * .55, 4], [RLx * .12, RLx * .84, 5]]) {
+    if (!keep.includes(k)) continue;
+    const cx = XA(ra), cy = yb(rb);
+    fbox(cx - .5, cy - .4, fz, cx + .5, cy + .4, fz + .16, [128, 122, 116], 1049 + k);
+    for (let j = 0; j < 9; j++) { const a = hash(j, k) * 6.28, d = hash(k, j) * .42, x = cx + Math.cos(a) * d, y = cy + Math.sin(a) * d * .8, r = .12 + hash(j + k, 3) * .13; fbox(x - r, y - r * .8, fz + .1, x + r, y + r * .8, fz + .1 + r * (1.6 - d * 1.5), hash(j, k * 3) > .75 ? ORE_B : [136 - j * 3, 130 - j * 3, 122 - j * 2], 1050 + j + k * 9); }
+  }
+}
+// a wheelbarrow (pointing +x, the wheel in front), heaped with ore or empty
+function barrow(x, y, fz, ore, seed, g) {
+  const tray = mat(RUST, g);
+  for (const s of [-1, 1]) { fbox(x - .9, y + s * .19 - .025, fz + .34, x - .2, y + s * .19 + .025, fz + .39, WOOD, seed); fbox(x - .3, y + s * .17 - .025, fz, x - .25, y + s * .17 + .025, fz + .34, WOOD_D, seed + 1); }
+  fbox(x - .34, y - .23, fz + .22, x + .28, y + .23, fz + .5, tray, seed + 2);
+  onY(y + .23, x - .34, x + .28, fz + .22, fz + .5, (xx, z) => Math.abs(z - fz - .47) < .025 ? shade(rgb(...tray), 1.25) : xx < x - .3 + (z - fz - .22) * .3 ? rgb(60, 40, 32) : 0);
+  onZ(fz + .5, x - .3, y - .19, x + .24, y + .19, rgb(52, 34, 28));
+  onY(y + .02, x + .2, x + .46, fz, fz + .26, (xx, z) => { const r = Math.hypot(xx - x - .33, z - fz - .13); return r < .13 ? (r > .085 ? rgb(40, 40, 44) : r < .03 ? rgb(170, 170, 176) : rgb(120, 96, 66)) : 0; });
+  if (ore) for (let k = 0; k < 6; k++) oreChunk(x - .2 + (k % 3) * .17, y - .1 + (k > 2) * .18, fz + .48 + (k === 1 ? .06 : 0), .07, seed + 5 + k);
+  footShadow(x - .4, y - .23, x + .4, y + .23, .5);
+}
+// breakthrough: wheelbarrows, and a runway of planks along the front where the rails will be laid
+function barrows(fz, g) {
+  mineRubble(fz, [1, 2, 3]);
+  const [b0, b1] = railB(), y0 = yb(b0) - .05, y1 = yb(b1) + .05, xa = XA(.9), xb = XA(RL() - STORE + .2);
+  for (const [ya, yz] of [[y0, y0 + .16], [y1 - .16, y1]]) { fbox(xa, ya, fz, xb, yz, fz + .04, PLANKS, 1130, 1.6); onZ(fz + .04, xa, ya, xb, yz, x => ((x - xa) % 1.4) < .03 ? R_WOOD[1] : 0); }
+  barrow(XA(RL() - STORE - 1.3), (y0 + y1) / 2, fz + .04, true, 1131, g);
+  barrow(XA(2.6), yb(RL() * .5) + .75, fz, false, 1140, g);
+}
+// the rails: sleepers and two steel rails along the front edge
+function rails(fz, x0, x1, sleeper = WOOD_D) {
   const [b0, b1] = railB(), y0 = yb(b0), y1 = yb(b1);
-  for (let x = x0 + .1; x < x1; x += .3) fbox(x, y0 - .06, fz, x + .14, y1 + .06, fz + .05, WOOD_D, 630);
+  for (let x = x0 + .1; x < x1; x += .3) fbox(x, y0 - .06, fz, x + .14, y1 + .06, fz + .05, sleeper, 630);
   for (const y of [y0 + .02, y1 - .06]) fbox(x0, y, fz + .05, x1, y + .04, fz + .1, [150, 156, 164], 631, .4);
 }
-// a mine cart on the rails: a rusty tub on four wheels, heaped with ore
+// a mine cart on the rails: a tub on four wheels, heaped with ore
 function cart(x, fz, ore = 1, c = RUST, seed = 640) {
   const y0 = yb(railB()[0]) - .06, y1 = yb(railB()[1]) + .06, w = .46;
   for (const [dx, y] of [[-w + .08, y0], [w - .2, y0], [-w + .08, y1 - .08], [w - .2, y1 - .08]]) fbox(x + dx, y, fz + .06, x + dx + .12, y + .08, fz + .2, DARK, seed);
@@ -1378,102 +1535,202 @@ function cart(x, fz, ore = 1, c = RUST, seed = 640) {
   for (let k = 0; k < Math.round(ore * 9); k++) { const ox = x - w + .08 + (k % 4) * .2 + hash(k, seed) * .05, oy = y0 + .06 + (k >> 2) % 2 * .18, oz = fz + .58 + (k >= 8 ? .1 : 0); fbox(ox, oy, oz, ox + .15, oy + .15, oz + .08 + hash(seed, k) * .1, hash(k, 3) > .3 ? ORE_L : STONE_W, seed + 5 + k); }
   footShadow(x - w, y0, x + w, y1, .56);
 }
-const ORE_B = [70, 130, 220], ORE_L = [130, 190, 250];
-function oreChunk(x, y, z, s, seed, blue = true) {
-  fbox(x - s, y - s * .8, z, x + s, y + s * .8, z + s * 1.1, blue && hash(seed, 1) > .5 ? ORE_B : hash(seed, 1) > .4 ? [104, 100, 96] : [124, 118, 112], seed);
-  if (blue) { fbox(x - s * .55, y - s * .45, z + s * 1.1, x + s * .35, y + s * .45, z + s * 1.45, hash(seed, 2) > .5 ? ORE_L : ORE_B, seed + 1); pt(x - s * .2, y + s * .46, z + s * 1.3, rgb(230, 245, 255)); }
+// breakthrough: timber rails along the front into the store, and a cart; the last heap of rubble by the bays
+function woodRails(fz, g) { mineRubble(fz, [1]); rails(fz, XA(.8), XA(RL() - STORE + .3)); cart(XA(RL() - STORE - 1.6), fz, .8, mat(RUST, g)); }
+// military era: steel rails on steel sleepers, a buffer stop, two steel carts
+function steelRails(fz, g) {
+  const st = RL() - STORE, [b0, b1] = railB();
+  rails(fz, XA(.8), XA(st + .3), [70, 74, 80]);
+  const bx = XA(.8), y0 = yb(b0) - .1, y1 = yb(b1) + .1;
+  sbox(bx, y0, fz, bx + .16, y1, fz + .42, [60, 62, 66], 1150);
+  onY(y1, bx, bx + .16, fz + .2, fz + .4, (xx, z) => hazard(xx * 3, z * 3));
+  onX(bx + .16, y0, y1, fz + .2, fz + .4, (yy, z) => hazard(yy * 2, z * 2));
+  cart(XA(st - 1.4), fz, 1, mat([92, 100, 108], g), 1151);
+  cart(XA(st - 2.5), fz, .7, mat(OD, g), 1171);
 }
-function supports(fz, steel, xs) {
-  const c = steel ? STEEL_B : WOOD, y0 = UG.y0;
+
+/* ---------- the roof held up ---------- */
+// level 1: two pillars of rock left standing; then cased in timber, then banded in steel
+function minePillars(fz, look, band) {
+  for (const [pa, pb] of MINE_PILLARS()) {
+    const x0 = XA(pa - .45), y0 = yb(pb - .45), x1 = x0 + .9, y1 = y0 + .9, v = veinOf(look);
+    fbox(x0, y0, fz, x1, y1, fz + UG.h, [104, 98, 94], 1040 + pa);
+    onY(y1, x0, x1, fz, fz + UG.h, (x, z, ix, iy) => rockFace(x - x0 + pa * 3, z - fz, ix, iy, v));
+    onX(x1, y0, y1, fz, fz + UG.h, (y, z, ix, iy) => shade(rockFace(y - y0 + pb * 5, z - fz, ix, iy, v), .78));
+    if (band) band(x0, y0, x1, y1);
+    footShadow(x0, y0, x1, y1, 2.4);
+  }
+}
+// posts along the back and the left wall with a cap beam over them
+function supports(fz, steel, xs, g) {
+  const c = mat(steel ? STEEL_B : WOOD, g), y0 = UG.y0;
   for (const a of xs) { if (a > RL() - .3) continue; const x = XA(a); fbox(x - .08, y0 + .02, fz, x + .08, y0 + .18, fz + UG.h - .14, c, 650); if (steel) onY(y0 + .18, x - .05, x + .05, fz, fz + UG.h - .14, (xx) => Math.abs(xx - x) < .015 ? rgb(70, 76, 84) : 0); }
   fbox(XA(1.95), y0 + .02, fz + UG.h - .14, UG.x1 - .1, y0 + .2, fz + UG.h - .02, c, 651);
-  // and along the left wall
   for (let b = 2.4; b < RL() - .4; b += 2) if (Math.abs(b - MINE_PILLARS()[0][1]) > .6) fbox(UG.x0 + .02, yb(b) - .08, fz, UG.x0 + .18, yb(b) + .08, fz + UG.h - .14, c, 652);
   fbox(UG.x0 + .02, yb(1.1), fz + UG.h - .14, UG.x0 + .2, UG.y1 - .1, fz + UG.h - .02, c, 653);
 }
-function buildMineFloor(fz, L) {
-  const t = L ? facTier(L) : 0, has = n => L >= n, inT = n => L >= n && facTier(n) === t, { x, y } = PIT;
-  const RLx = RL(), px = PIT.x, py = PIT.y, [rb0, rb1] = railB(), st = RLx - STORE;
+const timbering = (fz, g, look) => {
+  supports(fz, false, MINE_POSTS, g);
+  minePillars(fz, look, (x0, y0, x1, y1) => {
+    for (const z of [.15, 2.2]) fbox(x0 - .04, y0 - .04, fz + z, x1 + .04, y1 + .04, fz + z + .2, mat(WOOD, g), 1045);
+    for (const [x, y] of [[x0 - .06, y1 - .02], [x1 - .08, y1 - .02], [x1 - .02, y0 + .1]]) fbox(x, y, fz, x + .1, y + .08, fz + 2.4, mat(WOOD, g), 1046);
+  });
+};
+const steelArches = (fz, g, look) => {
+  supports(fz, true, MINE_POSTS, g);
+  minePillars(fz, look, (x0, y0, x1, y1) => { for (const z of [.3, 1.1, 1.9]) fbox(x0 - .04, y0 - .04, fz + z, x1 + .04, y1 + .04, fz + z + .12, mat(STEEL_B, g), 1045); });
+};
+
+/* ---------- light ---------- */
+// level 1: a lantern on a plank by the pit
+function mineLantern(fz) {
+  const { x, y } = PIT;
+  AMB[2] = .6; lamp(2, x, y - .8, fz, 3, 2, FIRE_T);
+  fbox(x - 1.2, y - .3, fz, x - .9, y, fz + .26, PLANK, 660); EM = 1; fbox(x - 1.12, y - .22, fz + .26, x - .98, y - .08, fz + .42, [255, 200, 110], 661); EM = 0;
+}
+// breakthrough: brass carbide lamps on the rock of both walls
+function carbideLamps(fz, g) {
+  const RLx = RL(), brass = mat([176, 140, 70], g);
+  AMB[2] = .62;
+  for (const [a, b] of [[3.0, 1.3], [6.0, 1.3], [9.2, 1.3], [1.3, 4.4], [1.3, 6.6]]) lamp(2, XA(a), yb(b), fz, 3.8, 2.5, FIRE_T);
+  for (const a of [3.0, 6.0, 9.2]) { const lx = XA(a); fbox(lx - .06, UG.y0, fz + 1.7, lx + .06, UG.y0 + .16, fz + 1.86, brass, 680); EM = 1; fbox(lx - .03, UG.y0 + .1, fz + 1.86, lx + .03, UG.y0 + .16, fz + 1.96, [255, 220, 120], 681); EM = 0; halo(lx, UG.y0, fz + 1.88, .4, .35); }
+  for (const b of [4.4, 6.6]) { const ly = yb(b), x0 = UG.x0; fbox(x0, ly - .06, fz + 1.7, x0 + .16, ly + .06, fz + 1.86, brass, 682); EM = 1; fbox(x0 + .1, ly - .03, fz + 1.86, x0 + .16, ly + .03, fz + 1.96, [255, 220, 120], 683); EM = 0; haloX(x0, ly, fz + 1.88, .4, .35); }
+  if (RLx > 12.5) lamp(2, XA(RLx * .6), yb(RLx * .6), fz, 3.8, 2.5, FIRE_T);
+}
+// military era: caged work lights on both walls, on a cable along the top
+function cagedLights(fz, g) {
+  const RLx = RL(), base = mat([70, 74, 80], g);
+  AMB[2] = .66;
+  const at = [[2.8, 0], [5.0, 0], [7.3, 0], [9.6, 0], [0, 4.4], [0, 6.6]];
+  ln([XA(2.0), UG.y0 + .03, fz + 2.32], [UG.x1 - .2, UG.y0 + .03, fz + 2.32], rgb(30, 30, 34)); ln([UG.x0 + .03, yb(1.2), fz + 2.32], [UG.x0 + .03, UG.y1 - .3, fz + 2.32], rgb(30, 30, 34));
+  for (const [a, b] of at) {
+    const onBack = !b, x = onBack ? XA(a) : UG.x0, y = onBack ? UG.y0 : yb(b), z = fz + (onBack ? 1.9 : 1.5);
+    if (onBack) {
+      fbox(x - .1, y, z + .14, x + .1, y + .1, z + .26, base, 1180);
+      EM = 1; fbox(x - .07, y + .1, z, x + .07, y + .24, z + .14, [255, 236, 190], 1181); EM = 0;
+      for (const o of [-.08, 0, .08]) ln([x + o, y + .25, z - .01], [x + o, y + .25, z + .15], rgb(40, 40, 44));
+      halo(x, y, z + .06, .55, .45); lamp(2, x, yb(1.6), fz, 4.4, 2.9, WARM_T);
+    } else {
+      fbox(x, y - .1, z + .14, x + .1, y + .1, z + .26, base, 1182);
+      EM = 1; fbox(x + .1, y - .07, z, x + .24, y + .07, z + .14, [255, 236, 190], 1183); EM = 0;
+      for (const o of [-.08, 0, .08]) ln([x + .25, y + o, z - .01], [x + .25, y + o, z + .15], rgb(40, 40, 44));
+      haloX(x, y, z + .06, .55, .45); lamp(2, XA(1.6), y, fz, 4.4, 2.9, WARM_T);
+    }
+  }
+  lamp(2, XA(RLx * .55), yb(RLx * .55), fz, 5, 3.2, WARM_T);
+}
+
+/* ---------- from the drill to the store ---------- */
+// breakthrough: a wooden ore bin with a chute stepping down towards the rails
+function woodChute(fz, g) {
+  const st = RL() - STORE, rb0 = railB()[0], cx = XA(st - 3.6), c0 = rb0 - 2.0, wd = mat(WOOD, g);
+  fbox(cx - .5, yb(c0), fz, cx + .5, yb(c0 + .7), fz + 1.0, wd, 750); onY(yb(c0 + .7), cx - .5, cx + .5, fz, fz + 1.0, (xx, z) => ((z - fz) % .25) < .04 ? R_WOOD[0] : 0);
+  for (let k = 0; k < 5; k++) { const z = fz + 1.0 - k * .12, yy = yb(c0 + .7) + k * .15; fbox(cx - .3, yy, z - .06, cx + .3, yy + .15, z, PLANK, 751 + k); }
+  for (let k = 0; k < 6; k++) oreChunk(cx - .35 + (k % 3) * .3, yb(c0 + .15) + (k > 2) * .25, fz + 1.0, .07, 756 + k);
+  footShadow(cx - .5, yb(c0), cx + .5, yb(c0 + .7), 1);
+}
+// military era: a belt conveyor from beside the drill to the crusher, ore riding on it
+function beltLine(fz, g) {
+  const cb = RL() - 3.6, y0 = yb(cb), y1 = yb(cb + .42), xa = XA(RL() * .3), xb = XA(RL() - STORE - 1.1), frame = mat([60, 64, 70], g), h = 1.06;
+  for (let xx = xa + .1; xx < xb - .5; xx += .8) { fbox(xx, y0 + .05, fz, xx + .06, y0 + .11, fz + h - .1, STEEL_B, 850); fbox(xx, y1 - .11, fz, xx + .06, y1 - .05, fz + h - .1, STEEL_B, 850); }
+  sbox(xa, y0, fz + h - .1, xb, y1, fz + h, frame, 851);
+  onZ(fz + h, xa, y0 + .04, xb, y1 - .04, (xx) => ((xx - xa) % .25) < .04 ? rgb(36, 38, 42) : rgb(80, 84, 90));
+  onY(y1, xa, xb, fz + h - .1, fz + h, (xx) => (Math.floor((xx - xa) * 5) & 1) ? HZ_Y : HZ_K);
+  for (const xx of [xa, xb - .05]) sbox(xx - .05, y0 - .03, fz + h - .14, xx + .05, y1 + .03, fz + h + .04, [40, 42, 46], 852);
+  for (let xx = xa + .2; xx < xb - .2; xx += .32) oreChunk(xx, (y0 + y1) / 2, fz + h, .06, 853 + Math.floor(xx * 7));
+  footShadow(xa, y0, xb, y1, h);
+}
+// breakthrough: a sloping wooden screen on legs, ore sorted on it and the rejects heaped in front
+function sortScreen(fz, g) {
+  const sx = PIT.x + 1.4, sy = PIT.y - 1.6, wd = mat(WOOD, g);
+  for (const [lx, ly] of [[sx, sy], [sx + .9, sy], [sx, sy + .5], [sx + .9, sy + .5]]) fbox(lx, ly, fz, lx + .06, ly + .06, fz + .5 + (lx > sx ? .2 : 0), WOOD_D, 710);
+  fbox(sx, sy, fz + .55, sx + .96, sy + .56, fz + .63, wd, 711);
+  onZ(fz + .63, sx + .05, sy + .05, sx + .91, sy + .51, (xx, yy) => ((Math.floor((xx - sx) * 30) + Math.floor((yy - sy) * 30)) & 1) ? rgb(70, 70, 76) : 0);
+  for (let k = 0; k < 4; k++) oreChunk(sx + .2 + k * .2, sy + .25, fz + .63, .05, 712 + k);
+  for (let k = 0; k < 6; k++) oreChunk(sx + .1 + k * .15, sy + .8, fz, .06, 716 + k, k & 1);
+  footShadow(sx, sy, sx + .96, sy + .56, .6);
+}
+// military era: a jaw crusher at the end of the belt: hopper, the jaw housing, a flywheel and its motor
+function jawCrusher(fz, g) {
+  const st = RL() - STORE, x = XA(st - 1.75), y = yb(RL() - 3.98), body = mat(OD, g);
+  sbox(x, y, fz, x + 1.2, y + 1.15, fz + .14, [56, 58, 62], 1190);
+  sbox(x + .1, y + .1, fz + .14, x + 1.0, y + 1.05, fz + .78, body, 1191);
+  onY(y + 1.05, x + .14, x + .96, fz + .2, fz + .74, (xx, z) => { const u = xx - x, zz = z - fz; if (Math.abs(u - .55) < .2 && zz < .36) return zz < .3 ? rgb(30, 28, 30) : rgb(46, 50, 36); if ((Math.abs(u - .2) < .03 || Math.abs(u - .9) < .03) && zz > .42) return rgb(60, 70, 46); return zz > .66 ? (Math.floor((u + zz) * 6) & 1 ? HZ_Y : HZ_K) : 0; });
+  for (let k = 0; k < 3; k++) oreChunk(x + .45 + k * .12, y + 1.1 + (k & 1) * .12, fz, .07, 1192 + k);
+  // the hopper on top, wider than the housing
+  for (let k = 0; k < 2; k++) { const w = .4 + k * .1; sbox(x + .55 - w, y + .58 - w, fz + .78 + k * .12, x + .55 + w, y + .58 + w, fz + .9 + k * .12, [120, 126, 134], 1195 + k); }
+  onZ(fz + 1.02, x + .07, y + .1, x + 1.03, y + 1.06, (xx, yy) => Math.abs(xx - x - .55) < .4 && Math.abs(yy - y - .58) < .4 ? rgb(40, 38, 40) : 0);
+  for (let k = 0; k < 5; k++) oreChunk(x + .35 + (k % 3) * .2, y + .45 + (k > 2) * .22, fz + .98, .07, 1198 + k);
+  // the crushed ore slides out down a chute into the store
+  sbox(x + 1.0, y + .2, fz + .3, x + 1.55, y + .5, fz + .38, [120, 126, 134], 1202);
+  for (let k = 0; k < 3; k++) oreChunk(x + 1.15 + k * .14, y + .35, fz + .38, .05, 1206 + k);
+  // the flywheel on the right side, belted to a motor
+  onX(x + 1.0, y + .22, y + .82, fz + .16, fz + .76, (yy, z) => { const r = Math.hypot(yy - y - .52, z - fz - .46) * 1.12; return r < .33 ? (r > .26 ? rgb(70, 74, 80) : r < .06 ? rgb(180, 184, 190) : ((Math.atan2(z - fz - .46, yy - y - .52) * 3 / Math.PI + 9) % 1) < .2 ? rgb(70, 74, 80) : rgb(110, 116, 122)) : 0; });
+  sbox(x + 1.0, y + .82, fz + .14, x + 1.18, y + 1.12, fz + .44, [90, 96, 104], 1203);
+  footShadow(x, y, x + 1.2, y + 1.15, .9);
+}
+
+/* ---------- the rest of the kit ---------- */
+// military era: steel ore bins along the right wall
+function oreBins(fz, g) {
+  const x = UG.x1 - .75, c = mat([92, 100, 110], g);
+  for (const b of [3.95, 4.95, 5.95]) {
+    const y = yb(b);
+    sbox(x, y, fz, x + .7, y + .88, fz + 1.05, c, 1210 + b);
+    onY(y + .88, x + .04, x + .66, fz + .04, fz + 1.0, (xx, z) => Math.abs(z - fz - .96) < .03 || (z - fz) < .1 ? rgb(60, 66, 74) : Math.abs(xx - x - .35) < .1 && Math.abs(z - fz - .55) < .08 ? rgb(226, 186, 50) : 0);
+    for (let j = 0; j < 6; j++) oreChunk(x + .14 + (j % 3) * .2, y + .2 + (j > 2) * .4, fz + 1.0, .08, 1220 + j + b * 9, true);
+    footShadow(x, y, x + .7, y + .88, 1.05);
+  }
+}
+// military era: a field generator on a skid in the right corner, cabled along the back wall
+function fieldGen(fz, g) {
+  const x = XA(RL() - 1.85), y = UG.y0 + .3, body = mat(OD, g);
+  sbox(x, y, fz, x + 1.65, y + .95, fz + .12, [56, 58, 62], 1230);
+  sbox(x + .08, y + .08, fz + .12, x + 1.57, y + .87, fz + .92, body, 1231);
+  onY(y + .87, x + .12, x + 1.53, fz + .16, fz + .88, (xx, z) => { const u = xx - x, zz = z - fz; if (u > 1.0 && zz > .3 && zz < .8) return ((zz - .3) % .08) < .035 ? rgb(40, 46, 32) : 0; if (u < .5 && zz > .45 && zz < .75) return Math.abs(zz - .6) < .03 && Math.abs(u - .25) < .12 ? lit(rgb(110, 255, 120)) : rgb(54, 60, 44); return Math.abs(u - .92) < .02 ? rgb(60, 70, 46) : 0; });
+  fbox(x + 1.25, y + .3, fz + .92, x + 1.37, y + .42, fz + 1.5, [50, 50, 54], 1232);
+  ln([x + .2, UG.y0 + .03, fz + .5], [x + .2, UG.y0 + .03, fz + 2.2], rgb(30, 30, 34)); ln([x + .2, UG.y0 + .03, fz + 2.2], [XA(2.2), UG.y0 + .03, fz + 2.2], rgb(30, 30, 34));
+  footShadow(x, y, x + 1.65, y + .95, .92);
+}
+// military era: a ventilation duct along the top of the left wall, its fan housing near the front
+function ventDuct(fz, g) {
+  const x0 = UG.x0 + .2, c = mat([150, 156, 160], g), ya = yb(1.3), yz = UG.y1 - .3;
+  sbox(x0, ya, fz + 1.98, x0 + .34, yz, fz + 2.3, c, 1240);
+  onX(x0 + .34, ya, yz, fz + 1.98, fz + 2.3, y => ((y - ya) % .8) < .04 ? rgb(100, 106, 110) : 0);
+  const fy = UG.y1 - 1.55;
+  sbox(x0 - .2, fy, fz + 1.1, x0 + .32, fy + 1.0, fz + 1.98, mat(OD, g), 1241);
+  onX(x0 + .32, fy + .08, fy + .92, fz + 1.15, fz + 1.93, (y, z) => { const r = Math.hypot(y - fy - .5, z - fz - 1.54); return r < .36 ? (r > .32 || ((Math.atan2(z - fz - 1.54, y - fy - .5) * 3 / Math.PI + 9) % 1) < .35 ? rgb(40, 44, 34) : rgb(70, 76, 60)) : 0; });
+}
+// military era: tool lockers against the left wall, a jackhammer stood beside them
+function toolLockers(fz, g) {
+  const x0 = UG.x0 + .02, x1 = x0 + .45, y0 = yb(6.3), y1 = y0 + 1.0, c = mat([86, 98, 72], g);
+  sbox(x0, y0, fz, x1, y1, fz + 1.75, c, 1250);
+  onX(x1, y0, y1, fz + .04, fz + 1.71, (y, z) => { const f = (y - y0) / .333, d = f - Math.floor(f), zz = z - fz; if (d < .06) return rgb(50, 60, 44); if (zz > 1.4 && zz < 1.58 && (Math.floor(zz * 40) & 1) && d > .25 && d < .75) return rgb(50, 60, 44); if (Math.abs(zz - .95) < .05 && d > .76 && d < .88) return rgb(200, 204, 196); return 0; });
+  const jx = x1 + .17, jy = y0 + .5;
+  fbox(jx - .06, jy - .06, fz, jx + .06, jy + .06, fz + .7, [150, 156, 164], 1251); fbox(jx - .2, jy - .03, fz + .62, jx + .2, jy + .03, fz + .68, DARK, 1252); fbox(jx - .01, jy - .01, fz - .02, jx + .01, jy + .01, fz + .02, DARK, 1253);
+  footShadow(x0, y0, x1, y1, 1.75);
+}
+
+/* ---------- the floor plan: each part's drawing by era and stage ---------- */
+// MINE_ART[part][era][stage] draws that stage (fz, grade, look); stage 0 of the first era is the level-1 room.
+// A stage not drawn yet shows the last one drawn before it, a material grade up (drawPart)
+const MINE_ART = {
+  light: [[mineLantern, carbideLamps], [cagedLights]],
+  supports: [[(fz, g, look) => minePillars(fz, look), timbering], [steelArches]],
+  rails: [[fz => mineRubble(fz, [0, 1, 2, 3, 4, 5]), barrows, woodRails], [steelRails]],
+  drill: [[windlass, jackFrame, steelTower], [coreRig]],
+  conveyor: [[null, woodChute], [beltLine]],
+  crusher: [[null, sortScreen], [jawCrusher]],
+  storage: [[], [oreBins]],
+  power: [[], [fieldGen]],
+  vent: [[], [ventDuct]],
+  tools: [[], [toolLockers]],
+};
+function buildMineFloor(fz, L, look) {
   if (!L) { for (const [a, b] of [[3.4, 1.4], [7.6, 1.4], [1.4, 5]]) lamp(2, XA(a), yb(b), fz); rubbleAt(fz, 2); return; }
-  // light: a lantern by the pit, carbide lamps on the rock, work lights, the light tower, the smelter's glow
-  AMB[2] = [.6, .62, .64, .7, .72][t];
-  if (!has(3)) lamp(2, x, y - .8, fz, 3, 2, FIRE_T);
-  else for (const [a, b] of [[3.0, 1.3], [6.0, 1.3], [9.2, 1.3], [1.3, 4.6], [1.3, RLx - 3]]) lamp(2, XA(a), yb(b), fz, has(12) ? 4.6 : 3.8, has(12) ? 3 : 2.5, has(12) ? WARM_T : FIRE_T);
-  const posts = MINE_POSTS;
+  drawPart(MINE_ART, 'light', look, fz);
   storeLamp(2, fz);
-  // two pillars of rock left standing to hold the roof, cased in timber, then in steel bands
-  for (const [pa, pb] of MINE_PILLARS()) {
-    const x0 = XA(pa - .45), y0 = yb(pb - .45), x1 = x0 + .9, y1 = y0 + .9;
-    fbox(x0, y0, fz, x1, y1, fz + UG.h, [104, 98, 94], 1040 + pa);
-    onY(y1, x0, x1, fz, fz + UG.h, (x, z, ix, iy) => rockFace(x - x0 + pa * 3, z - fz, ix, iy, L));
-    onX(x1, y0, y1, fz, fz + UG.h, (y, z, ix, iy) => shade(rockFace(y - y0 + pb * 5, z - fz, ix, iy, L), .78));
-    if (t >= 1) for (const z of t >= 2 ? [.3, 1.1, 1.9] : [.15, 2.2]) fbox(x0 - .04, y0 - .04, fz + z, x1 + .04, y1 + .04, fz + z + (t >= 2 ? .12 : .2), t >= 2 ? STEEL_B : WOOD, 1045);
-    if (t === 1) for (const [x, y] of [[x0 - .06, y1 - .02], [x1 - .08, y1 - .02], [x1 - .02, y0 + .1]]) fbox(x, y, fz, x + .1, y + .08, fz + 2.4, WOOD, 1046);
-    footShadow(x0, y0, x1, y1, 2.4);
-  }
-  // rock rubble from the digging, cleared away as the mine gets organised
-  if (t <= 2) for (const [ra, rb, k] of [[RLx * .5, RLx * .8, 0], [RLx * .2, RLx * .5, 1], [RLx * .62, RLx * .63, 2], [RLx * .55, RLx * .18, 3], [RLx * .86, RLx * .55, 4], [RLx * .12, RLx * .84, 5]]) {
-    if (k > [5, 3, 1][t]) continue;
-    const cx = XA(ra), cy = yb(rb);
-    fbox(cx - .5, cy - .4, fz, cx + .5, cy + .4, fz + .16, [128, 122, 116], 1049 + k);
-    for (let j = 0; j < 9; j++) { const a = hash(j, k) * 6.28, d = hash(k, j) * .42, x = cx + Math.cos(a) * d, y = cy + Math.sin(a) * d * .8, r = .12 + hash(j + k, 3) * .13; fbox(x - r, y - r * .8, fz + .1, x + r, y + r * .8, fz + .1 + r * (1.6 - d * 1.5), hash(j, k * 3) > .75 ? ORE_B : [136 - j * 3, 130 - j * 3, 122 - j * 2], 1050 + j + k * 9); }
-  }
-  // the pit and what stands over it
-  if (t === 0) windlass(fz); else if (t === 1) headframe(fz); else derrick(fz, t);
-  if (!has(3)) { fbox(x - 1.2, y - .3, fz, x - .9, y, fz + .26, PLANK, 660); EM = 1; fbox(x - 1.12, y - .22, fz + .26, x - .98, y - .08, fz + .42, [255, 200, 110], 661); EM = 0; }
-  // tier 0: hand tools
-  if (has(2) && t <= 1) { const x0 = UG.x0, y0 = yb(1.15); fbox(x0, y0, fz + 1.36, x0 + .1, y0 + 1.08, fz + 1.44, WOOD_D, 670); for (let k = 0; k < 4; k++) { const hy = y0 + .14 + k * .25; fbox(x0 + .06, hy - .03, fz + .5, x0 + .12, hy + .03, fz + 1.42, [176, 120, 70], 671 + k); if (k & 1) fbox(x0 + .05, hy - .11, fz + .4, x0 + .13, hy + .11, fz + .56, [200, 206, 214], 675 + k); else { fbox(x0 + .05, hy - .2, fz + 1.24, x0 + .13, hy + .2, fz + 1.32, [200, 206, 214], 679 + k); fbox(x0 + .05, hy - .22, fz + 1.18, x0 + .13, hy - .16, fz + 1.26, [200, 206, 214], 684 + k); fbox(x0 + .05, hy + .16, fz + 1.18, x0 + .13, hy + .22, fz + 1.26, [200, 206, 214], 689 + k); } } }
-  if (has(3) && t <= 1) for (const a of [3.0, 6.0, 9.2]) { const lx = XA(a); fbox(lx - .06, UG.y0, fz + 1.7, lx + .06, UG.y0 + .16, fz + 1.86, [176, 140, 70], 680); EM = 1; fbox(lx - .03, UG.y0 + .1, fz + 1.86, lx + .03, UG.y0 + .16, fz + 1.96, [255, 220, 120], 681); EM = 0; halo(lx, UG.y0, fz + 1.88, .4, .35); }
-  if (inT(4)) { for (const [dx, dy] of [[-1.05, .5], [1.0, .55], [1.05, -.1]]) { const bx = x + dx, by = y + dy; fbox(bx - .14, by - .14, fz, bx + .14, by + .14, fz + .3, WOOD, 690); for (let k = 0; k < 3; k++) fbox(bx - .1 + k * .07, by - .06, fz + .3, bx - .04 + k * .07, by + .02, fz + .36, ORE, 691 + k); footShadow(bx - .14, by - .14, bx + .14, by + .14, .3); } }
-  if (inT(5)) { const bx = px - 2.4, by = py + .6; fbox(bx, by, fz + .22, bx + .95, by + .65, fz + .58, [60, 120, 70], 700); onY(by + .65, bx, bx + .95, fz + .22, fz + .58, (xx, z) => Math.abs(z - fz - .54) < .03 ? rgb(40, 80, 50) : 0); for (let k = 0; k < 7; k++) oreChunk(bx + .16 + (k % 4) * .2, by + .16 + (k > 3) * .26, fz + .58, .09, 701 + k); fbox(bx + .7, by + .2, fz + .05, bx + .82, by + .3, fz + .25, DARK, 706); for (const yy of [by + .05, by + .4]) fbox(bx - .4, yy, fz + .3, bx, yy + .05, fz + .35, WOOD, 707); footShadow(bx, by, bx + .7, by + .5, .5); }
-  if (has(6) && t === 0) supports(fz, false, posts);
-  if (has(7) && !has(40)) for (let k = 0; k < 11; k++) { const cx = XA(3.3 + k * .62 + hash(k, 4) * .3), cz = fz + .45 + hash(k, 5) * 1.5, h = .16 + hash(k, 6) * .16; fbox(cx - .06, UG.y0, cz, cx + .06, UG.y0 + .08, cz + h, ORE_L, 1010 + k, .5); fbox(cx + .06, UG.y0, cz - .04, cx + .12, UG.y0 + .05, cz + h * .6, ORE_B, 1020 + k, .5); }
-  if (inT(8)) { const sx = px + 1.4, sy = py - 1.6; for (const [lx, ly] of [[sx, sy], [sx + .9, sy], [sx, sy + .5], [sx + .9, sy + .5]]) fbox(lx, ly, fz, lx + .06, ly + .06, fz + .5 + (lx > sx ? .2 : 0), WOOD_D, 710); fbox(sx, sy, fz + .55, sx + .96, sy + .56, fz + .63, WOOD, 711); onZ(fz + .63, sx + .05, sy + .05, sx + .91, sy + .51, (xx, yy) => ((Math.floor((xx - sx) * 30) + Math.floor((yy - sy) * 30)) & 1) ? rgb(70, 70, 76) : 0); for (let k = 0; k < 4; k++) oreChunk(sx + .2 + k * .2, sy + .25, fz + .63, .05, 712 + k); for (let k = 0; k < 6; k++) oreChunk(sx + .1 + k * .15, sy + .8, fz, .06, 716 + k, k & 1); }
-  // tier 1: the timbered tunnel, rails and carts
-  if (t >= 1) supports(fz, t >= 2 && has(23), posts);
-  if (has(10)) rails(fz, XA(.8), XA(st + .3));
-  if (has(11) && !has(30)) cart(XA(st - 1.6), fz, .8);
-  if (has(12)) { ln([XA(t >= 4 ? 4.6 : 2.0), UG.y0 + .19, fz + 2.3], [UG.x1 - .3, UG.y0 + .19, fz + 2.3], rgb(40, 36, 40)); for (let b = 3.4; b < RLx - .5; b += 2) { const ly = yb(b); EM = 1; fbox(UG.x0 + .2, ly - .05, fz + 2.12, UG.x0 + .3, ly + .05, fz + 2.26, [255, 230, 160], 732); EM = 0; fbox(UG.x0 + .19, ly - .06, fz + 2.26, UG.x0 + .31, ly + .06, fz + 2.3, DARK, 733); } for (const a of t >= 4 ? [4.8, 6.4, 8.0, 9.6] : [2.6, 4.4, 6.1, 7.8, 9.6]) { const lx = XA(a); EM = 1; fbox(lx - .05, UG.y0 + .2, fz + 2.12, lx + .05, UG.y0 + .3, fz + 2.26, [255, 230, 160], 730); EM = 0; fbox(lx - .06, UG.y0 + .19, fz + 2.26, lx + .06, UG.y0 + .31, fz + 2.3, DARK, 731); } }
-  if (inT(13) || (t >= 1 && t < 3 && has(13))) { const sx = px + .9; for (let k = 0; k < 7; k++) { const px = sx + k * .3, py = yb(rb0) - k * .17; fbox(px, py - .05, fz, px + .14, py + .32, fz + .05, WOOD_D, 740); } ln([sx, yb(rb0) + .02, fz + .1], [sx + 2.0, yb(rb0) - 1.15, fz + .1], rgb(150, 156, 164)); ln([sx + .1, yb(rb1) - .04, fz + .1], [sx + 2.1, yb(rb0) - .85, fz + .1], rgb(150, 156, 164)); fbox(sx - .2, yb(rb1) + .12, fz, sx - .1, yb(rb1) + .2, fz + .4, DARK, 741); fbox(sx - .22, yb(rb1) + .1, fz + .4, sx - .08, yb(rb1) + .22, fz + .48, [220, 50, 40], 742); }
-  if (has(14) && !has(24)) { const cx = XA(st - 3.6), c0 = rb0 - 2.0; fbox(cx - .5, yb(c0), fz, cx + .5, yb(c0 + .7), fz + 1.0, WOOD, 750); onY(yb(c0 + .7), cx - .5, cx + .5, fz, fz + 1.0, (xx, z) => ((z - fz) % .25) < .04 ? R_WOOD[0] : 0); for (let k = 0; k < 5; k++) { const z = fz + 1.0 - k * .12, yy = yb(c0 + .7) + k * .15; fbox(cx - .3, yy, z - .06, cx + .3, yy + .15, z, PLANK, 751 + k); } for (let k = 0; k < 6; k++) oreChunk(cx - .35 + (k % 3) * .3, yb(c0 + .15) + (k > 2) * .25, fz + 1.0, .07, 756 + k); footShadow(cx - .5, yb(c0), cx + .5, yb(c0 + .7), 1); }
-  if (has(15) && t <= 2) { const fx = UG.x0, fy = yb(6.6); sbox(fx, fy, fz + .4, fx + .5, fy + .8, fz + 1.3, [96, 110, 90], 760); onX(fx + .5, fy + .05, fy + .75, fz + .45, fz + 1.25, (yy, z) => { const u = (yy - fy - .4) / .35, v = (z - fz - .85) / .4; return Math.abs(u) > .95 || Math.abs(v) > .95 ? 0 : Math.abs(u) < .12 || Math.abs(v) < .12 || Math.abs(u + v) < .12 ? rgb(50, 56, 50) : (Math.floor((yy + z) * 30) & 1) ? rgb(70, 80, 66) : 0; }); for (const yy of [fy + .1, fy + .7]) fbox(fx + .3, yy - .04, fz, fx + .38, yy + .04, fz + .4, DARK, 761); sbox(fx, fy + .2, fz + 1.3, fx + .4, fy + .6, fz + UG.h, [200, 190, 150], 762); }
-  if (inT(16)) { const bx = XA(.5), by = yb(RLx - 1.55); for (const [dx, dz] of [[0, 0], [.5, 0], [.25, .4]]) { fbox(bx + dx, by, fz + dz, bx + dx + .45, by + .4, fz + dz + .4, [176, 60, 44], 770); onY(by + .4, bx + dx + .04, bx + dx + .41, fz + dz + .12, fz + dz + .28, (xx, z) => { const u = Math.floor((xx - bx - dx - .04) / .37 * 11), v = Math.floor((z - fz - dz - .12) / .16 * 5); const T = ['TTT.N..N.TTT', '.T..NN.N..T.', '.T..N.NN..T.', '.T..N..N..T.', '.T..N..N..T.']; return T[4 - v] && T[4 - v][u] !== '.' && T[4 - v][u] ? rgb(250, 236, 200) : 0; }); } for (let k = 0; k < 3; k++) fbox(bx + 1.0, by + .1 + k * .09, fz, bx + 1.4, by + .17 + k * .09, fz + .07, [200, 50, 40], 771 + k); footShadow(bx, by, bx + .95, by + .4, .8); }
-  // tier 2: the drill tower and its kit
-  if (inT(18)) { const gx = XA(6.75), gy = UG.y0 + .02; sbox(gx, gy, fz, gx + 1.1, gy + .7, fz + .2, DARK, 780); sbox(gx + .05, gy + .05, fz + .2, gx + 1.05, gy + .65, fz + .85, [90, 140, 70], 781); onY(gy + .65, gx + .1, gx + 1.0, fz + .3, fz + .8, (xx, z) => ((xx - gx) % .12) < .03 ? rgb(50, 70, 40) : 0); sbox(gx + .7, gy + .2, fz + .85, gx + .8, gy + .3, fz + 1.4, [60, 60, 66], 782); EM = 1; onY(gy + .65, gx + .12, gx + .32, fz + .55, fz + .72, (xx, z) => glowc(...((Math.floor((xx - gx) * 40) & 1) ? [120, 255, 120] : [255, 200, 60]))); EM = 0; ln([gx + .5, gy + .7, fz + .04], [x + .2, y - .62, fz + .04], rgb(40, 40, 46)); footShadow(gx, gy, gx + 1.1, gy + .7, .85); }
-  if (has(19) && t <= 3) { const px = XA(9.65); sbox(px, UG.y0, fz + .7, px + .85, UG.y0 + .2, fz + 1.75, [226, 190, 60], 790); sbox(px + .04, UG.y0 + .2, fz + .74, px + .81, UG.y0 + .22, fz + 1.71, [150, 156, 164], 789); onY(UG.y0 + .22, px + .06, px + .79, fz + .76, fz + 1.69, (xx, z) => { const u = (xx - px) / .85, v = (z - fz - .76) / .93; if (Math.abs(u - .5) < .02) return rgb(90, 96, 104); if (Math.abs(v - .8) < .08 && u > .1 && u < .4) return rgb(250, 210, 40); if (Math.abs(v - .8) < .08 && u > .6 && u < .9) return rgb(40, 40, 46); return 0; }); EM = 1; for (let k = 0; k < 3; k++) fbox(px + .14 + k * .14, UG.y0 + .22, fz + 1.05, px + .22 + k * .14, UG.y0 + .25, fz + 1.12, [[120, 255, 120], [255, 80, 60], [255, 220, 80]][k], 791 + k); EM = 0; for (const o of [.3, .5]) { ln([px + o, UG.y0 + .12, fz + .7], [px + o, UG.y0 + .12, fz + .02], rgb(30, 30, 34)); ln([px + o, UG.y0 + .14, fz + .02], [PIT.x + .5 + o * .2, PIT.y - .5, fz + .02], o > .4 ? rgb(200, 60, 40) : rgb(30, 30, 34)); } }
-  if (inT(20)) { const sx = px + 1.1, sy = py + .9; for (const xx of [sx, sx + 1.6]) { fbox(xx, sy, fz, xx + .1, sy + .8, fz + .1, DARK, 800); fbox(xx, sy, fz + .1, xx + .1, sy + .08, fz + .55, DARK, 801); fbox(xx, sy + .72, fz + .1, xx + .1, sy + .8, fz + .55, DARK, 802); } for (let r = 0; r < 3; r++) for (let k = 0; k < 4 - r; k++) fbox(sx - .05, sy + .08 + k * .16 + r * .08, fz + .1 + r * .12, sx + 1.75, sy + .2 + k * .16 + r * .08, fz + .22 + r * .12, [140, 146, 154], 803 + r * 4 + k, .4); }
-  if (inT(21)) { const cx = px + 1.3, cy = py - 2.0; sbox(cx, cy, fz, cx + 1.2, cy + .55, fz + .12, DARK, 810); sbox(cx + .05, cy + .05, fz + .12, cx + .85, cy + .5, fz + .6, [200, 60, 44], 811); sbox(cx + .85, cy + .08, fz + .12, cx + 1.18, cy + .47, fz + .5, [90, 96, 104], 812); onX(cx + 1.18, cy + .12, cy + .43, fz + .16, fz + .46, (yy, z) => (Math.floor((z - fz) * 30) & 1) ? rgb(50, 54, 60) : 0); sbox(cx + .3, cy + .2, fz + .6, cx + .4, cy + .3, fz + .7, [210, 214, 220], 813); ln([cx + .35, cy + .25, fz + .7], [x + .6, y - .3, fz + 1.0], rgb(30, 30, 34)); footShadow(cx, cy, cx + 1.2, cy + .55, .6); }
-  if (inT(22)) for (const [bx, by] of [[px - 1.3, py - 1.3], [px + 1.3, py - 1.3], [XA(st - .4), yb(st - .4)]]) { fbox(bx - .03, by - .03, fz, bx + .03, by + .03, fz + 1.4, [60, 60, 66], 820); EM = 1; fbox(bx - .08, by - .08, fz + 1.4, bx + .08, by + .08, fz + 1.58, [255, 150, 40], 821); EM = 0; fbox(bx - .09, by - .09, fz + 1.58, bx + .09, by + .09, fz + 1.62, DARK, 822); lamp(2, bx, by, fz + .3, 1.6, 1.1, FIRE_T); }
-  if (inT(24)) { const hx = XA(st - 3.2), hy = yb(rb0 - .45); for (const [lx, ly] of [[hx, hy], [hx + 1.0, hy], [hx, hy + .9], [hx + 1.0, hy + .9]]) fbox(lx, ly, fz, lx + .08, ly + .08, fz + 1.25, STEEL_B, 830); for (let k = 0; k < 4; k++) { const w = .56 - k * .1, cx = hx + .54, cy = hy + .49; sbox(cx - w, cy - w * .9, fz + 1.25 + k * .2, cx + w, cy + w * .9, fz + 1.45 + k * .2, [150, 156, 164], 831 + k); } sbox(hx + .4, hy + .35, fz + .95, hx + .68, hy + .63, fz + 1.25, [120, 126, 134], 835); for (let k = 0; k < 6; k++) oreChunk(hx + .2 + (k % 3) * .3, hy + .25 + (k > 2) * .4, fz + 2.05, .08, 836 + k); }
-  // tier 3: the excavator, the conveyor, the train
-  if (t >= 3) { const ex = XA(.5), ey = yb(RLx * .55); fbox(ex, ey, fz, ex + 1.5, ey + .32, fz + .3, DARK, 840); fbox(ex, ey + .9, fz, ex + 1.5, ey + 1.22, fz + .3, DARK, 841); onY(ey + 1.22, ex, ex + 1.5, fz, fz + .3, (xx, z) => ((xx - ex) % .16) < .05 ? rgb(70, 70, 76) : 0); fbox(ex + .1, ey + .1, fz + .3, ex + 1.3, ey + 1.12, fz + .7, YELLOW, 842); fbox(ex + .55, ey + .55, fz + .7, ex + 1.2, ey + 1.05, fz + 1.4, YELLOW, 843); EM = 1; onY(ey + 1.05, ex + .62, ex + 1.12, fz + .95, fz + 1.3, glowc(150, 200, 220)); EM = 0; fbox(ex + .2, ey + .15, fz + .7, ex + .55, ey + .5, fz + .95, [70, 74, 80], 844); fbox(ex + .3, ey + .35, fz + .7, ex + .42, ey + .55, fz + 1.9, YELLOW, 845); fbox(ex + .02, ey + .35, fz + 1.75, ex + .42, ey + .55, fz + 1.9, YELLOW, 846); fbox(ex - .02, ey + .2, fz + 1.2, ex + .12, ey + .7, fz + 1.75, [90, 94, 100], 847); footShadow(ex, ey, ex + 1.5, ey + 1.22, 1.4); }
-  if (has(26)) { const xa = XA(2.4), xb = UG.x1 - .5, ry = yb(1.5); for (let xx = xa; xx <= xb; xx += .9) fbox(xx, ry, fz, xx + .06, ry + .06, fz + .9, YELLOW, 1030); for (const z of [.86, .5]) fbox(xa, ry, fz + z, xb + .06, ry + .06, fz + z + .05, YELLOW, 1031); onY(ry + .06, xa, xb, fz + .05, fz + .2, (xx) => (Math.floor((xx - xa) * 5) & 1) ? HZ_Y : HZ_K); }
-  if (has(25)) { const cb = rb0 - 1.5, y0 = yb(cb), y1 = yb(cb + .42), xa = XA(2.15), xb = XA(st + 1.3); for (let yy = y1; yy < yb(st + .9); yy += .8) fbox(xb - .4, yy, fz, xb - .34, yy + .06, fz + .5, STEEL_B, 849); sbox(xb - .42, y1, fz + .5, xb, yb(st + .9), fz + .6, [60, 64, 70], 848); onZ(fz + .6, xb - .38, y1, xb - .04, yb(st + .9), (xx, yy) => ((yy - y1) % .25) < .04 ? rgb(36, 38, 42) : rgb(80, 84, 90)); for (let xx = xa; xx < xb; xx += .8) fbox(xx, y0 + .05, fz, xx + .06, y1 - .05, fz + .5, STEEL_B, 850); sbox(xa, y0, fz + .5, xb, y1, fz + .6, [60, 64, 70], 851); onZ(fz + .6, xa, y0 + .04, xb, y1 - .04, (xx) => ((xx - xa) % .25) < .04 ? rgb(36, 38, 42) : rgb(80, 84, 90)); for (let xx = xa + .2; xx < xb - .2; xx += .32) oreChunk(xx, (y0 + y1) / 2, fz + .6, .06, 852 + Math.floor(xx * 7)); }
-  if (inT(27)) { [[0, [84, 136, 210]], [.55, [150, 146, 140]], [1.1, [226, 186, 70]]].forEach(([o, c], k) => { const bx = XA(st - 2.0) + o, by = yb(rb0 - 2.6); sbox(bx, by, fz, bx + .48, by + .55, fz + .55, [90, 96, 104], 860 + k); for (let j = 0; j < 4; j++) fbox(bx + .06 + (j % 2) * .2, by + .08 + (j >> 1) * .22, fz + .55, bx + .2 + (j % 2) * .2, by + .22 + (j >> 1) * .22, fz + .65, c, 863 + k * 4 + j); onY(by + .55, bx + .14, bx + .34, fz + .3, fz + .42, rgb(...c)); footShadow(bx, by, bx + .48, by + .55, .55); }); }
-  if (has(28)) { const lx = XA(RLx * .62), ly = yb(3.0); sbox(lx - .3, ly - .25, fz, lx + .3, ly + .25, fz + .3, YELLOW, 870); fbox(lx - .04, ly - .04, fz + .3, lx + .04, ly + .04, fz + 2.1, [150, 156, 164], 871); sbox(lx - .4, ly - .05, fz + 2.05, lx + .4, ly + .05, fz + 2.12, DARK, 872); EM = 1; for (const o of [-.3, -.1, .1, .3]) fbox(lx + o - .08, ly + .05, fz + 2.12, lx + o + .08, ly + .12, fz + 2.28, [250, 250, 236], 873); EM = 0; AMB[2] += .04; lamp(2, lx, ly - .6, fz, 5.5, 3.4, WHITE_T); footShadow(lx - .3, ly - .25, lx + .3, ly + .25, .3); }
-  if (has(29)) { const lx = XA(1.4); const y0 = yb(rb0) - .06, y1 = yb(rb1) + .06; for (const dx of [.1, .8]) for (const yy of [y0, y1 - .1]) fbox(lx + dx, yy, fz + .06, lx + dx + .16, yy + .1, fz + .24, DARK, 880); sbox(lx, y0, fz + .22, lx + 1.1, y1, fz + .55, t >= 4 ? [60, 130, 90] : [70, 120, 70], 881); sbox(lx + .55, y0 + .05, fz + .55, lx + 1.05, y1 - .05, fz + 1.05, t >= 4 ? [60, 130, 90] : [70, 120, 70], 882); EM = 1; onY(y1 - .05, lx + .62, lx + .98, fz + .7, fz + .95, glowc(170, 210, 230)); pt(lx + .02, y1, fz + .45, glowc(255, 240, 160)); EM = 0; sbox(lx + .15, y0 + .1, fz + .55, lx + .3, y1 - .1, fz + .85, DARK, 883); onY(y1, lx, lx + .55, fz + .3, fz + .4, (xx) => (Math.floor((xx - lx) * 10) & 1) ? rgb(226, 186, 50) : rgb(40, 40, 44)); footShadow(lx, y0, lx + 1.1, y1, 1.05); }
-  if (has(30)) for (let k = 0; k < 3; k++) cart(XA(3.0) + k * 1.0, fz, 1, k === 1 ? [90, 96, 104] : RUST, 890 + k * 20);
-  if (has(31) && !has(35)) { const dx = XA(6.85), dy = UG.y0 + .02; sbox(dx, dy, fz, dx + .8, dy + .7, fz + 1.7, [150, 160, 120], 900); for (let k = 0; k < 3; k++) sbox(dx + .1 + k * .24, dy + .7, fz + .05, dx + .26 + k * .24, dy + .8, fz + .5, [120, 128, 96], 901 + k); sbox(dx + .3, dy + .25, fz + 1.7, dx + .5, dy + .45, fz + UG.h, [170, 176, 180], 904); onY(dy + .7, dx + .05, dx + .75, fz + .6, fz + 1.6, (xx, z) => ((z - fz) % .3) < .03 ? rgb(100, 108, 80) : 0); footShadow(dx, dy, dx + .8, dy + .7, 1.7); }
-  if (inT(32)) { const bx = XA(.3), by = yb(RLx - 1.4); sbox(bx, by, fz, bx + 1.3, by + .75, fz + 1.5, [200, 196, 180], 910); sbox(bx - .05, by - .05, fz + 1.5, bx + 1.35, by + .8, fz + 1.58, [150, 60, 44], 911); EM = 1; onY(by + .75, bx + .1, bx + 1.2, fz + .85, fz + 1.35, (xx, z) => { const u = (xx - bx - .1) / 1.1; if (Math.abs(u - .5) < .02) return glowc(150, 146, 136); return u < .5 ? (hash(Math.floor(u * 30), Math.floor((z - fz) * 30)) > .6 ? glowc(110, 255, 160) : glowc(30, 60, 50)) : glowc(200, 230, 240); }); EM = 0; onX(bx + 1.3, by + .1, by + .65, fz + .1, fz + 1.4, (yy, z) => Math.abs(yy - by - .375) < .25 && z - fz < 1.3 ? rgb(120, 110, 96) : 0); footShadow(bx, by, bx + 1.3, by + .75, 1.5); }
-  // tier 4: the plant
-  if (t >= 4) {
-    const cx = XA(st - 2.7), cy = yb(rb0 - 2.3);
-    sbox(cx, cy, fz, cx + 1.5, cy + 1.2, fz + .3, [70, 74, 80], 920);
-    sbox(cx + .1, cy + .1, fz + .3, cx + 1.4, cy + 1.1, fz + 1.3, [210, 120, 40], 921);
-    onY(cy + 1.1, cx + .15, cx + 1.35, fz + .4, fz + 1.2, (xx, z) => { const u = (xx - cx - .15) / 1.2, v = (z - fz - .4) / .8; return Math.abs(u - .5) < .3 && v < .4 ? rgb(40, 36, 40) : (Math.floor((u + v) * 8) & 1) && v > .85 ? rgb(40, 40, 44) : 0; });
-    for (let k = 0; k < 3; k++) { const w = .7 - k * .12; sbox(cx + .75 - w, cy + .6 - w * .7, fz + 1.3 + k * .22, cx + .75 + w, cy + .6 + w * .7, fz + 1.52 + k * .22, [150, 156, 164], 922 + k); }
-    sbox(cx - .3, cy + .3, fz + .4, cx + .1, cy + .9, fz + .8, [90, 96, 104], 925);
-    for (let k = 0; k < 5; k++) oreChunk(cx + .45 + (k % 3) * .25, cy + .45 + (k > 2) * .25, fz + 1.96, .08, 926 + k);
-    footShadow(cx, cy, cx + 1.5, cy + 1.2, 1.5);
-  }
-  if (inT(34)) { const vx = px + 1.3, vy = py - 2.1; for (const [lx, ly] of [[vx, vy], [vx + 1.4, vy], [vx, vy + .7], [vx + 1.4, vy + .7]]) { fbox(lx, ly, fz, lx + .1, ly + .1, fz + .25 + (lx > vx ? .3 : 0), DARK, 930); fbox(lx + .02, ly + .02, fz + .25 + (lx > vx ? .3 : 0), lx + .08, ly + .08, fz + .35 + (lx > vx ? .3 : 0), [200, 60, 44], 931); } for (let k = 0; k < 6; k++) sbox(vx + k * .25, vy, fz + .4 + k * .06, vx + k * .25 + .26, vy + .8, fz + .48 + k * .06, [130, 136, 144], 932 + k); for (let k = 0; k < 6; k++) oreChunk(vx + .2 + k * .22, vy + .4, fz + .48 + k * .06, .06, 938 + k); }
-  if (inT(35)) { const fx = XA(st - 1.0), fy = yb(3.2); fbox(fx, fy, fz, fx + 1.1, fy + .95, fz + 1.4, [150, 84, 64], 940); onY(fy + .95, fx, fx + 1.1, fz, fz + 1.4, (xx, z) => { const r = Math.floor((z - fz) / .14), f = ((xx - fx) + (r & 1) * .12) % .24; return f < .03 || ((z - fz) % .14) < .025 ? rgb(90, 50, 40) : 0; }); EM = 1; onY(fy + .96, fx + .3, fx + .8, fz + .25, fz + .75, (xx, z) => { const v = (z - fz - .25) / .5; return glowc(255, 120 + v * 120, 30 + v * 40); }); EM = 0; fbox(fx + .35, fy + .3, fz + 1.4, fx + .75, fy + .65, fz + UG.h, [110, 70, 56], 941); lamp(2, fx + .55, fy + 1.4, fz, 2.4, 1.6, FIRE_T); footShadow(fx, fy, fx + 1.1, fy + .95, 1.4); }
-  if (inT(36)) { const y0 = yb(1.0), y1 = yb(1.38), xa = XA(3.0), xb = XA(RLx - 2.4), cz = fz + 2.22; sbox(xa, y0, cz, xb, y1, cz + .07, [60, 64, 70], 950); onZ(cz + .07, xa, y0 + .04, xb, y1 - .04, (xx) => ((xx - xa) % .25) < .04 ? rgb(36, 38, 42) : rgb(80, 84, 90)); for (let xx = xa + .3; xx < xb; xx += .45) oreChunk(xx, (y0 + y1) / 2, cz + .07, .045, 951 + Math.floor(xx * 5)); for (const xx of [xa + .2, (xa + xb) / 2, xb - .3]) { fbox(xx, y0 + .1, cz + .07, xx + .08, y1 - .1, fz + UG.h, STEEL_B, 960); } }
-  if (inT(37)) { const z = fz + UG.h - .12; for (const yy of [UG.y0 + .05, UG.y1 - .3]) fbox(XA(2.0), yy, z, UG.x1 - .2, yy + .12, z + .1, YELLOW, 970); for (const xx of [XA(2.0), UG.x1 - .3]) fbox(xx, UG.y1 - .32, fz, xx + .1, UG.y1 - .2, z, YELLOW, 975); const bx = XA(RLx * .5); sbox(bx, UG.y0 + .05, z - .12, bx + .25, UG.y1 - .3, z, YELLOW, 971); onY(UG.y1 - .3, bx, bx + .25, z - .12, z, (xx) => (Math.floor((xx - bx) * 16) & 1) ? rgb(40, 40, 44) : 0); sbox(bx - .05, yb(2.0), z - .3, bx + .3, yb(2.3), z - .12, [70, 74, 80], 972); ln([bx + .12, yb(2.15), z - .3], [bx + .12, yb(2.15), fz + 1.0], rgb(40, 40, 46)); fbox(bx + .04, yb(2.08), fz + .9, bx + .2, yb(2.22), fz + 1.0, [200, 60, 44], 973); }
-  if (inT(38)) { const ex = XA(RLx - .95), y0 = UG.y0 + .04, y1 = UG.y0 + .5; sbox(ex, y0, fz, ex + .5, y1, fz + UG.h - .05, [196, 200, 204], 980); onY(y1, ex + .06, ex + .44, fz + .1, fz + UG.h - .15, (xx, z) => { const zz = (z - fz) % .3; return Math.abs(xx - ex - .25) > .15 ? rgb(60, 64, 70) : zz < .12 ? rgb(226, 186, 50) : zz < .16 ? rgb(84, 136, 210) : rgb(40, 42, 48); }); sbox(ex - .5, y1 - .1, fz + 1.7, ex, y1 + .1, fz + 1.82, [150, 156, 164], 981); sbox(ex + .1, y0 + .1, fz + UG.h - .05, ex + .4, y1 - .1, fz + UG.h + .05, DARK, 982); footShadow(ex, y0, ex + .5, y1, 2); }
-  if (inT(39)) { sbox(XA(2.1), UG.y0, fz + 2.2, XA(5.0), UG.y0 + .1, fz + 2.3, STEEL_B, 989); for (const a of [2.6, 4.3]) { const rx = XA(a), z = fz + 1.45; sbox(rx - .26, UG.y0, z + .6, rx + .26, UG.y0 + .14, z + .75, [70, 74, 80], 990); sbox(rx - .24, UG.y0 + .12, z + .12, rx + .24, UG.y0 + .52, z + .62, [236, 190, 60], 991); onY(UG.y0 + .52, rx - .24, rx + .24, z + .12, z + .62, (xx, zz) => (Math.floor((xx - rx + zz) * 12) & 1) && zz - z < .2 ? rgb(40, 40, 44) : 0); EM = 1; onY(UG.y0 + .53, rx - .14, rx + .14, z + .38, z + .52, glowc(80, 220, 255)); EM = 0; sbox(rx - .06, UG.y0 + .04, z - .35, rx + .06, UG.y0 + .16, z + .12, [200, 206, 214], 992); fbox(rx - .03, UG.y0 + .01, z - .5, rx + .03, UG.y0 + .07, z - .35, [120, 126, 134], 993); } }
-  if (inT(40)) { EM = 1; for (let k = 0; k < 9; k++) { const cx = XA(5.2 + k * .62 + hash(k, 1) * .3), cz = fz + 1.6 + hash(k, 2) * .6, h = .2 + hash(k, 3) * .25; fbox(cx - .06, UG.y0, cz, cx + .06, UG.y0 + .1 + h * .3, cz + h, [140, 230, 255], 995 + k, .5); fbox(cx + .06, UG.y0, cz - .05, cx + .14, UG.y0 + .06 + h * .2, cz + h * .6, [100, 200, 250], 996 + k, .5); } EM = 0; for (const a of [5.5, 7.6, 9.6]) lamp(2, XA(a), yb(.8), fz + 1.2, 2.6, 1.6, CYAN_T); }
-  if (t >= 1 && t <= 2) for (let k = 0; k < 3; k++) oreChunk(XA(st - .5 - k * .25), yb(rb0 - .4 - k * .15), fz, .08, 999 + k);
+  for (const k in MINE_ART) if (k !== 'light') drawPart(MINE_ART, k, look, fz);
 }
 
 // the walks of floor k's workers, from the foot of the ladder through via to each spot

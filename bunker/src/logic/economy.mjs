@@ -211,13 +211,16 @@ const bt = (st, c) => { const S = stats(st), o = {}; for (const [k, v] of Object
 export function price(st, key) {
   const S = stats(st), [a, b, c] = key.split(':');
   if (a === 'ws') return { gold: workshopCost(b, st.ws[b]) };
-  if (a === 'bunker') return needsBreakthrough(st.bunker, st.bunkerBt) ? bt(st, breakthroughCost('bunker', st.bunker / T.base.btEvery, S.caps)) : { gold: bunkerGold(st.bunker) };
-  if (a === 'fence') return needsBreakthrough(st.fence, st.fenceBt) ? bt(st, breakthroughCost('fence', st.fence / T.base.btEvery, S.caps)) : { gold: fenceGold(st.fence) };
+  // doc 8: a breakthrough takes materials and gold (btGold x the level's own price)
+  const withGold = (c, g) => bt(st, { ...c, gold: T.base.btGold * g });
+  if (a === 'bunker') return needsBreakthrough(st.bunker, st.bunkerBt) ? withGold(breakthroughCost('bunker', st.bunker / T.base.btEvery, S.caps), bunkerGold(st.bunker)) : { gold: bunkerGold(st.bunker) };
+  if (a === 'fence') return needsBreakthrough(st.fence, st.fenceBt) ? withGold(breakthroughCost('fence', st.fence / T.base.btEvery, S.caps), fenceGold(st.fence)) : { gold: fenceGold(st.fence) };
   if (a === 'sec') {
     if (!sectionOpen(st, b)) return null;
     const x = st.sec[b];
-    if (c === 'lv') return needsBreakthrough(x.lv, x.bt) ? bt(st, breakthroughCost('section', x.lv / T.base.btEvery, S.caps, SECTIONS[b].aux)) : { gold: sectionLevelGold(b, x.lv) };
-    if (c === 'tier') return capToStores(sectionTierCost(b, x.tier + 1), S.caps);
+    if (c === 'lv') return needsBreakthrough(x.lv, x.bt) ? withGold(breakthroughCost('section', x.lv / T.base.btEvery, S.caps, SECTIONS[b].aux), sectionLevelGold(b, x.lv)) : { gold: sectionLevelGold(b, x.lv) };
+    // a tier is not capped to the store: it blocks nothing, and a bigger one is what the capacity track is for
+    if (c === 'tier') return capToStores(sectionTierCost(b, x.tier + 1), null);
     return capToStores(sectionCapCost(b, x.cap), S.caps);
   }
   if (a === 'crew') {

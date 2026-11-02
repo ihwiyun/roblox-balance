@@ -1,106 +1,137 @@
 'use strict';
-// The bunker and the fence: how many levels, where each new form begins, what every level adds, hp and price.
-// (How they look is in yard.js.) Other files only use the functions and tables defined here.
-const MAX_BUNKER = 100, MAX_FENCE = 100;
-// the level at which each form (a different building, a different kind of fence) begins: ten forms of ten levels
-const BUNKER_FORM_AT = [1, 11, 21, 31, 41, 51, 61, 71, 81, 91], FENCE_FORM_AT = [1, 11, 21, 31, 41, 51, 61, 71, 81, 91];
-const formIndex = (at, L) => { let f = 0; for (let k = 0; k < at.length; k++) if (L >= at[k]) f = k; return f; };
-const bunkerForm = (L = G.bunker) => formIndex(BUNKER_FORM_AT, L);
-const fenceForm = (L = G.fence) => formIndex(FENCE_FORM_AT, L);
-const bunkerSub = (L = G.bunker) => L - BUNKER_FORM_AT[bunkerForm(L)];   // levels into the current form
-const fenceSub = (L = G.fence) => L - FENCE_FORM_AT[fenceForm(L)];
-// half: half the footprint (zombies stop at half + .55 to hit it); roof: the height the gunners stand at;
-// deck: half the roof area where debris lands; material: the colour of the dust when it is hit.
-// These are the values on a form's first level; grow lists [levels into the form, half, roof, deck] where it grows
-const BUNKER_FORMS = [
-  { name: '간이 참호', half: 1.7, roof: .2, deck: 1.4, material: [190, 166, 116], grow: [[4, 1.82, .2, 1.52]] },
-  { name: '나무 망루', half: 1.45, roof: 1.8, deck: 1.45, material: [146, 104, 66], grow: [[4, 1.6, 1.8, 1.6], [8, 1.6, 2.2, 1.6]] },
-  { name: '컨테이너 초소', half: 1.5, roof: 1.9, deck: 1.3, material: [170, 72, 54], grow: [[5, 1.64, 2.25, 1.3]] },
-  { name: '함석 요새', half: 1.5, roof: 2.0, deck: 1.4, material: [150, 120, 96], grow: [[4, 1.9, 2.0, 1.4]] },
-  { name: '콘크리트 토치카', half: 1.6, roof: 2.0, deck: 1.5, material: [176, 172, 160], grow: [[4, 1.8, 2.0, 1.6]] },
-  { name: '강화 벙커', half: 1.7, roof: 2.2, deck: 1.5, material: [150, 156, 140], grow: [[4, 1.85, 2.6, 1.6]] },
-  { name: '지휘 벙커', half: 1.8, roof: 2.4, deck: 1.6, material: [196, 196, 188], grow: [[4, 2.0, 2.4, 1.7]] },
-  { name: '포탑 요새', half: 1.85, roof: 2.6, deck: 1.6, material: [160, 150, 136], grow: [[4, 2.0, 2.6, 1.7], [5, 2.0, 2.9, 1.7]] },
-  { name: '첨단 장갑 성채', half: 1.95, roof: 2.8, deck: 1.7, material: [120, 132, 150], grow: [[4, 2.0, 2.8, 1.75]] },
-  { name: '최종 요새', half: 2.0, roof: 3.0, deck: 1.75, material: [70, 66, 74], grow: [[7, 2.0, 3.35, 1.75]] },
-];
-// the shape at every level (a form can widen or gain a storey part way through)
-const BUNKER_LEVELS = [];
-for (let L = 1; L <= MAX_BUNKER; L++) {
-  const f = formIndex(BUNKER_FORM_AT, L), k = L - BUNKER_FORM_AT[f], F = BUNKER_FORMS[f];
-  let half = F.half, roof = F.roof, deck = F.deck;
-  for (const [at, h, r, d] of F.grow) if (k >= at) { half = h; roof = r; deck = d; }
-  BUNKER_LEVELS[L] = { name: F.name, half, roof, deck, material: F.material, form: f, sub: k };
-}
-const bunkerInfo = (L = G.bunker) => BUNKER_LEVELS[Math.max(1, Math.min(MAX_BUNKER, L))];
-// coarse progress of the base for the crew's kit: helmets from 2, vests from 4 (0..5)
-const gearTier = () => Math.min(5, Math.floor(bunkerForm() * 6 / BUNKER_FORMS.length));
+// The bunker and the fence: levels, hp, price, and how the look grows (drawn in yard.js). Other files only use the
+// functions and tables defined here. Gold buys levels; every 50 levels the next purchase is a breakthrough
+// (materials and three times the gold), the only moment the look changes (the turret mounts aside, which open at
+// fixed levels). Levels have no real cap: the look is worked out on demand and kept per breakthrough.
+const MAX_BUNKER = 30000, MAX_FENCE = 30000;
+const LOOK_BREAK = 50, LOOK_ERA = 25;
+// the purchase from level L is a breakthrough (L = 50, 100, 150, ...)
+const bunkerBreak = L => L > 0 && L % LOOK_BREAK === 0, fenceBreak = bunkerBreak;
+// breakthroughs bought by level L: the one bought at level 50 shows from level 51
+const lookTier = L => L > 0 ? Math.floor((L - 1) / LOOK_BREAK) : 0;
+// the turret mounts on the bunker open at these levels
+const MOUNT_AT = [25, 50, 100, 200, 400, 700];
 // the curves keep their old shape, stretched over the longer ladder: LEVEL_STRETCH old levels per new level
 const LEVEL_STRETCH = 39 / 99;
 const bunkerHp = L => Math.round(150 * 1.16 ** ((L - 1) * LEVEL_STRETCH));
-// the price of the next level, L -> L + 1
-// money and a growing share of food (the builders eat) and, later, minerals: every resource has a use
+const fenceHp = L => L ? Math.round(120 * 1.17 ** ((L - 1) * LEVEL_STRETCH)) : 0;
+// a breakthrough costs three times the gold, plus food and ore (about 30·k² each for the k-th)
+function breakPrice(L, c) {
+  if (!bunkerBreak(L)) return c;
+  const m = Math.ceil(30 * (L / LOOK_BREAK) ** 2);
+  c.money *= 3; c.food = (c.food || 0) + m; c.mineral = (c.mineral || 0) + m;
+  return c;
+}
+// the price of the next level, L -> L + 1: money and a growing share of food (the builders eat) and, later, minerals
 const bunkerCost = L => {
   const c = { money: Math.ceil(34 * 1.24 ** (L * LEVEL_STRETCH)) };
   if (L >= 6) c.food = Math.ceil(c.money * Math.min(.6, .2 + (L - 6) * .006));
   if (L >= 16) c.mineral = Math.ceil(c.money * Math.min(.2, .05 + (L - 16) * .003));
-  return c;
+  return breakPrice(L, c);
 };
-// material: the colour of the splinters when it is hit; metal: it clangs; electric: it shocks whoever hits it
-const FENCE_FORMS = [
-  { name: '나무 말뚝', material: [146, 104, 66] },
-  { name: '판자 울타리', material: [176, 132, 84] },
-  { name: '철조망', material: [96, 100, 108], metal: true },
-  { name: '철망 펜스', material: [150, 160, 166], metal: true },
-  { name: '강철 고슴도치', material: [112, 122, 132], metal: true },
-  { name: '모래주머니 방벽', material: [190, 166, 116] },
-  { name: '콘크리트 방호벽', material: [176, 172, 160] },
-  { name: '강철 방벽', material: [112, 122, 132], metal: true },
-  { name: '전기 철책', material: [112, 122, 132], metal: true, electric: true },
-  { name: '에너지 방벽', material: [120, 200, 255], metal: true, electric: true },
-];
-const fenceInfo = (L = G.fence) => FENCE_FORMS[fenceForm(L)];
-const fenceHp = L => L ? Math.round(120 * 1.17 ** ((L - 1) * LEVEL_STRETCH)) : 0;
-const fenceCost = L => { const c = { money: Math.ceil(26 * 1.24 ** (L * LEVEL_STRETCH)) }; if (L >= 8) c.mineral = Math.ceil(c.money * Math.min(.25, .08 + (L - 8) * .004)); return c; };
-// what each level adds; the first name of a form is the form itself
-const BUNKER_EXTRAS = [
-  ['간이 참호', '말뚝 버팀벽', '모래주머니 2단', '판자 흉벽', '참호 확장', '네 귀 랜턴', '철판 덧대기', '철조망 둘레', '통나무 모서리 보강', '통나무 흉벽'],
-  ['나무 망루', 'X자 버팀목', '통나무 난간', '아래층 판자벽', '망루 확장', '판자 방패벽', '네 귀 등불', '가시 말뚝 둘레', '망루 증축', '모서리 망대'],
-  ['컨테이너 초소', '옥상 안전 난간', '화물 도색 띠', '총안 셔터', '모서리 강판', '콘크리트 받침대', '모래주머니 둘레', '네 귀 경광등', '위장 그물 커튼', '네 귀 탐조등'],
-  ['함석 요새', '녹슨 덧판', '철망 창문', '함석 흉벽', '사방 처마', '드럼통 방벽', '네 귀 함석 망루', '해골 경고 낙서', '지붕 가시철선', '전구 줄'],
-  ['콘크리트 토치카', '강철 모서리 보호대', '흙 둔덕', '2열 총안', '측면 보강벽', '모서리 관측탑', '보호망 벽등', '흉벽 증축', '네 귀 안테나', '위장 도색'],
-  ['강화 벙커', '장갑 총안', '상단 장갑판', '황흑 경고 도장', '외벽 한 층 증축', '네 귀 투광등', '대전차 장애물 둘레', '모서리 장갑 기둥', '면도날 철조망', '부대 휘장'],
-  ['지휘 벙커', '레이더 패널', '안테나 배열', '상황실 창', '기단 증축', '경보 사이렌', '케이블 트레이', '강화 난간 패널', '네 면 현수막', '헬기 유도등'],
-  ['포탑 요새', '모서리 포탑 4기', '성벽 총안', '장갑 스커트', '모서리 보루', '성벽 증축', '포탑 경광등', '대구경 포신', '성벽 페넌트', '미사일 포드'],
-  ['첨단 장갑 성채', '센서 기둥', '레이저 포탑', '에너지 코어', '장갑 날개', '방열판', '홀로그램 표지', '이중 장갑판', '방어막 발생기', '빛 왕관'],
-  ['최종 요새', '황금 문장', '흑금 포탑', '붉은 휘장', '포탑 첨탑', '황금 기단', '플라스마 포', '성벽 장갑 증축', '승리의 화로', '왕관 장식'],
-];
-const FENCE_EXTRAS = [
-  ['나무 말뚝', '밧줄 연결', '말뚝 보충', '뾰족한 끝', '가로 막대', '붉은 천 표식', '모서리 횃불', '엇갈린 말뚝', '깡통 경보줄', '경고 팻말'],
-  ['판자 울타리', '흰 페인트', '판자 보충', '검은 기둥', '철판 끝', '모서리 등', '정문', '덩굴', '위험 표지판', '윗단 가시철사'],
-  ['철조망', '세 가닥 철선', '윗단 코일', '깡통 딸랑이', '사선 보조선', '붉은 경고판', '바깥 말뚝열', '바닥 코일', '모서리 투광등', '반사 표지'],
-  ['철망 펜스', '윗단 파이프', '녹색 코팅', '기둥 캡', '콘크리트 기초', '바깥 철조망 팔', '가림막 띠', '출입 금지판', '모서리 조명', '안쪽 보조 펜스'],
-  ['강철 고슴도치', '연결 빔', '노란 경고 도색', '두 번째 줄', '끝 가시', '연결 쇠사슬', '콘크리트 받침', '모서리 경광등', '철선 감기', '반사판'],
-  ['모래주머니 방벽', '나무 기둥 보강', '위장망 덮개', '사격 구멍', '덧댄 철판', '모서리 등불', '방벽 위 철조망', '앞쪽 흙 둔덕', '부대 표지판', '모서리 기관총'],
-  ['콘크리트 방호벽', '경고 줄무늬', '반사등', '강철 연결쇠', '윗단 철망', '번호 도색', '모서리 경고등', '윗면 가시', '안쪽 보강 블록', '붉은 띠 도장'],
-  ['강철 방벽', '리벳 줄', '위장 무늬 도장', '사격 슬롯', '톱니 윗단', '해골 경고판', '모서리 투광기', '안쪽 버팀대', '장갑 덧판', '검은 도장'],
-  ['전기 철책', '애자', '고압 경고판', '점멸등', '안쪽 전선', '변압기', '배선 덮개', '푸른 전류', '방전탑', '감시 카메라'],
-  ['에너지 방벽', '발생기 기둥', '청색 에너지막', '빛 띠', '보조 발생기', '홀로그램 경고', '에너지 가시', '이중 막', '코어 발광', '황금 발생기'],
-];
-// things that collect in the compound inside the fence, and the bunker level each one appears or changes at
-const YARD_PROPS = {
-  crates: [3, '보급 상자'], drums: [6, '연료 드럼통'], fire: [9, '모닥불'], tank: [12, '물탱크'], tent: [15, '천막'],
-  gen: [18, '발전기'], bench: [21, '작업대'], towerL: [24, '나무 감시탑'], mast: [27, '무전 마스트'], garage: [30, '차고와 지프'],
-  shop: [33, '작업장'], pad: [36, '헬기장'], medic: [39, '의무 텐트'], solar: [42, '태양광 패널'], tankS: [45, '강철 물탱크'],
-  fuel: [48, '연료 저장소'], green: [51, '온실'], towerS: [54, '강철 감시탑'], ammo: [57, '탄약고'], mastS: [60, '통신탑'],
-  apc: [63, '장갑차'], heli: [66, '헬리콥터'], works: [69, '정비 공장'], clinic: [72, '야전 병원'], solar2: [75, '태양광 확장'],
-  tankB: [78, '대형 급수탑'], missile: [81, '미사일 발사대'], fusion: [84, '핵융합 발전기'], radar: [87, '방공 레이더'],
-  towerX: [90, '레이저 감시탑'], dish: [93, '위성 통신탑'], tank2: [96, '전차'], sentry: [99, '자동 기관포탑'],
+const fenceCost = L => { const c = { money: Math.ceil(26 * 1.24 ** (L * LEVEL_STRETCH)) }; if (L >= 8) c.mineral = Math.ceil(c.money * Math.min(.25, .08 + (L - 8) * .004)); return breakPrice(L, c); };
+// coarse progress of the base for the crew's kit: helmets from 2, vests from 4 (0..5), by level as before
+const gearTier = () => Math.min(5, Math.floor(Math.min(9, Math.floor((G.bunker - 1) / 10)) * 6 / 10));
+
+/* ================= the look: components × stages ================= */
+// A building is made of components, and each component has a ladder of stages, era by era. A breakthrough moves one
+// component one stage up its era's ladder, in the order of the turn list (24 turns); the 25th breakthrough jumps the
+// whole building to the next era (bigger), where every component starts on that era's first stage. Past the end of
+// a ladder (and in every era past the last) a component climbs material grades instead, so the look never stops
+// changing. The first era's stages are the features of the forms the game had before. More stages: add names to a
+// ladder here and drawings to the same row in yard.js.
+const LOOK_ERAS = ['임시', '군용', '산업', '미래', '그 이후'];
+const LOOK_GRADES = ['청동', '은', '금', '백금', '수정', '루비', '에메랄드', '사파이어', '자수정', '흑요석'];
+const BUNKER_LOOK = {
+  names: ['간이 참호', '콘크리트 토치카', '포탑 요새', '첨단 장갑 성채', '최종 요새'],
+  // by era: the footprint (half), the dust of a hit, the roof height at each walls stage, the deck at each roof stage
+  half: [1.7, 1.95, 2.1, 2.25, 2.4],
+  material: [[190, 166, 116], [176, 172, 160], [164, 154, 138], [120, 132, 150], [70, 66, 74]],
+  top: [[.2, .85, 1.3, 1.8], [2.1, 2.1, 2.1, 2.1, 2.6], [2.6], [2.8], [3.0]],
+  deck: [[1.4, 1.6, 1.6], [1.62], [1.75], [1.85], [1.95]],
+  turns: ['walls', 'lights', 'post', 'storage', 'armour', 'flags', 'workshop', 'comms', 'roof', 'mounts', 'walls', 'lights',
+    'post', 'armour', 'storage', 'comms', 'flags', 'roof', 'workshop', 'mounts', 'walls', 'lights', 'post', 'armour'],
+  parts: {
+    walls: ['벽', [['흙 둔덕', '통나무 벽', '판자 벽', '함석 벽'], ['콘크리트 벽', '2열 총안', '측면 보강벽', '흙 둔덕', '외벽 증축'],
+      ['석조 성벽', '성벽 총안', '성벽 증축'], ['장갑 선체', '방열판'], ['흑금 성벽']]],
+    roof: ['지붕', [['판자 바닥', '망루 확장', '사방 처마'], ['콘크리트 지붕', '강철 지붕', '위장 도색'], ['석조 지붕'], ['장갑 지붕'], ['황금 지붕']]],
+    post: ['사수 초소', [['모래주머니 1단', '모래주머니 2단', '판자 흉벽', '통나무 흉벽'], ['콘크리트 흉벽', '흉벽 증축', '강화 난간 패널', '장갑 총안'],
+      ['성가퀴'], ['빛 난간'], ['왕관 성가퀴']]],
+    mounts: ['터렛 거치대', [['통나무 받침', '모래주머니 총좌', '판자 망대'], ['콘크리트 총좌', '강철 총좌', '모서리 보루'], ['포탑 보루'], ['레이저 포대'], ['흑금 포대']]],
+    armour: ['장갑판', [['덧판 없음', '철판 덧대기', '녹슨 덧판', '모서리 강판'], ['강철 모서리 보호대', '상단 장갑판', '장갑 기둥', '황흑 경고 도장'],
+      ['장갑 스커트'], ['이중 장갑판'], ['황금 장갑']]],
+    lights: ['조명', [['불빛 없음', '네 귀 랜턴', '네 귀 등불', '전구 줄'], ['철망 벽등', '네 귀 투광등', '경보 사이렌', '헬기 유도등'],
+      ['포탑 경광등'], ['빛 왕관'], ['승리의 화로']]],
+    comms: ['안테나·통신', [['통신 없음', '네 귀 안테나', '무전 마스트'], ['무전 안테나', '레이더 패널', '안테나 배열'], ['통신탑'], ['센서 기둥'], ['위성 통신탑']]],
+    workshop: ['수리 작업장', [['작업장 없음', '작업대', '작업장'], ['공구 사물함', '정비 작업대', '정비 공장'], ['정비 크레인'], ['로봇 정비대'], ['황금 공방']]],
+    storage: ['보관함', [['보관함 없음', '보급 상자', '연료 드럼통'], ['탄약 상자', '연료 저장소', '탄약고'], ['컨테이너'], ['자동 저장고'], ['황금 금고']]],
+    flags: ['깃발·휘장', [['깃발 없음', '붉은 천 표식', '해골 경고 낙서'], ['부대 휘장', '네 면 현수막', '성벽 페넌트'], ['붉은 휘장'], ['홀로그램 표지'], ['황금 문장']]],
+  },
 };
-const yardPropAt = id => YARD_PROPS[id][0];
-const PROP_NAME_AT = [];
-for (const [L, name] of Object.values(YARD_PROPS)) PROP_NAME_AT[L] = name;
-// what level L adds (or the new form's name, on the first level of a form), with what appears in the compound
-const bunkerAddName = L => { const n = BUNKER_EXTRAS[bunkerForm(L)][bunkerSub(L)] || ''; return PROP_NAME_AT[L] ? n + ' · ' + PROP_NAME_AT[L] : n; };
-const fenceAddName = L => FENCE_EXTRAS[fenceForm(L)][fenceSub(L)] || '';
-const isNewBunkerForm = L => BUNKER_FORM_AT.includes(L), isNewFenceForm = L => FENCE_FORM_AT.includes(L);
+const FENCE_LOOK = {
+  names: ['나무 말뚝', '철망 펜스', '강철 방벽', '전기 철책', '에너지 방벽'],
+  // by era: the colour of the splinters, whether it clangs, whether it shocks whoever hits it
+  material: [[146, 104, 66], [150, 160, 166], [112, 122, 132], [112, 122, 132], [120, 200, 255]],
+  metal: [false, true, true, true, true], electric: [false, false, false, true, true],
+  turns: ['panels', 'lights', 'posts', 'gate', 'spikes', 'panels', 'posts', 'lights', 'spikes', 'gate', 'panels', 'posts',
+    'lights', 'spikes', 'panels', 'gate', 'posts', 'lights', 'spikes', 'panels', 'gate', 'posts', 'lights', 'spikes'],
+  parts: {
+    posts: ['기둥', [['나무 말뚝', '말뚝 보충', '뾰족한 끝', '검은 기둥', '철판 끝', '기둥 캡'], ['강철 기둥', '녹색 코팅', '기둥 캡', '콘크리트 기초'],
+      ['강철 방벽 기둥'], ['애자 기둥'], ['발생기 기둥']]],
+    panels: ['판·철조망', [['없음', '밧줄 연결', '가로 막대', '판자 울타리', '흰 페인트', '덩굴'], ['철망', '윗단 파이프', '가림막 띠', '안쪽 보조 펜스'],
+      ['강철 판', '리벳 줄', '위장 무늬 도장'], ['고압 전선'], ['에너지막']]],
+    gate: ['문', [['없음', '판자 정문', '경고 팻말', '철판 덧댄 정문', '정문 망루'], ['철망 문', '출입 금지판', '차단기'], ['강철 문'], ['전기 문'], ['빛의 문']]],
+    lights: ['조명', [['없음', '모서리 횃불', '모서리 등', '반사 표지', '모서리 투광등', '모서리 경광등'], ['모서리 조명', '모서리 투광등', '점멸등'],
+      ['모서리 투광기'], ['감시 카메라'], ['코어 발광']]],
+    spikes: ['가시·전기', [['없음', '엇갈린 말뚝', '윗단 가시철사', '바깥 말뚝열', '바닥 코일', '깡통 딸랑이'], ['윗단 철조망', '바깥 철조망 팔', '면도날 철조망'],
+      ['톱니 윗단'], ['푸른 전류', '방전탑'], ['에너지 가시']]],
+  },
+};
+// a building after b breakthroughs: its era, each component's stage within the era's ladder and its material grade
+function lookOf(T, b) {
+  const era = Math.floor(b / LOOK_ERA), top = LOOK_ERAS.length - 1, e = Math.min(era, top);
+  const look = { b, era: e, eraGrade: era - e, step: {}, grade: {} }, n = {};
+  // each component's turns so far this era; past the last era it keeps climbing from where it stood
+  for (const k in T.parts) n[k] = 0;
+  T.turns.forEach((k, i) => { n[k] += era - e + (i < b % LOOK_ERA ? 1 : 0); });
+  for (const k in T.parts) { const last = T.parts[k][1][e].length - 1; look.step[k] = Math.min(n[k], last); look.grade[k] = n[k] - look.step[k]; }
+  return look;
+}
+const lookGradeName = g => g ? LOOK_GRADES[(g - 1) % LOOK_GRADES.length] + (g > LOOK_GRADES.length ? ' ' + (Math.floor((g - 1) / LOOK_GRADES.length) + 1) : '') : '';
+// what breakthrough b brings: a new building every 25th, else its component's new stage (or grade)
+function lookStepName(T, b) {
+  if (b <= 0) return T.names[0];
+  const lk = lookOf(T, b);
+  if (b % LOOK_ERA === 0) return LOOK_ERAS[lk.era] + ' 시대 · ' + T.names[lk.era] + (lk.eraGrade ? ' ' + (lk.eraGrade + 1) : '');
+  const k = T.turns[b % LOOK_ERA - 1], g = lk.grade[k];
+  return T.parts[k][0] + ' · ' + T.parts[k][1][lk.era][lk.step[k]] + (g ? ' · ' + lookGradeName(g) : '');
+}
+const bunkerStepName = b => lookStepName(BUNKER_LOOK, b), fenceStepName = b => lookStepName(FENCE_LOOK, b);
+// the first level of a new building (a new era); hud.js announces it
+const isNewBunkerForm = L => L % (LOOK_BREAK * LOOK_ERA) === 1, isNewFenceForm = isNewBunkerForm;
+// what the cards and the drawing read, kept per breakthrough. half: half the footprint (zombies stop at half + .55);
+// roof: the height the gunners stand at; deck: half the roof area where debris lands; material: the dust of a hit
+const bunkerLooks = new Map(), fenceLooks = new Map();
+function bunkerInfo(L = G.bunker) {
+  const b = lookTier(Math.max(1, Math.min(MAX_BUNKER, L)));
+  let I = bunkerLooks.get(b);
+  if (!I) {
+    const T = BUNKER_LOOK, look = lookOf(T, b), e = look.era, top = T.top[e], deck = T.deck[e];
+    I = { name: T.names[e] + (look.eraGrade ? ' ' + (look.eraGrade + 1) : ''), half: T.half[e], roof: top[Math.min(look.step.walls, top.length - 1)],
+      deck: deck[Math.min(look.step.roof, deck.length - 1)], material: T.material[e], look };
+    bunkerLooks.set(b, I);
+  }
+  return I;
+}
+function fenceInfo(L = G.fence) {
+  const b = lookTier(Math.max(0, Math.min(MAX_FENCE, L)));
+  let I = fenceLooks.get(b);
+  if (!I) {
+    const T = FENCE_LOOK, look = lookOf(T, b), e = look.era;
+    I = { name: T.names[e] + (look.eraGrade ? ' ' + (look.eraGrade + 1) : ''), material: T.material[e], metal: T.metal[e], electric: T.electric[e], look };
+    fenceLooks.set(b, I);
+  }
+  return I;
+}
+// breakthroughs into the fence's era (the sparks of an electric fence grow with it, loop.js)
+const fenceSub = (L = G.fence) => lookTier(L) % LOOK_ERA;

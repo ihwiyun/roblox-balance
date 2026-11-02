@@ -29,17 +29,18 @@ export function stageForCap(lifetime, doubling = T.medals.doubling) {
   return s;
 }
 
+// the effects (doc 5); the prices live in tuning (T.medals.ups) so the simulation can try them
 export const MEDAL_UPS = {
-  fire: { name: '화력', desc: '피해 ×1.15/레벨', cost0: 2, grow: 1.22, mul: 1.15 },
-  funds: { name: '군자금', desc: '금화 ×1.15/레벨', cost0: 2, grow: 1.25, mul: 1.15 },
-  command: { name: '지휘', desc: '동료·터렛 ×1.10/레벨', cost0: 4, grow: 1.28, mul: 1.10 },
-  supply: { name: '보급', desc: '생산 +5%/레벨', cost0: 5, grow: 1.32, add: 0.05 },
-  drill: { name: '전훈', desc: '경험치 +10%/레벨', cost0: 8, grow: 1.35, add: 0.10 },
-  watch: { name: '야간 경계', desc: '오프라인 최대 +1시간/레벨', cost0: 25, grow: 2.5, max: 10 },
-  sentry: { name: '자동 보초', desc: '오프라인 생산 +2%/레벨', cost0: 25, grow: 2.5, max: 10 },
+  fire: { name: '화력', desc: '피해 ×1.15/레벨', mul: 1.15 },
+  funds: { name: '군자금', desc: '금화 ×1.15/레벨', mul: 1.15 },
+  command: { name: '지휘', desc: '동료·터렛 ×1.10/레벨', mul: 1.10 },
+  supply: { name: '보급', desc: '생산 +5%/레벨', add: 0.05 },
+  drill: { name: '전훈', desc: '경험치 +10%/레벨', add: 0.10 },
+  watch: { name: '야간 경계', desc: '오프라인 최대 +1시간/레벨', max: 10 },
+  sentry: { name: '자동 보초', desc: '오프라인 생산 +2%/레벨', max: 10 },
 };
 export const MEDAL_KEYS = Object.keys(MEDAL_UPS);
-export const medalUpCost = (key, L) => Math.ceil(MEDAL_UPS[key].cost0 * MEDAL_UPS[key].grow ** L);
+export const medalUpCost = (key, L) => Math.ceil(T.medals.ups[key].cost0 * T.medals.ups[key].grow ** L);
 export const medalUpMaxed = (key, L) => MEDAL_UPS[key].max != null && L >= MEDAL_UPS[key].max;
 export function medalMuls(lv) {
   const L = k => lv[k] || 0;

@@ -32,9 +32,16 @@ const DEFAULTS = {
     turretSlotsAt: [25, 50, 100, 200, 400, 700],            // doc
     btEvery: 50, btPow: 1.6, eraEvery: 25,
     breakthroughStoreShare: 0.8,                            // doc: never above 80% of the store
+    // materials of the breakthrough at level L (k = L/50) are coef * k^btPow. The coefficients carry the five
+    // 10-level breakthroughs the 50-level cadence merged (5 * 5^1.6 ~ 65x the old per-step numbers); doc 8 also
+    // asks for gold ("재료와 금화"): btGold times the price of the next level
+    bt: { bunker: { food: 5000, ore: 3000 }, fence: { ore: 5000, parts: 2000 }, section: { aux: 4000, parts: 1000 } },
+    btGold: 3,
   },
   sections: {
-    levelGrow: 1.13, levelPct: 0.04, tierPct: 0.10, roofTierPct: 0.20, tierCost: 200, // doc: +4%/level, 200 T^2
+    // tier t costs tierCost * t^2 * tierGrow^(t-1) aux (doc: 200 T^2). The doc's square alone fell behind production,
+    // which itself grows with every tier, so tiers ran into the hundreds; the growth factor keeps them a real sink
+    levelGrow: 1.13, levelPct: 0.04, tierPct: 0.10, roofTierPct: 0.20, tierCost: 200, tierGrow: 1.3, // doc: +4%/level
     capPct: 0.15, capCostGold0: 150, capCostGoldGrow: 1.22, capCostAux: 90, capCostPow: 1.5, // doc: 1 h x (1 + 0.15 C)
     minStore: 600,
     perWorker: { food: 2, ore: 1.5, parts: 1 },             // doc, per second
@@ -52,6 +59,12 @@ const DEFAULTS = {
   medals: {
     pow: 0.55, base: 10, firstAt: 50, floor: 25, doubling: 2, // doc
     starveShare: 0.5,
+    // medal upgrades: level L costs cost0 * grow^L medals. The effects are the doc's (x1.15 fire and funds ...);
+    // the price growth sets how much one doubling of the medals buys
+    ups: {
+      fire: { cost0: 2, grow: 1.22 }, funds: { cost0: 2, grow: 1.25 }, command: { cost0: 4, grow: 1.28 },
+      supply: { cost0: 5, grow: 1.32 }, drill: { cost0: 8, grow: 1.35 }, watch: { cost0: 25, grow: 2.5 }, sentry: { cost0: 25, grow: 2.5 },
+    },
   },
   gear: {
     mergeN: 4,                                              // doc: 4 copies -> next (4 vs 5 tested in the sim)

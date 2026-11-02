@@ -47,16 +47,18 @@ const FAC_GRADES = ['청동', '은', '금', '백금', '수정', '루비', '에�
 const FAC_LOOK = {
   mine: {
     first: '손 곡괭이 갱', build: '도르래 구덩이',
-    turns: ['drill', 'rails', 'light', 'supports', 'drill', 'tools', 'power', 'conveyor', 'drill', 'crusher', 'storage', 'vent',
-      'rails', 'light', 'drill', 'supports', 'tools', 'power', 'conveyor', 'drill', 'crusher', 'storage', 'vent', 'drill'],
+    // in the order of the client's ladder: jackhammer, wheelbarrow and timbering, rails and carts, electric drill, ore
+    // chute and sorter, generator and drilling rig, conveyor, ...
+    turns: ['drill', 'rails', 'supports', 'light', 'rails', 'drill', 'conveyor', 'crusher', 'power', 'drill', 'conveyor', 'tools',
+      'storage', 'vent', 'light', 'drill', 'crusher', 'power', 'supports', 'storage', 'tools', 'vent', 'rails', 'drill'],
     parts: {
       drill: ['드릴', [
-        ['도르래 구덩이', '착암기 목재탑', '전동 강철탑', '시추 리그', '디젤 시추 리그', '대형 시추 리그', '코어 드릴'],
-        ['군용 코어 드릴', '장갑 코어 드릴', '이중 코어 드릴', '굴착기', '대형 굴착기', '쌍둥이 드릴', '중장 쌍둥이 드릴'],
+        ['도르래 구덩이', '착암기 틀', '전동 드릴탑', '시추 리그', '디젤 시추 리그', '대형 코어 드릴'],
+        ['군용 코어 드릴', '장갑 코어 드릴', '굴착기', '대형 굴착기', '쌍둥이 드릴', '중장 쌍둥이 드릴'],
         ['터널 굴착기', '대형 터널 굴착기', '정련 드릴 플랜트'],
         ['채굴 로봇', '레이저 드릴', '플라스마 드릴'],
         ['크리스탈 심층 추출기']]],
-      rails: ['레일·광차', [['맨손 운반', '외바퀴 손수레', '나무 레일과 광차'], ['강철 레일과 광차', '디젤 기관차', '광차 행렬'], ['전기 기관차'], ['자기부상 광차'], ['중력 운반로']]],
+      rails: ['레일·광차', [['맨손 운반', '외바퀴 손수레', '나무 레일과 광차', '광차 행렬'], ['강철 레일과 광차', '디젤 기관차', '광차 열차', '이중 선로'], ['전기 기관차'], ['자기부상 광차'], ['중력 운반로']]],
       light: ['조명', [['랜턴', '카바이드 등', '갱도 전구 줄'], ['철망 작업등', '투광등', '조명탑'], ['나트륨 조명탑'], ['LED 천장'], ['수정 발광등']]],
       supports: ['버팀목', [['맨 바위 기둥', '나무 버팀목', '갱목 틀'], ['강철 아치', '록볼트와 철망', '숏크리트 벽'], ['철골 보강'], ['역장 버팀'], ['수정 기둥']]],
       conveyor: ['컨베이어', [['양동이 운반', '나무 광석 슈트', '손 크랭크 벨트'], ['벨트 컨베이어', '경사 컨베이어', '이중 컨베이어'], ['버킷 엘리베이터'], ['자동 컨베이어망'], ['부유 운반 고리']]],

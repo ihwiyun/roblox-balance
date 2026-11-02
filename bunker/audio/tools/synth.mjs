@@ -361,5 +361,40 @@ make('shell_casing', 'Brass casing hitting the floor: modal "tink" with three sh
   return o;
 });
 
+// ---------- weapons and boss (generated alternates, for comparison with the recorded candidates) ----------
+make('boss_stomp', 'Heavy stomp: mid thump (220 → 70 Hz), sub drop, a short low crack and a dust rumble', () => {
+  const o = buf(1.1);
+  mix(o, boom({ dur: 1.0, f0: 120, f1: 34, gain: 0.9, decay: 0.3 }), 0);
+  mix(o, boom({ dur: 0.35, f0: 240, f1: 75, gain: 0.7, decay: 0.07 }), 0);
+  mix(o, noise({ dur: 0.3, gain: 0.55, type: 'lp', cutoff: (t) => 3000 * Math.exp(-t / 0.045) + 250, envp: { a: 0.001, d: 0.05, s: 0, r: 0.04 }, seed: 91 }), 0);
+  mix(o, noise({ dur: 0.9, gain: 0.3, type: 'lp', cutoff: 320, envp: { a: 0.02, d: 0.28, s: 0, r: 0.25 }, seed: 92 }), 0.03);
+  return o;
+});
+make('flamethrower', 'Flamethrower: ignition whump, 1.4 s roaring noise with slow flutter and crackle, soft cut-off', () => {
+  const dur = 1.6, o = buf(dur + 0.25), r = rng(103);
+  mix(o, boom({ dur: 0.35, f0: 120, f1: 45, gain: 0.5, decay: 0.1 }), 0);
+  const roar = noise({ dur, gain: 0.8, type: 'lp', cutoff: (t) => 700 + 1500 * Math.min(1, t / 0.12), q: 0.7, envp: { a: 0.05, d: 9, s: 0.9, r: 0.3 }, seed: 101 });
+  const hiss = noise({ dur, gain: 0.22, type: 'hp', cutoff: 2600, envp: { a: 0.03, d: 9, s: 0.8, r: 0.3 }, seed: 102 });
+  for (let i = 0; i < roar.length; i++) roar[i] *= 0.72 + 0.28 * Math.sin(2 * Math.PI * (11 + 3 * Math.sin(i / SR * 2.1)) * (i / SR));
+  mix(o, roar); mix(o, hiss);
+  for (let t = 0.1; t < dur - 0.1; t += 0.012 + r() * 0.05) {   // crackle
+    mix(o, noise({ dur: 0.012, gain: 0.25 + r() * 0.3, type: 'hp', cutoff: 2500 + r() * 3000, envp: { a: 0.0005, d: 0.004, r: 0.003 }, seed: 200 + Math.floor(t * 1000) }), t);
+  }
+  return o;
+});
+make('electric_zap', 'Electric zap: fast falling saw sweep, gated noise crackle and a low thump', () => {
+  const o = buf(0.55), r = rng(112);
+  mix(o, tone({ dur: 0.18, f0: 3200, f1: 180, wave: 'saw', gain: 0.4, envp: { a: 0.001, d: 0.06, s: 0.1, r: 0.04 } }), 0);
+  const cr = noise({ dur: 0.5, gain: 0.5, type: 'hp', cutoff: 1800, envp: { a: 0.001, d: 0.18, s: 0, r: 0.1 }, seed: 111 });
+  let gate = 1, next = 0;
+  for (let i = 0; i < cr.length; i++) {
+    if (i >= next) { gate = r() < 0.55 ? 1 : 0.15; next = i + Math.round((0.002 + r() * 0.006) * SR); }
+    cr[i] *= gate;
+  }
+  mix(o, cr, 0);
+  mix(o, boom({ dur: 0.25, f0: 140, f1: 60, gain: 0.45, decay: 0.07 }), 0);
+  return withVerb(o, 0.08, { tail: 0.25 });
+});
+
 writeFileSync(join(outDir, 'generated.json'), JSON.stringify(made, null, 1));
 console.log(Object.entries(made).map(([k, v]) => `${k} ${v.seconds}s`).join('\n'));

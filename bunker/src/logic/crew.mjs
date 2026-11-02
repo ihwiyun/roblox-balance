@@ -36,8 +36,10 @@ export const CARDS = [
 ];
 export const CARD = Object.fromEntries(CARDS.map(c => [c.id, c]));
 export const CARDS_BY_GRADE = Array.from({ length: 8 }, (_, g) => CARDS.filter(c => c.grade === g && c.id !== 'me').map(c => c.id));
-// free recruits as the story goes (the shelter never starts without a farmer)
-export const STORY_RECRUITS = [[1, 'me'], [1, 'seoyeon'], [5, 'minjun'], [10, 'jiho'], [20, 'doyun'], [35, 'haeun']];
+// free recruits as the story goes: each floor gets a hand when it opens (the farm at 1, the mine at 8 -> 10, the
+// workshop at 15). Without the stage-15 repairman the workshop stayed empty and made no parts until a summon
+// happened to bring a repair or mechanic card (33 h in the first simulation)
+export const STORY_RECRUITS = [[1, 'me'], [1, 'seoyeon'], [5, 'minjun'], [10, 'jiho'], [15, 'sua'], [20, 'doyun'], [35, 'haeun']];
 export const RECRUIT_COST = 100;   // gems
 
 export const newCrew = () => ({ cards: {}, assign: { roof: [], food: [], mine: [], shop: [], lab: [] }, leader: 'me' });

@@ -8,18 +8,19 @@
    "member": "space_battle_bpm130.ogg",
    "title": "Space Battle",
    "loop": "whole",
+   "mood": "신스 전투곡. 작곡가가 전투 테마·반복 가능으로 표기.",
    "bpm": 130,
-   "mood": "신스 중심의 박진감 있는 전투곡 (A 마이너). 작곡가가 반복 가능(loopable)이라고 표기.",
+   "star": true,
    "author": "MintoDog",
    "file": "candidates/music-ground/bgm_ground_spacebattle.ogg",
    "bytes": 1179692,
    "seconds": 88.615,
    "lufs_i": -16.0,
    "true_peak": -5.0,
-   "lufs_m_max": -120.0,
+   "lufs_m_max": -13.7,
    "changes": [
-    "loudness normalised to -16 LUFS (gain -4.5 dB)",
-    "encoded OGG Vorbis q3"
+    "음량을 -16 LUFS로 맞춤 (이득 -4.5 dB)",
+    "OGG Vorbis q3로 변환"
    ],
    "source_files": [
     "space_battle_bpm130.ogg"
@@ -37,10 +38,100 @@
    "loop_end": 88.615,
    "seam": {
     "click_pct": 18.28,
+    "click_ratio": 0.05,
     "gap_db": -0.7,
     "ok": true
    },
    "loop_beats": 192.0
+  },
+  {
+   "id": "bgm_ground_finalstand",
+   "group": "music-ground",
+   "kind": "music",
+   "source": "iam_final_stand",
+   "member": "final_stand.wav",
+   "title": "Final Stand",
+   "loop": "whole",
+   "mood": "웅장한 곡. 작곡가 설명: 약 1분, 120BPM 반복.",
+   "bpm": 120,
+   "declick": 4,
+   "author": "iamoneabe",
+   "file": "candidates/music-ground/bgm_ground_finalstand.ogg",
+   "bytes": 1104889,
+   "seconds": 64.0,
+   "lufs_i": -16.1,
+   "true_peak": -2.8,
+   "lufs_m_max": -13.9,
+   "changes": [
+    "반복 이음새의 딸깍 소리를 없애려고 맨 앞뒤 4ms를 페이드",
+    "음량을 -16 LUFS로 맞춤 (이득 -1.5 dB)",
+    "OGG Vorbis q3로 변환"
+   ],
+   "source_files": [
+    "final_stand.wav"
+   ],
+   "direct_files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/final_stand.wav",
+     "name": "final_stand.wav",
+     "sha256": "f976fac90a6400ab3c29d9792ad1aea29485bee72b17424d27afbe5655dec932",
+     "members": []
+    }
+   ],
+   "bpm_est": 120.0,
+   "loop_start": 0.0,
+   "loop_end": 64.0,
+   "seam": {
+    "click_pct": 9.65,
+    "click_ratio": 0.07,
+    "gap_db": 1.9,
+    "ok": true
+   },
+   "loop_beats": 128.0
+  },
+  {
+   "id": "bgm_ground_level2",
+   "group": "music-ground",
+   "kind": "music",
+   "source": "jj_action",
+   "member": "Juhani Junkala [Retro Game Music Pack] Level 2.wav",
+   "title": "Level 2 (Retro Game Music Pack)",
+   "loop": "whole",
+   "mood": "칩튠 액션곡, 단조. 작곡가가 이음새 없는 반복으로 표기.",
+   "author": "SubspaceAudio",
+   "file": "candidates/music-ground/bgm_ground_level2.ogg",
+   "bytes": 1067025,
+   "seconds": 72.796,
+   "lufs_i": -16.1,
+   "true_peak": -6.5,
+   "lufs_m_max": -14.8,
+   "changes": [
+    "음량을 -16 LUFS로 맞춤 (이득 -9.1 dB)",
+    "OGG Vorbis q3로 변환"
+   ],
+   "source_files": [
+    "Juhani Junkala [Retro Game Music Pack] Level 2.wav"
+   ],
+   "direct_files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/5%20Action%20Chiptunes%20By%20Juhani%20Junkala.zip",
+     "name": "5 Action Chiptunes By Juhani Junkala.zip",
+     "sha256": "ea189990c0fb9a700187ccc740eda72400341a082305a163867467d96346460d",
+     "members": [
+      "Juhani Junkala [Retro Game Music Pack] Level 2.wav"
+     ]
+    }
+   ],
+   "bpm_est": 105.5,
+   "loop_start": 0.0,
+   "loop_end": 72.796,
+   "seam": {
+    "click_pct": 99.07,
+    "click_ratio": 0.96,
+    "gap_db": 0.9,
+    "ok": true
+   },
+   "loop_beats": 128.0
   },
   {
    "id": "bgm_shelter_afternoon",
@@ -50,19 +141,19 @@
    "member": "post-apocalyptic_afternoon_bpm85.ogg",
    "title": "Post-Apocalyptic Afternoon",
    "loop": "whole",
+   "mood": "잔잔하고 음이 성김, D 마이너. 오래 들어도 부담이 적음.",
    "bpm": 85,
    "star": true,
-   "mood": "피아노·어쿠스틱 기타·신스의 잔잔하고 쓸쓸한 곡 (D 마이너). 음이 성겨서 오래 들어도 부담이 적음.",
    "author": "MintoDog",
    "file": "candidates/music-shelter/bgm_shelter_afternoon.ogg",
    "bytes": 1763337,
    "seconds": 135.529,
    "lufs_i": -16.1,
    "true_peak": -3.7,
-   "lufs_m_max": -120.0,
+   "lufs_m_max": -13.9,
    "changes": [
-    "loudness normalised to -16 LUFS (gain -3.2 dB)",
-    "encoded OGG Vorbis q3"
+    "음량을 -16 LUFS로 맞춤 (이득 -3.2 dB)",
+    "OGG Vorbis q3로 변환"
    ],
    "source_files": [
     "post-apocalyptic_afternoon_bpm85.ogg"
@@ -80,10 +171,96 @@
    "loop_end": 135.529,
    "seam": {
     "click_pct": 84.81,
+    "click_ratio": 0.1,
     "gap_db": -2.7,
     "ok": true
    },
    "loop_beats": 192.0
+  },
+  {
+   "id": "bgm_shelter_morning",
+   "group": "music-shelter",
+   "kind": "music",
+   "source": "minto_postapoc",
+   "member": "post-apocalyptic_morning_bpm80.ogg",
+   "title": "Post-Apocalyptic Morning",
+   "loop": "whole",
+   "mood": "같은 작곡가의 아침 테마. 오후 곡보다 음색이 밝음.",
+   "bpm": 80,
+   "author": "MintoDog",
+   "file": "candidates/music-shelter/bgm_shelter_morning.ogg",
+   "bytes": 1542630,
+   "seconds": 120.0,
+   "lufs_i": -16.0,
+   "true_peak": -4.8,
+   "lufs_m_max": -12.2,
+   "changes": [
+    "음량을 -16 LUFS로 맞춤 (이득 -4.2 dB)",
+    "OGG Vorbis q3로 변환"
+   ],
+   "source_files": [
+    "post-apocalyptic_morning_bpm80.ogg"
+   ],
+   "direct_files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/post-apocalyptic_morning_bpm80_0.ogg",
+     "name": "post-apocalyptic_morning_bpm80.ogg",
+     "sha256": "3559833f54a607cf7a36d4fcef92f440caefde036304f78546f41353774ebe4a",
+     "members": []
+    }
+   ],
+   "bpm_est": 80.0,
+   "loop_start": 0.0,
+   "loop_end": 120.0,
+   "seam": {
+    "click_pct": 99.8,
+    "click_ratio": 1.18,
+    "gap_db": -6.9,
+    "ok": true
+   },
+   "loop_beats": 160.0
+  },
+  {
+   "id": "bgm_shelter_hushhamlet",
+   "group": "music-shelter",
+   "kind": "music",
+   "source": "zl_hush_hamlet",
+   "member": "hush_hamlet_loop.wav",
+   "title": "Hush Hamlet",
+   "loop": "whole",
+   "mood": "작곡가 설명: 비 오는 날 벽난로 곁의 아늑한 마을.",
+   "author": "Zane Little Music",
+   "file": "candidates/music-shelter/bgm_shelter_hushhamlet.ogg",
+   "bytes": 1121290,
+   "seconds": 96.0,
+   "lufs_i": -16.1,
+   "true_peak": -1.9,
+   "lufs_m_max": -11.8,
+   "changes": [
+    "음량을 -16 LUFS로 맞춤 (이득 +1.3 dB, 피크 리미터 사용)",
+    "OGG Vorbis q3로 변환"
+   ],
+   "source_files": [
+    "hush_hamlet_loop.wav"
+   ],
+   "direct_files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/hush_hamlet_loop_0.wav",
+     "name": "hush_hamlet_loop.wav",
+     "sha256": "a0761ded88634442fec6e7f02c875ec9745692acd9089c715d73a51a38b883fa",
+     "members": []
+    }
+   ],
+   "bpm_est": 150.0,
+   "loop_start": 0.0,
+   "loop_end": 96.0,
+   "seam": {
+    "click_pct": 7.43,
+    "click_ratio": 0.01,
+    "gap_db": -16.7,
+    "ok": true
+   },
+   "loop_beats": 240.0
   },
   {
    "id": "bgm_boss_epic",
@@ -91,20 +268,20 @@
    "kind": "music",
    "source": "jj_boss",
    "member": "Juhani Junkala - Epic Boss Battle [Seamlessly Looping].wav",
-   "title": "Epic Boss Battle [Seamlessly Looping]",
+   "title": "Epic Boss Battle",
    "loop": "whole",
+   "mood": "웅장한 오케스트라풍. 작곡가가 이음새 없는 반복으로 표기.",
    "star": true,
-   "mood": "웅장한 오케스트라풍 보스전 곡. 작곡가가 이음새 없는 반복(심리스 루프)이라고 표기.",
    "author": "SubspaceAudio",
    "file": "candidates/music-boss/bgm_boss_epic.ogg",
-   "bytes": 1763455,
+   "bytes": 1763434,
    "seconds": 123.429,
    "lufs_i": -16.1,
    "true_peak": -6.1,
-   "lufs_m_max": -120.0,
+   "lufs_m_max": -12.3,
    "changes": [
-    "loudness normalised to -16 LUFS (gain -9.2 dB)",
-    "encoded OGG Vorbis q3"
+    "음량을 -16 LUFS로 맞춤 (이득 -9.2 dB)",
+    "OGG Vorbis q3로 변환"
    ],
    "source_files": [
     "Juhani Junkala - Epic Boss Battle [Seamlessly Looping].wav"
@@ -122,10 +299,97 @@
    "loop_end": 123.429,
    "seam": {
     "click_pct": 97.94,
+    "click_ratio": 0.43,
     "gap_db": 2.4,
     "ok": true
    },
    "loop_beats": 180.0
+  },
+  {
+   "id": "bgm_boss_danger",
+   "group": "music-boss",
+   "kind": "music",
+   "source": "hg_danger_boss",
+   "member": "8-bit_danger_strong_boss.mp3",
+   "title": "8-bit Danger!! Strong Boss",
+   "loop": "whole",
+   "mood": "8비트 보스곡(추격곡 겸용). 작곡가가 이음새 없는 반복으로 표기.",
+   "trim_edges": true,
+   "author": "HydroGene",
+   "file": "candidates/music-boss/bgm_boss_danger.ogg",
+   "bytes": 1786478,
+   "seconds": 133.686,
+   "lufs_i": -16.0,
+   "true_peak": -3.5,
+   "lufs_m_max": -14.1,
+   "changes": [
+    "디코더가 붙인 무음(앞 22ms, 뒤 13ms)을 잘라 반복 틈 제거",
+    "음량을 -16 LUFS로 맞춤 (이득 -4.5 dB)",
+    "OGG Vorbis q3로 변환"
+   ],
+   "source_files": [
+    "8-bit_danger_strong_boss.mp3"
+   ],
+   "direct_files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/8-bit_danger_strong_boss_0.mp3",
+     "name": "8-bit_danger_strong_boss.mp3",
+     "sha256": "06651ec01b08d118c1d7216a96a0214272367bf84cb96e287a943c94badb8c76",
+     "members": []
+    }
+   ],
+   "bpm_est": 79.0,
+   "loop_start": 0.0,
+   "loop_end": 133.686,
+   "seam": {
+    "click_pct": 3.08,
+    "click_ratio": 0.0,
+    "gap_db": -3.1,
+    "ok": true
+   },
+   "loop_beats": 176.02
+  },
+  {
+   "id": "bgm_boss_metal9",
+   "group": "music-boss",
+   "kind": "music",
+   "source": "nene_boss9",
+   "member": "boss_battle_9_metal_loop.wav",
+   "title": "Boss Battle #9 [Metal]",
+   "loop": "whole",
+   "mood": "메탈 보스곡. 반복 부분만 사용(오프닝 17초 제외).",
+   "author": "nene",
+   "file": "candidates/music-boss/bgm_boss_metal9.ogg",
+   "bytes": 582749,
+   "seconds": 42.478,
+   "lufs_i": -16.1,
+   "true_peak": -7.2,
+   "lufs_m_max": -14.7,
+   "changes": [
+    "음량을 -16 LUFS로 맞춤 (이득 -8.4 dB)",
+    "OGG Vorbis q3로 변환"
+   ],
+   "source_files": [
+    "boss_battle_9_metal_loop.wav"
+   ],
+   "direct_files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/boss_battle_9_metal_loop.wav",
+     "name": "boss_battle_9_metal_loop.wav",
+     "sha256": "1d82943900929e5714426e50a7456e8414353c3b61a4c7fb7fc8d4ebb2195570",
+     "members": []
+    }
+   ],
+   "bpm_est": 113.0,
+   "loop_start": 0.0,
+   "loop_end": 42.478,
+   "seam": {
+    "click_pct": 99.56,
+    "click_ratio": 1.11,
+    "gap_db": -3.3,
+    "ok": true
+   },
+   "loop_beats": 80.0
   },
   {
    "id": "bgm_shop_shoppingtime",
@@ -135,18 +399,18 @@
    "member": "shopping_time_loop.ogg",
    "title": "Shopping Time!",
    "loop": "whole",
+   "mood": "가볍고 경쾌한 8비트. 작곡가: 픽셀 RPG에 어울리는 상점곡.",
    "star": true,
-   "mood": "가볍고 경쾌한 8비트 상점 곡. 작곡가가 '픽셀 RPG 게임에 어울린다'고 설명 (C 메이저).",
    "author": "SkyleTheFrench",
    "file": "candidates/music-shop/bgm_shop_shoppingtime.ogg",
    "bytes": 1091362,
    "seconds": 88.74,
    "lufs_i": -16.0,
    "true_peak": -6.3,
-   "lufs_m_max": -120.0,
+   "lufs_m_max": -13.0,
    "changes": [
-    "loudness normalised to -16 LUFS (gain -7.7 dB)",
-    "encoded OGG Vorbis q3"
+    "음량을 -16 LUFS로 맞춤 (이득 -7.7 dB)",
+    "OGG Vorbis q3로 변환"
    ],
    "source_files": [
     "shopping_time_loop.ogg"
@@ -164,35 +428,468 @@
    "loop_end": 88.74,
    "seam": {
     "click_pct": 93.93,
+    "click_ratio": 0.54,
     "gap_db": -3.2,
     "ok": true
    },
    "loop_beats": 176.0
   },
   {
-   "id": "sfx_pistol_shot",
-   "group": "sfx-weapon",
+   "id": "bgm_shop_urbanshop",
+   "group": "music-shop",
+   "kind": "music",
+   "source": "minto_urban_shop",
+   "member": "urban_shop_bpm92.ogg",
+   "title": "Urban Shop",
+   "loop": "whole",
+   "mood": "작곡가가 상점 테마로 만든 곡. 차분하고 편안함.",
+   "bpm": 92,
+   "author": "MintoDog",
+   "file": "candidates/music-shop/bgm_shop_urbanshop.ogg",
+   "bytes": 1135858,
+   "seconds": 83.478,
+   "lufs_i": -16.0,
+   "true_peak": -4.6,
+   "lufs_m_max": -12.3,
+   "changes": [
+    "음량을 -16 LUFS로 맞춤 (이득 -4.1 dB)",
+    "OGG Vorbis q3로 변환"
+   ],
+   "source_files": [
+    "urban_shop_bpm92.ogg"
+   ],
+   "direct_files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/urban_shop_bpm92_0.ogg",
+     "name": "urban_shop_bpm92.ogg",
+     "sha256": "7f7e70a28b65144d70969e008add149ccfb3bdd6e09170bf94e09ed2a56ac66b",
+     "members": []
+    }
+   ],
+   "bpm_est": 92.0,
+   "loop_start": 0.0,
+   "loop_end": 83.478,
+   "seam": {
+    "click_pct": 32.69,
+    "click_ratio": 0.11,
+    "gap_db": -3.8,
+    "ok": true
+   },
+   "loop_beats": 128.0
+  },
+  {
+   "id": "bgm_shop_bossa",
+   "group": "music-shop",
+   "kind": "music",
+   "source": "joth_bossa",
+   "member": "8bit Bossa.mp3",
+   "title": "Bossa Nova",
+   "loop": "whole",
+   "mood": "8비트 보사노바. 작곡가: 긴 엘리베이터 장면용.",
+   "trim_edges": true,
+   "author": "Joth",
+   "file": "candidates/music-shop/bgm_shop_bossa.ogg",
+   "bytes": 701825,
+   "seconds": 59.586,
+   "lufs_i": -16.2,
+   "true_peak": -1.9,
+   "lufs_m_max": -13.7,
+   "changes": [
+    "디코더가 붙인 무음(앞 4ms, 뒤 21ms)을 잘라 반복 틈 제거",
+    "음량을 -16 LUFS로 맞춤 (이득 +1.7 dB, 피크 리미터 사용)",
+    "OGG Vorbis q3로 변환"
+   ],
+   "source_files": [
+    "8bit Bossa.mp3"
+   ],
+   "direct_files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/8bit%20Bossa.mp3",
+     "name": "8bit Bossa.mp3",
+     "sha256": "0ee835fd279ac5fa15f9346744cbafc2ba800c1c0671b78ca9abe2b4353402f7",
+     "members": []
+    }
+   ],
+   "bpm_est": 128.9,
+   "loop_start": 0.0,
+   "loop_end": 59.586,
+   "seam": {
+    "click_pct": 2.46,
+    "click_ratio": 0.0,
+    "gap_db": -6.1,
+    "ok": true
+   },
+   "loop_beats": 128.01
+  },
+  {
+   "id": "jgl_win_nes",
+   "group": "sting-win",
+   "kind": "sting",
+   "source": "cb_victory_nes",
+   "member": "victory2.ogg",
+   "title": "Glorious victory fanfare NES",
+   "loop": "none",
+   "mood": "패미컴풍 승리 팡파르(약 11초).",
+   "fade_out": 0.3,
+   "author": "congusbongus",
+   "file": "candidates/sting-win/jgl_win_nes.ogg",
+   "bytes": 144833,
+   "seconds": 10.671,
+   "lufs_i": -16.0,
+   "true_peak": -6.2,
+   "lufs_m_max": -14.1,
+   "changes": [
+    "앞뒤 무음 0.31초 제거",
+    "20Hz 이하 제거(직류 성분 제거)",
+    "0.3초 페이드아웃",
+    "음량을 -16 LUFS로 맞춤 (이득 +0.0 dB)",
+    "OGG Vorbis q4로 변환"
+   ],
+   "source_files": [
+    "victory2.ogg"
+   ],
+   "direct_files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/victory2_0.ogg",
+     "name": "victory2.ogg",
+     "sha256": "7be73d492c038bce957bbbfbe479c7210fd58b50ae52f3ddf58b5514b0fd894e",
+     "members": []
+    }
+   ],
+   "punch_db": -16.0,
+   "preview_gain_db": -4.0
+  },
+  {
+   "id": "jgl_win_stageclear",
+   "group": "sting-win",
+   "kind": "sting",
+   "source": "minto_jingles",
+   "member": "ogg_8bit Action Jingle & Mini Loop/Stage Clear Long (Jingle).ogg",
+   "title": "Stage Clear Long (Jingle)",
+   "loop": "none",
+   "mood": "8비트 스테이지 클리어(긴 버전).",
+   "star": true,
+   "author": "MintoDog",
+   "file": "candidates/sting-win/jgl_win_stageclear.ogg",
+   "bytes": 81750,
+   "seconds": 6.262,
+   "lufs_i": -16.1,
+   "true_peak": -3.9,
+   "lufs_m_max": -12.1,
+   "changes": [
+    "앞뒤 무음 0.28초 제거",
+    "20Hz 이하 제거(직류 성분 제거)",
+    "음량을 -16 LUFS로 맞춤 (이득 -5.2 dB)",
+    "OGG Vorbis q4로 변환"
+   ],
+   "source_files": [
+    "ogg_8bit Action Jingle & Mini Loop/Stage Clear Long (Jingle).ogg"
+   ],
+   "direct_files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/ogg_8bit_action_jingle_mini_loop.zip",
+     "name": "ogg_8bit_action_jingle_mini_loop.zip",
+     "sha256": "221cfb1835444b5dbdd9b0e64c8ea4e1b7ada20f69631a8973cd83717da52aae",
+     "members": [
+      "ogg_8bit Action Jingle & Mini Loop/Stage Clear Long (Jingle).ogg"
+     ]
+    }
+   ],
+   "punch_db": -15.5,
+   "preview_gain_db": -4.5
+  },
+  {
+   "id": "jgl_win_winner",
+   "group": "sting-win",
+   "kind": "sting",
+   "source": "cb_winner",
+   "member": "winneris.ogg",
+   "title": "And the winner is",
+   "loop": "none",
+   "mood": "짧은 칩튠 승리 팡파르.",
+   "fade_out": 0.2,
+   "author": "congusbongus",
+   "file": "candidates/sting-win/jgl_win_winner.ogg",
+   "bytes": 45304,
+   "seconds": 3.857,
+   "lufs_i": -16.0,
+   "true_peak": -3.6,
+   "lufs_m_max": -13.2,
+   "changes": [
+    "20Hz 이하 제거(직류 성분 제거)",
+    "0.2초 페이드아웃",
+    "음량을 -16 LUFS로 맞춤 (이득 +0.7 dB)",
+    "OGG Vorbis q4로 변환"
+   ],
+   "source_files": [
+    "winneris.ogg"
+   ],
+   "direct_files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/winneris_0.ogg",
+     "name": "winneris.ogg",
+     "sha256": "97f341d02231606742372f565d0c63354f96336f6a62c27991942356f8f2291f",
+     "members": []
+    }
+   ],
+   "punch_db": -15.6,
+   "preview_gain_db": -4.4
+  },
+  {
+   "id": "jgl_fail_betterluck",
+   "group": "sting-fail",
+   "kind": "sting",
+   "source": "cb_better_luck",
+   "member": "betterluck.ogg",
+   "title": "Better luck next time",
+   "loop": "none",
+   "mood": "짧은 칩튠. 작곡가: 재시작·실패 화면용.",
+   "star": true,
+   "author": "congusbongus",
+   "file": "candidates/sting-fail/jgl_fail_betterluck.ogg",
+   "bytes": 36738,
+   "seconds": 2.909,
+   "lufs_i": -16.0,
+   "true_peak": -2.2,
+   "lufs_m_max": -13.8,
+   "changes": [
+    "앞뒤 무음 0.04초 제거",
+    "20Hz 이하 제거(직류 성분 제거)",
+    "음량을 -16 LUFS로 맞춤 (이득 +3.8 dB)",
+    "OGG Vorbis q4로 변환"
+   ],
+   "source_files": [
+    "betterluck.ogg"
+   ],
+   "direct_files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/betterluck_0.ogg",
+     "name": "betterluck.ogg",
+     "sha256": "bee3d54ffad75fc0e01e1e9d34f765461be98dd34c4914e818405c44badadada",
+     "members": []
+    }
+   ],
+   "punch_db": -13.3,
+   "preview_gain_db": -6.7
+  },
+  {
+   "id": "jgl_fail_gameover",
+   "group": "sting-fail",
+   "kind": "sting",
+   "source": "minto_jingles",
+   "member": "ogg_8bit Action Jingle & Mini Loop/GameOver (Jingle).ogg",
+   "title": "GameOver (Jingle)",
+   "loop": "none",
+   "mood": "8비트 게임 오버 징글.",
+   "author": "MintoDog",
+   "file": "candidates/sting-fail/jgl_fail_gameover.ogg",
+   "bytes": 69868,
+   "seconds": 4.365,
+   "lufs_i": -16.1,
+   "true_peak": -11.1,
+   "lufs_m_max": -15.9,
+   "changes": [
+    "앞뒤 무음 0.44초 제거",
+    "20Hz 이하 제거(직류 성분 제거)",
+    "음량을 -16 LUFS로 맞춤 (이득 -8.1 dB)",
+    "OGG Vorbis q4로 변환"
+   ],
+   "source_files": [
+    "ogg_8bit Action Jingle & Mini Loop/GameOver (Jingle).ogg"
+   ],
+   "direct_files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/ogg_8bit_action_jingle_mini_loop.zip",
+     "name": "ogg_8bit_action_jingle_mini_loop.zip",
+     "sha256": "221cfb1835444b5dbdd9b0e64c8ea4e1b7ada20f69631a8973cd83717da52aae",
+     "members": [
+      "ogg_8bit Action Jingle & Mini Loop/GameOver (Jingle).ogg"
+     ]
+    }
+   ],
+   "punch_db": -18.5,
+   "preview_gain_db": -1.5
+  },
+  {
+   "id": "jgl_fail_sadpiano",
+   "group": "sting-fail",
+   "kind": "sting",
+   "source": "emma_sad_game_over",
+   "member": "sad_game_over.wav",
+   "title": "Sad game over",
+   "loop": "none",
+   "mood": "전기 피아노의 슬픈 곡(앞 10초만).",
+   "segment": [
+    0,
+    11.0
+   ],
+   "fade_out": 2.0,
+   "author": "Emma_MA",
+   "file": "candidates/sting-fail/jgl_fail_sadpiano.ogg",
+   "bytes": 162794,
+   "seconds": 10.004,
+   "lufs_i": -16.0,
+   "true_peak": -2.8,
+   "lufs_m_max": -12.5,
+   "changes": [
+    "원본 0.00–11.00초 구간만 사용",
+    "앞뒤 무음 1.00초 제거",
+    "20Hz 이하 제거(직류 성분 제거)",
+    "2.0초 페이드아웃",
+    "음량을 -16 LUFS로 맞춤 (이득 -0.6 dB)",
+    "OGG Vorbis q4로 변환"
+   ],
+   "source_files": [
+    "sad_game_over.wav"
+   ],
+   "direct_files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/sad_game_over.wav",
+     "name": "sad_game_over.wav",
+     "sha256": "4c36050c26197c339373cdd885ec6881f9f89899852aa574c4f58c7aebcad32a",
+     "members": []
+    }
+   ],
+   "punch_db": -16.8,
+   "preview_gain_db": -3.2
+  },
+  {
+   "id": "jgl_reveal_newthing",
+   "group": "sting-reveal",
+   "kind": "sting",
+   "source": "cb_new_thing",
+   "member": "newthingget.ogg",
+   "title": "New thing get!",
+   "loop": "none",
+   "mood": "작곡가: 좋은 아이템을 얻을 때의 밝은 모티브.",
+   "star": true,
+   "author": "congusbongus",
+   "file": "candidates/sting-reveal/jgl_reveal_newthing.ogg",
+   "bytes": 95479,
+   "seconds": 5.342,
+   "lufs_i": -16.0,
+   "true_peak": -2.8,
+   "lufs_m_max": -13.5,
+   "changes": [
+    "20Hz 이하 제거(직류 성분 제거)",
+    "음량을 -16 LUFS로 맞춤 (이득 +1.8 dB)",
+    "OGG Vorbis q4로 변환"
+   ],
+   "source_files": [
+    "newthingget.ogg"
+   ],
+   "direct_files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/newthingget_0.ogg",
+     "name": "newthingget.ogg",
+     "sha256": "dbebe58b4fcd7c3a3ecfd887a40f0160ae82ed2d0375c187b9e8c49e596fd724",
+     "members": []
+    }
+   ],
+   "punch_db": -14.5,
+   "preview_gain_db": -5.5
+  },
+  {
+   "id": "jgl_reveal_twist",
+   "group": "sting-reveal",
+   "kind": "sting",
+   "source": "cb_twist",
+   "member": "surprise.ogg",
+   "title": "A surprising twist",
+   "loop": "none",
+   "mood": "패미컴풍 짧은 놀람 효과음악.",
+   "author": "congusbongus",
+   "file": "candidates/sting-reveal/jgl_reveal_twist.ogg",
+   "bytes": 48973,
+   "seconds": 3.349,
+   "lufs_i": -16.0,
+   "true_peak": -3.9,
+   "lufs_m_max": -14.8,
+   "changes": [
+    "앞뒤 무음 0.38초 제거",
+    "20Hz 이하 제거(직류 성분 제거)",
+    "음량을 -16 LUFS로 맞춤 (이득 +0.9 dB)",
+    "OGG Vorbis q4로 변환"
+   ],
+   "source_files": [
+    "surprise.ogg"
+   ],
+   "direct_files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/surprise_0.ogg",
+     "name": "surprise.ogg",
+     "sha256": "cc3c6836f735ebda327f14906623d50fbc6b15092625acd215744ce8b34822d6",
+     "members": []
+    }
+   ],
+   "punch_db": -13.7,
+   "preview_gain_db": -6.3
+  },
+  {
+   "id": "jgl_reveal_hyper",
+   "group": "sting-reveal",
+   "kind": "sting",
+   "source": "zl_hyper_fanfare",
+   "member": "sboe.wav",
+   "title": "Hyper-Ultra-Fanfare",
+   "loop": "none",
+   "mood": "작곡가: 갑작스럽고 강렬한 에너지 폭발.",
+   "fade_out": 0.3,
+   "author": "Zane Little Music",
+   "file": "candidates/sting-reveal/jgl_reveal_hyper.ogg",
+   "bytes": 89624,
+   "seconds": 5.172,
+   "lufs_i": -16.0,
+   "true_peak": -5.4,
+   "lufs_m_max": -13.4,
+   "changes": [
+    "앞뒤 무음 0.95초 제거",
+    "20Hz 이하 제거(직류 성분 제거)",
+    "0.3초 페이드아웃",
+    "음량을 -16 LUFS로 맞춤 (이득 -5.5 dB)",
+    "OGG Vorbis q4로 변환"
+   ],
+   "source_files": [
+    "sboe.wav"
+   ],
+   "direct_files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/sboe.wav",
+     "name": "sboe.wav",
+     "sha256": "50a50dd396bcb98dc38d502432864f0f03694d802560a6683a876c16eba771f4",
+     "members": []
+    }
+   ],
+   "punch_db": -16.7,
+   "preview_gain_db": -3.3
+  },
+  {
+   "id": "sfx_gun_pistol_a",
+   "group": "sfx-gun",
+   "slot": "gun_pistol",
+   "slot_label": "권총",
    "kind": "sfx",
    "source": "ffsl",
    "member": "Prepared SFX Library/1911/A_42P.wav",
-   "event": 0,
-   "event_tail": 0.6,
-   "fade_out": 0.25,
-   "title": "권총 사격",
+   "title": "1911 .45",
+   "mood": "실제 녹음, 가까운 마이크.",
    "star": true,
-   "mood": "1911 .45 권총 실제 녹음, 첫 발 (잔향 포함).",
+   "event": 0,
+   "event_tail": 0.5,
+   "fade_out": 0.2,
    "author": "Ben Jaszczak, et al.",
-   "file": "candidates/sfx-weapon/sfx_pistol_shot.ogg",
-   "bytes": 11749,
-   "seconds": 0.995,
-   "lufs_i": -24.4,
-   "true_peak": -1.0,
-   "lufs_m_max": -120.0,
+   "file": "candidates/sfx-gun/sfx_gun_pistol_a.ogg",
+   "bytes": 11470,
+   "seconds": 0.904,
+   "lufs_i": -24.9,
+   "true_peak": -1.2,
+   "lufs_m_max": -24.9,
    "changes": [
-    "took sound #1 of 2 in the file",
-    "0.25 s fade-out",
-    "mono; peak-normalised to -1 dBTP (gain -4.1 dB)",
-    "encoded OGG Vorbis q4 (gain trimmed -0.15 dB to keep the true-peak target)"
+    "파일 안의 소리 2개 중 1번째만 사용",
+    "20Hz 이하 제거(직류 성분 제거)",
+    "0.2초 페이드아웃",
+    "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -4.2 dB)",
+    "OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 -0.45 dB 조정)"
    ],
    "source_files": [
     "Prepared SFX Library/1911/A_42P.wav"
@@ -206,33 +903,168 @@
       "Prepared SFX Library/1911/A_42P.wav"
      ]
     }
-   ]
+   ],
+   "punch_db": -19.3,
+   "preview_gain_db": -0.7
   },
   {
-   "id": "sfx_rifle_shot",
-   "group": "sfx-weapon",
+   "id": "sfx_gun_pistol_b",
+   "group": "sfx-gun",
+   "slot": "gun_pistol",
+   "slot_label": "권총",
+   "kind": "sfx",
+   "source": "ffsl",
+   "member": "Prepared SFX Library/Walther PPQ/X_39P.wav",
+   "title": "발터 PPQ 9mm",
+   "mood": "실제 녹음, 가까운 마이크.",
+   "event": 0,
+   "event_tail": 0.5,
+   "fade_out": 0.2,
+   "author": "Ben Jaszczak, et al.",
+   "file": "candidates/sfx-gun/sfx_gun_pistol_b.ogg",
+   "bytes": 9718,
+   "seconds": 0.689,
+   "lufs_i": -23.6,
+   "true_peak": -1.2,
+   "lufs_m_max": -23.6,
+   "changes": [
+    "파일 안의 소리 3개 중 1번째만 사용",
+    "앞뒤 무음 0.02초 제거",
+    "20Hz 이하 제거(직류 성분 제거)",
+    "0.2초 페이드아웃",
+    "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 +1.0 dB)",
+    "OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 -0.45 dB 조정)"
+   ],
+   "source_files": [
+    "Prepared SFX Library/Walther PPQ/X_39P.wav"
+   ],
+   "direct_files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/Prepared%20SFX%20Library.7z",
+     "name": "Prepared SFX Library.7z",
+     "sha256": "cc1ab5a99a0a365105c7c5dd783f4b0b1fe90938114d3ceec53856bfe005f7d6",
+     "members": [
+      "Prepared SFX Library/Walther PPQ/X_39P.wav"
+     ]
+    }
+   ],
+   "punch_db": -18.6,
+   "preview_gain_db": -1.4
+  },
+  {
+   "id": "sfx_gun_smg_a",
+   "group": "sfx-gun",
+   "slot": "gun_smg",
+   "slot_label": "SMG",
+   "kind": "sfx",
+   "source": "ffsl",
+   "member": "Prepared SFX Library/PPSh/P_30P.wav",
+   "title": "PPSh-41",
+   "mood": "기관단총 단발 실제 녹음.",
+   "star": true,
+   "event": 0,
+   "event_tail": 0.5,
+   "fade_out": 0.2,
+   "author": "Ben Jaszczak, et al.",
+   "file": "candidates/sfx-gun/sfx_gun_smg_a.ogg",
+   "bytes": 10532,
+   "seconds": 0.827,
+   "lufs_i": -23.6,
+   "true_peak": -1.2,
+   "lufs_m_max": -23.6,
+   "changes": [
+    "파일 안의 소리 5개 중 1번째만 사용",
+    "20Hz 이하 제거(직류 성분 제거)",
+    "0.2초 페이드아웃",
+    "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 +0.5 dB)",
+    "OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 -0.45 dB 조정)"
+   ],
+   "source_files": [
+    "Prepared SFX Library/PPSh/P_30P.wav"
+   ],
+   "direct_files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/Prepared%20SFX%20Library.7z",
+     "name": "Prepared SFX Library.7z",
+     "sha256": "cc1ab5a99a0a365105c7c5dd783f4b0b1fe90938114d3ceec53856bfe005f7d6",
+     "members": [
+      "Prepared SFX Library/PPSh/P_30P.wav"
+     ]
+    }
+   ],
+   "punch_db": -18.6,
+   "preview_gain_db": -1.4
+  },
+  {
+   "id": "sfx_gun_smg_b",
+   "group": "sfx-gun",
+   "slot": "gun_smg",
+   "slot_label": "SMG",
+   "kind": "sfx",
+   "source": "ffsl",
+   "member": "Prepared SFX Library/Carl Gustav M45/G_31P.wav",
+   "title": "칼 구스타프 M45 9mm",
+   "mood": "기관단총 단발 실제 녹음.",
+   "event": 0,
+   "event_tail": 0.5,
+   "fade_out": 0.2,
+   "author": "Ben Jaszczak, et al.",
+   "file": "candidates/sfx-gun/sfx_gun_smg_b.ogg",
+   "bytes": 10480,
+   "seconds": 0.825,
+   "lufs_i": -25.8,
+   "true_peak": -1.0,
+   "lufs_m_max": -25.7,
+   "changes": [
+    "파일 안의 소리 3개 중 1번째만 사용",
+    "20Hz 이하 제거(직류 성분 제거)",
+    "0.2초 페이드아웃",
+    "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -1.8 dB)",
+    "OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 -0.30 dB 조정)"
+   ],
+   "source_files": [
+    "Prepared SFX Library/Carl Gustav M45/G_31P.wav"
+   ],
+   "direct_files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/Prepared%20SFX%20Library.7z",
+     "name": "Prepared SFX Library.7z",
+     "sha256": "cc1ab5a99a0a365105c7c5dd783f4b0b1fe90938114d3ceec53856bfe005f7d6",
+     "members": [
+      "Prepared SFX Library/Carl Gustav M45/G_31P.wav"
+     ]
+    }
+   ],
+   "punch_db": -20.6,
+   "preview_gain_db": 0.0
+  },
+  {
+   "id": "sfx_gun_rifle_a",
+   "group": "sfx-gun",
+   "slot": "gun_rifle",
+   "slot_label": "소총",
    "kind": "sfx",
    "source": "ffsl",
    "member": "Prepared SFX Library/AR-15/D_32P.wav",
-   "event": 0,
-   "event_tail": 0.6,
-   "fade_out": 0.25,
-   "title": "소총 사격",
+   "title": "AR-15 .223",
+   "mood": "한 발 실제 녹음.",
    "star": true,
-   "mood": "AR-15 (.223) 실제 녹음, 첫 발 (잔향 포함).",
+   "event": 0,
+   "event_tail": 0.5,
+   "fade_out": 0.2,
    "author": "Ben Jaszczak, et al.",
-   "file": "candidates/sfx-weapon/sfx_rifle_shot.ogg",
-   "bytes": 10948,
-   "seconds": 0.894,
-   "lufs_i": -25.7,
-   "true_peak": -1.0,
-   "lufs_m_max": -120.0,
+   "file": "candidates/sfx-gun/sfx_gun_rifle_a.ogg",
+   "bytes": 10081,
+   "seconds": 0.789,
+   "lufs_i": -26.1,
+   "true_peak": -1.1,
+   "lufs_m_max": -26.1,
    "changes": [
-    "took sound #1 of 2 in the file",
-    "trimmed 0.05 s of leading/trailing silence",
-    "0.25 s fade-out",
-    "mono; peak-normalised to -1 dBTP (gain -3.5 dB)",
-    "encoded OGG Vorbis q4 (gain trimmed +0.30 dB to keep the true-peak target)"
+    "파일 안의 소리 2개 중 1번째만 사용",
+    "20Hz 이하 제거(직류 성분 제거)",
+    "0.2초 페이드아웃",
+    "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -3.6 dB)",
+    "OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 +0.15 dB 조정)"
    ],
    "source_files": [
     "Prepared SFX Library/AR-15/D_32P.wav"
@@ -246,27 +1078,1006 @@
       "Prepared SFX Library/AR-15/D_32P.wav"
      ]
     }
-   ]
+   ],
+   "punch_db": -20.1,
+   "preview_gain_db": 0.0
+  },
+  {
+   "id": "sfx_gun_rifle_b",
+   "group": "sfx-gun",
+   "slot": "gun_rifle",
+   "slot_label": "소총",
+   "kind": "sfx",
+   "source": "ffsl",
+   "member": "Prepared SFX Library/AK-47/C_28P.wav",
+   "title": "AK-47 7.62x39",
+   "mood": "한 발 실제 녹음.",
+   "event": 0,
+   "event_tail": 0.5,
+   "fade_out": 0.2,
+   "author": "Ben Jaszczak, et al.",
+   "file": "candidates/sfx-gun/sfx_gun_rifle_b.ogg",
+   "bytes": 10471,
+   "seconds": 0.836,
+   "lufs_i": -23.4,
+   "true_peak": -1.1,
+   "lufs_m_max": -23.4,
+   "changes": [
+    "파일 안의 소리 4개 중 1번째만 사용",
+    "20Hz 이하 제거(직류 성분 제거)",
+    "0.2초 페이드아웃",
+    "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -1.6 dB)",
+    "OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 -0.15 dB 조정)"
+   ],
+   "source_files": [
+    "Prepared SFX Library/AK-47/C_28P.wav"
+   ],
+   "direct_files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/Prepared%20SFX%20Library.7z",
+     "name": "Prepared SFX Library.7z",
+     "sha256": "cc1ab5a99a0a365105c7c5dd783f4b0b1fe90938114d3ceec53856bfe005f7d6",
+     "members": [
+      "Prepared SFX Library/AK-47/C_28P.wav"
+     ]
+    }
+   ],
+   "punch_db": -17.3,
+   "preview_gain_db": -2.7
+  },
+  {
+   "id": "sfx_gun_shotgun_a",
+   "group": "sfx-gun",
+   "slot": "gun_shotgun",
+   "slot_label": "산탄총",
+   "kind": "sfx",
+   "source": "ffsl",
+   "member": "Prepared SFX Library/Nova/O_21P.wav",
+   "title": "베넬리 노바 12게이지",
+   "mood": "펌프액션 샷건 한 발 실제 녹음.",
+   "star": true,
+   "event": 0,
+   "event_tail": 0.5,
+   "fade_out": 0.2,
+   "author": "Ben Jaszczak, et al.",
+   "file": "candidates/sfx-gun/sfx_gun_shotgun_a.ogg",
+   "bytes": 10871,
+   "seconds": 0.856,
+   "lufs_i": -24.7,
+   "true_peak": -1.2,
+   "lufs_m_max": -24.7,
+   "changes": [
+    "파일 안의 소리 2개 중 1번째만 사용",
+    "20Hz 이하 제거(직류 성분 제거)",
+    "0.2초 페이드아웃",
+    "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -3.7 dB)",
+    "OGG Vorbis q4로 변환"
+   ],
+   "source_files": [
+    "Prepared SFX Library/Nova/O_21P.wav"
+   ],
+   "direct_files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/Prepared%20SFX%20Library.7z",
+     "name": "Prepared SFX Library.7z",
+     "sha256": "cc1ab5a99a0a365105c7c5dd783f4b0b1fe90938114d3ceec53856bfe005f7d6",
+     "members": [
+      "Prepared SFX Library/Nova/O_21P.wav"
+     ]
+    }
+   ],
+   "punch_db": -18.8,
+   "preview_gain_db": -1.2
+  },
+  {
+   "id": "sfx_gun_shotgun_b",
+   "group": "sfx-gun",
+   "slot": "gun_shotgun",
+   "slot_label": "산탄총",
+   "kind": "sfx",
+   "source": "ffsl",
+   "member": "Prepared SFX Library/Model 12/K_22P.wav",
+   "title": "윈체스터 모델 12",
+   "mood": "펌프액션 샷건 한 발 실제 녹음.",
+   "event": 0,
+   "event_tail": 0.5,
+   "fade_out": 0.2,
+   "author": "Ben Jaszczak, et al.",
+   "file": "candidates/sfx-gun/sfx_gun_shotgun_b.ogg",
+   "bytes": 11508,
+   "seconds": 0.903,
+   "lufs_i": -24.2,
+   "true_peak": -1.1,
+   "lufs_m_max": -24.2,
+   "changes": [
+    "파일 안의 소리 2개 중 1번째만 사용",
+    "20Hz 이하 제거(직류 성분 제거)",
+    "0.2초 페이드아웃",
+    "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -3.5 dB)",
+    "OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 -0.15 dB 조정)"
+   ],
+   "source_files": [
+    "Prepared SFX Library/Model 12/K_22P.wav"
+   ],
+   "direct_files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/Prepared%20SFX%20Library.7z",
+     "name": "Prepared SFX Library.7z",
+     "sha256": "cc1ab5a99a0a365105c7c5dd783f4b0b1fe90938114d3ceec53856bfe005f7d6",
+     "members": [
+      "Prepared SFX Library/Model 12/K_22P.wav"
+     ]
+    }
+   ],
+   "punch_db": -18.4,
+   "preview_gain_db": -1.6
+  },
+  {
+   "id": "sfx_gun_sniper_a",
+   "group": "sfx-gun",
+   "slot": "gun_sniper",
+   "slot_label": "저격총",
+   "kind": "sfx",
+   "source": "ffsl",
+   "member": "Prepared SFX Library/Tikka/W_29P.wav",
+   "title": "티카 T3 .30-06",
+   "mood": "볼트액션 소총 실제 녹음, 잔향이 김.",
+   "star": true,
+   "event": 0,
+   "event_tail": 0.8,
+   "fade_out": 0.3,
+   "author": "Ben Jaszczak, et al.",
+   "file": "candidates/sfx-gun/sfx_gun_sniper_a.ogg",
+   "bytes": 13075,
+   "seconds": 1.172,
+   "lufs_i": -22.6,
+   "true_peak": -1.2,
+   "lufs_m_max": -22.6,
+   "changes": [
+    "파일 안의 소리 2개 중 1번째만 사용",
+    "20Hz 이하 제거(직류 성분 제거)",
+    "0.3초 페이드아웃",
+    "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -0.4 dB)",
+    "OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 -0.15 dB 조정)"
+   ],
+   "source_files": [
+    "Prepared SFX Library/Tikka/W_29P.wav"
+   ],
+   "direct_files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/Prepared%20SFX%20Library.7z",
+     "name": "Prepared SFX Library.7z",
+     "sha256": "cc1ab5a99a0a365105c7c5dd783f4b0b1fe90938114d3ceec53856bfe005f7d6",
+     "members": [
+      "Prepared SFX Library/Tikka/W_29P.wav"
+     ]
+    }
+   ],
+   "punch_db": -15.9,
+   "preview_gain_db": -4.1
+  },
+  {
+   "id": "sfx_gun_sniper_b",
+   "group": "sfx-gun",
+   "slot": "gun_sniper",
+   "slot_label": "저격총",
+   "kind": "sfx",
+   "source": "ffsl",
+   "member": "Prepared SFX Library/Mosin Nagant/M_21P.wav",
+   "title": "모신 나강 7.62x54R",
+   "mood": "볼트액션 소총 실제 녹음.",
+   "event": 0,
+   "event_tail": 0.5,
+   "fade_out": 0.2,
+   "author": "Ben Jaszczak, et al.",
+   "file": "candidates/sfx-gun/sfx_gun_sniper_b.ogg",
+   "bytes": 8227,
+   "seconds": 0.565,
+   "lufs_i": -23.8,
+   "true_peak": -1.1,
+   "lufs_m_max": -23.8,
+   "changes": [
+    "파일 안의 소리 5개 중 1번째만 사용",
+    "20Hz 이하 제거(직류 성분 제거)",
+    "0.2초 페이드아웃",
+    "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 +0.8 dB)",
+    "OGG Vorbis q4로 변환"
+   ],
+   "source_files": [
+    "Prepared SFX Library/Mosin Nagant/M_21P.wav"
+   ],
+   "direct_files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/Prepared%20SFX%20Library.7z",
+     "name": "Prepared SFX Library.7z",
+     "sha256": "cc1ab5a99a0a365105c7c5dd783f4b0b1fe90938114d3ceec53856bfe005f7d6",
+     "members": [
+      "Prepared SFX Library/Mosin Nagant/M_21P.wav"
+     ]
+    }
+   ],
+   "punch_db": -17.7,
+   "preview_gain_db": -2.3
+  },
+  {
+   "id": "sfx_gun_mg_a",
+   "group": "sfx-gun",
+   "slot": "gun_mg",
+   "slot_label": "기관총",
+   "kind": "sfx",
+   "source": "ffsl",
+   "member": "Prepared SFX Library/AK-47/C_27P.wav",
+   "title": "AK-47 긴 점사",
+   "mood": "연발 약 1초, 실제 녹음.",
+   "star": true,
+   "event": 0,
+   "event_tail": 0.5,
+   "fade_out": 0.25,
+   "author": "Ben Jaszczak, et al.",
+   "file": "candidates/sfx-gun/sfx_gun_mg_a.ogg",
+   "bytes": 18234,
+   "seconds": 1.582,
+   "lufs_i": -22.7,
+   "true_peak": -1.2,
+   "lufs_m_max": -20.7,
+   "changes": [
+    "파일 안의 소리 2개 중 1번째만 사용",
+    "20Hz 이하 제거(직류 성분 제거)",
+    "0.25초 페이드아웃",
+    "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -0.6 dB)",
+    "OGG Vorbis q4로 변환"
+   ],
+   "source_files": [
+    "Prepared SFX Library/AK-47/C_27P.wav"
+   ],
+   "direct_files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/Prepared%20SFX%20Library.7z",
+     "name": "Prepared SFX Library.7z",
+     "sha256": "cc1ab5a99a0a365105c7c5dd783f4b0b1fe90938114d3ceec53856bfe005f7d6",
+     "members": [
+      "Prepared SFX Library/AK-47/C_27P.wav"
+     ]
+    }
+   ],
+   "punch_db": -18.5,
+   "preview_gain_db": -1.5
+  },
+  {
+   "id": "sfx_gun_mg_b",
+   "group": "sfx-gun",
+   "slot": "gun_mg",
+   "slot_label": "기관총",
+   "kind": "sfx",
+   "source": "ffsl",
+   "member": "Prepared SFX Library/PPSh/P_34P.wav",
+   "title": "PPSh-41 긴 점사",
+   "mood": "연발 약 1.3초, 실제 녹음.",
+   "event": 0,
+   "event_tail": 0.5,
+   "fade_out": 0.25,
+   "author": "Ben Jaszczak, et al.",
+   "file": "candidates/sfx-gun/sfx_gun_mg_b.ogg",
+   "bytes": 21876,
+   "seconds": 1.851,
+   "lufs_i": -17.8,
+   "true_peak": -1.1,
+   "lufs_m_max": -16.9,
+   "changes": [
+    "파일 안의 소리 1개 중 1번째만 사용",
+    "20Hz 이하 제거(직류 성분 제거)",
+    "0.25초 페이드아웃",
+    "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -1.0 dB)",
+    "OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 +0.15 dB 조정)"
+   ],
+   "source_files": [
+    "Prepared SFX Library/PPSh/P_34P.wav"
+   ],
+   "direct_files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/Prepared%20SFX%20Library.7z",
+     "name": "Prepared SFX Library.7z",
+     "sha256": "cc1ab5a99a0a365105c7c5dd783f4b0b1fe90938114d3ceec53856bfe005f7d6",
+     "members": [
+      "Prepared SFX Library/PPSh/P_34P.wav"
+     ]
+    }
+   ],
+   "punch_db": -16.7,
+   "preview_gain_db": -3.3
+  },
+  {
+   "id": "sfx_gun_flame_a",
+   "group": "sfx-gun",
+   "slot": "gun_flame",
+   "slot_label": "화염방사기",
+   "kind": "sfx",
+   "source": "legit_fire_staff",
+   "member": "LEGIT Audio_FIRE STAFF - FREE/Wavs/LEGIT_FIR_Fire_Staff 17-Audio.wav",
+   "title": "불길 분출",
+   "mood": "화염 지팡이 효과음 중 지속되는 불길(앞 1.8초).",
+   "star": true,
+   "segment": [
+    0,
+    1.8
+   ],
+   "fade_out": 0.3,
+   "author": "LEGIT Audio",
+   "file": "candidates/sfx-gun/sfx_gun_flame_a.ogg",
+   "bytes": 19425,
+   "seconds": 1.8,
+   "lufs_i": -16.9,
+   "true_peak": -1.2,
+   "lufs_m_max": -14.0,
+   "changes": [
+    "원본 0.00–1.80초 구간만 사용",
+    "20Hz 이하 제거(직류 성분 제거)",
+    "0.3초 페이드아웃",
+    "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -4.0 dB)",
+    "OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 +0.45 dB 조정)"
+   ],
+   "source_files": [
+    "LEGIT Audio_FIRE STAFF - FREE/Wavs/LEGIT_FIR_Fire_Staff 17-Audio.wav"
+   ],
+   "direct_files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/legit_audio_fire_staff_-_free_0.zip",
+     "name": "legit_audio_fire_staff_-_free.zip",
+     "sha256": "8c0668fdde03de52b9b201e672244992ae739438937d4bef6908d1618a86b020",
+     "members": [
+      "LEGIT Audio_FIRE STAFF - FREE/Wavs/LEGIT_FIR_Fire_Staff 17-Audio.wav"
+     ]
+    }
+   ],
+   "punch_db": -11.2,
+   "preview_gain_db": -8.8
+  },
+  {
+   "id": "sfx_gun_flame_b",
+   "group": "sfx-gun",
+   "slot": "gun_flame",
+   "slot_label": "화염방사기",
+   "kind": "sfx",
+   "source": "generated",
+   "member": "flamethrower",
+   "title": "생성: 점화와 불길",
+   "mood": "점화 후 으르렁대는 불길, 지직거리는 불꽃.",
+   "author": "synth.mjs (이 프로젝트)",
+   "file": "candidates/sfx-gun/sfx_gun_flame_b.ogg",
+   "bytes": 19027,
+   "seconds": 1.61,
+   "lufs_i": -12.6,
+   "true_peak": -1.2,
+   "lufs_m_max": -12.1,
+   "changes": [
+    "20Hz 이하 제거(직류 성분 제거)",
+    "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 +0.0 dB)",
+    "OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 +0.45 dB 조정)"
+   ],
+   "source_files": [],
+   "generated_desc": "Flamethrower: ignition whump, 1.4 s roaring noise with slow flutter and crackle, soft cut-off",
+   "punch_db": -11.4,
+   "preview_gain_db": -8.6
+  },
+  {
+   "id": "sfx_gun_electric_a",
+   "group": "sfx-gun",
+   "slot": "gun_electric",
+   "slot_label": "전기",
+   "kind": "sfx",
+   "source": "bmac_electricity",
+   "member": "spark.wav",
+   "title": "테슬라 방전",
+   "mood": "작은 테슬라 발전기를 녹음한 실제 방전음.",
+   "star": true,
+   "author": "BMacZero",
+   "file": "candidates/sfx-gun/sfx_gun_electric_a.ogg",
+   "bytes": 6849,
+   "seconds": 0.334,
+   "lufs_i": -70.0,
+   "true_peak": -1.6,
+   "lufs_m_max": -120.7,
+   "changes": [
+    "20Hz 이하 제거(직류 성분 제거)",
+    "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 +2.0 dB)",
+    "OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 -1.50 dB 조정)"
+   ],
+   "source_files": [
+    "spark.wav"
+   ],
+   "direct_files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/spark.wav",
+     "name": "spark.wav",
+     "sha256": "9a3d987bdf7f405570aa015f6da42596ce84c5073c18c0561be7cd3ae401bc97",
+     "members": []
+    }
+   ],
+   "punch_db": -25.2,
+   "preview_gain_db": 0.0
+  },
+  {
+   "id": "sfx_gun_electric_b",
+   "group": "sfx-gun",
+   "slot": "gun_electric",
+   "slot_label": "전기",
+   "kind": "sfx",
+   "source": "fax_electricity",
+   "member": "hit.wav",
+   "title": "전기 타격",
+   "mood": "전기 게임 팩의 방전음(앞 1.2초).",
+   "segment": [
+    0,
+    1.2
+   ],
+   "fade_out": 0.3,
+   "author": "faxcorp",
+   "file": "candidates/sfx-gun/sfx_gun_electric_b.ogg",
+   "bytes": 13796,
+   "seconds": 1.2,
+   "lufs_i": -25.9,
+   "true_peak": -1.0,
+   "lufs_m_max": -22.3,
+   "changes": [
+    "원본 0.00–1.20초 구간만 사용",
+    "20Hz 이하 제거(직류 성분 제거)",
+    "0.3초 페이드아웃",
+    "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -1.8 dB)",
+    "OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 +0.30 dB 조정)"
+   ],
+   "source_files": [
+    "hit.wav"
+   ],
+   "direct_files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/hit.wav",
+     "name": "hit.wav",
+     "sha256": "03d05a1249c45d795382f840c35563c0f151423afd47c04a4af7a81bad2f32fc",
+     "members": []
+    }
+   ],
+   "punch_db": -17.7,
+   "preview_gain_db": -2.3
+  },
+  {
+   "id": "sfx_gun_electric_c",
+   "group": "sfx-gun",
+   "slot": "gun_electric",
+   "slot_label": "전기",
+   "kind": "sfx",
+   "source": "generated",
+   "member": "electric_zap",
+   "title": "생성: 지직",
+   "mood": "빠르게 떨어지는 소리와 지직거림, 낮은 쿵.",
+   "author": "synth.mjs (이 프로젝트)",
+   "file": "candidates/sfx-gun/sfx_gun_electric_c.ogg",
+   "bytes": 11128,
+   "seconds": 0.66,
+   "lufs_i": -21.3,
+   "true_peak": -1.4,
+   "lufs_m_max": -17.5,
+   "changes": [
+    "앞뒤 무음 0.15초 제거",
+    "20Hz 이하 제거(직류 성분 제거)",
+    "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -0.4 dB)",
+    "OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 +0.15 dB 조정)"
+   ],
+   "source_files": [],
+   "generated_desc": "Electric zap: fast falling saw sweep, gated noise crackle and a low thump",
+   "punch_db": -13.7,
+   "preview_gain_db": -6.3
+  },
+  {
+   "id": "sfx_reload_pistol_a",
+   "group": "sfx-reload",
+   "slot": "reload_pistol",
+   "slot_label": "권총 장전",
+   "kind": "sfx",
+   "source": "zer0_handgun_reload",
+   "member": "reload.wav",
+   "title": "권총 장전",
+   "mood": "탄창 빼기, 넣기, 슬라이드 당기기.",
+   "star": true,
+   "author": "zer0_sol",
+   "file": "candidates/sfx-reload/sfx_reload_pistol_a.ogg",
+   "bytes": 16351,
+   "seconds": 1.349,
+   "lufs_i": -20.5,
+   "true_peak": -1.2,
+   "lufs_m_max": -16.0,
+   "changes": [
+    "앞뒤 무음 0.24초 제거",
+    "20Hz 이하 제거(직류 성분 제거)",
+    "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -9.4 dB)",
+    "OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 +0.30 dB 조정)"
+   ],
+   "source_files": [
+    "reload.wav"
+   ],
+   "direct_files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/reload.wav",
+     "name": "reload.wav",
+     "sha256": "091399145b174ac3b2e0df245b4712a13ce85df072e37256b0fc32658718be53",
+     "members": []
+    }
+   ],
+   "punch_db": -15.2,
+   "preview_gain_db": -4.8
+  },
+  {
+   "id": "sfx_reload_pistol_b",
+   "group": "sfx-reload",
+   "slot": "reload_pistol",
+   "slot_label": "권총 장전",
+   "kind": "sfx",
+   "source": "springy_reloads",
+   "member": "gunreload1.wav",
+   "title": "에어소프트 장전",
+   "mood": "에어소프트 건으로 만든 장전음.",
+   "author": "SpringySpringo",
+   "file": "candidates/sfx-reload/sfx_reload_pistol_b.ogg",
+   "bytes": 18604,
+   "seconds": 1.513,
+   "lufs_i": -16.1,
+   "true_peak": -1.1,
+   "lufs_m_max": -16.0,
+   "changes": [
+    "앞뒤 무음 0.07초 제거",
+    "20Hz 이하 제거(직류 성분 제거)",
+    "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -7.6 dB)",
+    "OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 -0.30 dB 조정)"
+   ],
+   "source_files": [
+    "gunreload1.wav"
+   ],
+   "direct_files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/gunreload1.wav",
+     "name": "gunreload1.wav",
+     "sha256": "685cac6a184e3cc3ec09a25b6ddb1d6feffd86d469778f339aa423d384035c50",
+     "members": []
+    }
+   ],
+   "punch_db": -12.5,
+   "preview_gain_db": -7.5
+  },
+  {
+   "id": "sfx_reload_rifle_a",
+   "group": "sfx-reload",
+   "slot": "reload_rifle",
+   "slot_label": "소총 장전",
+   "kind": "sfx",
+   "source": "springy_reloads",
+   "member": "assaultriflereload1.wav",
+   "title": "소총 장전",
+   "mood": "에어소프트 건으로 만든 장전음.",
+   "star": true,
+   "author": "SpringySpringo",
+   "file": "candidates/sfx-reload/sfx_reload_rifle_a.ogg",
+   "bytes": 17242,
+   "seconds": 1.497,
+   "lufs_i": -24.6,
+   "true_peak": -1.6,
+   "lufs_m_max": -19.6,
+   "changes": [
+    "앞뒤 무음 0.06초 제거",
+    "20Hz 이하 제거(직류 성분 제거)",
+    "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -5.8 dB)",
+    "OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 -0.30 dB 조정)"
+   ],
+   "source_files": [
+    "assaultriflereload1.wav"
+   ],
+   "direct_files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/assaultriflereload1_0.wav",
+     "name": "assaultriflereload1.wav",
+     "sha256": "efb2d724d634eabe6ba8d3065686abca848bb7497d4d43a5e4aed5e5ea23016f",
+     "members": []
+    }
+   ],
+   "punch_db": -17.4,
+   "preview_gain_db": -2.6
+  },
+  {
+   "id": "sfx_reload_shotgun_a",
+   "group": "sfx-reload",
+   "slot": "reload_shotgun",
+   "slot_label": "산탄총 장전",
+   "kind": "sfx",
+   "source": "zer0_shotgun_reload",
+   "member": "ShotgunSounds/Rack.mp3",
+   "title": "펌프 당기기",
+   "mood": "샷건 펌프를 당기는 소리.",
+   "star": true,
+   "author": "zer0_sol",
+   "file": "candidates/sfx-reload/sfx_reload_shotgun_a.ogg",
+   "bytes": 14438,
+   "seconds": 1.128,
+   "lufs_i": -13.4,
+   "true_peak": -1.2,
+   "lufs_m_max": -12.2,
+   "changes": [
+    "20Hz 이하 제거(직류 성분 제거)",
+    "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -7.5 dB)",
+    "OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 -1.00 dB 조정)"
+   ],
+   "source_files": [
+    "ShotgunSounds/Rack.mp3"
+   ],
+   "direct_files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/shotgunsounds.zip",
+     "name": "shotgunsounds.zip",
+     "sha256": "31128a93eee729cadcd1cdeabca6b6b1f655578101109b59c0fb5dd4b96e6079",
+     "members": [
+      "ShotgunSounds/Rack.mp3"
+     ]
+    }
+   ],
+   "punch_db": -12.0,
+   "preview_gain_db": -8.0
+  },
+  {
+   "id": "sfx_reload_shotgun_b",
+   "group": "sfx-reload",
+   "slot": "reload_shotgun",
+   "slot_label": "산탄총 장전",
+   "kind": "sfx",
+   "source": "springy_reloads",
+   "member": "shotguncock.wav",
+   "title": "샷건 코킹",
+   "mood": "짧은 코킹 소리.",
+   "author": "SpringySpringo",
+   "file": "candidates/sfx-reload/sfx_reload_shotgun_b.ogg",
+   "bytes": 8260,
+   "seconds": 0.43,
+   "lufs_i": -14.9,
+   "true_peak": -1.2,
+   "lufs_m_max": -14.8,
+   "changes": [
+    "앞뒤 무음 0.04초 제거",
+    "20Hz 이하 제거(직류 성분 제거)",
+    "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -8.3 dB)",
+    "OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 -0.15 dB 조정)"
+   ],
+   "source_files": [
+    "shotguncock.wav"
+   ],
+   "direct_files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/shotguncock_0.wav",
+     "name": "shotguncock.wav",
+     "sha256": "33e007321ba83301c861aef573f2c40b70bc62f8f24c0164877e6dd123e24371",
+     "members": []
+    }
+   ],
+   "punch_db": -13.0,
+   "preview_gain_db": -7.0
+  },
+  {
+   "id": "sfx_casing_a",
+   "group": "sfx-reload",
+   "slot": "casing",
+   "slot_label": "탄피",
+   "kind": "sfx",
+   "source": "generated",
+   "member": "shell_casing",
+   "title": "생성: 탄피 소리",
+   "mood": "황동 탄피가 바닥에 세 번 튕김.",
+   "star": true,
+   "author": "synth.mjs (이 프로젝트)",
+   "file": "candidates/sfx-reload/sfx_casing_a.ogg",
+   "bytes": 6339,
+   "seconds": 0.521,
+   "lufs_i": -17.0,
+   "true_peak": -1.2,
+   "lufs_m_max": -15.1,
+   "changes": [
+    "20Hz 이하 제거(직류 성분 제거)",
+    "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -0.2 dB)",
+    "OGG Vorbis q4로 변환"
+   ],
+   "source_files": [],
+   "generated_desc": "Brass casing hitting the floor: modal \"tink\" with three shrinking bounces",
+   "punch_db": -14.0,
+   "preview_gain_db": -6.0
+  },
+  {
+   "id": "sfx_casing_b",
+   "group": "sfx-reload",
+   "slot": "casing",
+   "slot_label": "탄피",
+   "kind": "sfx",
+   "source": "bmac_metal",
+   "member": "clink1.wav",
+   "title": "금속 딸깍",
+   "mood": "작은 금속 부딪힘 녹음, 탄피 대용.",
+   "author": "BMacZero",
+   "file": "candidates/sfx-reload/sfx_casing_b.ogg",
+   "bytes": 6673,
+   "seconds": 0.307,
+   "lufs_i": -70.0,
+   "true_peak": -1.1,
+   "lufs_m_max": -120.7,
+   "changes": [
+    "20Hz 이하 제거(직류 성분 제거)",
+    "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 +1.4 dB)",
+    "OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 -0.15 dB 조정)"
+   ],
+   "source_files": [
+    "clink1.wav"
+   ],
+   "direct_files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/clink1_0.wav",
+     "name": "clink1.wav",
+     "sha256": "0d439cd2b1f36f501b94c39661e39f91d160affe25c79f77dff7a2cd0ed7eadd",
+     "members": []
+    }
+   ],
+   "punch_db": -15.0,
+   "preview_gain_db": -5.0
+  },
+  {
+   "id": "sfx_hit_flesh_a",
+   "group": "sfx-impact",
+   "slot": "hit_flesh",
+   "slot_label": "살",
+   "kind": "sfx",
+   "source": "qbd_wet_squish",
+   "member": "impsplat/impactsplat07.mp3.flac",
+   "title": "축축한 타격",
+   "mood": "짧고 질척한 살 타격음.",
+   "star": true,
+   "author": "Independent.nu",
+   "file": "candidates/sfx-impact/sfx_hit_flesh_a.ogg",
+   "bytes": 8295,
+   "seconds": 0.481,
+   "lufs_i": -17.3,
+   "true_peak": -1.2,
+   "lufs_m_max": -17.3,
+   "changes": [
+    "앞뒤 무음 0.04초 제거",
+    "20Hz 이하 제거(직류 성분 제거)",
+    "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -2.8 dB)",
+    "OGG Vorbis q4로 변환"
+   ],
+   "source_files": [
+    "impsplat/impactsplat07.mp3.flac"
+   ],
+   "direct_files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/independent_nu_ljudbank-wet_squish_slurp_impacts.7z",
+     "name": "independent_nu_ljudbank-wet_squish_slurp_impacts.7z",
+     "sha256": "81fba6009d1b3e48c258b122eef735ed27e86a2dcace9b6a2c93d05b80c83515",
+     "members": [
+      "impsplat/impactsplat07.mp3.flac"
+     ]
+    }
+   ],
+   "punch_db": -14.4,
+   "preview_gain_db": -5.6
+  },
+  {
+   "id": "sfx_hit_flesh_b",
+   "group": "sfx-impact",
+   "slot": "hit_flesh",
+   "slot_label": "살",
+   "kind": "sfx",
+   "source": "zl_fleshy",
+   "member": "Wet Break 9.wav",
+   "title": "뼈 부러짐",
+   "mood": "축축하게 꺾이는 소리.",
+   "author": "Zane Little Music",
+   "file": "candidates/sfx-impact/sfx_hit_flesh_b.ogg",
+   "bytes": 9252,
+   "seconds": 0.476,
+   "lufs_i": -21.3,
+   "true_peak": -1.2,
+   "lufs_m_max": -21.3,
+   "changes": [
+    "앞뒤 무음 0.07초 제거",
+    "20Hz 이하 제거(직류 성분 제거)",
+    "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -4.5 dB)",
+    "OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 +0.15 dB 조정)"
+   ],
+   "source_files": [
+    "Wet Break 9.wav"
+   ],
+   "direct_files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/wet_breaks.zip",
+     "name": "wet_breaks.zip",
+     "sha256": "56c1690b3f6dc231c5e5ea6f651182ecb8f0a43a087f3c864d6f8dc9ec5280cd",
+     "members": [
+      "Wet Break 9.wav"
+     ]
+    }
+   ],
+   "punch_db": -19.2,
+   "preview_gain_db": -0.8
+  },
+  {
+   "id": "sfx_hit_armor_a",
+   "group": "sfx-impact",
+   "slot": "hit_armor",
+   "slot_label": "장갑",
+   "kind": "sfx",
+   "source": "rd_metal_wood",
+   "member": "metal_hit_02.ogg",
+   "title": "금속 타격",
+   "mood": "짧은 금속 타격음.",
+   "star": true,
+   "author": "rubberduck",
+   "file": "candidates/sfx-impact/sfx_hit_armor_a.ogg",
+   "bytes": 6777,
+   "seconds": 0.352,
+   "lufs_i": -70.0,
+   "true_peak": -1.2,
+   "lufs_m_max": -120.7,
+   "changes": [
+    "앞뒤 무음 0.08초 제거",
+    "20Hz 이하 제거(직류 성분 제거)",
+    "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -4.1 dB)",
+    "OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 -0.70 dB 조정)"
+   ],
+   "source_files": [
+    "metal_hit_02.ogg"
+   ],
+   "direct_files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/100-CC0-wood-metal-SFX.zip",
+     "name": "100-CC0-wood-metal-SFX.zip",
+     "sha256": "be6eba63b03409ac0c77787a956b1503a7c186403d04aef9725c52644a4b7878",
+     "members": [
+      "metal_hit_02.ogg"
+     ]
+    }
+   ],
+   "punch_db": -19.9,
+   "preview_gain_db": -0.1
+  },
+  {
+   "id": "sfx_hit_armor_b",
+   "group": "sfx-impact",
+   "slot": "hit_armor",
+   "slot_label": "장갑",
+   "kind": "sfx",
+   "source": "bmac_metal",
+   "member": "bing1.wav",
+   "title": "금속 핑",
+   "mood": "맑게 길게 울리는 금속음.",
+   "author": "BMacZero",
+   "file": "candidates/sfx-impact/sfx_hit_armor_b.ogg",
+   "bytes": 8573,
+   "seconds": 0.712,
+   "lufs_i": -10.4,
+   "true_peak": -1.4,
+   "lufs_m_max": -8.5,
+   "changes": [
+    "20Hz 이하 제거(직류 성분 제거)",
+    "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -0.9 dB)",
+    "OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 -0.70 dB 조정)"
+   ],
+   "source_files": [
+    "bing1.wav"
+   ],
+   "direct_files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/bing1.wav",
+     "name": "bing1.wav",
+     "sha256": "d14941ce27e6b409e0cd941eaad7201d613070a4c3eb9c3627fec4cf3ae686e4",
+     "members": []
+    }
+   ],
+   "punch_db": -5.6,
+   "preview_gain_db": -14.4
+  },
+  {
+   "id": "sfx_hit_wall_a",
+   "group": "sfx-impact",
+   "slot": "hit_wall",
+   "slot_label": "벽",
+   "kind": "sfx",
+   "source": "rd_breaking",
+   "member": "bfh1_hit_05.ogg",
+   "title": "단단한 타격",
+   "mood": "단단한 벽을 치는 짧은 소리.",
+   "star": true,
+   "author": "rubberduck",
+   "file": "candidates/sfx-impact/sfx_hit_wall_a.ogg",
+   "bytes": 4694,
+   "seconds": 0.118,
+   "lufs_i": -70.0,
+   "true_peak": -1.3,
+   "lufs_m_max": -120.7,
+   "changes": [
+    "앞뒤 무음 0.16초 제거",
+    "20Hz 이하 제거(직류 성분 제거)",
+    "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -1.9 dB)",
+    "OGG Vorbis q4로 변환"
+   ],
+   "source_files": [
+    "bfh1_hit_05.ogg"
+   ],
+   "direct_files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/sfx_breaking_and_falling.zip",
+     "name": "sfx_breaking_and_falling.zip",
+     "sha256": "e6ee04d91c5f4d30cfda1260d2c9d1faf96fda36319287215fbd07bcb1a80451",
+     "members": [
+      "bfh1_hit_05.ogg"
+     ]
+    }
+   ],
+   "punch_db": -27.2,
+   "preview_gain_db": 0.0
+  },
+  {
+   "id": "sfx_hit_wall_b",
+   "group": "sfx-impact",
+   "slot": "hit_wall",
+   "slot_label": "벽",
+   "kind": "sfx",
+   "source": "rd_breaking",
+   "member": "bfh1_hit_10.ogg",
+   "title": "둔탁한 타격",
+   "mood": "조금 더 길고 둔탁한 타격음.",
+   "author": "rubberduck",
+   "file": "candidates/sfx-impact/sfx_hit_wall_b.ogg",
+   "bytes": 5760,
+   "seconds": 0.229,
+   "lufs_i": -70.0,
+   "true_peak": -1.1,
+   "lufs_m_max": -120.7,
+   "changes": [
+    "앞뒤 무음 0.07초 제거",
+    "20Hz 이하 제거(직류 성분 제거)",
+    "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -2.6 dB)",
+    "OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 -0.15 dB 조정)"
+   ],
+   "source_files": [
+    "bfh1_hit_10.ogg"
+   ],
+   "direct_files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/sfx_breaking_and_falling.zip",
+     "name": "sfx_breaking_and_falling.zip",
+     "sha256": "e6ee04d91c5f4d30cfda1260d2c9d1faf96fda36319287215fbd07bcb1a80451",
+     "members": [
+      "bfh1_hit_10.ogg"
+     ]
+    }
+   ],
+   "punch_db": -19.4,
+   "preview_gain_db": -0.6
   },
   {
    "id": "sfx_zombie_groan_1",
    "group": "sfx-zombie",
+   "slot": "groan_1",
+   "slot_label": "신음 1",
    "kind": "sfx",
    "source": "emo_zombie_moans",
    "member": "ZombieMoans - Track 5 - ZombieMoan1.wav",
-   "title": "좀비 신음 1",
+   "title": "사람 목소리 신음",
+   "mood": "약 2초, 중간 높이.",
    "star": true,
-   "mood": "사람 목소리로 녹음한 좀비 신음 (약 2초).",
+   "fade_out": 0.25,
    "author": "EmoPreben",
    "file": "candidates/sfx-zombie/sfx_zombie_groan_1.ogg",
-   "bytes": 23753,
+   "bytes": 23752,
    "seconds": 2.13,
-   "lufs_i": -17.5,
-   "true_peak": -1.4,
-   "lufs_m_max": -120.0,
+   "lufs_i": -17.3,
+   "true_peak": -1.0,
+   "lufs_m_max": -13.2,
    "changes": [
-    "mono; peak-normalised to -1 dBTP (gain +2.9 dB)",
-    "encoded OGG Vorbis q4"
+    "20Hz 이하 제거(직류 성분 제거)",
+    "0.25초 페이드아웃",
+    "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 +3.2 dB)",
+    "OGG Vorbis q4로 변환"
    ],
    "source_files": [
     "ZombieMoans - Track 5 - ZombieMoan1.wav"
@@ -280,77 +2091,516 @@
       "ZombieMoans - Track 5 - ZombieMoan1.wav"
      ]
     }
-   ]
+   ],
+   "punch_db": -9.1,
+   "preview_gain_db": -10.9
   },
   {
-   "id": "sfx_ui_button",
-   "group": "sfx-ui",
+   "id": "sfx_zombie_groan_2",
+   "group": "sfx-zombie",
+   "slot": "groan_2",
+   "slot_label": "신음 2",
    "kind": "sfx",
-   "source": "generated",
-   "member": "ui_button",
-   "title": "버튼",
+   "source": "ad_zombies",
+   "member": "zombies/zombie-17.wav",
+   "title": "낮고 긴 신음",
+   "mood": "약 1.6초, 목소리가 뚜렷함.",
    "star": true,
-   "mood": "짧고 부드러운 사각파 블립 (생성).",
-   "author": "synth.mjs (이 프로젝트)",
-   "file": "candidates/sfx-ui/sfx_ui_button.ogg",
-   "bytes": 4554,
-   "seconds": 0.067,
-   "lufs_i": -70.0,
+   "fade_out": 0.25,
+   "author": "artisticdude",
+   "file": "candidates/sfx-zombie/sfx_zombie_groan_2.ogg",
+   "bytes": 16603,
+   "seconds": 1.542,
+   "lufs_i": -17.0,
    "true_peak": -1.2,
-   "lufs_m_max": -120.0,
+   "lufs_m_max": -15.9,
    "changes": [
-    "mono; peak-normalised to -1 dBTP (gain +0.0 dB)",
-    "encoded OGG Vorbis q4 (gain trimmed -0.30 dB to keep the true-peak target)"
+    "앞뒤 무음 0.04초 제거",
+    "20Hz 이하 제거(직류 성분 제거)",
+    "0.25초 페이드아웃",
+    "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -3.7 dB)",
+    "OGG Vorbis q4로 변환"
    ],
-   "source_files": [],
-   "generated_desc": "Short soft select blip (square, 1.05 → 1.4 kHz)"
+   "source_files": [
+    "zombies/zombie-17.wav"
+   ],
+   "direct_files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/zombies.zip",
+     "name": "zombies.zip",
+     "sha256": "8096ceeb4dac35d9eef9bfe0cc6649778d1eebf141b208d394ac338b9e5be314",
+     "members": [
+      "zombies/zombie-17.wav"
+     ]
+    }
+   ],
+   "punch_db": -13.2,
+   "preview_gain_db": -6.8
   },
   {
-   "id": "sfx_ui_purchase",
-   "group": "sfx-ui",
+   "id": "sfx_zombie_groan_3",
+   "group": "sfx-zombie",
+   "slot": "groan_3",
+   "slot_label": "신음 3",
    "kind": "sfx",
-   "source": "generated",
-   "member": "ui_purchase",
-   "title": "구매",
+   "source": "dar_zombie_moans",
+   "member": "darsycho__zombie-moans.ogg",
+   "title": "길게 끄는 신음",
+   "mood": "약 3초, 서서히 사라짐.",
    "star": true,
-   "mood": "동전 '챙' 소리: 두 음(B5→E6)과 작은 반짝임 (생성).",
-   "author": "synth.mjs (이 프로젝트)",
-   "file": "candidates/sfx-ui/sfx_ui_purchase.ogg",
-   "bytes": 7717,
-   "seconds": 0.597,
-   "lufs_i": -8.2,
+   "event": 0,
+   "event_tail": 0.15,
+   "fade_out": 0.3,
+   "author": "Darsycho",
+   "file": "candidates/sfx-zombie/sfx_zombie_groan_3.ogg",
+   "bytes": 32914,
+   "seconds": 3.141,
+   "lufs_i": -18.5,
    "true_peak": -1.0,
-   "lufs_m_max": -120.0,
+   "lufs_m_max": -13.4,
    "changes": [
-    "mono; peak-normalised to -1 dBTP (gain -0.4 dB)",
-    "encoded OGG Vorbis q4 (gain trimmed -0.30 dB to keep the true-peak target)"
+    "파일 안의 소리 5개 중 1번째만 사용",
+    "20Hz 이하 제거(직류 성분 제거)",
+    "0.3초 페이드아웃",
+    "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -2.5 dB)",
+    "OGG Vorbis q4로 변환"
    ],
-   "source_files": [],
-   "generated_desc": "Coin \"ka-ching\": two square notes B5 → E6 with a small sparkle"
+   "source_files": [
+    "darsycho__zombie-moans.ogg"
+   ],
+   "direct_files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/darsycho__zombie-moans_0.ogg",
+     "name": "darsycho__zombie-moans.ogg",
+     "sha256": "49b0bd7a7908f2b3ea61ae93ccf584ab650705d62e8ed6d4c8c9f5b98ad37b05",
+     "members": []
+    }
+   ],
+   "punch_db": -11.1,
+   "preview_gain_db": -8.9
   },
   {
-   "id": "sfx_reveal_4_epic",
-   "group": "sfx-gacha",
+   "id": "sfx_zombie_groan_4",
+   "group": "sfx-zombie",
+   "slot": "groan_4",
+   "slot_label": "신음 4",
    "kind": "sfx",
-   "source": "generated",
-   "member": "reveal_4_epic",
-   "title": "등급 공개: 영웅",
+   "source": "antum_undead",
+   "member": "undead-2.ogg",
+   "title": "언데드 신음",
+   "mood": "약 1.9초, 낮은 울림.",
    "star": true,
-   "mood": "상승 휘익 소리 후 D장조 아르페지오와 반짝이는 코드 (생성, 약 1.4초).",
-   "author": "synth.mjs (이 프로젝트)",
-   "file": "candidates/sfx-gacha/sfx_reveal_4_epic.ogg",
-   "bytes": 20737,
-   "seconds": 1.836,
-   "lufs_i": -13.5,
-   "true_peak": -1.1,
-   "lufs_m_max": -120.0,
-   "changes": [
-    "trimmed 0.08 s of leading/trailing silence",
-    "mono; peak-normalised to -1 dBTP (gain -0.9 dB)",
-    "encoded OGG Vorbis q4 (gain trimmed +0.30 dB to keep the true-peak target)"
+   "segment": [
+    0,
+    1.84
    ],
-   "source_files": [],
-   "generated_desc": "영웅: whoosh, D-major run to a held chord with sparkles"
+   "fade_out": 0.25,
+   "author": "AntumDeluge",
+   "file": "candidates/sfx-zombie/sfx_zombie_groan_4.ogg",
+   "bytes": 18740,
+   "seconds": 1.84,
+   "lufs_i": -12.6,
+   "true_peak": -1.2,
+   "lufs_m_max": -11.0,
+   "changes": [
+    "원본 0.00–1.84초 구간만 사용",
+    "20Hz 이하 제거(직류 성분 제거)",
+    "0.25초 페이드아웃",
+    "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 +9.2 dB)",
+    "OGG Vorbis q4로 변환"
+   ],
+   "source_files": [
+    "undead-2.ogg"
+   ],
+   "direct_files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/undead-moans.zip",
+     "name": "undead-moans.zip",
+     "sha256": "013d2327338585d950e3d55422ec0233b443ed888cdbf9908961502690bbe67e",
+     "members": [
+      "undead-2.ogg"
+     ]
+    }
+   ],
+   "punch_db": -9.7,
+   "preview_gain_db": -10.3
+  },
+  {
+   "id": "sfx_zombie_groan_5",
+   "group": "sfx-zombie",
+   "slot": "groan_5",
+   "slot_label": "신음 5",
+   "kind": "sfx",
+   "source": "ian_zombie_noises",
+   "member": "zombienoise1.ogg",
+   "title": "거친 신음",
+   "mood": "약 2초, 숨소리가 섞임.",
+   "star": true,
+   "fade_out": 0.3,
+   "author": "ianzazz",
+   "file": "candidates/sfx-zombie/sfx_zombie_groan_5.ogg",
+   "bytes": 23207,
+   "seconds": 2.117,
+   "lufs_i": -20.8,
+   "true_peak": -1.1,
+   "lufs_m_max": -18.5,
+   "changes": [
+    "20Hz 이하 제거(직류 성분 제거)",
+    "0.3초 페이드아웃",
+    "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 +16.8 dB)",
+    "OGG Vorbis q4로 변환"
+   ],
+   "source_files": [
+    "zombienoise1.ogg"
+   ],
+   "direct_files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/zombienoises.zip",
+     "name": "zombienoises.zip",
+     "sha256": "d2c90ad199ab95396dd7f5d21083b3bb7be7090a9b4a97ce7173233c6fcc72d6",
+     "members": [
+      "zombienoise1.ogg"
+     ]
+    }
+   ],
+   "punch_db": -16.3,
+   "preview_gain_db": -3.7
+  },
+  {
+   "id": "sfx_zombie_groan_6",
+   "group": "sfx-zombie",
+   "slot": "groan_6",
+   "slot_label": "신음 6",
+   "kind": "sfx",
+   "source": "dar_zombie_moans",
+   "member": "darsycho__zombie-moans.ogg",
+   "title": "짧은 신음",
+   "mood": "약 2.6초, 음이 오르내림.",
+   "star": true,
+   "event": 2,
+   "event_tail": 0.15,
+   "fade_out": 0.3,
+   "author": "Darsycho",
+   "file": "candidates/sfx-zombie/sfx_zombie_groan_6.ogg",
+   "bytes": 40380,
+   "seconds": 3.814,
+   "lufs_i": -16.3,
+   "true_peak": -1.2,
+   "lufs_m_max": -13.6,
+   "changes": [
+    "파일 안의 소리 5개 중 3번째만 사용",
+    "20Hz 이하 제거(직류 성분 제거)",
+    "0.3초 페이드아웃",
+    "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 +2.5 dB)",
+    "OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 +0.15 dB 조정)"
+   ],
+   "source_files": [
+    "darsycho__zombie-moans.ogg"
+   ],
+   "direct_files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/darsycho__zombie-moans_0.ogg",
+     "name": "darsycho__zombie-moans.ogg",
+     "sha256": "49b0bd7a7908f2b3ea61ae93ccf584ab650705d62e8ed6d4c8c9f5b98ad37b05",
+     "members": []
+    }
+   ],
+   "punch_db": -12.2,
+   "preview_gain_db": -7.8
+  },
+  {
+   "id": "sfx_zombie_death_1",
+   "group": "sfx-zombie",
+   "slot": "death_1",
+   "slot_label": "죽음 1",
+   "kind": "sfx",
+   "source": "arcade_voices",
+   "member": "Voice Effects Zombie-Skeleton-Monster Human Male/zombieDeath1.wav",
+   "title": "쓰러지는 비명 1",
+   "mood": "약 0.6~0.8초, 목소리 효과.",
+   "star": true,
+   "fade_out": 0.08,
+   "author": "ArcadeParty",
+   "file": "candidates/sfx-zombie/sfx_zombie_death_1.ogg",
+   "bytes": 10048,
+   "seconds": 0.641,
+   "lufs_i": -17.6,
+   "true_peak": -1.1,
+   "lufs_m_max": -15.5,
+   "changes": [
+    "20Hz 이하 제거(직류 성분 제거)",
+    "0.08초 페이드아웃",
+    "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 +6.4 dB)",
+    "OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 +0.15 dB 조정)"
+   ],
+   "source_files": [
+    "Voice Effects Zombie-Skeleton-Monster Human Male/zombieDeath1.wav"
+   ],
+   "direct_files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/Voice%20Effects%20Zombie-Skeleton-Monster%20Human%20Male.zip",
+     "name": "Voice Effects Zombie-Skeleton-Monster Human Male.zip",
+     "sha256": "041ef356efc5d947db903530d68eb55b7e6fbfb77b96fdd092ab81eb8be59d57",
+     "members": [
+      "Voice Effects Zombie-Skeleton-Monster Human Male/zombieDeath1.wav"
+     ]
+    }
+   ],
+   "punch_db": -12.5,
+   "preview_gain_db": -7.5
+  },
+  {
+   "id": "sfx_zombie_death_2",
+   "group": "sfx-zombie",
+   "slot": "death_2",
+   "slot_label": "죽음 2",
+   "kind": "sfx",
+   "source": "arcade_voices",
+   "member": "Voice Effects Zombie-Skeleton-Monster Human Male/zombieDeath2.wav",
+   "title": "쓰러지는 비명 2",
+   "mood": "약 0.6~0.8초, 목소리 효과.",
+   "star": true,
+   "fade_out": 0.08,
+   "author": "ArcadeParty",
+   "file": "candidates/sfx-zombie/sfx_zombie_death_2.ogg",
+   "bytes": 9713,
+   "seconds": 0.623,
+   "lufs_i": -19.7,
+   "true_peak": -1.1,
+   "lufs_m_max": -17.2,
+   "changes": [
+    "20Hz 이하 제거(직류 성분 제거)",
+    "0.08초 페이드아웃",
+    "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 +1.5 dB)",
+    "OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 +0.15 dB 조정)"
+   ],
+   "source_files": [
+    "Voice Effects Zombie-Skeleton-Monster Human Male/zombieDeath2.wav"
+   ],
+   "direct_files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/Voice%20Effects%20Zombie-Skeleton-Monster%20Human%20Male.zip",
+     "name": "Voice Effects Zombie-Skeleton-Monster Human Male.zip",
+     "sha256": "041ef356efc5d947db903530d68eb55b7e6fbfb77b96fdd092ab81eb8be59d57",
+     "members": [
+      "Voice Effects Zombie-Skeleton-Monster Human Male/zombieDeath2.wav"
+     ]
+    }
+   ],
+   "punch_db": -15.1,
+   "preview_gain_db": -4.9
+  },
+  {
+   "id": "sfx_zombie_death_3",
+   "group": "sfx-zombie",
+   "slot": "death_3",
+   "slot_label": "죽음 3",
+   "kind": "sfx",
+   "source": "arcade_voices",
+   "member": "Voice Effects Zombie-Skeleton-Monster Human Male/zombieDeath3.wav",
+   "title": "쓰러지는 비명 3",
+   "mood": "약 0.6~0.8초, 목소리 효과.",
+   "star": true,
+   "fade_out": 0.08,
+   "author": "ArcadeParty",
+   "file": "candidates/sfx-zombie/sfx_zombie_death_3.ogg",
+   "bytes": 11352,
+   "seconds": 0.81,
+   "lufs_i": -19.4,
+   "true_peak": -1.2,
+   "lufs_m_max": -16.9,
+   "changes": [
+    "20Hz 이하 제거(직류 성분 제거)",
+    "0.08초 페이드아웃",
+    "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 +4.5 dB)",
+    "OGG Vorbis q4로 변환"
+   ],
+   "source_files": [
+    "Voice Effects Zombie-Skeleton-Monster Human Male/zombieDeath3.wav"
+   ],
+   "direct_files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/Voice%20Effects%20Zombie-Skeleton-Monster%20Human%20Male.zip",
+     "name": "Voice Effects Zombie-Skeleton-Monster Human Male.zip",
+     "sha256": "041ef356efc5d947db903530d68eb55b7e6fbfb77b96fdd092ab81eb8be59d57",
+     "members": [
+      "Voice Effects Zombie-Skeleton-Monster Human Male/zombieDeath3.wav"
+     ]
+    }
+   ],
+   "punch_db": -12.2,
+   "preview_gain_db": -7.8
+  },
+  {
+   "id": "sfx_zombie_death_4",
+   "group": "sfx-zombie",
+   "slot": "death_4",
+   "slot_label": "죽음 4",
+   "kind": "sfx",
+   "source": "arcade_voices",
+   "member": "Voice Effects Zombie-Skeleton-Monster Human Male/zombieDeath4.wav",
+   "title": "쓰러지는 비명 4",
+   "mood": "약 0.6~0.8초, 목소리 효과.",
+   "star": true,
+   "fade_out": 0.08,
+   "author": "ArcadeParty",
+   "file": "candidates/sfx-zombie/sfx_zombie_death_4.ogg",
+   "bytes": 11467,
+   "seconds": 0.756,
+   "lufs_i": -20.6,
+   "true_peak": -1.4,
+   "lufs_m_max": -18.1,
+   "changes": [
+    "앞뒤 무음 0.01초 제거",
+    "20Hz 이하 제거(직류 성분 제거)",
+    "0.08초 페이드아웃",
+    "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 +2.0 dB)",
+    "OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 +0.45 dB 조정)"
+   ],
+   "source_files": [
+    "Voice Effects Zombie-Skeleton-Monster Human Male/zombieDeath4.wav"
+   ],
+   "direct_files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/Voice%20Effects%20Zombie-Skeleton-Monster%20Human%20Male.zip",
+     "name": "Voice Effects Zombie-Skeleton-Monster Human Male.zip",
+     "sha256": "041ef356efc5d947db903530d68eb55b7e6fbfb77b96fdd092ab81eb8be59d57",
+     "members": [
+      "Voice Effects Zombie-Skeleton-Monster Human Male/zombieDeath4.wav"
+     ]
+    }
+   ],
+   "punch_db": -15.4,
+   "preview_gain_db": -4.6
+  },
+  {
+   "id": "sfx_boss_roar_a",
+   "group": "sfx-boss",
+   "slot": "boss_roar",
+   "slot_label": "포효",
+   "kind": "sfx",
+   "source": "dar_troll",
+   "member": "troll-roars.ogg",
+   "title": "트롤 포효",
+   "mood": "약 1.6초, 거친 중음이 풍부함.",
+   "star": true,
+   "event": 4,
+   "event_tail": 0.1,
+   "fade_out": 0.2,
+   "author": "Darsycho",
+   "file": "candidates/sfx-boss/sfx_boss_roar_a.ogg",
+   "bytes": 18986,
+   "seconds": 1.76,
+   "lufs_i": -12.6,
+   "true_peak": -1.0,
+   "lufs_m_max": -10.1,
+   "changes": [
+    "파일 안의 소리 6개 중 5번째만 사용",
+    "20Hz 이하 제거(직류 성분 제거)",
+    "0.2초 페이드아웃",
+    "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 +0.2 dB)",
+    "OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 -0.30 dB 조정)"
+   ],
+   "source_files": [
+    "troll-roars.ogg"
+   ],
+   "direct_files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/troll-roars_0.ogg",
+     "name": "troll-roars.ogg",
+     "sha256": "7dc09cc3c3e424b66ac564ac83ac89ee91885c964780694d13f2c4957ac813c7",
+     "members": []
+    }
+   ],
+   "punch_db": -8.1,
+   "preview_gain_db": -11.9
+  },
+  {
+   "id": "sfx_boss_roar_b",
+   "group": "sfx-boss",
+   "slot": "boss_roar",
+   "slot_label": "포효",
+   "kind": "sfx",
+   "source": "ogre_monsters",
+   "member": "Monster-Sounds-Volume-2/Monster-2.wav",
+   "title": "괴물 으르렁(낮춤)",
+   "mood": "음높이를 25% 낮춰 더 육중하게.",
+   "af": "asetrate=33075,aresample=44100",
+   "fade_out": 0.2,
+   "author": "Ogrebane",
+   "file": "candidates/sfx-boss/sfx_boss_roar_b.ogg",
+   "bytes": 12765,
+   "seconds": 1.108,
+   "lufs_i": -17.8,
+   "true_peak": -1.2,
+   "lufs_m_max": -16.4,
+   "changes": [
+    "ffmpeg 필터 적용: asetrate=33075,aresample=44100",
+    "앞뒤 무음 0.06초 제거",
+    "20Hz 이하 제거(직류 성분 제거)",
+    "0.2초 페이드아웃",
+    "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -2.8 dB)",
+    "OGG Vorbis q4로 변환"
+   ],
+   "source_files": [
+    "Monster-Sounds-Volume-2/Monster-2.wav"
+   ],
+   "direct_files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/monster-sounds-volume-2.zip",
+     "name": "monster-sounds-volume-2.zip",
+     "sha256": "f23b5691ac502cf03b58a353cb31f53e3cb93aeb65e654efc8482fd1829d7ef6",
+     "members": [
+      "Monster-Sounds-Volume-2/Monster-2.wav"
+     ]
+    }
+   ],
+   "punch_db": -16.5,
+   "preview_gain_db": -3.5
+  },
+  {
+   "id": "sfx_boss_roar_c",
+   "group": "sfx-boss",
+   "slot": "boss_roar",
+   "slot_label": "포효",
+   "kind": "sfx",
+   "source": "trazzz_roar",
+   "member": "monster_roar.wav",
+   "title": "깊은 포효",
+   "mood": "저음 중심의 긴 포효(앞 4초). 폰 스피커에선 약할 수 있음.",
+   "segment": [
+    0,
+    4.0
+   ],
+   "fade_out": 1.2,
+   "author": "trazzz123",
+   "file": "candidates/sfx-boss/sfx_boss_roar_c.ogg",
+   "bytes": 24465,
+   "seconds": 3.892,
+   "lufs_i": -17.1,
+   "true_peak": -1.2,
+   "lufs_m_max": -14.9,
+   "changes": [
+    "원본 0.00–4.00초 구간만 사용",
+    "앞뒤 무음 0.11초 제거",
+    "20Hz 이하 제거(직류 성분 제거)",
+    "1.2초 페이드아웃",
+    "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -2.6 dB)",
+    "OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 +0.15 dB 조정)"
+   ],
+   "source_files": [
+    "monster_roar.wav"
+   ],
+   "direct_files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/monster_roar.wav",
+     "name": "monster_roar.wav",
+     "sha256": "040d2841619c732098c30a638731317d13d7647e5ce1a75a3246219ce4b162ff",
+     "members": []
+    }
+   ],
+   "punch_db": -10.4,
+   "preview_gain_db": -9.6
   }
  ]
 }
