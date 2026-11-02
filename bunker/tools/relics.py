@@ -1101,32 +1101,36 @@ ICONS[11] = _icon11
 
 # 12 철갑 코어: an armour-piercing dart flying out of its copper sabot, the petals peeling away, a hard steel tip
 _dart12 = rows("""
-.oo......................................
-oGGoo....................................
-oggGGoooooooooooooooooooooooooooooooooo..
-oaggggGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGWoo
-oaaakkaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaKo
-oaggggkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkoo
-oggaaoooooooooooooooooooooooooooooooooo..
-oaaoo....................................
-.oo......................................
+.ooo......................................
+oGGGoo....................................
+oggGGGoooooooooooooooooooooooooooooooooo..
+oagggGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGWoo
+oaaggkkgggggggggggggggggggggggggggggggggGWo
+oaaakkkaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaKo
+oaaggkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkko.
+oagggaoooooooooooooooooooooooooooooooooooo..
+oggaao....................................
+oaaoo.....................................
+.oo.......................................
 """)
 _petal12 = rows("""
-..........oooo
-......ooooTTto
-...oooTTTTttho
-.ooTTWTTtthhoo
-oTTTTttthhoo..
-ohhhhhhoooo...
-.oooooo.......
+.............ooo
+.........ooooTTo
+......oooTTTTtto
+....ooTTTTTtthho
+..ooTTWTTtthhhoo
+.oTTTTtttthhoo..
+oTTTttthhhoo....
+ohhhhhhhoo......
+.oooooooo.......
 """)
 
 
 def _icon12():
     cv = blank()
-    stamp(cv, _petal12, 14, 11, 'petal')
-    stamp(cv, flipv(_petal12), 14, 30, 'petal')
-    stamp(cv, _dart12, 4, 20, 'dart')
+    stamp(cv, _petal12, 13, 9, 'petal')
+    stamp(cv, flipv(_petal12), 13, 30, 'petal')
+    stamp(cv, _dart12, 3, 18, 'dart')
     for x, y, c in ((33, 15, 'p'), (35, 14, 'x'), (31, 34, 'p'), (34, 35, 'x'), (2, 23, 'x'), (1, 25, 'p')):
         cv[y][x] = c
     return cv
@@ -1219,55 +1223,60 @@ def _icon13():
 
 ICONS[13] = _icon13
 
-# 14 거인 사냥꾼: a barbed harpoon laid across a giant's fang as long as a man's arm, its rope coiled at the butt
+# 14 거인 사냥꾼: a heavy barbed harpoon laid across a giant's tusk as long as a man's arm, rope on its butt
 _fang14 = rows("""
-.ooooooo.......
-oCCCCcccoo.....
-oCWCCcccccoo...
-.oCCCCccccccoo.
-..ooCCCCccccco.
-....ooCCCcccco.
-......oCCccccO.
-.......oCCccco.
-........oCccco.
-........oCccco.
-.........oCcco.
-.........oCcco.
-..........oCco.
-..........oCco.
-...........oco.
-...........oco.
-............oo.
+..ooooooo..............
+.oCCCCcccoo............
+oCWCCCCcccoo...........
+oCCCCCCcccccoo.........
+.oCCCCCCccccccoo.......
+..ooCCCCCcccccccoo.....
+....ooCCCCCccccccco....
+......ooCCCCcccccco....
+........oCCCCcccccco...
+.........oCCCcccccco...
+..........oCCCcccccco..
+...........oCCcccccco..
+............oCCccccco..
+.............oCCcccco..
+..............oCccccco.
+...............oCcccco.
+................oCccco.
+.................oCcco.
+..................oCco.
+...................oco.
+...................ooo.
 """)
 _harpoon14 = rows("""
-..........................oo
-.........................oGo
-........................oGWo
-.......................oGgao
-..........oo..........oGgao.
-.........oGo.........oGgao..
-........oGgo........oGgao...
-.......oaggoooo....oGgao....
-........oaGGGGgo..oGgao.....
-.........oooaaaaooGgao......
-............oooaGGgao.......
-..............oGgaao........
-.............oDdooo.........
-............oDdo............
-...........oDdo.............
-..........oDdo..............
-.........oDdo...............
-........oDdo................
-.......oDdo.................
-......oDdo..................
-.....oDdo...................
-....oDdo....................
-...oDdo.....................
-..oDdo......................
-.oDdo.......................
-odDo........................
-odo.........................
-oo..........................
+...........................ooo
+..........................oGWo
+.........................oGWGo
+........................oGGgao
+...........ooo.........oGGgao.
+..........oGGo........oGGgao..
+.........oGGgo.......oGGgao...
+........oagggooooo..oGGgao....
+.........oaGGGGGGgooGGgao.....
+..........oooaaaaaoGGgao......
+.............ooooGGggao.......
+...............oGGgaao........
+..............oDDdooo.........
+.............oDDdo............
+............oDDdo.............
+...........oDDdo..............
+..........oDDdo...............
+.........oDDdo................
+........oDDdo.................
+.......oDDdo..................
+......oDDdo...................
+.....oDDdo....................
+....oDDdo.....................
+...oDDdo......................
+..oDDdo.......................
+.oDDdo........................
+oDDdo.........................
+oddo..........................
+ooo...........................
 """)
 _rope14 = rows("""
 ..oooooo..
@@ -1283,9 +1292,9 @@ ocCooooCco
 
 def _icon14():
     cv = blank()
-    stamp(cv, _fang14, 26, 22, 'fang')
-    stamp(cv, _harpoon14, 9, 3, 'harpoon')
-    stamp(cv, _rope14, 3, 34, 'rope')
+    stamp(cv, _fang14, 22, 18, 'tusk')
+    stamp(cv, _harpoon14, 6, 3, 'harpoon')
+    stamp(cv, _rope14, 2, 36, 'rope')
     return cv
 
 
@@ -1484,7 +1493,7 @@ oGWao
 
 def _icon18():
     cv = blank()
-    for k, x in enumerate(range(1, 36, 7)):
+    for k, x in enumerate(range(1, 37, 5)):
         stamp(cv, _loop18, x, 16 + (k % 2), 'loop')
     for x, y in ((3, 14), (11, 26), (16, 14), (24, 27), (30, 15), (37, 26), (6, 26), (21, 14), (33, 26), (39, 15), (17, 26), (27, 14)):
         stamp(cv, _barb18, x, y, 'barb')
@@ -2730,6 +2739,342 @@ def _icon41():
 
 
 ICONS[41] = _icon41
+
+
+# 42 연구 일지: an open research notebook, a molecule sketched on one page and notes on the other, a pencil, a gold ribbon
+_note42 = rows("""
+..oooooooooooooooo..oooooooooooooooo..
+.oCCCCCCCCCCCCCCCCooCCCCCCCCCCCCCCCCo.
+.oCWCCCCCCCCCCCCCcoocCCCCCCCCCCCCCCCo.
+.oCCCCCCbbCCCCCCCcoocCbbbbbbbbbCCCCCo.
+.oCCCCCbBBbCCCCCCcoocCCCCCCCCCCCCCCCo.
+.oCCCCCbBBbCCCCCCcoocCbbbbbbbCCCCCCCo.
+.oCCCCCCbbaCCCCCCcoocCCCCCCCCCCCCCCCo.
+.oCCCCCCCCCaCCCCCcoocCbbbbbbbbbbCCCCo.
+.oCCCCCCCCCCaRRCCcoocCCCCCCCCCCCCCCCo.
+.oCCCbbCCCCCRRRRCcoocCbbbbbCCCCCCCCCo.
+.oCCbBBbaaaaRRRRCcoocCCCCCCCCCCCCCCCo.
+.oCCbBBbCCCCCRRCCcoocCbbbbbbbbCCCCCCo.
+.oCCCbbCCCCCCaCCCcoocCCCCCCCCCCCCCCCo.
+.oCCCCCCCCCCCCaCCcoocCbbbbbbCCCCCCCCo.
+.oCCCCCCCCCCCbbCCcoocCCCCCCCCCCCCCCCo.
+.oCCCCCCCCCCbBBbCcoocCbbbbbbbbbCCCCCo.
+.oCCCCCCCCCCbBBbCcoocCCCCCCCCCCCCCCCo.
+.oCCCCCCCCCCCbbCCcoocCCCCCCCCCCCCCCCo.
+oocccccccccccccccccocccccccccccccccccoo
+oDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDo
+oddddddddddddddddddddddddddddddddddddo
+.ooooooooooooooooooooooooooooooooooooo.
+""")
+_ribbon42 = rows("""
+oYYo
+oYyo
+oYyo
+oYyo
+oYyo
+oYyo
+oYyo
+oYyo
+oYuo
+oyoo
+oo..
+""")
+_pencil42 = rows("""
+..............oo
+.............oPo
+............oPPo
+...........oYyo.
+..........oYyo..
+.........oYyo...
+........oYyo....
+.......oYyo.....
+......oYyo......
+.....oYyo.......
+....oDdo........
+...oCco.........
+..oCco..........
+.oKo............
+oKo.............
+oo..............
+""")
+
+
+def _icon42():
+    cv = blank()
+    stamp(cv, _ribbon42, 32, 9, 'ribbon')
+    stamp(cv, _note42, 5, 12, 'notebook')
+    stamp(cv, _ribbon42[:3], 32, 10, 'ribbon')
+    stamp(cv, _pencil42, 28, 2, 'pencil')
+    return cv
+
+
+ICONS[42] = _icon42
+
+# 43 표본 냉동고: a frosted specimen freezer, through its glass a jar of green fluid with an eye floating in it
+_frz43 = rows("""
+oooooooooooooooooooooooooooo
+oGGGGGGGGGGGGGGGGGGGGGGGGGao
+oGWGGGGGGGGGGGGGGGGGGGGGGgao
+oGgooooooooooooooooooooogako
+oGgoLLLLLLLLLLLLLLLLLLLogako
+oGgoLWLBBBBBBBBBBBBBBBLogako
+oGgoLLBBBBBoooooooBBBBLogako
+oGgoLBBBBBoGGGGGGgoBBBLogako
+oGgoLBBBBBoaaaaaaaoBBBLogako
+oGgoLBBBBoZZZZZZZZZoBBLogako
+oGgoLBBBBoZVZZZZZZvoBBLogako
+oGgoLBBBBoZZZCCCZZvoBBLogako
+oGgoLBBBBoZZCCWCCZvoBBLogako
+oGgoLBBBBoZZCCKbCZvoBBLogako
+oGgoLBBBBoZZCCbbCZvoBBLogako
+oGgoLBBBBoZZZCCCZZvoBBLogako
+oGgoLBBBBoZZZZZRZZvoBBLogako
+oGgoLBBBBoVZZZZZRZvoBBLogako
+oGgoLBBBBoVVvvvvvvvoBBLogako
+oGgoLBBBBBooooooooooBBLogako
+oGgoLLBBBBBBBBBBBBBBBLLogako
+oGgoLLLLLLLLLLLLLLLLLLLogako
+oGgooooooooooooooooooooogako
+oGgggggggggggggggVgVgggggako
+oaaaaaaaaaaaaaaaaaaaaaaaaako
+okkkkkkkkkkkkkkkkkkkkkkkkkko
+oooooooooooooooooooooooooooo
+""")
+
+
+def _icon43():
+    cv = blank()
+    stamp(cv, _frz43, 10, 11, 'freezer')
+    stamp(cv, _flake, 3, 8, 'flake')
+    stamp(cv, _flake, 39, 4, 'flake')
+    for x, y in ((11, 10), (14, 10), (20, 10), (27, 10), (33, 10), (36, 10)):
+        cv[y][x] = 'L'
+    for x, y in ((12, 9), (21, 9), (34, 9)):
+        cv[y][x] = 'L'
+    return cv
+
+
+ICONS[43] = _icon43
+
+# 44 양자 계산기: a black processor cube glowing red at its core, qubits flying round it on crossed orbits
+_chip44 = rows("""
+....o.o.o.o.o.o....
+...ooooooooooooo...
+.ooakkkkkkkkkkkaoo.
+..okkKKKKKKKKKkko..
+.ookKrrrrrrrrrKkoo.
+..okKrRRRRRRRrKko..
+.ookKrRERRRRRrKkoo.
+..okKrRRWERRRrKko..
+.ookKrRREWERRrKkoo.
+..okKrRRRERRRrKko..
+.ookKrRRRRRRRrKkoo.
+..okKrrrrrrrrrKko..
+.ookKKKKKKKKKKKkoo.
+..okkkkkkkkkkkkko..
+.ooakkkkkkkkkkkaoo.
+...ooooooooooooo...
+....o.o.o.o.o.o....
+""")
+_orbit44 = rows("""
+..........iiiiiiiiii..........
+......iiii..........iiii......
+...iii..................iii...
+.ii........................ii.
+i............................i
+.ii........................ii.
+...iii..................iii...
+......iiii..........iiii......
+..........iiiiiiiiii..........
+""")
+
+
+def _icon44():
+    cv = blank()
+    stamp(cv, _orbit44, 9, 19, 'orbit')
+    stamp(cv, [r[::-1] for r in _orbit44[::-1]], 9, 14, 'orbit')
+    stamp(cv, _chip44, 14, 15, 'chip')
+    # the orbits' near sides pass in front of the chip
+    for x in range(15, 33):
+        if x % 2 == 0:
+            cv[27][x] = 'i'
+        if x % 2 == 1:
+            cv[14][x] = 'i'
+    for x, y, c in ((9, 23, 'E'), (38, 22, 'W'), (22, 27, 'E'), (31, 19, 'W'), (16, 19, 'E')):
+        cv[y][x] = c
+    stamp(cv, _sparkle, 36, 6, 'sparkle')
+    stamp(cv, _sparkle, 6, 31, 'sparkle')
+    return cv
+
+
+ICONS[44] = _icon44
+
+# 45 교리 서판: a stone tablet with a rounded head, lines of doctrine cut into it, a gold emblem set at the top
+_tab45 = rows("""
+.......oooooooooooo.......
+.....ooppppppppppppoo.....
+....oppppppppppppppxxo....
+...opppppppppppppppxxxo...
+..oppppppppppppppppppxxo..
+..oppxxxxxxxxxxxxxxxpxxo..
+.opppppppppppppppppppxxxo.
+.oppxxxxxxxxxxxxxxxxpxxxo.
+.opppppppppppppppppppxxxo.
+.oppxxxxxxxxxxxxxpppppxxo.
+.opppppppppppppppppppxxxo.
+.oppxxxxxxxxxxxxxxxxpxxxo.
+.opppppppppppppppppppxxxo.
+.oppxxxxxxxxxxxpppppppxxo.
+.opppppppppppppppppppxxxo.
+.oppxxxxxxxxxxxxxxxxpxxxo.
+.opppppppppppppppppppxxxo.
+.oppxxxxxxxxxxxxpppppxxxo.
+.opppppppppppppppppppxxxo.
+.oxxxxxxxxxxxxxxxxxxxxXXo.
+.oXXXXXXXXXXXXXXXXXXXXXXo.
+..oooooooooooooooooooooo..
+""")
+_emblem45 = rows("""
+...oo...
+..oYYo..
+.oYWYyo.
+oYYRRyuo
+oYyRRyuo
+.oyyyuo.
+..oyuo..
+...oo...
+""")
+
+
+def _icon45():
+    cv = blank()
+    stamp(cv, _tab45, 11, 15, 'tablet')
+    stamp(cv, _emblem45, 20, 9, 'emblem')
+    for x, y in ((14, 11), (33, 12), (9, 20), (38, 22)):
+        cv[y][x] = 'Y'
+    return cv
+
+
+ICONS[45] = _icon45
+
+# 46 기록 보관소: a filing cabinet, its top drawer pulled out full of folders, scrolls stacked on top
+_cab46 = rows("""
+ooooooooooooooooooooo
+oGGGGGGGGGGGGGGGGGgao
+oGgggggggggggggggggao
+oaaaaaaaaaaaaaaaaaako
+oGgggggggggggggggggao
+oGggggggoooooggggggao
+oGggggggoGGaoggggggao
+oGggggggoooooggggggao
+oGgggggggggggggggggao
+oaaaaaaaaaaaaaaaaaako
+oGgggggggggggggggggao
+oGggggggoooooggggggao
+oGggggggoGGaoggggggao
+oGggggggoooooggggggao
+oGgggggggggggggggggao
+oaaaaaaaaaaaaaaaaaako
+okkkkkkkkkkkkkkkkkkko
+ooooooooooooooooooooo
+""")
+_drawer46 = rows("""
+...o.o.o.o.o...........
+..oYoCoYoCoYo..........
+.ooYoCoYoCoYoooooooooo.
+oGGGGGGGGGGGGGGGGGGGgao
+oGggggggggggggggggggggo
+oGggggggoooooggggggggao
+oGggggggoGGaoggggggggao
+oGggggggoooooggggggggao
+oaaaaaaaaaaaaaaaaaaaako
+.ooooooooooooooooooooo.
+""")
+_scroll46 = rows("""
+.oooooooooooooo.
+oCCcCCCCCCCCcCco
+oCcoccccccccocco
+oCCcCCCCCCCCcCco
+.oooooooooooooo.
+""")
+
+
+def _icon46():
+    cv = blank()
+    stamp(cv, _cab46, 6, 23, 'cabinet')
+    stamp(cv, _drawer46, 20, 26, 'drawer')
+    stamp(cv, _scroll46, 7, 18, 'scroll')
+    stamp(cv, _scroll46, 9, 14, 'scroll')
+    stamp(cv, [r.replace('C', 'T').replace('c', 't') for r in _scroll46], 6, 10, 'scroll')
+    return cv
+
+
+ICONS[46] = _icon46
+
+# 47 자동 실험대: a robot arm over a lab bench pouring from one flask into another, bubbles rising
+_arm47 = rows("""
+.................oooo.....
+................oGGgao....
+...............oGgaKao....
+..............oGgaao......
+.............oGgao........
+............oGgao.........
+...........oGgao..........
+..........oGgao...........
+.........oooooo...........
+........oGGgaao...........
+........oGEgaao...........
+........oaaaako...........
+.........oGao.............
+.........oGao.............
+........oGgao.............
+.......oGg.oGo............
+.......oo...oo............
+""")
+_flask47 = rows("""
+..oooo..
+..oLLo..
+..oLBo..
+.oLLBBo.
+oLWLBBbo
+oVVVVVvo
+oVZVVVvo
+oVVVVvvo
+.oooooo.
+""")
+_bench47 = rows("""
+oooooooooooooooooooooooooooooooooooooooo
+oDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDo
+oddddddddddddddddddddddddddddddddddddddo
+oooooooooooooooooooooooooooooooooooooooo
+.oaao..............................oaao.
+.oGao..............................oGao.
+.oGao..............................oGao.
+.oaao..............................oaao.
+.oooo..............................oooo.
+""")
+_base47 = rows("""
+..oooooo..
+.oGGGgaao.
+oGgggggako
+oaaaaaakko
+oooooooooo
+""")
+
+
+def _icon47():
+    cv = blank()
+    stamp(cv, _bench47, 4, 34, 'bench')
+    stamp(cv, _base47, 30, 29, 'arm base')
+    stamp(cv, _arm47, 13, 12, 'arm')
+    stamp(cv, _flask47, 20, 25, 'flask')
+    stamp(cv, [r.replace('V', 'P').replace('v', 'I').replace('Z', 'i') for r in _flask47], 8, 25, 'flask')
+    for x, y, c in ((23, 22, 'L'), (22, 19, 'L'), (24, 17, 'B'), (11, 22, 'i'), (10, 19, 'i')):
+        cv[y][x] = c
+    return cv
+
+
+ICONS[47] = _icon47
 
 
 def build_icon(rid, grade):
