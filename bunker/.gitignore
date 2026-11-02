@@ -1,1 +1,4 @@
-tools/__pycache__/
+__pycache__/
+# 아직 고르지 않은 사운드 후보(용량이 커서 저장소에는 고른 것만 넣음)
+audio/candidates/
+node_modules/
