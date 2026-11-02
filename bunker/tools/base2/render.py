@@ -76,26 +76,27 @@ def main():
     W, H = renders[1].size
     S2 = 2
     pad = 16
-    crop = (68, 6, 202, 118)            # the bunker and its yard
+    crop = (60, 4, 212, 118)            # the bunker, its yard and the Lv21 workshop
     cw, ch = (crop[2] - crop[0]) * 4, (crop[3] - crop[1]) * 4
     col_w = max(W * S2, cw)
     sheet_w = pad + 3 * (col_w + pad)
-    sheet_h = 40 + H * S2 + 24 + ch + 24 + 120 + pad
+    top = 52
+    sheet_h = top + H * S2 + 24 + ch + 40 + 140 + pad
     sheet = Image.new('RGB', (sheet_w, sheet_h), WHITE)
     d = ImageDraw.Draw(sheet)
-    text(d, (pad, 12), '임시 시대 기지 견본 · 1칸 = 게임 1px (1080px 폰에서 4배)', f12b)
+    text(d, (pad, 10), '임시 시대 기지 견본 · 1칸 = 게임 1px (1080px 폰에서 4배)', f12b)
     names = {1: 'Lv 1 · 모래주머니와 판자', 11: 'Lv 11 · 보강, 지붕 기둥', 21: 'Lv 21 · 확장, 첫 터렛 칸, 수리 작업장'}
     for i, lv in enumerate(LEVELS):
         x = pad + i * (col_w + pad)
-        text(d, (x, 40 - 16 + 2), names[lv], f12)
-        sheet.paste(renders[lv].resize((W * S2, H * S2), Image.NEAREST), (x, 40))
+        text(d, (x, top - 18), names[lv], f12)
+        sheet.paste(renders[lv].resize((W * S2, H * S2), Image.NEAREST), (x, top))
         c = renders[lv].crop(crop).resize((cw, ch), Image.NEAREST)
-        y = 40 + H * S2 + 24
+        y = top + H * S2 + 24
         text(d, (x, y - 14), '4배 확대', f10, COLORS[2])
         sheet.paste(c, (x, y))
     # scale strip: the 32x32 survivor at 4x next to a 32 px ruler, and the wall heights
-    y0 = 40 + H * S2 + 24 + ch + 24
-    text(d, (pad, y0 - 14), '축척: 32×32 사람(4배)과 벽 높이', f10, COLORS[2])
+    y0 = top + H * S2 + 24 + ch + 40
+    text(d, (pad, y0 - 12), '축척: 32×32 사람(4배)과 지붕 높이', f10, COLORS[2])
     import json
     si = json.load(open(os.path.join(HERE, 'standin.json')))
     fr = np.array(si['frames']['hero_idle'], np.uint8)
@@ -104,19 +105,19 @@ def main():
         lut[i] = c
     lut[CLEAR] = WHITE
     man = Image.fromarray(lut[fr], 'RGB').resize((128, 128), Image.NEAREST)
-    sheet.paste(man, (pad, y0 - 8))
-    d.rectangle((pad + 136, y0 - 8, pad + 139, y0 - 8 + 127), fill=COLORS[2])
+    sheet.paste(man, (pad, y0 + 4))
+    d.rectangle((pad + 136, y0 + 4, pad + 139, y0 + 4 + 127), fill=COLORS[2])
     for k, (lv, hgt) in enumerate(((1, 17), (11, 27), (21, 29))):
         x = pad + 160 + k * 60
-        d.rectangle((x, y0 - 8 + 128 - hgt * 4, x + 11, y0 - 8 + 127), fill=COLORS[3])
-        text(d, (x - 2, y0 - 8 + 128 - hgt * 4 - 14), 'Lv%d' % lv, f10)
-        text(d, (x + 14, y0 + 112), '%dpx' % hgt, f10, COLORS[2])
+        d.rectangle((x, y0 + 4 + 128 - hgt * 4, x + 11, y0 + 4 + 127), fill=COLORS[3])
+        text(d, (x - 2, y0 + 4 + 128 - hgt * 4 - 14), 'Lv%d' % lv, f10)
+        text(d, (x + 14, y0 + 124), '%dpx' % hgt, f10, COLORS[2])
     # palette: all 64, used ones marked
     px0 = pad + 380
-    text(d, (px0, y0 - 14), '팔레트 Resurrect 64 · 점 = 이 그림이 쓴 색 (%d/64)' % len(used), f10, COLORS[2])
+    text(d, (px0, y0 - 12), '팔레트 Resurrect 64 · 점 = 이 그림이 쓴 색 (%d/64)' % len(used), f10, COLORS[2])
     for i, c in enumerate(COLORS):
         x = px0 + (i % 16) * 22
-        y = y0 + 4 + (i // 16) * 22
+        y = y0 + 8 + (i // 16) * 22
         d.rectangle((x, y, x + 19, y + 19), fill=c, outline=INK)
         if i in used:
             d.rectangle((x + 7, y + 7, x + 12, y + 12), fill=WHITE if sum(c) < 380 else INK)

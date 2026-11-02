@@ -4,6 +4,36 @@
 import { T } from './tuning.mjs';
 import { breakthroughCost } from './curves.mjs';
 
+// seeded random numbers (mulberry32): the same seed gives the same summons and drops everywhere
+export function makeRng(seed = 1) {
+  let a = (seed >>> 0) || 0x9e3779b9;
+  const next = () => {
+    a = (a + 0x6d2b79f5) >>> 0;
+    let t = a;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+  return {
+    next,
+    // integer in [lo, hi]
+    int: (lo, hi) => lo + Math.floor(next() * (hi - lo + 1)),
+    range: (lo, hi) => lo + next() * (hi - lo),
+    chance: p => next() < p,
+    pick: list => list[Math.floor(next() * list.length)],
+    // index chosen with the given weights (they need not sum to 1)
+    weighted(weights) {
+      let total = 0;
+      for (const w of weights) total += w;
+      let r = next() * total;
+      for (let i = 0; i < weights.length; i++) { r -= weights[i]; if (r < 0) return i; }
+      return weights.length - 1;
+    },
+    state: () => a,
+    setState: s => { a = s >>> 0; },
+  };
+}
+
 export const GRADES = [
   { key: 'common', name: '일반', color: '회색' }, { key: 'uncommon', name: '고급', color: '초록' },
   { key: 'rare', name: '희귀', color: '파랑' }, { key: 'epic', name: '영웅', color: '보라' },

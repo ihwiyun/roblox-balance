@@ -258,34 +258,43 @@ RUST_SIDE = {
     'back_left': [(3, 0, 2), (27, 0, 3), (45, 1, 0)],
 }
 
-# a barbed wire coil seen from the side (Barbed Wire): loops of wire with light X barbs, 8 px period
-COIL = [
-    "..mMm...",
-    ".m..fm..",
-    "m.f..Mm.",
-    "M..m..fm",
-    ".mM..mM.",
-]
-COIL_SHADE = [
-    "..sms...",
-    ".s..ms..",
-    "s.m..ss.",
-    "s..s..ms",
-    ".ss..ss.",
-]
+# a barbed wire coil seen from the side (Barbed Wire): one hand-drawn loop, repeated every 4 px so the
+# loops overlap like a stretched coil; dark wire with a lit upper curve, light barb glints every 8 px
+LOOP = ["..MMm..",
+        ".M...m.",
+        "M.....s",
+        ".m...s.",
+        "..mss.."]
+LOOP_SHADE = ["..mmS..",
+              ".m...S.",
+              "m.....s",
+              ".S...s.",
+              "..Sss.."]
+
+
+def coil_rows(w, lit, phase=0):
+    loop = LOOP if lit else LOOP_SHADE
+    out = [['.'] * w for _ in range(5)]
+    for p in range(-7 - phase, w, 4):
+        for r, row in enumerate(loop):
+            for i, ch in enumerate(row):
+                if ch != '.' and 0 <= p + i < w:
+                    out[r][p + i] = ch
+    for u in range((3 + phase) % 8, w, 8):      # barbs
+        out[0][u] = 'f'
+        if u + 1 < w:
+            out[2][u + 1] = 'f' if lit else 'M'
+    return [''.join(r) for r in out]
 
 
 def coil(cv, a, b, z, lit):
-    pat = COIL if lit else COIL_SHADE
     (x0, y0), (x1, y1) = a, b
     if abs(y1 - y0) < .01:       # along x: a left-type face
         w = int(round(2 * (x1 - x0)))
-        rows = [''.join(r[u % 8] for u in range(w)) for r in pat]
-        cv.on_left(grid(rows, C), x0, y0, z, 0, 0)
+        cv.on_left(grid(coil_rows(w, lit), C), x0, y0, z, 0, 0)
     else:
         w = int(round(2 * (y1 - y0)))
-        rows = [''.join(r[(u + 3) % 8] for u in range(w)) for r in pat]
-        cv.on_right(grid(rows, C), x0, y1, z, 0, 0)
+        cv.on_right(grid(coil_rows(w, lit, 2), C), x0, y1, z, 0, 0)
 
 
 def lv21_side(cv, side):
@@ -302,7 +311,7 @@ def lv21_side(cv, side):
             w = int(round(2 * (y1 - y0)))
             rr = [(u - u0, v, s) for u, v, s in rust if u0 <= u < u0 + w]
             cv.on_right(iron_face(w, False, rr), x0, y1, 7, 0, 0)
-        coil(cv, a, b, 11, lit)
+        coil(cv, a, b, 12, lit)
         u0 += w
     for (x, y) in side_points(side):
         if side == 'front_left' and GATE[0] < x < GATE[1]:
