@@ -5,13 +5,13 @@
 // Prices mix the resources: the living floor takes ore (and later food), the farm takes ore, the mine takes food,
 // so each floor leans on another. Output grows about 10% a level on top of the level itself, enough to keep up
 // with the money a later wave brings in (checked with the economy simulation: neither store sits full for long)
-const BREAK_EVERY = 50, ERA_EVERY = 25, FAC_MAX = 30000;
+const FAC_BREAK = 50, FAC_ERA_EVERY = 25, FAC_MAX = 30000;
 // the purchase from level L is a breakthrough (L = 50, 100, 150, ...)
-const facBreak = (kind, L) => L > 0 && L % BREAK_EVERY === 0;
+const facBreak = (kind, L) => L > 0 && L % FAC_BREAK === 0;
 // a breakthrough costs three times the gold, plus food and ore (about 30·k² each for the k-th)
 function breakCost(kind, L, c) {
   if (!facBreak(kind, L)) return c;
-  const k = L / BREAK_EVERY, m = Math.ceil(30 * k * k);
+  const k = L / FAC_BREAK, m = Math.ceil(30 * k * k);
   c.money *= 3; c.food = (c.food || 0) + m; c.mineral = (c.mineral || 0) + m;
   return c;
 }
@@ -37,21 +37,21 @@ const MINE = { max: FAC_MAX, rate: L => L ? .28 * L * 1.1 ** L : 0, cost: L => {
 const outputOf = (res, n) => (res === 'food' ? FARM.rate(G.farm) : MINE.rate(G.mine)) * (1 + n) + n * .2;
 
 /* ================= the look: the old game's forms first, then eras of parts × stages ================= */
-// The first breakthroughs bring back the game as it looked up to level 40, TODAY of its levels at a time (one
-// constant, for the economy to retune): breakthrough b shows at least everything the old level min(40, TODAY·b)
-// showed (todayLevel), so no breakthrough looks plainer than the old game at the same point. The old game's five
-// forms are the first five eras, each starting as soon as that rule reaches it (eraAt); the military era follows at
-// breakthrough MIL_AT and a new era every 25 after. Past level 40's look, and from the military era on, each
+// The first breakthroughs bring back the game as it looked up to level 40, FAC_TODAY of its levels at a time (one
+// constant, for the economy to retune): breakthrough b shows at least everything the old level min(40, FAC_TODAY·b)
+// showed (facTodayLevel), so no breakthrough looks plainer than the old game at the same point. The old game's five
+// forms are the first five eras, each starting as soon as that rule reaches it (facEraAt); the military era follows at
+// breakthrough FAC_MIL_AT and a new era every 25 after. Past level 40's look, and from the military era on, each
 // breakthrough moves one part one stage up its era's ladder (turns); a new era's first stage keeps the furnishing
 // of the one before (under.js). Past the end of a ladder, and in every era past the last, a part climbs material
 // grades instead, so the look never stops changing. More stages: add names here and drawings in under.js.
-const TODAY = 8, TODAY_MAX = 40, TODAY_AT = [1, 9, 17, 25, 33], MIL_AT = 14;
+const FAC_TODAY = 8, FAC_TODAY_MAX = 40, FAC_TODAY_AT = [1, 9, 17, 25, 33], FAC_MIL_AT = 14;
 // the old game's form at its level L (it changed every eight levels), and the old level breakthrough b shows
-const oldTier = L => L < 9 ? 0 : L < 17 ? 1 : L < 25 ? 2 : L < 33 ? 3 : 4;
-const todayLevel = b => b ? Math.min(TODAY_MAX, TODAY * b) : 1;
+const facOldTier = L => L < 9 ? 0 : L < 17 ? 1 : L < 25 ? 2 : L < 33 ? 3 : 4;
+const facTodayLevel = b => b ? Math.min(FAC_TODAY_MAX, FAC_TODAY * b) : 1;
 // the breakthrough where era e starts: the old forms 0-4, then military, industrial, future, beyond, beyond 2, ...
-const eraAt = e => e < 5 ? (e ? Math.ceil(TODAY_AT[e] / TODAY) : 0) : MIL_AT + (e - 5) * ERA_EVERY;
-const eraOf = b => { let e = 0; while (eraAt(e + 1) <= b) e++; return e; };
+const facEraAt = e => e < 5 ? (e ? Math.ceil(FAC_TODAY_AT[e] / FAC_TODAY) : 0) : FAC_MIL_AT + (e - 5) * FAC_ERA_EVERY;
+const facEraOf = b => { let e = 0; while (facEraAt(e + 1) <= b) e++; return e; };
 const FAC_ERAS = ['군용', '산업', '미래', '그 이후'];
 const FAC_GRADES = ['청동', '은', '금', '백금', '수정', '루비', '에메랄드', '사파이어', '자수정', '흑요석'];
 const FAC_LOOK = {
@@ -121,13 +121,13 @@ const FAC_LOOK = {
   },
 };
 // breakthroughs bought by level L: the purchase from level 50 is the first, so its look shows from level 51
-const facTier = L => L > 0 ? Math.floor((L - 1) / BREAK_EVERY) : 0;
+const facTier = L => L > 0 ? Math.floor((L - 1) / FAC_BREAK) : 0;
 // a floor at level L: its era, the old level it shows, each part's stage on its era's ladder and its grade. Parts
 // climb from the military era on, and in the last old form once level 40's look is reached (grades only there)
 function facLook(kind, L) {
-  const F = FAC_LOOK[kind], b = facTier(L), era = eraOf(b), later = era >= 5, e = Math.min(era - 5, 3);
-  const look = { b, era, today: todayLevel(b), step: {}, grade: {} }, n = {};
-  const turns = later ? b - eraAt(era) : Math.max(0, b - Math.ceil(TODAY_MAX / TODAY));
+  const F = FAC_LOOK[kind], b = facTier(L), era = facEraOf(b), later = era >= 5, e = Math.min(era - 5, 3);
+  const look = { b, era, today: facTodayLevel(b), step: {}, grade: {} }, n = {};
+  const turns = later ? b - facEraAt(era) : Math.max(0, b - Math.ceil(FAC_TODAY_MAX / FAC_TODAY));
   for (const k in F.parts) n[k] = 0;
   F.turns.forEach((k, j) => { n[k] += (later ? era - 5 - e : 0) + (j < turns ? 1 : 0); });
   for (const k in F.parts) { const last = later ? F.parts[k][1][e].length - 1 : 0; look.step[k] = Math.min(n[k], last); look.grade[k] = n[k] - look.step[k]; }
@@ -137,12 +137,12 @@ const facGradeName = g => g ? FAC_GRADES[(g - 1) % FAC_GRADES.length] + (g > FAC
 // what breakthrough b brings: an era's name at its start; the old game's items it brings back; else its part's new
 // stage (or grade)
 function facStepName(kind, b) {
-  const F = FAC_LOOK[kind], era = eraOf(Math.max(0, b));
+  const F = FAC_LOOK[kind], era = facEraOf(Math.max(0, b));
   if (b <= 0) return F.forms[0];
-  if (b === eraAt(era)) return era < 5 ? F.forms[era] : FAC_ERAS[Math.min(era - 5, 3)] + (era > 8 ? ' ' + (era - 7) : '') + ' 시대';
-  const lo = todayLevel(b - 1), hi = todayLevel(b);
+  if (b === facEraAt(era)) return era < 5 ? F.forms[era] : FAC_ERAS[Math.min(era - 5, 3)] + (era > 8 ? ' ' + (era - 7) : '') + ' 시대';
+  const lo = facTodayLevel(b - 1), hi = facTodayLevel(b);
   if (hi > lo) { const names = F.today.slice(lo, hi); return names.slice(0, 2).join('·') + (names.length > 2 ? ' 외 ' + (names.length - 2) : ''); }
-  const j = (era >= 5 ? b - eraAt(era) : b - Math.ceil(TODAY_MAX / TODAY)) - 1, k = F.turns[j % F.turns.length], lk = facLook(kind, b * BREAK_EVERY + 1), g = lk.grade[k];
+  const j = (era >= 5 ? b - facEraAt(era) : b - Math.ceil(FAC_TODAY_MAX / FAC_TODAY)) - 1, k = F.turns[j % F.turns.length], lk = facLook(kind, b * FAC_BREAK + 1), g = lk.grade[k];
   return F.parts[k][0] + (era >= 5 ? ' · ' + F.parts[k][1][Math.min(era - 5, 3)][lk.step[k]] : '') + (g ? ' · ' + facGradeName(g) : '');
 }
 // what the floor card says comes next: the floor itself, a bed while the hire slots open, then the next
@@ -150,8 +150,8 @@ function facStepName(kind, b) {
 function facNext(kind, L) {
   if (!L) return FAC_LOOK[kind].build;
   if (kind === 'live' && LIVE.beds.includes(L + 1)) return '침대';
-  const at = Math.ceil(L / BREAK_EVERY) * BREAK_EVERY;
-  return (at > L ? 'Lv ' + at + ' ' : '') + '돌파 · ' + facStepName(kind, at / BREAK_EVERY);
+  const at = Math.ceil(L / FAC_BREAK) * FAC_BREAK;
+  return (at > L ? 'Lv ' + at + ' ' : '') + '돌파 · ' + facStepName(kind, at / FAC_BREAK);
 }
 // the lists the floor cards read (by breakthrough, and by level), worked out when read
 const facList = f => new Proxy([], { get: (a, k) => typeof k === 'string' && /^\d+$/.test(k) ? f(+k) : a[k] });

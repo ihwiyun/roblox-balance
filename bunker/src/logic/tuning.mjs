@@ -72,6 +72,9 @@ const DEFAULTS = {
     stepMul: 1.16,                                          // equip multiplier per ladder step
     ownedBase: 0.012, ownedGrow: 1.16,                      // owned effect of weapon i: ownedBase * ownedGrow^i
     enhEquip: 0.05, enhOwned: 0.05,                         // per enhance level
+    // the enhance breakthrough every 10 levels (doc 7: ore and parts) is the parts sink of the late game: production
+    // runs ~20 h a day once offline credit is counted, and 20 k^2 parts left the box full 70-90% of the time
+    btOre: 40, btParts: 400,
     enhCapByGrade: [20, 40, 60, 80, 100, 120, 140, 160],    // doc
     codexPer: 0.01, codexGradeSet: 0.10,                    // doc: +1% each, a grade set adds more
     pullCost: 50, pity: [[3, 50], [4, 150], [5, 500]],     // doc: hero+ in 50, legend+ in 150, immortal+ in 500

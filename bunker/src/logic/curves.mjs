@@ -51,7 +51,7 @@ export const BREAKTHROUGHS = {
   fence: k => btOf(B().bt.fence, k),
   section: (k, aux) => btOf(B().bt.section, k, aux),
   crew: k => ({ food: T.crew.btFood * k * k, parts: T.crew.btParts * k * k }),          // doc: 60k^2, 15k^2
-  gear: (k, grade) => ({ ore: 40 * k * k * (grade + 1), parts: 20 * k * k * (grade + 1) }),
+  gear: (k, grade) => ({ ore: T.gear.btOre * k * k * (grade + 1), parts: T.gear.btParts * k * k * (grade + 1) }), // every 10 enhance levels
 };
 export const breakthroughCost = (kind, k, caps, extra) => capToStores(BREAKTHROUGHS[kind](k, extra), caps);
 

@@ -15,7 +15,8 @@
   body { word-break: keep-all; font: 13px/1.4 ui-monospace, "Cascadia Mono", Consolas, Menlo, monospace; overflow: hidden; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; }
   button { font: inherit; color: inherit; }
   canvas.ico { image-rendering: pixelated; flex: none; display: block; }
-  i.ic { display: inline-block; flex: none; width: calc(16px * var(--s, 1)); height: calc(16px * var(--s, 1)); background: center / 100% 100% no-repeat; image-rendering: pixelated; vertical-align: middle; }
+  /* longhands only: a background shorthand here would reset the picture the .ic-<name> rules give (and win over them) */
+  i.ic { display: inline-block; flex: none; width: calc(16px * var(--s, 1)); height: calc(16px * var(--s, 1)); background-position: center; background-size: 100% 100%; background-repeat: no-repeat; image-rendering: pixelated; vertical-align: middle; }
   img.por { display: block; flex: none; image-rendering: pixelated; }
   /* what can be pressed is at least 48x48, also when it looks smaller: an invisible box centred on it */
   .tap { position: relative; }

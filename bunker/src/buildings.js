@@ -42,8 +42,8 @@ const gearTier = () => Math.min(5, Math.floor(Math.min(9, Math.floor((G.bunker -
 // feature and thing belongs to a component (the tags below); once an era's stages run out, each breakthrough bumps a
 // component's material grade instead, so the look never stops changing. Per era: [first breakthrough, footprint]
 const ERA_AT = [0, 2, 4, 7, 10, 14, 18, 23, 29, 36];
-const eraOf = b => b >= ERA_AT[9] ? 9 + Math.floor((b - ERA_AT[9]) / LOOK_ERA) : ERA_AT.filter(at => b >= at).length - 1;
-const eraStart = e => e <= 9 ? ERA_AT[e] : ERA_AT[9] + (e - 9) * LOOK_ERA;
+const lookEra = b => b >= ERA_AT[9] ? 9 + Math.floor((b - ERA_AT[9]) / LOOK_ERA) : ERA_AT.filter(at => b >= at).length - 1;
+const lookEraStart = e => e <= 9 ? ERA_AT[e] : ERA_AT[9] + (e - 9) * LOOK_ERA;
 
 const LOOK_GRADES = ['청동', '은', '금', '백금', '수정', '루비', '에메랄드', '사파이어', '자수정', '흑요석'];
 // half: half the footprint (zombies stop at half + .55 to hit it); roof: the height the gunners stand at;
@@ -126,7 +126,7 @@ function eraEvents(tags, props, k) {
   for (let n = 1; n <= 9; n++) ev.push([10 * k + 1 + n, n, tags[k][n - 1]]);
   if (props) for (const [id, [lv, , part]] of Object.entries(props)) if (lv > 10 * k + 1 && lv <= 10 * k + 10) ev.push([lv + .5, id, part]);
   ev.sort((a, b) => a[0] - b[0]);
-  const steps = eraStart(k + 1) - eraStart(k) - 1, cut = k ? Math.max(0, ev.length - steps) : 0;
+  const steps = lookEraStart(k + 1) - lookEraStart(k) - 1, cut = k ? Math.max(0, ev.length - steps) : 0;
   return { base: ev.slice(0, cut), steps: ev.slice(cut) };
 }
 // the eras after the tenth (drawn later): industrial, futuristic, beyond
@@ -136,12 +136,12 @@ for (let k = 0; k < 10; k++) { BUNKER_LOOK.events[k] = eraEvents(BUNKER_TAGS, YA
 // a building after b breakthroughs: its era and old form, the features it shows, the things in the compound (every
 // thing up to that old level), the event the last breakthrough brought, and each component's material grade
 function lookOf(T, b) {
-  const era = eraOf(b), form = Math.min(era, 9), E = T.events[form], i = b - eraStart(form);
+  const era = lookEra(b), form = Math.min(era, 9), E = T.events[form], i = b - lookEraStart(form);
   const feats = new Set(), grade = {}, got = era > 9 ? [...E.base, ...E.steps] : [...E.base, ...E.steps.slice(0, i)];
   let props = 10 * form + 1;
   for (const [lv, what] of got) if (typeof what === 'number') feats.add(what); else props = Math.max(props, Math.floor(lv));
   // past the era's own stages a breakthrough bumps a grade, the components taking turns
-  const keys = Object.keys(T.parts), extra = era > 9 ? b - eraStart(9) - E.steps.length : i - E.steps.length;
+  const keys = Object.keys(T.parts), extra = era > 9 ? b - lookEraStart(9) - E.steps.length : i - E.steps.length;
   for (let j = 0; j < extra; j++) grade[keys[j % keys.length]] = (grade[keys[j % keys.length]] || 0) + 1;
   const last = i > 0 && i <= E.steps.length && era <= 9 ? E.steps[i - 1] : null;
   return { b, era, form, feats, props, grade, last, extra: Math.max(0, extra) };
@@ -151,14 +151,14 @@ const eraName = (T, era) => era <= 9 ? T.forms[era].name : T.late[Math.min(era -
 // what breakthrough b brings: a new era at its first, else one component's new stage (or its next grade)
 function lookStepName(T, b) {
   const lk = lookOf(T, b);
-  if (b === eraStart(lk.era)) return b ? '새 시대 · ' + eraName(T, lk.era) : eraName(T, 0);
+  if (b === lookEraStart(lk.era)) return b ? '새 시대 · ' + eraName(T, lk.era) : eraName(T, 0);
   if (lk.last) { const [, what, part] = lk.last; return T.parts[part] + ' · ' + (typeof what === 'number' ? T.extras[lk.form][what] : T.props[what][1]); }
   const keys = Object.keys(T.parts), k = keys[(lk.extra - 1) % keys.length];
   return T.parts[k] + ' · ' + lookGradeName(lk.grade[k]);
 }
 const bunkerStepName = b => lookStepName(BUNKER_LOOK, b), fenceStepName = b => lookStepName(FENCE_LOOK, b);
 // the first level of a new era (and the fence's first level); hud.js announces it
-const isNewBunkerForm = L => L === 1 || (L - 1) % LOOK_BREAK === 0 && lookTier(L) === eraStart(eraOf(lookTier(L))), isNewFenceForm = isNewBunkerForm;
+const isNewBunkerForm = L => L === 1 || (L - 1) % LOOK_BREAK === 0 && lookTier(L) === lookEraStart(lookEra(lookTier(L))), isNewFenceForm = isNewBunkerForm;
 // what the cards and the drawing read, kept per breakthrough
 const bunkerLooks = new Map(), fenceLooks = new Map();
 function bunkerInfo(L = G.bunker) {
