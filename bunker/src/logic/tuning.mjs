@@ -14,7 +14,7 @@ const DEFAULTS = {
     titanHp: 1000, titanTime: 75, titanPhases: [0.35, 0.35, 0.30], phaseGap: 2, // doc: 1,000x, 3 phases
     bossGold: 30, titanGold: 100,                     // kill-gold multiples
     bossParts: 20, killParts: 0.1,                    // doc
-    skipMult: 10, skipMultAuto: 5, skipMax: 50, skipStepTime: 1.5, // doc: 10x (5x after 12 evacuations), 50 stages
+    skipMult: 10, skipMultAuto: 5, skipMax: 50, skipStepTime: 0.06, // doc: 10x (5x after 12 evacuations), 50 stages; a 50-stage jump plays in 3 s
     eliteHp: 0.5, eliteGold: 0.5,                     // 101+: elites carry +50% hp and gold
     extraPatternStrength: 0.5, maxExtraPatterns: 3,
   },

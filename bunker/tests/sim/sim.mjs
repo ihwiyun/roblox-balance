@@ -155,7 +155,10 @@ export function run(opts = {}) {
 
   /* ---- gems: weapons first, turrets once there are slots, a share to relic chests and recruits ---- */
   function spendGems() {
-    const plan = { weapon: 0.6, turret: L.turretSlots(st.bunker) ? 0.2 : 0, relic: 0.12, recruit: 0.08 };
+    // a person recruits harder while the roof has empty gunner slots or beds stand empty
+    const gunners = Object.keys(st.crew.cards).filter(id => id !== 'me' && L.CARD[id].role === 'gunner').length;
+    const thin = gunners < L.shooterSlots(st.bunker) - 1 || Object.keys(st.crew.cards).length < L.beds(st.sec.bed.tier);
+    const plan = { weapon: thin ? 0.45 : 0.6, turret: L.turretSlots(st.bunker) ? 0.15 : 0, relic: 0.12, recruit: thin ? 0.28 : 0.1 };
     const each = { weapon: 50, turret: 50, relic: 300, recruit: 100 };
     const useDia = profile !== 'f2p';
     const batch = human ? 10 : 1;          // a person pulls x10 when the button lights up
@@ -194,45 +197,53 @@ export function run(opts = {}) {
     for (const k of order) if (buy('research:' + k)) break;
   }
 
-  /* ---- production: invest where pending costs outrun the stock ---- */
-  function pendingNeeds() {
-    const need = { food: 0, ore: 0, parts: 0 };
-    const addC = c => { if (c) for (const k of Object.keys(need)) need[k] += c[k] || 0; };
-    addC(L.price(st, 'bunker')); addC(L.price(st, 'fence'));
-    for (const k of ['roof', 'food', 'mine', 'shop', 'bed']) { addC(L.price(st, `sec:${k}:lv`)); addC(L.price(st, `sec:${k}:tier`)); }
-    for (const id of Object.keys(st.crew.cards)) { const c = L.price(st, 'crew:' + id); if (isBt(c)) addC(c); }
-    for (const i of st.equipW) if (i >= 0) addC(L.price(st, 'enh:w:' + i));
-    const S = L.stats(st);
-    need.food += S.upkeep * 600;
-    return need;
+  /* ---- production: a person raises output when what they want to buy outruns it ---- */
+  const PRODUCER = { food: 'food', ore: 'mine', parts: 'shop' };
+  const SLOT_TIERS = { food: 8, mine: 8, shop: 9 };                // tiers that still add a worker slot
+  // the tiers worth aiming at now: the roof (damage) when the ore is within reach, the floors while they add worker
+  // slots or when their own output is short, beds when the crew has outgrown them
+  function wantedTiers(S, short) {
+    const out = [];
+    const cost = k => L.price(st, `sec:${k}:tier`);
+    const roof = cost('roof');
+    if (roof && roof.ore <= st.ore + S.prod.ore * 5400) out.push('roof');
+    for (const [res, sec] of Object.entries(PRODUCER)) {
+      const c = cost(sec);
+      if (c && (st.sec[sec].tier < SLOT_TIERS[sec] || short[res])) out.push(sec);
+    }
+    const crewN = Object.keys(st.crew.cards).length, bed = cost('bed');
+    if (bed && (L.beds(st.sec.bed.tier) < crewN + 1 || Object.values(bed)[0] <= 0.25 * st.food)) out.push('bed');
+    return out;
   }
   function invest() {
-    const S = L.stats(st), need = pendingNeeds();
-    for (const [res, sec] of [['food', 'food'], ['ore', 'mine'], ['parts', 'shop']]) {
-      // capacity: before the store fills, and when the next tier would not fit in it
-      const nextTiers = ['roof', 'food', 'mine', 'shop', 'bed'].map(k => L.price(st, `sec:${k}:tier`)).filter(Boolean).map(c => c[res] || 0);
-      const wantStore = Math.max(0, ...nextTiers);
-      if (st[res] >= 0.8 * S.caps[res] || wantStore > 0.9 * S.caps[res] || S.offlineH * 3600 * S.prod[res] * S.offlineEff > 0.85 * S.caps[res]) buy(`sec:${sec}:cap`);
-      const short = need[res] - st[res];
-      const fillMin = short > 0 ? short / Math.max(1e-9, S.prod[res]) / 60 : 0;
-      if (fillMin > 8 || S.prod[res] <= 0) {
-        // the production step for this resource is the floor's level (doc 8: workers make base x tier x level)
-        const k = `sec:${sec}:lv`, c = L.price(st, k);
-        if (c && !isBt(c) && goldOf(c) < 0.4 * st.gold) buy(k);
-      }
+    const S = L.stats(st);
+    const need = { food: S.upkeep * 600, ore: 0, parts: 0 };
+    const addC = c => { if (c) for (const k of Object.keys(need)) need[k] += c[k] || 0; };
+    // breakthroughs block levels: they come first
+    for (const key of ['bunker', 'fence', ...['roof', 'food', 'mine', 'shop', 'bed'].map(k => `sec:${k}:lv`), ...Object.keys(st.crew.cards).map(id => 'crew:' + id),
+      ...st.equipW.filter(i => i >= 0).map(i => 'enh:w:' + i)]) { const c = L.price(st, key); if (isBt(c)) addC(c); }
+    const short0 = Object.fromEntries(Object.keys(need).map(r => [r, need[r] - st[r] > S.prod[r] * 900]));
+    const tiers = wantedTiers(S, short0);
+    for (const k of tiers) addC(L.price(st, `sec:${k}:tier`));
+    for (const [res, sec] of Object.entries(PRODUCER)) {
+      // capacity: hold a night's offline credit, and the largest single thing wanted
+      const credit = S.offlineH * 3600 * S.prod[res] * S.offlineEff * 2;
+      const biggest = Math.max(0, ...tiers.map(k => (L.price(st, `sec:${k}:tier`) || {})[res] || 0));
+      if (credit > 0.9 * S.caps[res] || biggest > 0.9 * S.caps[res] || (st[res] >= 0.9 * S.caps[res] && need[res] > st[res])) buy(`sec:${sec}:cap`);
+      // output: the floor's level (doc 8: base x tier x level) when the wants are more than 15 min of output away
+      const lack = need[res] - st[res];
+      if (lack > S.prod[res] * 900 || S.prod[res] <= 0) { const k = `sec:${sec}:lv`, c = L.price(st, k); if (c && !isBt(c) && goldOf(c) < 0.4 * st.gold) buy(k); }
     }
+    // the growth lock (doc 8): food output must cover 1.15x the upkeep after a level-up
     if (S.prod.food < S.upkeep * 1.3) { const c = L.price(st, 'sec:food:lv'); if (c && !isBt(c) && goldOf(c) < 0.6 * st.gold) buy('sec:food:lv'); }
-    // breakthroughs on the production floors and the workers (they unblock levels)
     for (const sec of ['food', 'mine', 'shop', 'bed', 'roof']) { const c = L.price(st, `sec:${sec}:lv`); if (isBt(c)) buy(`sec:${sec}:lv`); }
     for (const id of Object.keys(st.crew.cards)) { const c = L.price(st, 'crew:' + id); if (isBt(c)) buy('crew:' + id); }
-    // tiers: each one shows on the base, so a person buys it when it is affordable and leaves a working stock
-    for (const sec of ['roof', 'food', 'mine', 'shop', 'bed']) {
+    for (const sec of tiers) {
       const c = L.price(st, `sec:${sec}:tier`);
       if (c && Object.entries(c).every(([k, v]) => st[k] - v >= (k === 'food' ? S.upkeep * 300 : 0))) buy(`sec:${sec}:tier`);
     }
     // the kitchen trims upkeep: a small steady share
     const kc = L.price(st, 'sec:bed:lv'); if (kc && !isBt(kc) && goldOf(kc) < 0.05 * st.gold) buy('sec:bed:lv');
-    // gear breakthroughs (ore, parts) on the equipped weapons
     for (const i of st.equipW) if (i >= 0) { const c = L.price(st, 'enh:w:' + i); if (isBt(c)) buy('enh:w:' + i); }
   }
 

@@ -59,8 +59,13 @@ function startAttempt(st) {
   const S = stats(st), A = auto(st);
   let skipTime = 0;
   if (st.mode === 'progress' && st.stage <= st.record) {
-    const to = Math.min(st.record, autoSkip(st.stage - 1, S.skipPower, S.skipMult || (A.skip5x ? T.stage.skipMultAuto : T.stage.skipMult)));
-    if (to >= st.stage) { skipTime = A.startSkip && st.runBest === 0 ? 0 : (to - st.stage + 1) * T.stage.skipStepTime; st.runBest = Math.max(st.runBest, to); st.stage = to + 1; }
+    // doc 6: while the firepower is 10x what the next stage needs, jump (at most 50 stages a jump). Jumps chain: a
+    // re-climb used to play one full stage between jumps, so climbing back to stage 1,000 took ~40 min every run
+    const mult = S.skipMult || (A.skip5x ? T.stage.skipMultAuto : T.stage.skipMult);
+    let to = st.stage - 1, first = true;
+    for (let next; (next = Math.min(st.record, autoSkip(to, S.skipPower, mult))) > to; to = next, first = false)
+      if (!(first && A.startSkip && st.runBest === 0)) skipTime += (next - to) * T.stage.skipStepTime;  // 5 evacuations: the first jump is free
+    if (to >= st.stage) { st.runBest = Math.max(st.runBest, to); st.stage = to + 1; }
   }
   const s = Math.min(st.stage, T.stage.cap);
   const res = resolveStage(s, S, { ...st.pool, fenceMax: S.fenceMax, bunkerMax: S.bunkerMax });

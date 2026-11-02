@@ -417,7 +417,7 @@ function act(id, want = ui.bulk) {
     pay(plan.cost); G.bunker += n; G.hp = bunkerHp(G.bunker);
     if (crossed(isNewBunkerForm, from, G.bunker)) notify('새 건물 · ' + bunkerInfo().name, '벙커 Lv ' + G.bunker + ' · 체력 ' + fmt(bunkerHp(G.bunker)), 'good');
     { const before = yardPix.slice(); bakeYard(); flashDiff(before, yardPix, 'yard'); }
-    resyncPosts(); palCache.clear(); if (G.view !== 'yard') setView('yard');
+    resyncPosts(); palCache.clear(); if (G.view !== 'yard') setView('yard'); else fitStage(); // a new era pulls the camera back
   } else if (kind === 'fence') {
     const from = G.fence;
     pay(plan.cost); G.fence += n; G.fenceHp = fenceHp(G.fence); G.fenceDown = false; G.sideDmg = [0, 0, 0, 0]; G.sideStage = [0, 0, 0, 0];
@@ -459,7 +459,7 @@ function refreshTop() {
     setText(rate, full && net > 0 ? '가득' : Math.abs(net) > .005 ? (net > 0 ? '+' : '−') + Math.abs(net).toFixed(1) + '/초' : '');
     rate.classList.toggle('neg', net < 0 && !full);
   }
-  setText(nodes.waveBtn, '웨이브 ' + G.wave);
+  setText(nodes.waveBtn, '스테이지 ' + G.wave);
   setWidth(nodes.waveBar, G.waveKills / killsNeeded(G.wave));
   setOff(nodes.wavePrev, G.wave <= 1); setOff(nodes.waveNext, G.wave >= G.best);
   const maxHp = bunkerHp(G.bunker);
@@ -473,12 +473,15 @@ function refreshTop() {
   } else { setWidth(nodes.fenceFill, 0); setText(nodes.fenceText, '울타리 없음'); }
   if (stageDlg.open) paintStage(pm);
 }
-// the picture keeps the scale of the main screen's stage (a sheet only moves it up); below ground one step closer
+// the picture keeps the scale of the main screen's stage (a sheet only moves it up). The camera sits one whole step
+// closer than the stage fits, so the ground fills the width and its tips crop; every era the base has grown into
+// (a bigger building and map, buildings.js) pulls it back a step. Below ground one step closer than the stage fits
+const erasPassed = () => { const b = lookTier(G.bunker); return typeof eraOf === 'function' ? eraOf(b) : Math.floor(b / LOOK_ERA); };
 function fitStage() {
   const dpr = window.devicePixelRatio || 1, f = Math.min(nodes.app.clientWidth / W, (nodes.app.clientHeight - nodes.tabs.offsetHeight) / H);
-  // whole device pixels per game pixel; below ground one step closer (the picture's middle fills the stage)
+  // whole device pixels per game pixel
   let k = f * dpr >= 1 ? Math.floor(f * dpr) : 0;
-  if (k && G.view === 'under') k += 1;
+  if (k) k = G.view === 'under' ? k + 1 : Math.max(1, k + 1 - erasPassed());
   const scale = k ? k / dpr : f;
   canvas.style.width = W * scale + 'px'; canvas.style.height = H * scale + 'px';
 }
@@ -487,7 +490,7 @@ function fitStage() {
 const stageDlg = document.getElementById('stageDlg');
 const sd = { title: document.getElementById('sdTitle'), gold: document.getElementById('sdGold'), kills: document.getElementById('sdKills'), rep: document.getElementById('modeRepeat'), adv: document.getElementById('modeAdvance') };
 function paintStage(pm = perMinute()) {
-  setText(sd.title, '웨이브 ' + G.wave);
+  setText(sd.title, '스테이지 ' + G.wave);
   sd.rep.setAttribute('aria-pressed', String(G.repeat)); sd.adv.setAttribute('aria-pressed', String(!G.repeat));
   setText(sd.gold, fmt(pm.gold) + '/분'); setText(sd.kills, fmt(pm.kills) + '/분');
 }
@@ -533,7 +536,7 @@ function powerSave(on) {
 }
 function refreshSaver() {
   sampleEarn();
-  setText(nodes.svWave, '웨이브 ' + G.wave);
+  setText(nodes.svWave, '스테이지 ' + G.wave);
   setText(nodes.svGold, fmt(perMinute().gold) + '/분');
   const s = Math.floor((performance.now() - saver.since) / 1000);
   setText(nodes.svTime, Math.floor(s / 3600) + ':' + String(Math.floor(s / 60) % 60).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0'));
