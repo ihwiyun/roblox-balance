@@ -20,7 +20,7 @@ F = 18
 POSTS = [-18, -12, -6, 0, 6, 12, 18]
 GATE = (-5, 1)          # x range of the gate opening on the front-left side (y = F)
 
-C = dict(o=N['ink'], d=N['grape'], w=N['plum'], W=N['rust'], x=N['copper'], X=N['tan'], y=N['sand'],
+C = dict(o=N['ink'], d=N['grape'], w=N['grape'], W=N['mauve'], x=N['rose'], X=N['beige'], y=N['khaki'],
          s=N['slate'], S=N['stone'], m=N['lilac'], M=N['mist'], f=N['foam'],
          r=N['rust'], R=N['copper'], q=N['blood'], b=N['mauve'], B=N['rose'], k=N['beige'], K=N['khaki'],
          e=N['red'], E=N['vermil'])
@@ -32,24 +32,49 @@ def spr(rows):
 
 # ---------------------------------------------------------------------------- posts (screen space,
 # anchor = the ground contact under the post's centre)
-STAKE = spr([
-    ".y..",
-    "yXW.",
-    "XxWw",
-    "XxWw",
-    "XxWw",
-    "XxWw",
-    "XxWw",
-    "XxWw",
-    "xxww",
-    ".oo.",
-])
-STAKE_A = (1, 9)
+STAKES = [spr(r) for r in (
+    [".y..",       # tall, sharpened
+     "yXW.",
+     "XxWw",
+     "XxWw",
+     "XxWw",
+     "XxWw",
+     "XxWw",
+     "XxWw",
+     "XxWw",
+     "xxww",
+     ".oo."],
+    ["....",       # middle, sharpened
+     ".y..",
+     "yXW.",
+     "XxWw",
+     "XxWw",
+     "XxWw",
+     "XxWw",
+     "XxWw",
+     "xxww",
+     "Xxww",
+     ".oo."],
+    ["....",       # short, snapped off
+     "....",
+     "....",
+     "Xy.W",
+     "XxWw",
+     "XxWw",
+     "XxWw",
+     "XxWw",
+     "xxWw",
+     "xxww",
+     ".oo."],
+)]
+STAKE_A = (1, 10)
+# which stake stands at each post, per side (typed so no two sides repeat)
+STAKE_PICK = {'back_left': [0, 1, 0, 2, 1, 0, 1], 'back_right': [1, 0, 2, 0, 1, 1, 0],
+              'front_left': [0, 2, 1, 0, 0, 1, 0], 'front_right': [1, 0, 1, 2, 0, 0, 1]}
 
 POST = spr([
-    ".XX.",
-    "XyXW",
-    "XxWw",
+    ".yX.",
+    "yXXW",
     "XxWw",
     "XxWw",
     "XxWw",
@@ -60,24 +85,24 @@ POST = spr([
     "xxww",
     ".oo.",
 ])
-POST_A = (1, 11)
+POST_A = (1, 10)
 
+# a cast concrete post with a chipped cap (Lv21)
 STONE_POST = spr([
-    "..ffMM..",
-    ".fMMMMm.",
-    "fMMMMmmS",
-    "mMMMmSSs",
-    "mmMmSSss",
-    "MmmmSsss",
-    "mmmSSsSs",
-    "ommmSsss",
-    "mMmSsSss",
-    "mmmmSSss",
-    "mmmmSsss",
-    "ommoSsso",
-    ".oooooo.",
+    ".fM.",
+    "fMMS",
+    "MmSs",
+    "mmSs",
+    "MmSs",
+    "mmss",
+    "mmSs",
+    "mMSs",
+    "mmSs",
+    "mmss",
+    "ommo",
+    ".oo.",
 ])
-STONE_POST_A = (3, 12)
+STONE_POST_A = (1, 11)
 
 POST_BAG = spr([
     "..bbbb..",
@@ -154,31 +179,23 @@ def lv1_side(cv, side):
             'back_right': [(-3, -F), (13.5, -F)], 'back_left': [(-F, 9.5), (-F, -9)]}
     for x, y in cans[side]:
         place(cv, CAN, (1, 0), x, y, 4.5)
-    for (x, y) in pts:
+    for k, (x, y) in enumerate(pts):
         if side == 'front_left' and GATE[0] < x < GATE[1]:
             continue
-        place(cv, STAKE, STAKE_A, x, y)
-    if side == 'front_left':     # the gate: two taller stakes and a crossbar board
+        place(cv, STAKES[STAKE_PICK[side][k]], STAKE_A, x, y)
+    if side == 'front_left':     # the gate: two tall stakes
         for gx in GATE:
-            place(cv, STAKE, STAKE_A, gx, F)
-        sx0, sy0 = cv.proj(GATE[0], F, 9)
-        sx1, sy1 = cv.proj(GATE[1], F, 9)
-        for t in range(int(sx1 - sx0) + 4):
-            px = int(sx0) - 2 + t
-            py = int(np.floor(sy0 + (px - sx0) / 2))
-            cv.put(px, py, N['tan'])
-            cv.put(px, py + 1, N['rust'])
-            cv.put(px, py + 2, N['grape'])
+            place(cv, STAKES[0], STAKE_A, gx, F)
 
 
 # ---------------------------------------------------------------------------- Lv11: plank fence
 # board heights along a side, typed by hand (px above ground, one per 2 px board + 1 px gap)
-BOARD_H = [8, 7, 8, 8, 6, 7, 8, 7, 7, 8, 6, 8, 7, 8, 8, 7, 6, 8, 7, 7, 8, 8, 6, 7, 8, 7, 8, 6]
+BOARD_H = [7, 6, 7, 7, 5, 6, 7, 6, 6, 7, 5, 7, 6, 7, 7, 6, 5, 7, 6, 6, 7, 7, 5, 6, 7, 6, 7, 5]
 
 
 def board_face(width, lit, seed):
     rows = []
-    hmax = 8
+    hmax = 7
     for v in range(hmax):
         row = []
         for u in range(width):
@@ -187,9 +204,9 @@ def board_face(width, lit, seed):
             top = hmax - h
             if u % 3 == 2:
                 # gap between boards: the rails show through
-                if v in (2, 5):
+                if v in (2, 4):
                     row.append('W')
-                elif v in (3, 6):
+                elif v in (3, 5):
                     row.append('w')
                 else:
                     row.append('.')
@@ -203,7 +220,7 @@ def board_face(width, lit, seed):
             else:
                 row.append('x' if u % 3 == 0 else 'W')
         rows.append(''.join(row))
-    leg = C if lit else dict(C, X=N['copper'], x=N['rust'], W=N['plum'], w=N['grape'])
+    leg = C if lit else dict(C, X=N['rose'], x=N['mauve'], W=N['grape'], w=N['ink'])
     return grid(rows, leg)
 
 
@@ -213,10 +230,10 @@ def lv11_side(cv, side):
         (x0, y0), (x1, y1) = a, b
         if side in ('front_left', 'back_right'):
             w = int(round(2 * (x1 - x0)))
-            cv.on_left(board_face(w, True, 5 * k), x0, y0, 8, 0, 0)
+            cv.on_left(board_face(w, True, 5 * k), x0, y0, 7, 0, 0)
         else:
             w = int(round(2 * (y1 - y0)))
-            cv.on_right(board_face(w, False, 7 * k + 3), x0, y1, 8, 0, 0)
+            cv.on_right(board_face(w, False, 7 * k + 3), x0, y1, 7, 0, 0)
     for (x, y) in side_points(side):
         if side == 'front_left' and GATE[0] < x < GATE[1]:
             continue
@@ -230,7 +247,7 @@ def lv11_side(cv, side):
 
 # ---------------------------------------------------------------------------- Lv21: iron and wire
 def iron_face(width, lit, rust):
-    rows = M.iron_sheet(width, 8, rust=rust, bolts_v=(1, 6), bolt_every=11)
+    rows = M.iron_sheet(width, 7, rust=rust, bolts_v=(1, 5), bolt_every=11)
     return grid(rows, M.IRON['lit' if lit else 'shade'])
 
 
@@ -280,12 +297,12 @@ def lv21_side(cv, side):
         if side in ('front_left', 'back_right'):
             w = int(round(2 * (x1 - x0)))
             rr = [(u - u0, v, s) for u, v, s in rust if u0 <= u < u0 + w]
-            cv.on_left(iron_face(w, True, rr), x0, y0, 8, 0, 0)
+            cv.on_left(iron_face(w, True, rr), x0, y0, 7, 0, 0)
         else:
             w = int(round(2 * (y1 - y0)))
             rr = [(u - u0, v, s) for u, v, s in rust if u0 <= u < u0 + w]
-            cv.on_right(iron_face(w, False, rr), x0, y1, 8, 0, 0)
-        coil(cv, a, b, 12, lit)
+            cv.on_right(iron_face(w, False, rr), x0, y1, 7, 0, 0)
+        coil(cv, a, b, 11, lit)
         u0 += w
     for (x, y) in side_points(side):
         if side == 'front_left' and GATE[0] < x < GATE[1]:
@@ -306,14 +323,16 @@ def draw(cv, level, front):
 
 
 def shadows(cv, level):
-    """the fence's own low shadow on the grass, toward +x"""
-    h = {1: 6, 11: 8, 21: 9}[level]
-    k = .3 * h
+    """low hard shadows on the grass toward +x: one per post; solid fences add a thin strip"""
     for side in ('back_left', 'back_right', 'front_left', 'front_right'):
+        for (x, y) in side_points(side):
+            cv.shade([(x - .5, y - .5), (x + 1.8, y - .3), (x + 1.8, y + .7), (x - .5, y + .5)], DARK, z=0, only=(1,))
+        if level == 1:
+            continue
         for a, b in segments(side):
             (x0, y0), (x1, y1) = a, b
             if abs(y1 - y0) < .01:
-                poly = [(x0, y0 - .2), (x1, y0 - .2), (x1 + k, y0 + .3 * k), (x0 + k, y0 + .3 * k)]
+                poly = [(x0, y0 - .1), (x1, y0 - .1), (x1 + .9, y0 + .3), (x0 + .9, y0 + .3)]
             else:
-                poly = [(x0, y0), (x0 + k, y0 + .3 * k), (x0 + k, y1 + .3 * k), (x0, y1)]
+                poly = [(x0, y0), (x0 + 1.2, y0 + .3), (x0 + 1.2, y1 + .3), (x0, y1)]
             cv.shade(poly, DARK, z=0, only=(1,))

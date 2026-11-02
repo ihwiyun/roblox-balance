@@ -7,7 +7,8 @@ draws a shape; held objects are placed by translation only, so a gun or a tool i
 """
 from core import Frame, Anim, flash_frame
 from hero_parts import (HT, FAR, HEAD_F, HEAD_F_BLINK, HEAD_F_DOWN, HEAD_F_EFFORT, HEAD_F_AIM,
-                        PONY_F, TORSO_F, TORSO_F_LEAN, ARM_F, LEG_F)
+                        PONY_F, TORSO_F, TORSO_F_LEAN, ARM_F, LEG_F,
+                        HEAD_B, HEAD_B_DOWN, PONY_B, TORSO_B, TORSO_B_LEAN, ARM_B, LEG_B, LADDER_B)
 import props as PR
 import gunhand as GN
 
@@ -214,53 +215,49 @@ ROCK_AT = (27, 30)
 
 
 def mine_f():
-    R = [(PR.ROCK, ROCK_AT, 'floor')] if False else []
     lean = dict(torso=TORSO_F_LEAN, dy=1, leg_n='stand_b', leg_f='stand_b', dn=1, df=1, sh=(1, 0))
+    low = dict(arm_n='n_low', arm_f='f_low', arm_f_layer='front', tool_layer='front')
+    wind = dict(arm_n='n_wind', arm_f='f_across', arm_f_layer='front', tool_layer='mid', leg_n='km1')
     fr = [
         # 0 ready: pick head resting on the rock, hands low together (dominant right hand nearer the head)
-        pose(dict(arm_n='n_low', arm_f='f_low', arm_f_layer='front', tool=(PR.PICK_F['hit'], (17, 22)), tool_layer='front', props=R)),
-        # 1 wind-up: raised over the right shoulder, weight back, head of the pick behind the hair
-        pose(dict(arm_n='n_wind', arm_f='f_across', arm_f_layer='front', tool=(PR.PICK_F['raise'], (12, 14)),
-                  tool_layer='mid', leg_n='km1', sh=(-1, 0), props=R)),
-        # 2 top: weight shifting forward, the pick still high (anticipation peak)
-        pose(dict(arm_n='n_wind', arm_f='f_across', arm_f_layer='front', tool=(PR.PICK_F['raise'], (12, 13)),
-                  tool_layer='mid', leg_n='km1', sh=(-1, -1), head=HEAD_F_EFFORT, props=R)),
-        # 3 smear: the downswing; the head arcs over the crown to the front
-        pose(dict(arm_n='n_high', arm_f='f_front', arm_f_layer='front', tool=(PR.PICK_F['smear'], (16, 18)),
-                  tool_layer='front', head=HEAD_F_EFFORT, props=R)),
+        pose(dict(low, tool=(PR.PICK_F['hit'], (17, 22)))),
+        # 1 wind-up: raised over the right shoulder, weight back, the pick head behind the hair
+        pose(dict(wind, tool=(PR.PICK_F['raise'], (12, 14)), sh=(-1, 0))),
+        # 2 top of the wind-up: a touch higher, body coiled (anticipation peak)
+        pose(dict(wind, tool=(PR.PICK_F['raise'], (12, 13)), sh=(-1, -1), head=HEAD_F_EFFORT)),
+        # 3 smear: the downswing; the trail runs over the crown and down the open side
+        pose(dict(arm_n='n_high', arm_f='f_front', arm_f_layer='front', tool=(PR.PICK_F['smear'], (18, 19)),
+                  tool_layer='front', head=HEAD_F_EFFORT)),
         # 4 impact (held for the hit-stop): head bites the rock, body over it, knees soft
-        pose(dict(arm_n='n_low', arm_f='f_low', arm_f_layer='front', tool=(PR.PICK_F['hit'], (18, 23)),
-                  tool_layer='front', head=HEAD_F_EFFORT, hit=[26, 29], props=R, **lean)),
+        pose(dict(low, tool=(PR.PICK_F['hit'], (18, 23)), head=HEAD_F_EFFORT, hit=[26, 29], **lean)),
         # 5 pry and lift: wrists still locked on the handle, head pulled free
-        pose(dict(arm_n='n_low', arm_f='f_low', arm_f_layer='front', tool=(PR.PICK_F['lift'], (17, 22)),
-                  tool_layer='front', head=HEAD_F_DOWN, props=R)),
+        pose(dict(low, tool=(PR.PICK_F['lift'], (17, 22)), head=HEAD_F_DOWN)),
     ]
     return Anim('mine', fr, fps=9, loop=True, hold={4: 3},
                 notes='Pickaxe, two hands: right (dominant) hand nearer the head, left hand at the end of the handle. '
                       'Wind-up over the right shoulder (frames 1-2), smear on the downswing (3), impact on frame 4 '
                       'held 3 ticks for the hit-stop with chips/sparks at meta.hit, pry-out keeps both hands on the '
-                      'handle (5). The arc pivots at the shoulders and elbows.')
+                      'handle (5). The arc pivots at the shoulders and elbows; the face is never crossed.')
 
 
 def farm_f():
+    lean = dict(torso=TORSO_F_LEAN, dy=1, leg_n='stand_b', leg_f='stand_b', dn=1, df=1, sh=(1, 0))
+    low = dict(arm_n='n_low', arm_f='f_low', arm_f_layer='front', tool_layer='front')
     fr = [
-        pose(dict(arm_n='n_low', arm_f='f_low', arm_f_layer='front', tool=(PR.HOE_F['hit'], (17, 21)), tool_layer='front')),
-        pose(dict(arm_n='n_high', arm_f='f_front', arm_f_layer='front', tool=(PR.HOE_F['raise'], (16, 16)),
+        pose(dict(low, tool=(PR.HOE_F['hit'], (17, 21)))),
+        pose(dict(arm_n='n_wind', arm_f='f_across', arm_f_layer='front', tool=(PR.HOE_F['raise'], (12, 14)),
                   tool_layer='mid', leg_n='km1', sh=(-1, 0))),
-        pose(dict(arm_n='n_high', arm_f='f_front', arm_f_layer='front', tool=(PR.HOE_F['smear'], (17, 18)),
+        pose(dict(arm_n='n_high', arm_f='f_front', arm_f_layer='front', tool=(PR.HOE_F['smear'], (18, 19)),
                   tool_layer='front', head=HEAD_F_EFFORT)),
-        pose(dict(arm_n='n_low', arm_f='f_low', arm_f_layer='front', tool=(PR.HOE_F['hit'], (18, 22)),
-                  tool_layer='front', head=HEAD_F_EFFORT, hit=[25, 29], torso=TORSO_F_LEAN, dy=1, leg_n='stand_b',
-                  leg_f='stand_b', dn=1, df=1, sh=(1, 0))),
-        pose(dict(arm_n='n_low', arm_f='f_low', arm_f_layer='front', tool=(PR.HOE_F['pull'], (16, 22)),
-                  tool_layer='front', head=HEAD_F_DOWN, dy=1, leg_n='stand_b', leg_f='stand_b', dn=1, df=1)),
-        pose(dict(arm_n='n_low', arm_f='f_low', arm_f_layer='front', tool=(PR.HOE_F['hit'], (16, 21)),
-                  tool_layer='front', head=HEAD_F_DOWN)),
+        pose(dict(low, tool=(PR.HOE_F['hit'], (18, 22)), head=HEAD_F_EFFORT, hit=[25, 29], **lean)),
+        pose(dict(low, tool=(PR.HOE_F['pull'], (16, 22)), head=HEAD_F_DOWN, dy=1, leg_n='stand_b',
+                  leg_f='stand_b', dn=1, df=1)),
+        pose(dict(low, tool=(PR.HOE_F['hit'], (16, 21)), head=HEAD_F_DOWN)),
     ]
     return Anim('farm', fr, fps=8, loop=True, hold={3: 2},
-                notes='Hoe, two hands: right hand nearer the blade, left hand at the end. Lift in front (1), chop '
-                      'with a smear (2), blade bites the soil (3, held 2 ticks; dirt puff at meta.hit), draw the soil '
-                      'back toward the feet (4), settle (5). Hands stay on the handle in every frame.')
+                notes='Hoe, two hands: right hand nearer the blade, left hand at the end. Wind-up over the right '
+                      'shoulder (1), chop with a smear that clears the face (2), blade bites the soil (3, held 2 ticks; '
+                      'dirt puff at meta.hit), draw the soil back toward the feet (4), settle (5).')
 
 
 PLATE_AT = (23, 18)
@@ -268,25 +265,21 @@ PLATE_AT = (23, 18)
 
 def repair_f():
     P = [(PR.PLATE, PLATE_AT, 'back')]
+    hold = dict(arm_f='f_hold', arm_f_layer='front', props=P)
     fr = [
-        pose(dict(arm_n='n_strike', arm_n_d=(-1, -1), arm_f='f_hold', arm_f_layer='front', tool=(PR.HAMMER_F['up'], (15, 19)),
-                  tool_layer='hand', props=P)),
-        pose(dict(arm_n='n_cock', arm_f='f_hold', arm_f_layer='front', tool=(PR.HAMMER_F['back'], (11, 13)),
-                  tool_layer='mid', sh=(-1, 0), props=P)),
-        pose(dict(arm_n='n_strike', arm_f='f_hold', arm_f_layer='front', tool=(PR.HAMMER_F['smear'], (17, 20)),
-                  tool_layer='hand', head=HEAD_F_EFFORT, props=P)),
-        pose(dict(arm_n='n_strike', arm_n_d=(1, 0), arm_f='f_hold', arm_f_layer='front', tool=(PR.HAMMER_F['hit'], (18, 20)),
-                  tool_layer='hand', head=HEAD_F_EFFORT, hit=[24, 21], props=P, sh=(1, 0))),
-        pose(dict(arm_n='n_strike', arm_n_d=(0, -1), arm_f='f_hold', arm_f_layer='front', tool=(PR.HAMMER_F['up'], (17, 18)),
-                  tool_layer='hand', props=P)),
-        pose(dict(arm_n='n_cock', arm_n_d=(1, 1), arm_f='f_hold', arm_f_layer='front', tool=(PR.HAMMER_F['back'], (12, 14)),
-                  tool_layer='mid', props=P)),
+        pose(dict(hold, arm_n='n_low', arm_n_d=(-1, -1), tool=(PR.HAMMER_F['rest'], (16, 21)), tool_layer='hand')),
+        pose(dict(hold, arm_n='n_cock', tool=(PR.HAMMER_F['back'], (11, 13)), tool_layer='mid', sh=(-1, 0))),
+        pose(dict(hold, arm_n='n_strike', tool=(PR.HAMMER_F['smear'], (19, 21)), tool_layer='hand', head=HEAD_F_EFFORT)),
+        pose(dict(hold, arm_n='n_strike', arm_n_d=(1, 0), tool=(PR.HAMMER_F['hit'], (18, 20)), tool_layer='hand',
+                  head=HEAD_F_EFFORT, hit=[24, 21], sh=(1, 0))),
+        pose(dict(hold, arm_n='n_strike', tool=(PR.HAMMER_F['bounce'], (17, 20)), tool_layer='hand')),
+        pose(dict(hold, arm_n='n_cock', arm_n_d=(1, 1), tool=(PR.HAMMER_F['back'], (12, 14)), tool_layer='mid')),
     ]
     return Anim('repair', fr, fps=10, loop=True, hold={3: 2},
                 notes='Claw hammer in the right hand at the end of the handle (one-handed tool), left hand holds the '
-                      'steel patch against the target. Cock back by the ear (1), smear (2), strike with the wrist '
-                      'snapping through (3, held 2 ticks, sparks at meta.hit), rebound (4), re-cock (5). Swing pivots '
-                      'at the shoulder and elbow; the hand never lets go of the handle.')
+                      'steel patch flat on the target. Cock back by the ear (1), smear over the shoulder (2), strike '
+                      'with the wrist snapping through (3, held 2 ticks, sparks at meta.hit), rebound (4), re-cock (5). '
+                      'The swing pivots at the shoulder and elbow; the hand never lets go of the handle.')
 
 
 def carry_f():
@@ -296,7 +289,7 @@ def carry_f():
         sp.update(arm_n='n_carry', arm_f='f_carry', arm_f_layer='back')
         # the crate rides on the forearms: it follows the body bob, one frame late (weight)
         lag = WALK[(i - 1) % 8].get('dy', 0)
-        sp['props'] = [(PR.CRATE, (19, 26 + lag), 'hand')]
+        sp['props'] = [(PR.CRATE, (19, 25 + lag), 'hand')]
         sp['pony'] = s.get('pony', 'rest')
         fr.append(pose(sp))
     toes = walk_toes()
@@ -312,12 +305,255 @@ def build_f():
             'mine': mine_f(), 'farm': farm_f(), 'repair': repair_f(), 'carry': carry_f()}
 
 
+# =========================================================================== B view
+TIE_B = (17, 13)                 # ponytail tie on the back of the head (B)
+
+
+def pose_b(spec):
+    """B stack, back to front: 'back' props (things in front of the hero, i.e. farther away: the rifle,
+    a tool head at the work spot, a carried crate), far arm, far leg, near leg, torso, 'mid', head,
+    ponytail (hangs over the nape, toward us), near arm, 'front' props (things behind the hero, i.e.
+    nearer the camera: a tool raised over the shoulder)."""
+    s = spec
+    f = Frame(W, H)
+    dy, (sx, sy) = s.get('dy', 0), s.get('sh', (0, 0))
+    hdx, hdy = s.get('head_d', (0, 0))
+
+    def layer(name):
+        for p, at, lay in s.get('props', []):
+            if lay == name:
+                f.put(p, *at)
+        if s.get('tool') and s.get('tool_layer', 'back') == name:
+            f.put(s['tool'][0], *s['tool'][1])
+        if s.get('gun') and name == 'back':
+            g, (gx, gy) = s['gun']
+            f.put(g, gx, gy)
+            m, gp = g.pts['muzzle'], g.pts['grip']
+            f.meta['muzzle'] = [gx - gp[0] + m[0], gy - gp[1] + m[1]]
+            f.meta['grip'] = [gx, gy]
+
+    layer('floor')
+    layer('back')
+    d = s.get('arm_f_d', (0, 0))
+    if s.get('arm_f_layer', 'back') == 'back':
+        f.put(ARM_B[s.get('arm_f', 'hang')], SH_F[0] + sx + d[0], SH_F[1] + dy + sy + d[1], cmap=FAR)
+    f.put(LEG_B[s.get('leg_f', 'stand')], FAR_HIP[0], FAR_HIP[1] + s.get('df', 0), cmap=FAR)
+    f.put(LEG_B[s.get('leg_n', 'stand')], NEAR_HIP[0], NEAR_HIP[1] + s.get('dn', 0))
+    f.put(s.get('torso', TORSO_B), NECK[0] + sx, NECK[1] + dy + sy)
+    if s.get('arm_f_layer', 'back') == 'mid':
+        f.put(ARM_B[s['arm_f']], SH_F[0] + sx + d[0], SH_F[1] + dy + sy + d[1], cmap=FAR)
+    layer('mid')
+    f.put(s.get('head', HEAD_B), CHIN[0] + sx + hdx, CHIN[1] + dy + sy + hdy)
+    f.put(PONY_B[s.get('pony', 'rest')], TIE_B[0] + sx + hdx, TIE_B[1] + dy + sy + hdy)
+    if s.get('arm_f_layer', 'back') == 'front':
+        f.put(ARM_B[s['arm_f']], SH_F[0] + sx + d[0], SH_F[1] + dy + sy + d[1], cmap=FAR)
+    d = s.get('arm_n_d', (0, 0))
+    f.put(ARM_B[s.get('arm_n', 'hang')], SH_N[0] + sx + d[0], SH_N[1] + dy + sy + d[1])
+    layer('front')
+    if s.get('patch'):
+        f.px(s['patch'], HT)
+    for k in ('hit', 'mag', 'hands'):
+        if k in s:
+            f.meta[k] = s[k]
+    return f
+
+
+def idle_b():
+    low = dict(dy=1, leg_n='stand_b', leg_f='stand_b', dn=1, df=1)
+    fr = [pose_b({}), pose_b({**low, 'pony': 'up'}), pose_b({**low}), pose_b({'pony': 'down'})]
+    return Anim('idle', fr, fps=5, loop=True,
+                notes='Same breathing as F, seen from behind: knees soften 1px, head and shoulders follow, the '
+                      'ponytail lags. Far (right) leg and arm one ramp step darker and behind the torso.')
+
+
+B_PONY = {'rest': 'rest', 'up': 'up', 'down': 'down'}
+
+
+def walk_b():
+    fr = []
+    for i, s in enumerate(WALK):
+        sp = dict(s)
+        sp['arm_n'] = {'back': 'back', 'fwd': 'fwd', 'hang': 'hang'}[s['arm_n']]
+        sp['arm_f'] = {'back': 'back', 'fwd': 'fwd', 'hang': 'hang'}[s['arm_f']]
+        sp['pony'] = ['right', 'rest', 'left', 'rest', 'left', 'rest', 'right', 'rest'][i]
+        fr.append(pose_b(sp))
+    toes_b = {'stand': (-3, 6), 'k2': (-7, 3), 'k1': (-5, 4), 'km1': (-1, 7), 'km2': (1, 7)}
+    for i, (f, s) in enumerate(zip(fr, WALK)):
+        pts = []
+        if i in PLANTED_N:
+            t = toes_b[PLANTED_N[i]]
+            pts.append([NEAR_HIP[0] + t[0], NEAR_HIP[1] + s.get('dn', 0) + t[1]])
+        if i in PLANTED_F:
+            t = toes_b[PLANTED_F[i]]
+            pts.append([FAR_HIP[0] + t[0], FAR_HIP[1] + s.get('df', 0) + t[1]])
+        f.meta['planted'] = pts
+    return Anim('walk', fr, fps=10, loop=True, stridePx=2,
+                notes='Walking up-left: the planted boot moves exactly (+2,+1) px per frame (toe tracker). Front '
+                      'foot reads higher on screen (farther away), back foot lower. Boots point up-left, heels '
+                      'toward us. Ponytail swings side to side with the hips.')
+
+
+GRIP_B = (17, 16)
+
+
+def rifle_b(d=(0, 0), gun=None, arm_n='aim_n', arm_n_d=(0, 0), head=HEAD_B, head_d=(-1, 1), **kw):
+    gun = gun or GN.AR_B
+    sp = dict(leg_n='k1', leg_f='km1', dn=1, head=head, head_d=head_d, gun=(gun, (GRIP_B[0] + d[0], GRIP_B[1] + d[1])),
+              arm_n=arm_n, arm_n_d=(d[0] + arm_n_d[0], d[1] + arm_n_d[1]), arm_f='aim_f', arm_f_d=d)
+    sp.update(kw)
+    return sp
+
+
+def aim_b():
+    fr = [pose_b(rifle_b(d=(2, 2), head_d=(0, 0))), pose_b(rifle_b())]
+    return Anim('aim', fr, fps=8, loop=False,
+                notes='Rifle in the right shoulder pocket (far side), so most of it is hidden by the body; the barrel '
+                      'and the left hand under the handguard show up-left of the head. Right elbow out at the right. '
+                      'Same rigid sprite, translated only.')
+
+
+def shoot_b():
+    fr = [pose_b(rifle_b()), pose_b(rifle_b(d=(2, 0), sh=(1, 0), head_d=(0, 1))), pose_b(rifle_b(d=(1, 0), head_d=(-1, 1)))]
+    fr[0].meta['flash'] = True
+    return Anim('shoot', fr, fps=15, loop=False,
+                notes='Recoil pushes the rifle back along the barrel axis toward us (+2,+1) and up 1px = (+2,0); the '
+                      'left hand and the shoulders ride with it. Flash at meta.muzzle on frame 0 only; the flash '
+                      'sits farther away than the hero, so the head may overlap it.')
+
+
+def reload_b():
+    G0 = (1, 2)
+    NM = GN.AR_B_NOMAG
+    lo = dict(head=HEAD_B_DOWN, head_d=(-1, 1))
+    fr = [
+        pose_b(rifle_b(d=G0, arm_n='rl_low', arm_n_d=(1, -1), **lo)),
+        pose_b(rifle_b(d=G0, gun=NM, arm_n='rl_low', arm_n_d=(0, 1), **lo, props=[(GN.MAG, (10, 25), 'front')])),
+        pose_b(rifle_b(d=G0, gun=NM, arm_n='rl_in', arm_n_d=(0, 0), **lo, props=[(GN.MAG_TILT, (8, 28), 'front')])),
+        pose_b(rifle_b(d=G0, gun=NM, arm_n='rl_in', arm_n_d=(1, 1), **lo)),
+        pose_b(rifle_b(d=G0, gun=NM, arm_n='rl_low', arm_n_d=(1, 0), **lo, props=[(GN.MAG, (10, 24), 'front')])),
+        pose_b(rifle_b(d=G0, arm_n='rl_low', arm_n_d=(1, -2), **lo)),
+        pose_b(rifle_b(d=(1, 1), arm_n='rl_low', arm_n_d=(1, -3), **lo)),
+        pose_b(rifle_b(d=(1, 1), arm_n='rl_in', arm_n_d=(2, -1), head=HEAD_B, head_d=(0, 0))),
+    ]
+    return Anim('reload', fr, fps=8, loop=False,
+                notes='Same sequence as F (release, old magazine out and falling at the left, vest, insert, seat push, '
+                      'charging handle), seen from behind: the magazine well is in front of the chest, so the left '
+                      'arm carries the story and the old magazine drops into view at the left.')
+
+
+def _m(p):
+    m = p.mirrored()
+    m.pts = dict(p.pts)
+    return m
+
+
+ROCK_B = (8, 27)
+
+
+def mine_b():
+    hit, raise_, smear, lift = (_m(PR.PICK_F[k]) for k in ('hit', 'raise', 'smear', 'lift'))
+    R = [(PR.ROCK, ROCK_B, 'floor')]
+    fwd = dict(arm_n='n_fwd', arm_f='hang', arm_f_d=(-1, -2))
+    wind = dict(arm_n='n_across', arm_f='f_wind', arm_f_layer='mid', tool_layer='front', leg_n='km1', dn=0)
+    fr = [
+        pose_b(dict(fwd, tool=(hit, (14, 21)), tool_layer='back', props=R)),
+        pose_b(dict(wind, tool=(raise_, (20, 14)), sh=(1, 0), props=R)),
+        pose_b(dict(wind, tool=(raise_, (20, 13)), sh=(1, -1), props=R)),
+        pose_b(dict(arm_n='n_up', arm_f='f_up', arm_f_layer='mid', tool=(smear, (14, 19)), tool_layer='front', props=R)),
+        pose_b(dict(fwd, tool=(hit, (13, 22)), tool_layer='back', torso=TORSO_B_LEAN, head=HEAD_B_DOWN, dy=1,
+                    leg_n='stand_b', leg_f='stand_b', dn=1, df=1, hit=[6, 27], props=R)),
+        pose_b(dict(fwd, tool=(lift, (14, 21)), tool_layer='back', head=HEAD_B_DOWN, props=R)),
+    ]
+    return Anim('mine', fr, fps=9, loop=True, hold={4: 3},
+                notes='From behind: wind-up over the right shoulder brings the pick toward us (drawn over the head), '
+                      'the downswing passes over the crown to the rock in front (up-left, behind the body). Both '
+                      'hands on the handle throughout; dominant right hand nearer the head.')
+
+
+def farm_b():
+    hit, raise_, smear, pull = (_m(PR.HOE_F[k]) for k in ('hit', 'raise', 'smear', 'pull'))
+    fwd = dict(arm_n='n_fwd', arm_f='hang', arm_f_d=(-1, -2))
+    fr = [
+        pose_b(dict(fwd, tool=(hit, (14, 21)), tool_layer='back')),
+        pose_b(dict(arm_n='n_across', arm_f='f_wind', arm_f_layer='mid', tool=(raise_, (20, 14)), tool_layer='front',
+                    leg_n='km1', sh=(1, 0))),
+        pose_b(dict(arm_n='n_up', arm_f='f_up', arm_f_layer='mid', tool=(smear, (14, 19)), tool_layer='front')),
+        pose_b(dict(fwd, tool=(hit, (13, 22)), tool_layer='back', torso=TORSO_B_LEAN, head=HEAD_B_DOWN, dy=1,
+                    leg_n='stand_b', leg_f='stand_b', dn=1, df=1, hit=[7, 28])),
+        pose_b(dict(fwd, tool=(pull, (15, 22)), tool_layer='back', head=HEAD_B_DOWN, dy=1, leg_n='stand_b',
+                    leg_f='stand_b', dn=1, df=1)),
+        pose_b(dict(fwd, tool=(hit, (15, 21)), tool_layer='back', head=HEAD_B_DOWN)),
+    ]
+    return Anim('farm', fr, fps=8, loop=True, hold={3: 2},
+                notes='Hoe from behind: lift over the right shoulder (toward us), chop over the crown, blade into the '
+                      'soil in front (up-left), pull back. Two hands on the handle in every frame.')
+
+
+def repair_b():
+    up, back, hit, smear, bounce = (_m(PR.HAMMER_F[k]) for k in ('rest', 'back', 'hit', 'smear', 'bounce'))
+    P = [(PR.PLATE.mirrored(), (9, 10), 'back')]
+    hold = dict(arm_n='aim_n', arm_n_d=(-1, -1), props=P)
+    fr = [
+        pose_b(dict(hold, arm_f='f_strike', tool=(up, (17, 18)), tool_layer='back')),
+        pose_b(dict(hold, arm_f='f_wind', arm_f_layer='mid', tool=(back, (21, 13)), tool_layer='front')),
+        pose_b(dict(hold, arm_f='f_strike', tool=(smear, (15, 16)), tool_layer='back')),
+        pose_b(dict(hold, arm_f='f_strike', tool=(hit, (12, 13)), tool_layer='back', hit=[6, 12])),
+        pose_b(dict(hold, arm_f='f_strike', tool=(bounce, (13, 13)), tool_layer='back')),
+        pose_b(dict(hold, arm_f='f_wind', arm_f_layer='mid', tool=(back, (20, 14)), tool_layer='front')),
+    ]
+    return Anim('repair', fr, fps=10, loop=True, hold={3: 2},
+                notes='From behind: the left hand holds the steel patch on the target up-left; the right (dominant) '
+                      'arm cocks the hammer by the right ear (toward us, drawn over the head), swings it over the '
+                      'shoulder and strikes the patch (sparks at meta.hit).')
+
+
+def carry_b():
+    fr = []
+    for i, s in enumerate(WALK):
+        sp = dict(s)
+        sp.update(arm_n='n_carry', arm_f='hang', arm_f_d=(0, -1), pony=['right', 'rest', 'left', 'rest'][i % 4])
+        lag = WALK[(i - 1) % 8].get('dy', 0)
+        sp['props'] = [(PR.CRATE, (11, 22 + lag), 'back')]
+        fr.append(pose_b(sp))
+    return Anim('carry', fr, fps=9, loop=True, stridePx=2,
+                notes='Crate held in front of the chest, i.e. farther away than the body: it shows above-left of the '
+                      'shoulders. Same no-slide gait as the B walk; elbows out, no arm swing.')
+
+
+def ladder_b():
+    """Hands on the rails (x=11 left/near rail, x=21 right/far rail at this frame's ladder placement).
+    The sprite climbs 2px per frame; a gripping hand moves down 2px per frame in sprite space."""
+    L = [(LADDER_B, (16, 31), 'floor')]
+    fr = []
+    # hand heights (sprite y of the grip) and foot rungs per frame
+    plan = [
+        dict(n='n_rail_hi', nd=(0, -5), f='f_rail_lo', fd=(0, -2), ln='climb_lo', lf='climb_hi'),
+        dict(n='n_rail_hi', nd=(0, -3), f='f_rail_lo', fd=(0, 0), ln='climb_lo', lf='climb_mid'),
+        dict(n='n_rail_lo', nd=(0, -2), f='f_rail_hi', fd=(0, -5), ln='climb_hi', lf='climb_lo'),
+        dict(n='n_rail_lo', nd=(0, 0), f='f_rail_hi', fd=(0, -3), ln='climb_mid', lf='climb_lo'),
+    ]
+    for i, p in enumerate(plan):
+        sp = dict(arm_n=p['n'], arm_n_d=p['nd'], arm_f=p['f'], arm_f_d=p['fd'], arm_f_layer='back',
+                  leg_n=p['ln'], leg_f=p['lf'], head=HEAD_B, props=L, pony=['down', 'rest', 'down', 'rest'][i])
+        fr.append(pose_b(sp))
+    return Anim('ladder', fr, fps=6, loop=True, climbPx=2,
+                notes='Seen from behind, hands on the two rails a shoulder-width apart (the ladder prop is drawn '
+                      'with the rungs on the 2:1 wall slope). Opposite hand and foot move together; the game moves '
+                      'the sprite up 2px per frame so a gripping hand stays put on its rail.')
+
+
+def build_b():
+    return {'idle': idle_b(), 'walk': walk_b(), 'aim': aim_b(), 'shoot': shoot_b(), 'reload': reload_b(),
+            'mine': mine_b(), 'farm': farm_b(), 'repair': repair_b(), 'carry': carry_b(), 'ladder': ladder_b()}
+
+
 if __name__ == '__main__':
     import sys
     sys.path.insert(0, '/tmp/claude-0/-home-user-roblox-balance/fc99fad7-9f21-557e-b4ef-94064ecb56bf/scratchpad')
     from look import show
-    A = build_f()
-    which = sys.argv[1:] or list(A)
+    view = sys.argv[1]
+    A = build_f() if view == 'F' else build_b()
+    which = sys.argv[2:] or list(A)
     arrs, marks = [], {}
     for k in which:
         a = A[k]
@@ -332,4 +568,4 @@ if __name__ == '__main__':
             for p in f.meta.get('planted', []):
                 mk.append((*p, (255, 120, 0)))
             marks[lab] = mk
-    show('hero_' + '_'.join(which), arrs, s=8, cols=8, marks=marks)
+    show('hero' + view + '_' + '_'.join(which), arrs, s=8, cols=8, marks=marks)

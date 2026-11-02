@@ -1,5 +1,5 @@
 {
- "note": "Every source below was checked on its own OpenGameArt page on the retrieval date. Only CC0 is used.",
+ "note": "Every source below was checked on its own OpenGameArt page on the retrieval date and checked again by verify_licenses.py on 2026-11-02 (exactly one licence listed, CC0 1.0; every file and size listed on the page). Only CC0 is used. 'notice' is the page's own Copyright/Attribution Notice text; credit requests in it are optional wishes, not licence terms.",
  "sources": [
   {
    "id": "jj_action",
@@ -20,7 +20,9 @@
      "name": "5 Action Chiptunes By Juhani Junkala.zip",
      "bytes": 49639688
     }
-   ]
+   ],
+   "rechecked": "2026-11-02",
+   "notice": ""
   },
   {
    "id": "jj_boss",
@@ -41,7 +43,9 @@
      "name": "Juhani Junkala - Epic Boss Battle [Seamlessly Looping].wav",
      "bytes": 21773152
     }
-   ]
+   ],
+   "rechecked": "2026-11-02",
+   "notice": ""
   },
   {
    "id": "minto_space_battle",
@@ -62,7 +66,9 @@
      "name": "space_battle_bpm130.ogg",
      "bytes": 2898663
     }
-   ]
+   ],
+   "rechecked": "2026-11-02",
+   "notice": ""
   },
   {
    "id": "minto_postapoc",
@@ -93,7 +99,9 @@
      "name": "post-apocalyptic_night_bpm80.ogg",
      "bytes": 3084925
     }
-   ]
+   ],
+   "rechecked": "2026-11-02",
+   "notice": ""
   },
   {
    "id": "minto_urban_shop",
@@ -114,7 +122,9 @@
      "name": "urban_shop_bpm92.ogg",
      "bytes": 2735750
     }
-   ]
+   ],
+   "rechecked": "2026-11-02",
+   "notice": ""
   },
   {
    "id": "minto_jingles",
@@ -135,7 +145,9 @@
      "name": "ogg_8bit_action_jingle_mini_loop.zip",
      "bytes": 1214309
     }
-   ]
+   ],
+   "rechecked": "2026-11-02",
+   "notice": ""
   },
   {
    "id": "cb_item_shop",
@@ -156,7 +168,9 @@
      "name": "welcome_to_the_item_shop.ogg",
      "bytes": 3169385
     }
-   ]
+   ],
+   "rechecked": "2026-11-02",
+   "notice": ""
   },
   {
    "id": "cb_assault",
@@ -177,7 +191,9 @@
      "name": "assault.ogg",
      "bytes": 5063369
     }
-   ]
+   ],
+   "rechecked": "2026-11-02",
+   "notice": ""
   },
   {
    "id": "cb_victory_nes",
@@ -198,7 +214,9 @@
      "name": "victory2.ogg",
      "bytes": 263719
     }
-   ]
+   ],
+   "rechecked": "2026-11-02",
+   "notice": ""
   },
   {
    "id": "cb_winner",
@@ -219,7 +237,9 @@
      "name": "winneris.ogg",
      "bytes": 95926
     }
-   ]
+   ],
+   "rechecked": "2026-11-02",
+   "notice": ""
   },
   {
    "id": "cb_better_luck",
@@ -240,7 +260,9 @@
      "name": "betterluck.ogg",
      "bytes": 83738
     }
-   ]
+   ],
+   "rechecked": "2026-11-02",
+   "notice": ""
   },
   {
    "id": "cb_new_thing",
@@ -261,7 +283,9 @@
      "name": "newthingget.ogg",
      "bytes": 173459
     }
-   ]
+   ],
+   "rechecked": "2026-11-02",
+   "notice": ""
   },
   {
    "id": "cb_twist",
@@ -282,7 +306,9 @@
      "name": "surprise.ogg",
      "bytes": 85071
     }
-   ]
+   ],
+   "rechecked": "2026-11-02",
+   "notice": ""
   },
   {
    "id": "hg_danger_boss",
@@ -303,7 +329,9 @@
      "name": "8-bit_danger_strong_boss.mp3",
      "bytes": 5348902
     }
-   ]
+   ],
+   "rechecked": "2026-11-02",
+   "notice": "credits are NOT mandatory, but I'm curious to know what you will do with it, so don't hesitate to share :)"
   },
   {
    "id": "hg_last_mission",
@@ -329,7 +357,9 @@
      "name": "8-bit_last_mission_loop.mp3",
      "bytes": 2196445
     }
-   ]
+   ],
+   "rechecked": "2026-11-02",
+   "notice": "credits are NOT mandatory, but I'm curious to know what you will do with it, so don't hesitate to share :)"
   },
   {
    "id": "nene_boss9",
@@ -355,7 +385,9 @@
      "name": "boss_battle_9_metal_loop.wav",
      "bytes": 7493242
     }
-   ]
+   ],
+   "rechecked": "2026-11-02",
+   "notice": ""
   },
   {
    "id": "cow_biohazard",
@@ -376,7 +408,9 @@
      "name": "biohazardsv3.ogg",
      "bytes": 5217049
     }
-   ]
+   ],
+   "rechecked": "2026-11-02",
+   "notice": ""
   },
   {
    "id": "iam_final_stand",
@@ -397,7 +431,9 @@
      "name": "final_stand.wav",
      "bytes": 11290334
     }
-   ]
+   ],
+   "rechecked": "2026-11-02",
+   "notice": "CC0 // Public Domain\nOPTIONAL:\nhttps://allmylinks.com/iamoneabe"
   },
   {
    "id": "tg_outpost",
@@ -418,7 +454,9 @@
      "name": "outpost_loop.flac",
      "bytes": 13138965
     }
-   ]
+   ],
+   "rechecked": "2026-11-02",
+   "notice": "CC0 / Public Domain. No Rights Reserved. Free to use however you like with no attribution required."
   },
   {
    "id": "tg_safe_space",
@@ -439,7 +477,9 @@
      "name": "safe_space_loop.flac",
      "bytes": 14604660
     }
-   ]
+   ],
+   "rechecked": "2026-11-02",
+   "notice": "CC0 / Public Domain. No Rights Reserved. Free to use however you like with no attribution required."
   },
   {
    "id": "trex_small_fire",
@@ -460,7 +500,9 @@
      "name": "a_small_fire_will_do.wav",
      "bytes": 16934546
     }
-   ]
+   ],
+   "rechecked": "2026-11-02",
+   "notice": "Credit would be appreciated (Cal McEachern) as well as a link to what you've created with my work."
   },
   {
    "id": "zl_hush_hamlet",
@@ -481,7 +523,9 @@
      "name": "hush_hamlet_loop.wav",
      "bytes": 36864210
     }
-   ]
+   ],
+   "rechecked": "2026-11-02",
+   "notice": ""
   },
   {
    "id": "skyle_shopping",
@@ -502,7 +546,9 @@
      "name": "shopping_time_loop.ogg",
      "bytes": 2158153
     }
-   ]
+   ],
+   "rechecked": "2026-11-02",
+   "notice": "No need to credit, but appreciate if you do so! <3"
   },
   {
    "id": "joth_bossa",
@@ -523,7 +569,9 @@
      "name": "8bit Bossa.mp3",
      "bytes": 1196325
     }
-   ]
+   ],
+   "rechecked": "2026-11-02",
+   "notice": ""
   },
   {
    "id": "emma_sad_game_over",
@@ -544,7 +592,9 @@
      "name": "sad_game_over.wav",
      "bytes": 3353414
     }
-   ]
+   ],
+   "rechecked": "2026-11-02",
+   "notice": "This track has been released into the public domain as of January 2017."
   },
   {
    "id": "kosmo_game_over",
@@ -565,7 +615,9 @@
      "name": "Game over jingle.ogg",
      "bytes": 66983
     }
-   ]
+   ],
+   "rechecked": "2026-11-02",
+   "notice": ""
   },
   {
    "id": "haley_lick",
@@ -586,7 +638,9 @@
      "name": "life.wav",
      "bytes": 273082
     }
-   ]
+   ],
+   "rechecked": "2026-11-02",
+   "notice": ""
   },
   {
    "id": "zl_hyper_fanfare",
@@ -607,7 +661,9 @@
      "name": "sboe.wav",
      "bytes": 2161074
     }
-   ]
+   ],
+   "rechecked": "2026-11-02",
+   "notice": ""
   },
   {
    "id": "beard_tense_drive",
@@ -628,7 +684,9 @@
      "name": "tense_drive.mp3",
      "bytes": 2602462
     }
-   ]
+   ],
+   "rechecked": "2026-11-02",
+   "notice": ""
   },
   {
    "id": "yd_zombies_march",
@@ -649,13 +707,15 @@
      "name": "ZombiesAreComing.ogg",
      "bytes": 1730976
     }
-   ]
+   ],
+   "rechecked": "2026-11-02",
+   "notice": ""
   },
   {
    "id": "ffsl",
    "page": "https://opengameart.org/content/the-free-firearm-sound-library",
    "title": "The Free Firearm Sound Library",
-   "author": "bart",
+   "author": "Ben Jaszczak, et al.",
    "author_url": "https://opengameart.org/users/bart",
    "licenses_on_page": [
     "CC0"
@@ -670,7 +730,10 @@
      "name": "Prepared SFX Library.7z",
      "bytes": 193954738
     }
-   ]
+   ],
+   "submitted_by": "bart",
+   "rechecked": "2026-11-02",
+   "notice": ""
   },
   {
    "id": "legit_fire_staff",
@@ -691,7 +754,9 @@
      "name": "legit_audio_fire_staff_-_free.zip",
      "bytes": 29242305
     }
-   ]
+   ],
+   "rechecked": "2026-11-02",
+   "notice": ""
   },
   {
    "id": "fax_electricity",
@@ -747,7 +812,9 @@
      "name": "snaploop.wav",
      "bytes": 435524
     }
-   ]
+   ],
+   "rechecked": "2026-11-02",
+   "notice": ""
   },
   {
    "id": "bmac_electricity",
@@ -773,7 +840,9 @@
      "name": "spark.wav",
      "bytes": 29740
     }
-   ]
+   ],
+   "rechecked": "2026-11-02",
+   "notice": "Optionally credit Brian MacIntosh."
   },
   {
    "id": "bmac_metal",
@@ -824,7 +893,9 @@
      "name": "thud3.wav",
      "bytes": 36908
     }
-   ]
+   ],
+   "rechecked": "2026-11-02",
+   "notice": "Optionally credit Brian MacIntosh."
   },
   {
    "id": "zer0_handgun_reload",
@@ -845,7 +916,9 @@
      "name": "reload.wav",
      "bytes": 280620
     }
-   ]
+   ],
+   "rechecked": "2026-11-02",
+   "notice": "No attribution required. If you want to that's great, but it's not important to me."
   },
   {
    "id": "zer0_shotgun_reload",
@@ -866,7 +939,9 @@
      "name": "shotgunsounds.zip",
      "bytes": 324193
     }
-   ]
+   ],
+   "rechecked": "2026-11-02",
+   "notice": ""
   },
   {
    "id": "springy_reloads",
@@ -897,7 +972,9 @@
      "name": "shotguncock.wav",
      "bytes": 83628
     }
-   ]
+   ],
+   "rechecked": "2026-11-02",
+   "notice": "Credit isn't required, but appreciated. If you use this in any project shoot me a link in the comments!"
   },
   {
    "id": "zl_fleshy",
@@ -918,13 +995,15 @@
      "name": "wet_breaks.zip",
      "bytes": 2712724
     }
-   ]
+   ],
+   "rechecked": "2026-11-02",
+   "notice": ""
   },
   {
    "id": "qbd_wet_squish",
    "page": "https://opengameart.org/content/8-wet-squish-slurp-impacts",
    "title": "8 wet squish, slurp impacts",
-   "author": "qubodup",
+   "author": "Independent.nu",
    "author_url": "https://opengameart.org/users/qubodup",
    "licenses_on_page": [
     "CC0"
@@ -939,13 +1018,16 @@
      "name": "independent_nu_ljudbank-wet_squish_slurp_impacts.7z",
      "bytes": 586806
     }
-   ]
+   ],
+   "submitted_by": "qubodup",
+   "rechecked": "2026-11-02",
+   "notice": ""
   },
   {
    "id": "qbd_wood_crack",
    "page": "https://opengameart.org/content/35-wooden-crackshitsdestructions",
    "title": "35 wooden cracks/hits/destructions",
-   "author": "qubodup",
+   "author": "Independent.nu",
    "author_url": "https://opengameart.org/users/qubodup",
    "licenses_on_page": [
     "CC0"
@@ -960,7 +1042,10 @@
      "name": "independent_nu_ljudbank-wood_crack_hit_destruction.7z",
      "bytes": 3855318
     }
-   ]
+   ],
+   "submitted_by": "qubodup",
+   "rechecked": "2026-11-02",
+   "notice": ""
   },
   {
    "id": "qbd_metal",
@@ -981,7 +1066,9 @@
      "name": "metal_interactions.7z",
      "bytes": 166271
     }
-   ]
+   ],
+   "rechecked": "2026-11-02",
+   "notice": ""
   },
   {
    "id": "rd_breaking",
@@ -1002,7 +1089,9 @@
      "name": "sfx_breaking_and_falling.zip",
      "bytes": 1624406
     }
-   ]
+   ],
+   "rechecked": "2026-11-02",
+   "notice": ""
   },
   {
    "id": "rd_metal_wood",
@@ -1023,7 +1112,9 @@
      "name": "100-CC0-wood-metal-SFX.zip",
      "bytes": 1990361
     }
-   ]
+   ],
+   "rechecked": "2026-11-02",
+   "notice": ""
   },
   {
    "id": "rd_100_2",
@@ -1044,7 +1135,9 @@
      "name": "sfx_100_v2.zip",
      "bytes": 2367871
     }
-   ]
+   ],
+   "rechecked": "2026-11-02",
+   "notice": ""
   },
   {
    "id": "rd_creature",
@@ -1065,7 +1158,9 @@
      "name": "80-CC0-creature-SFX.zip",
      "bytes": 1885648
     }
-   ]
+   ],
+   "rechecked": "2026-11-02",
+   "notice": ""
   },
   {
    "id": "rd_creature2",
@@ -1086,7 +1181,9 @@
      "name": "80-CC0-creature-sfx-2.zip",
      "bytes": 1890174
     }
-   ]
+   ],
+   "rechecked": "2026-11-02",
+   "notice": ""
   },
   {
    "id": "rd_bang",
@@ -1107,7 +1204,9 @@
      "name": "25-CC0-bang-sfx.zip",
      "bytes": 1390498
     }
-   ]
+   ],
+   "rechecked": "2026-11-02",
+   "notice": ""
   },
   {
    "id": "rd_retro",
@@ -1128,7 +1227,9 @@
      "name": "50-CC0-retro-synth-SFX.zip",
      "bytes": 1938142
     }
-   ]
+   ],
+   "rechecked": "2026-11-02",
+   "notice": ""
   },
   {
    "id": "ad_zombies",
@@ -1149,7 +1250,9 @@
      "name": "zombies.zip",
      "bytes": 4667201
     }
-   ]
+   ],
+   "rechecked": "2026-11-02",
+   "notice": ""
   },
   {
    "id": "dar_zombie_moans",
@@ -1170,7 +1273,9 @@
      "name": "darsycho__zombie-moans.ogg",
      "bytes": 181933
     }
-   ]
+   ],
+   "rechecked": "2026-11-02",
+   "notice": "Feel free to use for whatever, credit is appreciated!"
   },
   {
    "id": "dar_hungry_ghoul",
@@ -1191,7 +1296,9 @@
      "name": "hungry-ghoul.ogg",
      "bytes": 355731
     }
-   ]
+   ],
+   "rechecked": "2026-11-02",
+   "notice": "Feel free to use for whatever, credit is appreciated!"
   },
   {
    "id": "dar_troll",
@@ -1217,7 +1324,9 @@
      "name": "troll-idle-noises.ogg",
      "bytes": 291562
     }
-   ]
+   ],
+   "rechecked": "2026-11-02",
+   "notice": "Feel free to use for whatever, credit is appreciated!"
   },
   {
    "id": "emo_zombie_moans",
@@ -1238,7 +1347,9 @@
      "name": "zombiemoans_-_wav.zip",
      "bytes": 732642
     }
-   ]
+   ],
+   "rechecked": "2026-11-02",
+   "notice": ""
   },
   {
    "id": "ian_zombie_noises",
@@ -1259,7 +1370,9 @@
      "name": "zombienoises.zip",
      "bytes": 223566
     }
-   ]
+   ],
+   "rechecked": "2026-11-02",
+   "notice": ""
   },
   {
    "id": "antum_undead",
@@ -1280,7 +1393,9 @@
      "name": "undead-moans.zip",
      "bytes": 96239
     }
-   ]
+   ],
+   "rechecked": "2026-11-02",
+   "notice": ""
   },
   {
    "id": "arcade_voices",
@@ -1301,7 +1416,9 @@
      "name": "Voice Effects Zombie-Skeleton-Monster Human Male.zip",
      "bytes": 2047881
     }
-   ]
+   ],
+   "rechecked": "2026-11-02",
+   "notice": ""
   },
   {
    "id": "ogre_monsters",
@@ -1322,7 +1439,9 @@
      "name": "monster-sounds-volume-2.zip",
      "bytes": 2024392
     }
-   ]
+   ],
+   "rechecked": "2026-11-02",
+   "notice": ""
   },
   {
    "id": "trazzz_roar",
@@ -1343,7 +1462,9 @@
      "name": "monster_roar.wav",
      "bytes": 1273958
     }
-   ]
+   ],
+   "rechecked": "2026-11-02",
+   "notice": ""
   },
   {
    "id": "stumpy_horn",
@@ -1369,7 +1490,9 @@
      "name": "theircoming.ogg",
      "bytes": 117400
     }
-   ]
+   ],
+   "rechecked": "2026-11-02",
+   "notice": "Link to Opengameart maybe."
   },
   {
    "id": "aquinn_sirens",
@@ -1390,7 +1513,9 @@
      "name": "siren.mp3",
      "bytes": 661211
     }
-   ]
+   ],
+   "rechecked": "2026-11-02",
+   "notice": ""
   },
   {
    "id": "yd_short_alarm",
@@ -1411,7 +1536,9 @@
      "name": "alarm.ogg",
      "bytes": 27529
     }
-   ]
+   ],
+   "rechecked": "2026-11-02",
+   "notice": ""
   },
   {
    "id": "bart_workshop",
@@ -1432,7 +1559,9 @@
      "name": "workshop.7z",
      "bytes": 24571012
     }
-   ]
+   ],
+   "rechecked": "2026-11-02",
+   "notice": ""
   },
   {
    "id": "jj_512",
@@ -1453,7 +1582,9 @@
      "name": "The Essential Retro Video Game Sound Effects Collection [512 sounds].zip",
      "bytes": 20582855
     }
-   ]
+   ],
+   "rechecked": "2026-11-02",
+   "notice": ""
   },
   {
    "id": "mouse_chimey",
@@ -1474,7 +1605,9 @@
      "name": "mousebyte_chimeyui.7z",
      "bytes": 382290
     }
-   ]
+   ],
+   "rechecked": "2026-11-02",
+   "notice": "No rights reserved, no credit needed."
   },
   {
    "id": "robin_ui",
@@ -1495,7 +1628,9 @@
      "name": "ui_wav.zip",
      "bytes": 1364100
     }
-   ]
+   ],
+   "rechecked": "2026-11-02",
+   "notice": ""
   },
   {
    "id": "wobble_levelup",
@@ -1516,7 +1651,9 @@
      "name": "SoundPack01.zip",
      "bytes": 6780792
     }
-   ]
+   ],
+   "rechecked": "2026-11-02",
+   "notice": "This pack is released under the public domain CC0 license.\nIf you want to give credit (not required): \"WobbleBoxx Workshop\""
   },
   {
    "id": "bobjt_gem",
@@ -1542,7 +1679,9 @@
      "name": "gem-gather-stereo-reverb.wav",
      "bytes": 398572
     }
-   ]
+   ],
+   "rechecked": "2026-11-02",
+   "notice": ""
   },
   {
    "id": "lokif_gui",
@@ -1563,7 +1702,10 @@
      "name": "GUI_Sound_Effects_by_Lokif.7z",
      "bytes": 2276118
     }
-   ]
+   ],
+   "submitted_by": "LokiF",
+   "rechecked": "2026-11-02",
+   "notice": ""
   },
   {
    "id": "ogre_wood_metal",
@@ -1584,7 +1726,9 @@
      "name": "wood_and_metal_vol.2_0.zip",
      "bytes": 1228961
     }
-   ]
+   ],
+   "rechecked": "2026-11-02",
+   "notice": ""
   },
   {
    "id": "saturn_zomby",
@@ -1630,7 +1774,9 @@
      "name": "07_zombey.mp3",
      "bytes": 30879
     }
-   ]
+   ],
+   "rechecked": "2026-11-02",
+   "notice": "free to use with out any credits, if you want to you can mention saturn91.dev as the creator of these assets"
   },
   {
    "id": "rd_rpg",
@@ -1651,7 +1797,9 @@
      "name": "80-CC0-RPG-SFX.zip",
      "bytes": 1845114
     }
-   ]
+   ],
+   "rechecked": "2026-11-02",
+   "notice": ""
   },
   {
    "id": "joth_ui",
@@ -1672,7 +1820,9 @@
      "name": "UISoundEffects.zip",
      "bytes": 627912
     }
-   ]
+   ],
+   "rechecked": "2026-11-02",
+   "notice": "Credit to Joth, link to opengameart.org/users/joth, or link to @Joth_Music twitter.com/Joth_Music. Appreciated but not required."
   },
   {
    "id": "ezd_positive",
@@ -1693,7 +1843,9 @@
      "name": "positive.ogg",
      "bytes": 32540
     }
-   ]
+   ],
+   "rechecked": "2026-11-02",
+   "notice": ""
   }
  ]
 }

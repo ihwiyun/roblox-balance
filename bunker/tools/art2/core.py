@@ -223,11 +223,19 @@ def to_rgba(a):
     return Image.fromarray(_LUT[idx], 'RGBA')
 
 
-def flash_frame(f, color=R64['white'], keep=(R64['ink'],)):
-    """Hit-flash: every opaque pixel becomes one colour, the darkest outline kept so the shape reads."""
+def flash_frame(f, color=R64['white'], edge=R64['ink']):
+    """Hit-flash: the figure turns one colour; only its outer silhouette edge stays dark so it reads.
+    (Recolour only: a pixel keeps the edge colour when a 4-neighbour is empty.)"""
     g = f.copy()
-    m = (f.a >= 0) & ~np.isin(f.a, keep)
-    g.a[m] = color
+    a = f.a
+    H, W = a.shape
+    for y in range(H):
+        for x in range(W):
+            if a[y, x] < 0:
+                continue
+            outer = any(not (0 <= x + dx < W and 0 <= y + dy < H) or a[y + dy, x + dx] < 0
+                        for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)))
+            g.a[y, x] = edge if outer else color
     return g
 
 

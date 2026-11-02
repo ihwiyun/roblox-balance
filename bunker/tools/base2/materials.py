@@ -27,7 +27,7 @@ def paint(rows, rmp):
 BAG = {
     'lit': ramp(o='grape', **{'1': 'mauve', '2': 'rose', '3': 'beige', '4': 'khaki'}, t='grape', s='sand'),
     'shade': ramp(o='ink', **{'1': 'grape', '2': 'mauve', '3': 'rose', '4': 'beige'}, t='ink', s='tan'),
-    'top': ramp(o='mauve', **{'1': 'beige', '2': 'khaki', '3': 'foam', '4': 'white'}, t='rose', s='sand'),
+    'top': ramp(o='mauve', **{'1': 'rose', '2': 'beige', '3': 'khaki', '4': 'foam'}, t='mauve', s='sand'),
 }
 WOOD = {
     'lit': ramp(o='grape', **{'1': 'plum', '2': 'rust', '3': 'copper', '4': 'tan'}, n='mist', k='grape'),
@@ -106,16 +106,16 @@ def bag(length, tie='', sag=False, leak=False):
 # course plans: each course is a list of (length, flags) read left to right; typed by hand so joints
 # never line up, ties face both ways, and a few bags sag or leak. Flags: t tied, s sag, l leak.
 COURSES = [
-    [(13, ''), (11, 't'), (14, 's'), (12, ''), (13, 't'), (11, ''), (14, 'l'), (12, 't'), (13, ''), (11, 's'),
+    [(13, ''), (11, 'td'), (14, 's'), (12, ''), (13, 't'), (11, 'd'), (14, 'l'), (12, 't'), (13, ''), (11, 'sd'),
      (14, 't'), (12, '')],
-    [(7, ''), (13, 't'), (12, ''), (14, 's'), (11, ''), (13, 't'), (12, 'l'), (14, ''), (11, 't'), (13, ''),
-     (12, 's'), (14, 't')],
-    [(11, 's'), (14, ''), (12, 't'), (13, ''), (11, ''), (14, 't'), (12, 's'), (13, ''), (11, 't'), (14, ''),
+    [(7, ''), (13, 't'), (12, 'd'), (14, 's'), (11, ''), (13, 't'), (12, 'l'), (14, 'd'), (11, 't'), (13, ''),
+     (12, 's'), (14, 'td')],
+    [(11, 's'), (14, 'd'), (12, 't'), (13, ''), (11, ''), (14, 'td'), (12, 's'), (13, ''), (11, 't'), (14, 'd'),
      (12, ''), (13, 'l')],
-    [(5, ''), (12, ''), (14, 't'), (11, 's'), (13, ''), (12, 't'), (14, ''), (11, ''), (13, 'l'), (12, 't'),
-     (14, 's'), (11, '')],
-    [(9, 't'), (13, ''), (12, 's'), (14, ''), (11, 't'), (13, ''), (12, ''), (14, 't'), (11, 'l'), (13, ''),
-     (12, 't'), (14, 's')],
+    [(5, ''), (12, ''), (14, 't'), (11, 'sd'), (13, ''), (12, 't'), (14, ''), (11, 'd'), (13, 'l'), (12, 't'),
+     (14, 's'), (11, 'd')],
+    [(9, 't'), (13, 'd'), (12, 's'), (14, ''), (11, 't'), (13, ''), (12, 'd'), (14, 't'), (11, 'l'), (13, ''),
+     (12, 'td'), (14, 's')],
 ]
 
 
@@ -134,8 +134,13 @@ def bag_wall(width, height, start=0, shift=0):
             ln, fl = plan[i % len(plan)]
             tie = ('l' if (i + k) % 2 else 'r') if 't' in fl else ''
             b = bag(ln, tie=tie, sag='s' in fl, leak='l' in fl)
+            drop = 1 if ('d' in fl and k > 0) else 0      # this bag has settled a pixel lower
+            if drop:
+                for j in range(ln):
+                    if 0 <= x + j < width and 0 <= top < height:
+                        out[top][x + j] = 'o'
             for r in range(BAG_H):
-                y = top + r
+                y = top + r + drop
                 if not 0 <= y < height:
                     continue
                 for j, ch in enumerate(b[r]):

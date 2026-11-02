@@ -505,3 +505,416 @@ oWVVVoo
 ....oo.
 """, 2, 1, 'arm_n_strike'),
 })
+
+# =============================================================================================== B
+# Back three-quarter view, facing up-left. The near side is the character's LEFT (screen left);
+# the left ear and a sliver of cheek show at the left edge; the ponytail hangs over the back.
+HEAD_B = P("""
+.....qqqqq...
+...qqHJJHHqq.
+..qHJJjJHHHHq
+.qHJJHHHHHHHq
+.qHJHHJHHHHhq
+qhHHHJHHHHhhq
+qhHHHHHHHHHhq
+qhhHHHHHHHhhq
+kShhHHHhhHhhq
+kSkhhHhqqhhq.
+.kkqhhhqHqq..
+..qqqqqqqq...
+.............
+""", 7, 12, 'headB')
+
+# looking down (reload, work)
+HEAD_B_DOWN = P("""
+.............
+.....qqqqq...
+...qqHJJHHqq.
+..qHJJjJHHHHq
+.qHJJHHHHHHHq
+.qHJHHHHHHHhq
+qhHHHHHHHHhhq
+qhhHHHHHHhHhq
+qhhhHHHHHHhhq
+kShhhHHHHhhq.
+kkkqhhhhhhq..
+..qqqqqqqq...
+.............
+""", 7, 12, 'headB_down')
+
+# ponytail from behind: tied at the back of the head, hangs over the nape (drawn in front)
+PONY_B = {
+    'rest': P("""
+.qq.
+qJHq
+qHHq
+qHhq
+qhHq
+.qhq
+..q.
+""", 1, 0, 'ponyB_rest'),
+    'up': P("""
+.qq.
+qJHq
+qHhq
+qhHq
+.qq.
+""", 1, 0, 'ponyB_up'),
+    'down': P("""
+.qq.
+qJHq
+qHHq
+qHHq
+qHhq
+qhHq
+.qhq
+..q.
+""", 1, 0, 'ponyB_down'),
+    'left': P("""
+..qq
+.qJHq
+qHHq.
+qHhq.
+qhq..
+.q...
+""", 2, 0, 'ponyB_left'),
+    'right': P("""
+qq..
+qJHq
+.qHHq
+.qhHq
+..qhq
+...q.
+""", 1, 0, 'ponyB_right'),
+}
+
+TORSO_B = P("""
+...o3122o...
+..oV31123Vo.
+.oWVVVVVVVuo
+.oWVVVVuVVuo
+.oVVVVVuVVuo
+..oVVVVuVuo.
+..ouuuuuuuo.
+..oCCCCDDDo.
+""", 6, 0, 'torsoB')
+
+TORSO_B_LEAN = P("""
+............
+...o3122o...
+.oVV31123Vo.
+.oWVVVVVVuuo
+.oWVVVVuVVuo
+..oVVVVuVuo.
+..ouuuuuuuo.
+..oCCCCDDDo.
+""", 6, 0, 'torsoB_lean')
+
+# legs from behind: boots point up-left (toe at the left end), heels toward the camera.
+# Walking up-left the planted boot moves (+2, +1) px per frame.
+LEG_B = {
+    'stand': P("""
+..oCCDo
+..oBCDo
+..oCCDo
+..oCCDo
+.ozYZzo
+oZZZZZo
+.ooooo.
+""", 4, 0, 'legB_stand'),
+    'stand_b': P("""
+..oCCDo
+..oBCDo
+..oCCDo
+.ozYZzo
+oZZZZZo
+.ooooo.
+""", 4, 0, 'legB_stand_b'),
+    # k=+2: front foot up-left (-4,-2), heel strike, hip 1px low -> a short leg on screen
+    'k2': P("""
+......oCCDo
+..ozYZBCDo.
+.oZZZZZDo..
+.ooooo.....
+""", 8, 0, 'legB_k2'),
+    # k=+1: (-2,-1), hip 1px low
+    'k1': P("""
+....oCCDo
+...oBCDo.
+..ozYZzo.
+.oZZZZZo.
+.ooooo...
+""", 6, 0, 'legB_k1'),
+    # k=-1: behind (+2,+1), hip at base -> a longer leg on screen
+    'km1': P("""
+oCCDo..
+oBCDo..
+.oCCDo.
+.oCCDo.
+.oCCDo.
+.ozYZzo
+oZZZZZo
+.ooooo.
+""", 2, 0, 'legB_km1'),
+    # k=-2: toe-off behind (+4,+2), heel up toward the camera, hip 1px low
+    'km2': P("""
+oCCDo....
+oBCDo....
+.oCCDo...
+..oCCDo..
+...oCCDo.
+...ozYZzo
+...oZZZZo
+...oooo..
+""", 2, 0, 'legB_km2'),
+    # swing: lifted behind (toward the camera), knee bent, sole showing
+    'up_back': P("""
+oCCDo..
+oBCDo..
+.oCCDo.
+.ozYZzo
+.oZZZZo
+..oooo.
+""", 2, 0, 'legB_up_back'),
+    # swing: passing under, foot 2px up
+    'up_pass': P("""
+..oCCDo
+..oBCDo
+.ozYZzo
+oZZZZZo
+.ooooo.
+""", 4, 0, 'legB_up_pass'),
+    # swing: reaching up-left for the next step, 1px up
+    'up_reach': P("""
+.....oCCDo
+....oBCDo.
+...oCCDo..
+.ozYZZo...
+oZZZZZo...
+.ooooo....
+""", 7, 0, 'legB_up_reach'),
+}
+
+# ---------------------------------------------------------------- B arms
+ARM_B = {
+    'hang': ARM_F['hang'],
+    'fwd': ARM_F['back'],           # forward in B = hand up-left, away from the camera
+    'back': ARM_F['fwd'],           # back in B = hand down-right, toward the camera
+    # near (left) arm reaching up-left to the handguard, seen from behind
+    'aim_n': P("""
+.oo...
+oLSo..
+osVVo.
+.oWVo.
+.oWVVo
+..oWVo
+..oWVo
+...oo.
+""", 4, 5, 'armB_aim_n'),
+    # far (right) arm on the pistol grip: only the elbow shows, out to the right
+    'aim_f': P("""
+oo...
+oVVo.
+oVVuo
+.oVuo
+..oo.
+""", 1, 1, 'armB_aim_f'),
+    # near arm dropping to the magazine / vest (reload), hand low at the left
+    'rl_low': P("""
+.oo..
+oWVo.
+oWVuo
+oVVuo
+.oVuo
+.oLSo
+.osso
+..oo.
+""", 2, 1, 'armB_rl_low'),
+    # near arm bent forward (hand in front of the chest, hidden): only upper arm + elbow show
+    'rl_in': P("""
+.oo..
+oWVo.
+oWVuo
+.oVuo
+..oo.
+""", 2, 1, 'armB_rl_in'),
+    # tools: far (right, dominant) hand up by the right ear, elbow down
+    'f_wind': P("""
+.oo..
+oLSo.
+oSso.
+oVuo.
+oVVuo
+oVVuo
+.ooo.
+""", 2, 5, 'armB_f_wind'),
+    # near arm across the chest toward the right shoulder: only the shoulder and elbow show
+    'n_across': P("""
+.oo...
+oWVoo.
+oWVVVo
+.oooo.
+""", 2, 1, 'armB_n_across'),
+    # arms forward and up (overhead swing passing in front of the face, away from us)
+    'n_up': P("""
+.oo.
+oLSo
+oWVo
+oWVo
+oWVo
+.oo.
+""", 2, 4, 'armB_n_up'),
+    'f_up': P("""
+.oo.
+oLSo
+oVVo
+oVuo
+oVuo
+.oo.
+""", 1, 4, 'armB_f_up'),
+    # arms forward and down (impact in front, hands hidden by the body)
+    'n_fwd': P("""
+.oo.
+oWVo
+oWVuo
+.oVuo
+.oVo.
+.oo..
+""", 2, 1, 'armB_n_fwd'),
+    # near arm swinging a hammer: cocked by the left... (dominant right arm is the far one)
+    'f_strike': P("""
+oo...
+oVVo.
+oVVuo
+.oSso
+..oo.
+""", 1, 1, 'armB_f_strike'),
+    # ladder: hand up on the rail (near / far), and hand at shoulder height
+    'n_rail_hi': P("""
+.oo.
+oLSo
+oSso
+oWVo
+oWVo
+oWVo
+oWVo
+.oo.
+""", 2, 6, 'armB_n_rail_hi'),
+    'n_rail_lo': P("""
+.oo.
+oWVo
+oWVo
+oLSo
+osso
+.oo.
+""", 2, 1, 'armB_n_rail_lo'),
+    # carrying: forearms forward under the crate (hidden), elbows out at the sides
+    'n_carry': P("""
+.oo..
+oWVo.
+oWVuo
+.oVVo
+..oo.
+""", 2, 1, 'armB_n_carry'),
+}
+
+# ladder climbing legs (B): foot up on a higher rung (knee bent) / leg straight on a low rung
+LEG_B.update({
+    'climb_hi': P("""
+..oCCDo
+.oBCCDo
+.oCCDDo
+.ozYZzo
+.oZZZZo
+..oooo.
+""", 4, 0, 'legB_climb_hi'),
+    'climb_mid': P("""
+..oCCDo
+..oBCDo
+..oCCDo
+.oCCDDo
+.ozYZzo
+.oZZZZo
+..oooo.
+""", 4, 0, 'legB_climb_mid'),
+    'climb_lo': P("""
+..oCCDo
+..oBCDo
+..oCCDo
+..oCCDo
+..oCCDo
+.ozYZzo
+.oZZZZo
+..oooo.
+""", 4, 0, 'legB_climb_lo'),
+})
+ARM_B.update({
+    'f_rail_hi': P("""
+.oo.
+oSSo
+oSso
+oVVo
+oVVo
+oVuo
+oVuo
+.oo.
+""", 1, 6, 'armB_f_rail_hi'),
+    'f_rail_lo': P("""
+.oo.
+oVVo
+oVuo
+oSso
+osso
+.oo.
+""", 1, 1, 'armB_f_rail_lo'),
+})
+
+# the ladder the climb is drawn against (prop for the check sheet and the viewer):
+# rails a shoulder-width apart; rungs run along the wall, so they slope 2:1 (right end higher)
+LADDER_B = P("""
+.oo.......oo.
+.oGo......oGo
+.oGo...oooGno
+.oGo.oonnnGno
+.oGooonn..Gno
+.oGnnn....oGo
+.oGoo.....oGo
+.oGo......oGo
+.oGo...oooGno
+.oGo.oonnnGno
+.oGooonn..Gno
+.oGnnn....oGo
+.oGoo.....oGo
+.oGo......oGo
+.oGo...oooGno
+.oGo.oonnnGno
+.oGooonn..Gno
+.oGnnn....oGo
+.oGoo.....oGo
+.oGo......oGo
+.oGo...oooGno
+.oGo.oonnnGno
+.oGooonn..Gno
+.oGnnn....oGo
+.oGoo.....oGo
+.oGo......oGo
+.oGo...oooGno
+.oGo.oonnnGno
+.oGooonn..Gno
+.oGnnn....oGo
+.oGoo.....oGo
+.oGo......oGo
+.oGo...oooGno
+.oGo.oonnnGno
+.oGooonn..Gno
+.oGnnn....oGo
+.oGoo.....oGo
+.oGo......oGo
+.oGo...oooGno
+.oGo.oonnnGno
+.oGooonn..Gno
+.oGnnn....oGo
+.oGoo.....oGo
+.oGo......oGo
+.ooo......ooo
+""", 6, 44, 'ladderB')

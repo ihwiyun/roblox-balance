@@ -318,27 +318,27 @@ ANTENNA = spr([
 ])
 ANTENNA_ANCHOR = (0, 13)
 
-# ---------------------------------------------------------------------------- turret slot (Lv21):
-# a ring of sandbags on the roof corner, an iron floor plate and a scrap machine gun on a tripod
-# with a rusty shield, pointing out to the lower left. anchor = centre of the ring on the roof
+# ---------------------------------------------------------------------------- turret (Lv21): a scrap
+# machine gun on a pedestal, aiming straight out of the roof's right corner (screen right): a chunky
+# receiver lit from the top-left, a long barrel with a perforated cooling jacket, an olive ammo can
+# feeding a brass belt. anchor = the foot of the pedestal on the deck
 TURRET = spr([
-    "...............oo...........",
-    "...........ooooSSoo.........",
-    "..........oSMMSsso..........",
-    "..........oMMmmSso..........",
-    "......oo..osSmmSsoo.........",
-    "....ooRRo.oossssoxRo........",
-    "..ooRtRro.oSsmsSoRxo........",
-    ".oRttRrro.oossSsoRro........",
-    "oRtRRrrqoooDsSSDoroo........",
-    "oRRrrqqooMmDDsDDo...........",
-    ".orrqqoMmSoDsoDo............",
-    "..oooSMSooDDoDDo............",
-    "...oSMSo..Do.oDo............",
-    "..oSmSo..oD...Do............",
-    "..ooo...oD.....D............",
-], {'D': N['char']})
-TURRET_ANCHOR = (12, 14)
+    "......oooo..........................",
+    "....ooMMMMoo........................",
+    "..ooMMmmmmMMoo......................",
+    ".oSMmmmmmmmmMSooooooooooooooooo.....",
+    ".osSSmmmmmmSSsoMMMMMMMMMMMMMMMSooo..",
+    ".ossSSSmmSSSsssSmdmdmdmdmdmdmSSSMSo.",
+    ".oossssSSsssssoosssssssssssssssssddo",
+    "ovVVVoossssssoo.ooooooooooooooooooo.",
+    "ovwVVVaooSSoo.......................",
+    "ovVVVVAaoSSso.......................",
+    "ovvVVVooSSsso.......................",
+    ".ooooooSSSssso......................",
+    "......oossssoo......................",
+    ".......oooooo.......................",
+], {'d': N['char'], 'v': N['soil'], 'V': N['olive'], 'w': N['moss']})
+TURRET_ANCHOR = (9, 12)
 
 RING_BACK = spr([
     "........bbbbbbbbbbbb........",

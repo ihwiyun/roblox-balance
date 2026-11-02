@@ -17,54 +17,55 @@ from pal import CLEAR, N, DARK
 R = 28
 
 # ============================================================================ grass
-# tones: S deep shade, D dark, B base, L light, H highlight tip, Y dry, y dry dark, flowers w p f
-GRASS = dict(S=N['fern'], D=N['pine'], B=N['leaf'], L=N['mint'], H=N['sprout'], Y=N['moss'], y=N['olive'],
-             w=N['foam'], p=N['salmon'], f=N['gold'], o=N['abyss'])
+# tones: S deep shade, D dark, B base, L light, H highlight tip, Y dry, y dry dark, flowers w p f.
+# A muted sage ramp: the warm bunker is the focus, the grass stays calm.
+GRASS = dict(S=N['char'], D=N['fern'], B=N['sage'], L=N['celadon'], H=N['pale'], Y=N['moss'], y=N['olive'],
+             w=N['foam'], p=N['salmon'], f=N['gold'], o=N['pine'], d=N['pine'])
 
+# big wavy clusters, light toward the back-left (where the light comes from), dark toward the
+# front-right edges; a few H dabs mark where the light catches the turf
 LIGHT_PATCHES = [
-    ["..........LLLLL...............",
-     ".....LLLLLLLLLLLLLLL..........",
-     "...LLLLHHLLLLLLLLLLLLLLL......",
-     ".LLLLLHHLLLLLLLLLLLLLLLLLLL...",
-     "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
-     "..LLLLLLLLLLLLLLLLLLLLLLLLL...",
-     ".....LLLLLLLLLLLL..LLLLL......",
-     "..........LLLL................"],
-    ["......LLLLLLL.......",
-     "...LLLLHHLLLLLLL....",
-     ".LLLLHHLLLLLLLLLLL..",
-     "LLLLLLLLLLLLLLLLLLLL",
-     "..LLLLLLLLLLLLLLLL..",
-     "....LLLLLL..LLL....."],
-    ["....LLLLLL.........",
-     ".LLLLHLLLLLLLL.....",
-     "LLLHHLLLLLLLLLLLL..",
-     "LLLLLLLLLLLLLLLLLLL",
-     ".LLLLLLLLLLLLLLLL..",
-     "...LLLLLLLLLL......",
-     ".......LLL........."],
+    ["..............LLLLLLL...................",
+     "........LLLLLLLLLLHHLLLLLL..............",
+     "....LLLLLLLLLLLHHLLLLLLLLLLLLLL.........",
+     "..LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL....",
+     "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+     "...LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL....",
+     "......LLLLLLLLLLL....LLLLLLLLLLL........",
+     "..........LLLLL.........LLLLL..........."],
+    [".........LLLLLLLLL..........",
+     "....LLLLLLLHHLLLLLLLLL......",
+     "..LLLLLLLHHLLLLLLLLLLLLLL...",
+     "LLLLLLLLLLLLLLLLLLLLLLLLLLLL",
+     "..LLLLLLLLLLLLLLLLLLLLLLLL..",
+     ".....LLLLLLL...LLLLLLLL.....",
+     "........LL.................."],
+    ["......LLLLLL........",
+     "..LLLLLHLLLLLLLL....",
+     "LLLLLHHLLLLLLLLLLLL.",
+     ".LLLLLLLLLLLLLLLLLLL",
+     "...LLLLLLLLLLLLLL...",
+     ".......LLLL........."],
     ["...LLLLL.....",
      ".LLLHLLLLLL..",
      "LLLLLLLLLLLLL",
      ".LLLLLLLLLL..",
-     "...LLLLL....."],
-    [".LLLL...",
-     "LLHLLLL.",
-     "LLLLLLLL",
-     "..LLLL.."],
+     "...LLLL......"],
 ]
 DARK_PATCHES = [
-    [".......DDDDD...........",
-     "...DDDDDDDDDDDDDD......",
-     "DDDDDDDDDDDDDDDDDDDDDD.",
-     ".DDDDDDDDDDDDDDDDDDDDDD",
-     "....DDDDDDDDDDDDDD.....",
-     "........DDDDDD........."],
-    ["....DDDDDD......",
-     ".DDDDDDDDDDDDD..",
-     "DDDDDDDDDDDDDDDD",
-     "..DDDDDDDDDDD...",
-     ".....DDDD......."],
+    ["...........DDDDDDD.....................",
+     "......DDDDDDDDDDDDDDDDDD...............",
+     "..DDDDDDDDDDDDDDDDDDDDDDDDDDDD.........",
+     "DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD...",
+     ".DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD",
+     "....DDDDDDDDDDD....DDDDDDDDDDDDDDDD....",
+     "........DDDD...........DDDDDD.........."],
+    [".......DDDDDD...........",
+     "...DDDDDDDDDDDDDDD......",
+     "DDDDDDDDDDDDDDDDDDDDDD..",
+     ".DDDDDDDDDDDDDDDDDDDDDDD",
+     "....DDDDDDD...DDDDDDD...",
+     "......DD..........D....."],
     ["..DDDD....",
      "DDDDDDDDD.",
      ".DDDDDDDDD",
@@ -128,28 +129,24 @@ FLOWERS = [
 
 # hand placement: CENTRE of each sprite, screen offsets from the island centre. The ring between the
 # fence (|dx|/2 + |dy| = 36) and the edge (= 56) is where the grass shows; the yard covers the middle.
-LIGHT_AT = [(0, -58, -20), (1, -16, -44), (2, 34, -36), (3, 74, -12), (4, -90, 0), (3, -84, -6),
-            (2, 46, 26), (4, 86, 4), (4, -22, 40), (3, -62, 18), (4, 12, -48), (1, 70, 14),
-            (4, -40, -28), (3, 0, 44)]
-DARK_AT = [(0, -10, 48), (1, -76, 12), (1, 62, 22), (2, 96, 2), (3, -100, 2), (2, 26, 44),
-           (3, -44, 34), (2, -74, -10), (3, 88, -10), (2, -2, -50), (3, 40, 36), (3, -30, -40)]
-DRY_AT = [(0, 56, -24), (1, -50, -30), (1, 80, 16)]
-TUFT_AT = [(1, -70, -18), (0, -64, -14), (4, -52, -22), (2, -28, -40), (0, -20, -46), (3, 28, -40),
-           (5, 40, -34), (0, 46, -30), (1, 68, -16), (4, 80, -10), (6, 60, -26), (7, 50, -30),
-           (2, -92, -4), (0, -86, -2), (5, -60, 22), (1, -52, 26), (0, 50, 22), (4, 58, 28),
-           (2, 66, 18), (3, -18, 44), (0, -8, 48), (4, 32, 40), (6, -46, -28), (2, 92, -2),
-           (0, 98, 2), (1, 8, -48), (5, 16, -46), (2, -78, 10), (6, 84, 12), (0, -96, 4),
-           (4, 74, 18), (1, 24, 44), (5, -30, 40), (0, 6, 50), (3, -66, 14), (4, 36, -42)]
-FLOWER_AT = [(0, -62, -22), (1, -24, -42), (2, 44, -32), (0, 76, -8), (3, -54, 24), (1, 60, 26),
-             (2, -12, 46), (0, 90, 4), (3, -88, 6), (1, 18, 46)]
+LIGHT_AT = [(0, -60, -20), (1, -8, -44), (2, 40, -34), (3, -90, 0), (2, -30, -30), (3, 14, -50),
+            (3, -46, 22), (2, -70, 10)]
+DARK_AT = [(0, 52, 26), (1, 2, 46), (2, -52, 34), (3, 96, 2), (2, 82, -14), (3, -26, 46), (2, 64, 6)]
+DRY_AT = [(0, 66, -22), (1, -40, 38)]
+TUFT_AT = [(1, -78, -12), (0, -72, -9), (4, -40, -24), (2, -34, -36), (0, -27, -38),
+           (3, 26, -40), (0, 33, -39), (5, 58, -30), (6, 72, -24), (7, 60, -20),
+           (2, -94, -4), (0, -88, 4), (1, -58, 28), (0, -51, 31),
+           (2, 30, 34), (0, 38, 30), (4, 80, -6), (1, 12, 44), (0, 18, 41),
+           (3, -12, 50), (5, -2, -54), (6, -36, 36), (2, 88, 8), (0, 94, 4)]
+FLOWER_AT = [(0, -66, -16), (1, -20, -40), (2, 46, -30), (3, -80, 8), (1, 24, 40), (0, -40, 30)]
 
 # ============================================================================ cliff (face space)
 # h lit lip, g grass, G dark grass, t topsoil, 1 dark soil, 2 soil, 3 lit soil, r root,
 # a b c d stone dark..light, o outline
-LIT = dict(h=N['mint'], g=N['leaf'], G=N['pine'], t=N['plum'],
+LIT = dict(h=N['celadon'], g=N['sage'], G=N['fern'], t=N['plum'],
            **{'1': N['plum'], '2': N['rust'], '3': N['copper'], '4': N['tan']},
            r=N['grape'], a=N['slate'], b=N['stone'], c=N['lilac'], d=N['mist'], o=N['ink'])
-SHADE = dict(h=N['leaf'], g=N['pine'], G=N['abyss'], t=N['grape'],
+SHADE = dict(h=N['sage'], g=N['fern'], G=N['char'], t=N['grape'],
              **{'1': N['grape'], '2': N['plum'], '3': N['rust'], '4': N['copper']},
              r=N['ink'], a=N['ink'], b=N['slate'], c=N['stone'], d=N['lilac'], o=N['ink'])
 
@@ -177,9 +174,9 @@ SOIL = {
           "2222r222222222222222222r2222",
           "2222222222222bcd22222222r222",
           "222222222222bbbcc22222222222",
-          "2222222222221aabb22222bcd222",
-          "1222222221111111112222abb112",
-          "111222211111111111111111a111",
+          "2222222222221aabb22222222222",
+          "1222222221111111112222222112",
+          "1112222111111111111111111111",
           "1111111111111111111111111111"],
     'C': ["gggggggGgggggggggggggGgggggg",
           "GGGgGGGGGGGgGGGGgGGGGGGGgGGG",
@@ -201,9 +198,9 @@ SOIL = {
           "33tr3333tt333333ttt3r33333tt",
           "222r22223332222222333r222222",
           "2222r222222222222bcd22222222",
-          "22222222bcd2222bbbcc22222222",
-          "2222222bbbcc222abbb222222222",
-          "222222222abb22221aa222222221",
+          "222222222222222bbbcc22222222",
+          "22222222222222abbbcc22222222",
+          "222222222222222aabb222222221",
           "11222222211111111112222221111"[:28],
           "1111222111111111111111221111",
           "1111111111111111111111111111"],
@@ -218,14 +215,14 @@ DEEP = [
     "1112211111122211111111111211",
     "1122221111111111111111112221",
     "1111111111111111111b11111111",
-    "11111bc1111111111bbc11111111",
-    "1111abb1111111111abb11111111",
-    "11111a11111111111111111111b1",
-    "1111111111112221111111111bbc",
-    "1111111111122222111111111ab1",
+    "11111111111111111bbc11111111",
+    "1111111111111111abbc11111111",
+    "11111111111111111ab111111111",
+    "1111111111112221111111111111",
+    "1111111111122222111111111111",
     "11211111111111111111111111111"[:28],
-    "1222111111111111111bc1111111",
-    "1111111111111111111ab1111111",
+    "1222111111111111111111111111",
+    "1111111111111111111111111111",
 ]
 
 # depth of the cliff under the top edge, one number per 2 px column (56 per face, 112 px). Left face:
@@ -330,7 +327,7 @@ def draw_rims(cv, m):
         top = ys[0]
         d = (px + .5 - cv.ox)
         if d < 0:     # back-left edge: catches the light
-            cv.a[top, px] = GRASS['H']
+            cv.a[top, px] = GRASS['L'] if px % 9 else GRASS['H']
             if top + 1 < H and m[top + 1, px] and px % 7 not in (0, 3):
                 cv.a[top + 1, px] = GRASS['L']
         else:         # back-right edge: a dark lip
