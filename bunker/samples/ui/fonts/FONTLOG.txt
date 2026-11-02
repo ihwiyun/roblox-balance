@@ -1,0 +1,28 @@
+FONTLOG for the "Bunker Pixel" fonts in this folder
+=====================================================
+
+Basic font information
+- bunkerpixel11.woff2       Bunker Pixel 11 Regular  (from Galmuri11.ttf,      12 px grid, 1200 units/em)
+- bunkerpixel11-bold.woff2  Bunker Pixel 11 Bold     (from Galmuri11-Bold.ttf, 12 px grid, 1200 units/em)
+- bunkerpixel9.woff2        Bunker Pixel 9 Regular   (from Galmuri9.ttf,       10 px grid, 1000 units/em)
+
+These are Modified Versions of Galmuri 2.40.3 by Lee Minseo (quiple@quiple.dev),
+https://github.com/quiple/galmuri, obtained from the npm package "galmuri@2.40.3".
+They are licensed under the SIL Open Font License, Version 1.1; the full licence text,
+unaltered, is in OFL.txt in this folder.
+
+ChangeLog
+2026-11-02  Subset for the bunker game's phone UI mock (bunker/samples/ui/build/subset_fonts.py):
+            - kept ASCII, the 2,350 Hangul syllables of KS X 1001, the Hangul compatibility jamo,
+              Latin-1 punctuation and the UI symbols (arrows, triangles, stars, dots, brackets, %)
+            - converted to WOFF2, hinting removed, glyph names dropped
+            - renamed from "Galmuri" to "Bunker Pixel" because the upstream distribution declares
+              "Galmuri" as a Reserved Font Name (OFL section 3); no glyph was redrawn
+
+Use
+Each font pixel is 100 units (Galmuri11/Bold) or 100 units (Galmuri9), so text is sharp only when one
+font pixel lands on a whole number of device pixels: font-size = 12 x n device px (11 family) or
+10 x n device px (9 family). The mock sets sizes in its UI unit for this reason.
+
+Acknowledgements
+Original design: Lee Minseo (quiple). Subsetting and renaming only.
