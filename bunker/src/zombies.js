@@ -463,9 +463,11 @@ function nextPhase(z) {
 function splitBoss(z) {
   z.splitAt = 0;
   spray(z.x, z.y, 1, 30, 3.4, 3, 1, [rgb(176, 196, 90), rgb(120, 150, 60), rgb(210, 220, 130)], 2, 2); sound('crash'); G.hurt = .4;
+  // the halves stand out to either side of it and a step nearer the base, clear of its own bulk
+  const r = Math.atan2(z.y, z.x);
   for (const side of [-1, 1]) {
-    const o = spawn('boss'), a = Math.atan2(z.y, z.x) + side * Math.PI / 2;
-    Object.assign(o, { minion: true, titan: z.titan, name: z.name, x: z.x + Math.cos(a) * 1.1 * z.scale / 2, y: z.y + Math.sin(a) * 1.1 * z.scale / 2, swerve: side * .3, state: 'walk', reward: z.reward * .1 });
+    const o = spawn('boss'), a = r + side * Math.PI / 2, off = 1.1 * (z.scale || 1);
+    Object.assign(o, { minion: true, titan: z.titan, name: z.name, x: z.x + Math.cos(a) * off - Math.cos(r) * .8, y: z.y + Math.sin(a) * off - Math.sin(r) * .8, swerve: side * .3, state: 'walk', reward: z.reward * .1 });
     dressBoss(o, G.wave, true);
     spray(o.x, o.y, .4, 14, 2.4, 2, .7, [rgb(176, 196, 90), rgb(120, 150, 60)], 2, 2);
     o.n = Math.max(Math.abs(o.x), Math.abs(o.y)); o.max = o.hp = z.max * (z.splitShare || .125); o.yaw = z.yaw;
