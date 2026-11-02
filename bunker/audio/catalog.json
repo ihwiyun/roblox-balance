@@ -1553,16 +1553,16 @@
    "mood": "빠르게 떨어지는 소리와 지직거림, 낮은 쿵.",
    "author": "synth.mjs (이 프로젝트)",
    "file": "candidates/sfx-gun/sfx_gun_electric_c.ogg",
-   "bytes": 11128,
+   "bytes": 11125,
    "seconds": 0.66,
    "lufs_i": -21.3,
-   "true_peak": -1.4,
+   "true_peak": -1.2,
    "lufs_m_max": -17.5,
    "changes": [
     "앞뒤 무음 0.15초 제거",
     "20Hz 이하 제거(직류 성분 제거)",
     "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -0.4 dB)",
-    "OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 +0.15 dB 조정)"
+    "OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 +0.10 dB 조정)"
    ],
    "source_files": [],
    "generated_desc": "Electric zap: fast falling saw sweep, gated noise crackle and a low thump",
@@ -1655,18 +1655,19 @@
    "title": "소총 장전",
    "mood": "에어소프트 건으로 만든 장전음.",
    "star": true,
+   "head_db": -30,
    "author": "SpringySpringo",
    "file": "candidates/sfx-reload/sfx_reload_rifle_a.ogg",
-   "bytes": 17242,
-   "seconds": 1.497,
-   "lufs_i": -24.6,
-   "true_peak": -1.6,
-   "lufs_m_max": -19.6,
+   "bytes": 16327,
+   "seconds": 1.407,
+   "lufs_i": -21.6,
+   "true_peak": -1.0,
+   "lufs_m_max": -19.8,
    "changes": [
-    "앞뒤 무음 0.06초 제거",
+    "앞뒤 무음 0.15초 제거",
     "20Hz 이하 제거(직류 성분 제거)",
-    "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -5.8 dB)",
-    "OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 -0.30 dB 조정)"
+    "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -5.7 dB)",
+    "OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 -0.80 dB 조정)"
    ],
    "source_files": [
     "assaultriflereload1.wav"
@@ -1679,8 +1680,8 @@
      "members": []
     }
    ],
-   "punch_db": -17.4,
-   "preview_gain_db": -2.6
+   "punch_db": -17.6,
+   "preview_gain_db": -2.4
   },
   {
    "id": "sfx_reload_shotgun_a",
@@ -1693,17 +1694,19 @@
    "title": "펌프 당기기",
    "mood": "샷건 펌프를 당기는 소리.",
    "star": true,
+   "head_db": -30,
    "author": "zer0_sol",
    "file": "candidates/sfx-reload/sfx_reload_shotgun_a.ogg",
-   "bytes": 14438,
-   "seconds": 1.128,
-   "lufs_i": -13.4,
-   "true_peak": -1.2,
-   "lufs_m_max": -12.2,
+   "bytes": 9408,
+   "seconds": 0.514,
+   "lufs_i": -12.7,
+   "true_peak": -1.3,
+   "lufs_m_max": -12.6,
    "changes": [
+    "앞뒤 무음 0.61초 제거",
     "20Hz 이하 제거(직류 성분 제거)",
-    "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -7.5 dB)",
-    "OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 -1.00 dB 조정)"
+    "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -7.4 dB)",
+    "OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 -1.50 dB 조정)"
    ],
    "source_files": [
     "ShotgunSounds/Rack.mp3"
@@ -1718,8 +1721,8 @@
      ]
     }
    ],
-   "punch_db": -12.0,
-   "preview_gain_db": -8.0
+   "punch_db": -12.6,
+   "preview_gain_db": -7.4
   },
   {
    "id": "sfx_reload_shotgun_b",
@@ -1733,16 +1736,16 @@
    "mood": "짧은 코킹 소리.",
    "author": "SpringySpringo",
    "file": "candidates/sfx-reload/sfx_reload_shotgun_b.ogg",
-   "bytes": 8260,
+   "bytes": 8249,
    "seconds": 0.43,
-   "lufs_i": -14.9,
-   "true_peak": -1.2,
-   "lufs_m_max": -14.8,
+   "lufs_i": -15.1,
+   "true_peak": -1.1,
+   "lufs_m_max": -15.1,
    "changes": [
     "앞뒤 무음 0.04초 제거",
     "20Hz 이하 제거(직류 성분 제거)",
     "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -8.3 dB)",
-    "OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 -0.15 dB 조정)"
+    "OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 -0.40 dB 조정)"
    ],
    "source_files": [
     "shotguncock.wav"
@@ -1755,8 +1758,8 @@
      "members": []
     }
    ],
-   "punch_db": -13.0,
-   "preview_gain_db": -7.0
+   "punch_db": -13.3,
+   "preview_gain_db": -6.7
   },
   {
    "id": "sfx_casing_a",
@@ -1798,15 +1801,15 @@
    "mood": "작은 금속 부딪힘 녹음, 탄피 대용.",
    "author": "BMacZero",
    "file": "candidates/sfx-reload/sfx_casing_b.ogg",
-   "bytes": 6673,
+   "bytes": 6670,
    "seconds": 0.307,
    "lufs_i": -70.0,
-   "true_peak": -1.1,
+   "true_peak": -1.0,
    "lufs_m_max": -120.7,
    "changes": [
     "20Hz 이하 제거(직류 성분 제거)",
     "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 +1.4 dB)",
-    "OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 -0.15 dB 조정)"
+    "OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 -0.20 dB 조정)"
    ],
    "source_files": [
     "clink1.wav"
@@ -1874,7 +1877,7 @@
    "mood": "축축하게 꺾이는 소리.",
    "author": "Zane Little Music",
    "file": "candidates/sfx-impact/sfx_hit_flesh_b.ogg",
-   "bytes": 9252,
+   "bytes": 9237,
    "seconds": 0.476,
    "lufs_i": -21.3,
    "true_peak": -1.2,
@@ -1883,7 +1886,7 @@
     "앞뒤 무음 0.07초 제거",
     "20Hz 이하 제거(직류 성분 제거)",
     "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -4.5 dB)",
-    "OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 +0.15 dB 조정)"
+    "OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 +0.20 dB 조정)"
    ],
    "source_files": [
     "Wet Break 9.wav"
@@ -1898,8 +1901,8 @@
      ]
     }
    ],
-   "punch_db": -19.2,
-   "preview_gain_db": -0.8
+   "punch_db": -19.1,
+   "preview_gain_db": -0.9
   },
   {
    "id": "sfx_hit_armor_a",
@@ -1914,16 +1917,16 @@
    "star": true,
    "author": "rubberduck",
    "file": "candidates/sfx-impact/sfx_hit_armor_a.ogg",
-   "bytes": 6777,
+   "bytes": 6763,
    "seconds": 0.352,
    "lufs_i": -70.0,
-   "true_peak": -1.2,
+   "true_peak": -1.0,
    "lufs_m_max": -120.7,
    "changes": [
     "앞뒤 무음 0.08초 제거",
     "20Hz 이하 제거(직류 성분 제거)",
     "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -4.1 dB)",
-    "OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 -0.70 dB 조정)"
+    "OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 -0.50 dB 조정)"
    ],
    "source_files": [
     "metal_hit_02.ogg"
@@ -1938,8 +1941,8 @@
      ]
     }
    ],
-   "punch_db": -19.9,
-   "preview_gain_db": -0.1
+   "punch_db": -19.6,
+   "preview_gain_db": -0.4
   },
   {
    "id": "sfx_hit_armor_b",
@@ -1953,15 +1956,15 @@
    "mood": "맑게 길게 울리는 금속음.",
    "author": "BMacZero",
    "file": "candidates/sfx-impact/sfx_hit_armor_b.ogg",
-   "bytes": 8573,
+   "bytes": 8603,
    "seconds": 0.712,
-   "lufs_i": -10.4,
-   "true_peak": -1.4,
-   "lufs_m_max": -8.5,
+   "lufs_i": -10.2,
+   "true_peak": -1.1,
+   "lufs_m_max": -8.2,
    "changes": [
     "20Hz 이하 제거(직류 성분 제거)",
     "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -0.9 dB)",
-    "OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 -0.70 dB 조정)"
+    "OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 -0.40 dB 조정)"
    ],
    "source_files": [
     "bing1.wav"
@@ -1974,8 +1977,8 @@
      "members": []
     }
    ],
-   "punch_db": -5.6,
-   "preview_gain_db": -14.4
+   "punch_db": -5.2,
+   "preview_gain_db": -14.8
   },
   {
    "id": "sfx_hit_wall_a",

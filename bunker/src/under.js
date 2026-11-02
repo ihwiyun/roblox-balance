@@ -1328,7 +1328,7 @@ function seedSacks(fz, g) {
   for (const z of [.95, 1.42]) {
     fbox(x, ya, fz + z - .05, x + .3, yz, fz + z, board, 1320);
     for (const yy of [ya + .1, yz - .15]) fbox(x, yy, fz + z - .2, x + .24, yy + .05, fz + z - .05, DARK, 1321);
-    for (let k = 0; k < 5; k++) { const yy = ya + .1 + k * .22; sbox(x + .06, yy, fz + z, x + .2, yy + .14, fz + z + .2, [214, 222, 206], 1322 + k); fbox(x + .05, yy - .01, fz + z + .2, x + .21, yy + .15, fz + z + .24, lids[(k + z * 10) % 4], 1327 + k); onX(x + .2, yy + .02, yy + .12, fz + z + .03, fz + z + .14, rgb(...[[150, 120, 70], [96, 130, 70], [170, 90, 60]][k % 3])); }
+    for (let k = 0; k < 5; k++) { const yy = ya + .1 + k * .22; sbox(x + .06, yy, fz + z, x + .2, yy + .14, fz + z + .2, [214, 222, 206], 1322 + k); fbox(x + .05, yy - .01, fz + z + .2, x + .21, yy + .15, fz + z + .24, lids[(k + (z > 1 ? 2 : 0)) % 4], 1327 + k); onX(x + .2, yy + .02, yy + .12, fz + z + .03, fz + z + .14, rgb(...[[150, 120, 70], [96, 130, 70], [170, 90, 60]][k % 3])); }
   }
   const seed = (cx, z0) => (xx, z) => Math.abs(xx - cx) < .06 && Math.abs(z - z0) < .05 ? rgb(90, 140, 60) : 0;
   sack(x + .3, yb(3.95), fz, [196, 170, 120], .44, 1330, seed(x + .3, fz + .22));
@@ -1346,7 +1346,7 @@ function supplyCrates(fz, g) {
   for (const [a, b, z, n] of [[.08, 3.68, 0, '12'], [.08, 4.32, 0, '07'], [.7, 3.72, 0, '31'], [.08, 3.7, .5, '05'], [.7, 4.4, 0, '18']]) {
     const x = XA(a), y = yb(b), w = .56, d = .58, h = .48, num = stencil(n, x + .15, fz + z + .14);
     sbox(x, y, fz + z, x + w, y + d, fz + z + h, c, 1430 + a * 9 + b);
-    onY(y + d, x + .03, x + w - .03, fz + z + .03, fz + z + h - .03, (xx, zz) => Math.abs(zz - fz - z - h + .07) < .02 ? OD_D && rgb(...OD_D) : num(xx, zz) ? rgb(226, 222, 200) : 0);
+    onY(y + d, x + .03, x + w - .03, fz + z + .03, fz + z + h - .03, (xx, zz) => Math.abs(zz - fz - z - h + .07) < .02 ? rgb(...OD_D) : num(xx, zz) ? rgb(226, 222, 200) : 0);
     onX(x + w, y + .15, y + d - .15, fz + z + .3, fz + z + .36, rgb(150, 126, 84));
     footShadow(x, y, x + w, y + d, h);
   }
