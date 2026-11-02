@@ -273,8 +273,9 @@ const fireHtml = () => bulkHtml() + Object.entries(GUN).map(([k, g]) => cardHtml
 const cmdHtml = () => sec('지휘관 Lv 1', '포인트 0') + ['위력', '속사', '행운', '정밀', '지휘', '보급'].map(n => line(n, `0 ${off('+')}`)).join('');
 // people: a face with a name; a place to hire into (its price); a place not open yet
 const faceCell = (p, size, attrs = '') => `<${attrs ? 'button type="button" ' + attrs : 'div'} class="cell">${ph('100%', size + 'px', face(p, size))}<span>${p.name}</span></${attrs ? 'button' : 'div'}>`;
-const hireCell = (i, size) => { const c = priceOf('hire:' + i); return `<button class="cell" type="button" data-hire="${i}"${canPay(c) ? '' : ' disabled'}>${ph('100%', size + 'px', '+')}<span>${costHtml(c)}</span></button>`; };
-const shutCell = (size, label, lock) => `<div class="cell off">${ph('100%', size + 'px', lock ? ic('lock', 2) : '')}<span>${label}</span></div>`;
+// a bed with nobody in it: someone to hire (a faint figure, the price under it)
+const hireCell = (i, size, w = '100%') => { const c = priceOf('hire:' + i); return `<button class="cell" type="button" data-hire="${i}"${canPay(c) ? '' : ' disabled'}>${ph(w, size + 'px', '<i class="ic ic-person hire" style="--s:2"></i>')}<span>${costHtml(c)}</span></button>`; };
+const shutCell = (size, label, lock, w = '100%') => `<div class="cell off">${ph(w, size + 'px', lock ? ic('lock', 2) : '')}<span>${label}</span></div>`;
 // a place to work: who is on that job, then empty places (a tap brings over the first hand on another job)
 function zoneHtml(title, job) {
   const who = G.crew.filter(c => c && c.job === job), can = G.crew.some(c => c && c.job !== job);
@@ -346,7 +347,7 @@ function crewHtml() {
   const btns = `<div class="acts">${B('pri grow', '레벨업', 'disabled')}${B('sub', '배치', p.hero ? 'disabled' : 'data-jobs')}${B('sub', '대표', 'disabled')}</div>`;
   const jobs = ui.jobs && !p.hero ? `<div class="tool"><div class="chipset">${JOBS.map(j => `<button class="fchip tap" type="button" data-job="${j}" aria-pressed="${p.job === j}">${j}</button>`).join('')}</div></div>` : '';
   const beds = bedsOf(G.live);
-  const cells = [crewCell(-1, G.hero, p === G.hero), ...G.crew.map((c, i) => c ? crewCell(i, c, p === c) : i < beds ? hireCell(i, 50) : shutCell(50, '???', true)), ...Array.from({ length: 6 }, () => shutCell(50, '???'))];
+  const cells = [crewCell(-1, G.hero, p === G.hero), ...G.crew.map((c, i) => c ? crewCell(i, c, p === c) : i < beds ? hireCell(i, 50, '50px') : shutCell(50, '???', true, '50px')), ...Array.from({ length: 6 }, () => shutCell(50, '???', false, '50px'))];
   return top + btns + jobs + sec('보유 동료', 1 + hired().length + '/24') + strip('동료 모집 Lv 1', 200, 'mid') + grid(4, cells);
 }
 // buttons: the primary filled (one a screen), the secondary an outline; small icons and labels go inside
