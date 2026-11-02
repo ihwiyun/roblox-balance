@@ -98,6 +98,7 @@ const DEFAULTS = {
     slotsAt: [20, 50, 100, 200, 400, 700, 1000, 2000] },   // doc
   economy: {
     offlineBaseH: 2, offlineBaseEff: 0.8, offlineMaxH: 12, offlineMaxEff: 1, offlineGold: 0, // doc: as the current game (production at 80%, no gold, 2 h)
+    startGems: 500,          // a new player's first summons
     activityGemsPer10Min: 110, dailyGems: 300, bossFirstGems: 50, titanFirstGems: 500, // doc + activity rate
     evacGems0: 40, evacGemsPerStage: 0.05,
     adBoostMin: 30, adBoostsPerDay: 6, adSeconds: 30,

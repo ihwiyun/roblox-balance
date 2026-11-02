@@ -17,7 +17,7 @@ import { computeStats } from './power.mjs';
 export function newGame(seed = 1) {
   const st = {
     rng: makeRng(seed), t: 0, active: 0, stage: 1, record: 0, runBest: 0, mode: 'progress',
-    gold: 0, food: 0, ore: 0, parts: 0, gems: 500, diamonds: 0, medals: 0, medalsLife: 0, fame: 0,
+    gold: 0, food: 0, ore: 0, parts: 0, gems: T.economy.startGems, diamonds: 0, medals: 0, medalsLife: 0, fame: 0,
     ws: { atk: 0, rate: 0, mag: 0, reload: 0 }, bunker: 1, bunkerBt: 0, fence: 0, fenceBt: 0,
     sec: Object.fromEntries(SECTION_KEYS.map(k => [k, { lv: 0, bt: 0, tier: 0, cap: 0 }])),
     cmd: newCommander(), medalUp: {}, evacs: 0, evacAt: [], research: { lv: {}, active: [] },

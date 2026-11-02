@@ -40,7 +40,9 @@ export const MEDAL_UPS = {
   sentry: { name: '자동 보초', desc: '오프라인 생산 +2%/레벨', max: 10 },
 };
 export const MEDAL_KEYS = Object.keys(MEDAL_UPS);
-export const medalUpCost = (key, L) => Math.ceil(T.medals.ups[key].cost0 * T.medals.ups[key].grow ** L);
+// level L costs cost0 * grow^L * grow2^(L(L-1)/2): the growth itself rises a little each level, so the first evacuations
+// buy several levels (the prestige hook) while the long tail slows; one flat factor could only do one of the two
+export const medalUpCost = (key, L) => { const u = T.medals.ups[key]; return Math.ceil(u.cost0 * u.grow ** L * (u.grow2 ?? 1) ** (L * (L - 1) / 2)); };
 export const medalUpMaxed = (key, L) => MEDAL_UPS[key].max != null && L >= MEDAL_UPS[key].max;
 export function medalMuls(lv) {
   const L = k => lv[k] || 0;
