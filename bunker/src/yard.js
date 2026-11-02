@@ -303,14 +303,18 @@ const YARD_ART = (() => {
   const tone = (c, f, d = 0) => { const r = rampOf(c), i = (f === 0 ? 3 : f === 1 ? 2 : 1) + d; return r[i < 0 ? 0 : i > 4 ? 4 : i]; };
   // several patterns over one face: the first that paints something wins
   const pats = (...list) => (f, a, b) => { let shade = 0; for (const p of list) { if (!p) continue; const r = p(f, a, b); if (r > 255) return r; shade += r || 0; } return shade; };
-  return { deck, block, placeCrew, tone, outline, PXA, PXZ, rep, col, pbox, shade, solid, post, bar, wire, lamp, bulb, ladder, railing, bagLine, crateAt, drum, hatch, flag, textAt, pats, FONT };
+  // past the end of a ladder a component climbs material grades: its trim takes the grade's colour (bronze, silver,
+  // gold, platinum, crystal, ruby, emerald, sapphire, amethyst, obsidian: colours the yard already uses)
+  const GRADE_C = [[186, 120, 84], [206, 210, 214], [226, 182, 66], [212, 218, 224], [120, 230, 255], [196, 52, 44], [100, 168, 74], [48, 62, 120], [230, 120, 255], [40, 38, 44]];
+  const trimOf = (g, c) => g ? GRADE_C[(g - 1) % GRADE_C.length] : c;
+  return { deck, block, placeCrew, tone, outline, PXA, PXZ, rep, col, pbox, shade, solid, post, bar, wire, lamp, bulb, ladder, railing, bagLine, crateAt, drum, hatch, flag, textAt, pats, trimOf, FONT };
 })();
 /* ================= the bunker: components × stages (the names and the order are BUNKER_LOOK, buildings.js) ==========
    Each era has a frame (the body the components hang on) and, for every component, a row of drawings, one per stage
    of its ladder; a stage not drawn yet shows the last one that is. Whatever a stage adds goes right round the
    building, so the two walls the camera sees always show it */
 const BUNKER_ART = (() => {
-  const { deck, placeCrew, tone, outline, PXA, PXZ, rep, col, pbox, shade, solid, post, bar, lamp, bulb, bagLine, crateAt, pats } = YARD_ART;
+  const { deck, placeCrew, tone, outline, PXA, PXZ, rep, col, pbox, shade, solid, post, bar, lamp, bulb, bagLine, pats, trimOf } = YARD_ART;
   // planks running along y, seams every w along x, a few dark knots
   const plankTop = (w = .3) => (f, a, b) => f === 0 ? (rep(a, w) < PXA * 1.1 ? -1.3 : hash(Math.floor(a / w), Math.floor(b * 2)) > .9 ? -.5 : 0) : 0;
   // log posts: vertical bark lines
@@ -347,14 +351,10 @@ const BUNKER_ART = (() => {
   const wallBox = (x, y, nx, a, d, z0, z1, c, seed, pat, grain) => nx ? pbox(x - d, y - a, z0, x + d, y + a, z1, c, seed, pat, grain) : pbox(x - a, y - d, z0, x + a, y + d, z1, c, seed, pat, grain);
   // sandbags all round a square of half m (bag centres), `courses` high
   const bagRing = (m, z, courses) => { for (const [ax, ay, bx, by] of [[-m, m, m, m], [m, -m, m, m], [-m, -m, m, -m], [-m, -m, -m, m]]) bagLine(ax, ay, bx, by, z, courses); };
-  // past the end of a ladder a component climbs material grades: its trim takes the grade's colour
-  // (bronze, silver, gold, platinum, crystal, ruby, emerald, sapphire, amethyst, obsidian: colours the yard already uses)
-  const GRADE_C = [[186, 120, 84], [206, 210, 214], [226, 182, 66], [212, 218, 224], [120, 230, 255], [196, 52, 44], [100, 168, 74], [48, 62, 120], [230, 120, 255], [40, 38, 44]];
-  const trimOf = (g, c) => g ? GRADE_C[(g - 1) % GRADE_C.length] : c;
   // the turret mounts in the order they open (MOUNT_AT): the left, right and back corners, the middles of the two
   // back walls, then the front corner (last: it stands in front of the gunners). SITES.mounts keeps where a turret sits
   const MOUNT_DIRS = [[-1, 1], [1, -1], [-1, -1], [-1, 0], [0, -1], [1, 1]];
-  const mountsAt = (F, q, z, fn) => { for (let i = 0; i < F.mounts; i++) { const [dx, dy] = MOUNT_DIRS[i]; fn(dx * q, dy * q, z, dx, dy); } };
+  const mountsAt = (F, q, z, fn) => { for (let i = 0; i < F.mounts; i++) fn(MOUNT_DIRS[i][0] * q, MOUNT_DIRS[i][1] * q, z); };
   const RED = [190, 58, 46], YEL = [226, 184, 52];
   // a box with a darker frame round every face and, if given, a stencil band across its walls
   const framed = (x, y, z, sx, sy, sz, c, seed, band = 0) => solid(x - sx, y - sy, z, x + sx, y + sy, z + sz, c, seed, (f, a, b) => {
@@ -380,7 +380,7 @@ const BUNKER_ART = (() => {
     if (r > COURSE - PXZ * 1.05) return .9;
     return (hash(q, f) - .5) * .5;
   };
-  // a crib of logs laid crosswise, three layers, with an iron pivot plate on top: a turret mount
+  // a crib of logs laid crosswise, three layers, with a turntable on top: a turret mount
   const logCrib = (x, y, z, g) => {
     for (let i = 0; i < 3; i++) {
       const zz = z + i * .11, c = CRIB[i & 1], pat = (f, a, b) => f && rep(b - zz, .11) < PXZ ? -1.3 : 0;
@@ -457,7 +457,7 @@ const BUNKER_ART = (() => {
     ],
     storage: [
       null,
-      // supply crates stacked by every wall: a plank crate, a dark one and an olive one, a small olive one on top
+      // supply crates stacked by every wall: two pale crates, one on the other, a plank crate and an olive ammunition box
       (F, g) => byWalls(F.m, .8, .3, (x, y, nx) => {
         const at = s => nx ? [x, y + s] : [x + s, y], band = col(...trimOf(g, [214, 178, 60]));
         framed(...at(-.22), 0, .21, .21, .42, [222, 204, 170], 5);
@@ -468,7 +468,7 @@ const BUNKER_ART = (() => {
     ],
     workshop: [
       null,
-      // a workbench by every wall: a plank top on four legs, a vice, a red toolbox and a saw-horse beside it
+      // a workbench by every wall: a plank top on four legs, a vice and a red toolbox
       (F, g) => byWalls(F.m, -.8, .22, (x, y, nx, ny) => {
         const L = .38, D = .15, at = (s, o) => nx ? [x + nx * o, y + s] : [x + s, y + ny * o];
         wallBox(x, y, nx, L, D, .4, .47, PLANK, 25, (f, a, b) => f === 0 ? (rep(nx ? b : a, .19) < PXA ? -1 : .3) : -.4, .3);
@@ -513,7 +513,7 @@ const BUNKER_ART = (() => {
       corners(F.m, (x, y) => pbox(x - .07, y - .07, .22, x + .07, y + .07, F.top + .02, c, 6, (f, a, b) => f && rep(b, .3) < PXZ * 1.4 ? col(196, 200, 206) : 0));
       ring(F.m - .04, .2, F.ringTop, F.ringTop + .03, c, 7, null, .3, F.top + .23);
     }],
-    // concrete pads on the deck with a steel ring and a pivot
+    // concrete pads on the deck, a steel turntable on each
     mounts: [(F, g) => mountsAt(F, F.m - .55, F.top, (x, y, z) => {
       solid(x - .28, y - .28, z, x + .28, y + .28, z + .12, [182, 178, 166], 30, (f, a, b) => f ? (b > z + .08 ? .8 : 0) : Math.max(Math.abs(a - x), Math.abs(b - y)) > .24 ? .6 : 0, .2);
       turntable(x, y, z + .12, .2, trimOf(g, METAL));
@@ -531,7 +531,7 @@ const BUNKER_ART = (() => {
       post(x, y, F.ringTop, F.ringTop + 1.1, .02, DARK, 32); bar(x - .13, y, x + .13, y, F.ringTop + .75, .012, .024, trimOf(g, DARK));
       bulb(x, y, F.ringTop + 1.14, [255, 70, 50]);
     })],
-    // a steel tool locker by every wall, a red jerrycan beside it
+    // an olive tool locker by every wall, a red jerrycan beside it
     workshop: [(F, g) => byWalls(F.m + .12, -.95, .17, (x, y, nx) => {
       const c = trimOf(g, ARMY);
       wallBox(x, y, nx, .25, .15, 0, .76, c, 50, (f, a, b) => {
@@ -553,8 +553,8 @@ const BUNKER_ART = (() => {
       framed(x + ax, y + ay, 0, ...(nx ? [.15, .18] : [.18, .15]), .26, OLIVE, 53, mark);
       framed(x, y, .26, ...(nx ? [.13, .2] : [.2, .13]), .22, ARMY, 54, mark);
     })],
-    flags: [() => {}],
-    // a white star on a blue disc in a gold ring, painted in the middle of every wall
+    flags: [null], // painted on the walls:
+    // a white star on a blue panel in a gold rim, in the middle of every wall
     paint: { flags: [(F, g) => { const z0 = F.top * .45; return (f, a, b) => {
       if (!f) return 0;
       const dx = a / .34, dz = (b - z0) / .34;
@@ -584,10 +584,8 @@ function buildBunker() { BUNKER_ART.build(); }
    so damage during a fight never re-bakes the yard */
 const SIDE_AT = (side, s, R = FENCE_R) => [[s, R], [R, s], [s, -R], [-R, s]][side];
 const FENCE_ART = (() => {
-  const { tone, PXA, PXZ, rep, col, pbox, solid, post, lamp } = YARD_ART;
+  const { tone, PXA, rep, col, pbox, solid, post, lamp, trimOf } = YARD_ART;
   const R = FENCE_R, SEG = 10, WOODF = [140, 100, 64], PALE = [222, 204, 170], STEELP = [150, 158, 166], YEL_F = [236, 190, 48];
-  const GRADE_C = [[186, 120, 84], [206, 210, 214], [226, 182, 66], [212, 218, 224], [120, 230, 255], [196, 52, 44], [100, 168, 74], [48, 62, 120], [230, 120, 255], [40, 38, 44]];
-  const trimOf = (g, c) => g ? GRADE_C[(g - 1) % GRADE_C.length] : c;
   function side(sd, wear) {
     const L = G.fence;
     if (!L) return;
