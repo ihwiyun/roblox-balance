@@ -71,7 +71,7 @@ function startAttempt(st) {
     let to = st.stage - 1, first = true;
     for (let next; (next = Math.min(st.record, autoSkip(to, S.skipPower, mult))) > to; to = next, first = false)
       if (!(first && A.startSkip && st.runBest === 0)) skipTime += (next - to) * T.stage.skipStepTime;  // 5 evacuations: the first jump is free
-    if (to >= st.stage) { st.runBest = Math.max(st.runBest, to); st.stage = to + 1; }
+    if (to >= st.stage) { st.runBest = Math.max(st.runBest, to); st.stage = Math.min(T.stage.cap, to + 1); }   // never past the cap
   }
   const s = Math.min(st.stage, T.stage.cap);
   const res = resolveStage(s, S, { ...st.pool, fenceMax: S.fenceMax, bunkerMax: S.bunkerMax });
