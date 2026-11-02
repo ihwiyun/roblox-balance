@@ -179,6 +179,7 @@
   .pk.locked .slot2 { opacity: .5; }
   .gem { display: grid; justify-items: center; gap: 4px; padding: 8px; border: 1px solid var(--line); }
   .gem .pile { height: 62px; display: flex; align-items: flex-end; }
+  .gem .amt { display: flex; align-items: center; gap: 4px; }
   /* 편의·패스: a name, what it does, its price */
   .cv { display: flex; align-items: center; gap: 8px; min-height: 60px; padding: 8px 0; border-bottom: 1px solid var(--line); }
   .cv .bd { flex: 1; min-width: 0; display: grid; gap: 2px; }
@@ -228,12 +229,12 @@ const B = (cls, inner) => `<span class="b ${cls} tap">${inner}</span>`;
 const cost = (res, n, short) => `${ico(res)}<span class="num${short ? ' short' : ''}">${n}</span>`;
 const chip = (t, cls = '', g) => `<span class="chip tap ${cls}${g != null ? ' gq q' + g : ''}">${t}</span>`;
 const strip = (label, pct, one, ten) => `<div class="strip"><div class="lv tap" aria-label="소환 확률"><b>${label}</b><span><span class="prog2"><i style="width:${pct}%"></i></span><span class="link">확률</span></span></div>${B('sub sm', '1회 ' + cost('ruby', one))}${B('sub sm', '10회 ' + cost('ruby', ten))}</div>`;
-// a small cut ruby (8x7) in the ruby icon's colours; a pile is rows of them, the bottom row widest, drawn back to front
-const GEM = ['..oooo..', '.oWEERo.', 'oEEEERro', 'orrrrrro', '.oERRro.', '..oRro..', '...oo...'];
+// a small cut diamond (8x6) in the 다이아 icon's colours; a pile is rows of them, the bottom row widest, drawn back to front
+const DIA = ['.oooooo.', 'oWWBWLLo', 'oBBBBBBo', '.oWBLLo.', '..oWLo..', '...oo...'];
 function pile(rows, s = 2) {
-  const dx = 6, dy = 4, w = dx * (rows - 1) + 8, h = dy * (rows - 1) + 7, c = document.createElement('canvas'), g = c.getContext('2d');
+  const dx = 6, dy = 4, w = dx * (rows - 1) + 8, h = dy * (rows - 1) + DIA.length, c = document.createElement('canvas'), g = c.getContext('2d');
   c.width = w; c.height = h;
-  for (let r = 0; r < rows; r++) for (let i = 0; i <= r; i++) GEM.forEach((row, y) => [...row].forEach((ch, x) => { if (ch !== '.') { const [R, G, B] = ART.iconPal[ch]; g.fillStyle = `rgb(${R},${G},${B})`; g.fillRect(3 * (rows - 1 - r) + i * dx + x, r * dy + y, 1, 1); } }));
+  for (let r = 0; r < rows; r++) for (let i = 0; i <= r; i++) DIA.forEach((row, y) => [...row].forEach((ch, x) => { if (ch !== '.') { const [R, G, B] = ART.iconPal[ch]; g.fillStyle = `rgb(${R},${G},${B})`; g.fillRect(3 * (rows - 1 - r) + i * dx + x, r * dy + y, 1, 1); } }));
   return `<img class="gun" src="${c.toDataURL()}" style="width:${w * s}px;height:${h * s}px" alt="">`;
 }
 const sec2 = (left, right = '') => `<div class="sec2"><span>${left}</span><span class="aux">${right}</span></div>`;
@@ -282,7 +283,7 @@ const screens = [
   ['7. 상점 · 패키지 (돈 쓰는 것만, 바뀜)', `<div class="fs">${head('상점', ['패키지', '다이아', '편의·패스'], '패키지')}
     <div class="list">${sec2('성장 패키지', '1/6')}${[[2, 4, '희귀 5번 무기 + 보석 300', '1,200원'], [3, 2, '영웅 3번 무기 + 희귀 동료', '3,300원'], [4, 0, '전설 1번 무기 + 유물 상자 5', '5,900원'], [4, 4, '전설 5번 무기 + 영웅 터렛', '12,000원'], [5, 0, '불멸 1번 무기 + 전설 동료', '33,000원'], [6, 0, '신화 1번 무기 + 유물 상자 30', '69,000원']].map(([g, k, what, price], n) => `<div class="pk${n ? ' locked' : ''}"><span class="slot2 q${g}">${gun(k)}</span><div class="bd"><b>${n + 1}단계</b><span>${what}</span>${n ? B('sub off', ico('lock') + `<span class="num">${price}</span>`) : B('pri', `<span class="num">${price}</span>`)}</div></div>`).join('')}</div></div>`, 1],
   ['8. 상점 · 다이아 (바뀜)', `<div class="fs">${head('상점', ['패키지', '다이아', '편의·패스'], '다이아')}
-    <div class="list"><div class="grid2 c3" style="margin-top:12px">${['1,200', '5,900', '12,000', '33,000', '69,000', '119,000'].map((p, n) => `<span class="gem tap"><span class="pile">${pile(n + 2)}</span><b class="num">${p}원</b><span class="aux">첫 구매 2배</span></span>`).join('')}</div></div></div>`, 1],
+    <div class="list"><div class="grid2 c3" style="margin-top:12px">${[['1,200', '120'], ['5,900', '640'], ['12,000', '1,350'], ['33,000', '3,900'], ['69,000', '8,500'], ['119,000', '15,000']].map(([p, d], n) => `<span class="gem tap"><span class="pile">${pile(n + 2)}</span><span class="amt">${ico('diamond')}<b class="num">${d}</b></span><span>${p}원</span><span class="aux">첫 구매 2배</span></span>`).join('')}</div></div></div>`, 1],
   ['9. 환생 (전체 화면)', `${head('환생', null)}<div class="body">
     <div class="card" style="justify-items:center">${img('80px', '80px', '훈장')}<b style="font-size:16px">받을 훈장 +240</b><span style="color:var(--muted)">보유 1,820</span><div class="btn dark" style="width:100%">환생</div></div>
     <div class="sec"><span>훈장 강화</span><span></span></div><div class="grid g4">${['화력', '군자금', '오프라인', '보스', '치명', '발견', '유지비', '설계도'].map(n => `<div class="card" style="justify-items:center">${img('100%', '36px', '')}<span style="font-size:10px">${n}</span><span style="font-size:10px;color:var(--muted)">Lv 0</span></div>`).join('')}</div>
@@ -315,10 +316,10 @@ const screens = [
     ${sec2('글자')}
     <div class="types"><div><span class="t16">제목</span><span class="aux">16 굵게</span></div><div><b>구역</b><span class="aux">13 굵게</span></div><div><span>본문</span><span class="aux">13</span></div><div><b class="num">1,234</b><span class="aux">숫자 14 굵게</span></div><div><span class="aux">보조</span><span class="aux">11 굵게·흐리게</span></div></div>
     ${sec2('아이콘', '16 · 24 · 32만')}
-    <div class="sizes">${[1, 1.5, 2].map(s => `<div>${['ruby', 'medal', 'trophy', 'gear', 'close', 'prev', 'next', 'star'].map(n => ico(n, s)).join('')}</div>`).join('')}</div></div>`, 1],
+    <div class="sizes">${[1, 1.5, 2].map(s => `<div>${['ruby', 'diamond', 'medal', 'trophy', 'gear', 'close', 'prev', 'next', 'star'].map(n => ico(n, s)).join('')}</div>`).join('')}</div></div>`, 1],
   ['8-1. 상점 · 편의·패스 (바뀜)', `<div class="fs">${head('상점', ['패키지', '다이아', '편의·패스'], '편의·패스')}
-    <div class="list">${sec2('패스')}<div class="cv"><div class="bd"><b>월정액</b><span class="aux">매일 보석 + 광고 없는 보상 + 오프라인 +2시간</span></div>${B('pri', '<span class="num">5,500원</span>')}</div><div class="cv"><div class="bd"><b>시즌 패스</b></div>${B('sub', '<span class="num">9,900원</span>')}</div>
-    ${sec2('편의')}${[['광고 제거', '광고 보상을 광고 없이 바로', '6,600원'], ['자동 합성', '환생 8회 전에 바로 열기', '?,???원'], ['오프라인 +12시간', '오프라인 최대 시간 늘리기', '?,???원'], ['장비 프리셋', '무기·유물 조합 저장 칸', '?,???원'], ['연구 칸 +1', '연구 두 개를 동시에', '?,???원'], ['x2 기본', 'x2 배속을 기본값으로', '?,???원']].map(([n, d, pr]) => `<div class="cv"><div class="bd"><b>${n}</b><span class="aux">${d}</span></div>${B('sub', `<span class="num">${pr}</span>`)}</div>`).join('')}</div></div>`, 1],
+    <div class="list">${sec2('패스')}<div class="cv"><div class="bd"><b>월정액</b><span class="aux">매일 보석 + 광고 없는 보상 + 오프라인 +2시간</span></div>${B('pri', '<span class="num">5,500원</span>')}</div><div class="cv"><div class="bd"><b>시즌 패스</b><span class="aux">기록 20마다 보석 120, 100마다 유물 상자</span></div>${B('sub', '<span class="num">9,900원</span>')}</div>
+    ${sec2('편의')}${[['광고 제거', '광고 보상을 광고 없이 바로 받기', '6,600원'], ['자동 합성', '환생 8회에 열리는 자동 합성을 바로', '4,400원'], ['오프라인 +12시간', '오프라인 최대 +12시간', '5,500원'], ['장비 프리셋', '무기·유물 조합 저장', '2,200원'], ['연구 칸 +1', '연구 두 개를 동시에', '9,900원'], ['x2 기본', 'x2 배속을 기본값으로', '3,300원']].map(([n, d, pr]) => `<div class="cv"><div class="bd"><b>${n}</b><span class="aux">${d}</span></div>${B('sub', `<span class="num">${pr}</span>`)}</div>`).join('')}</div></div>`, 1],
 ];
 document.getElementById('wrap').innerHTML = screens.map(([t, h, v2], n) => `<div class="scr" id="s${n + 1}"><b>${t}</b><div class="frame${v2 ? ' v2' : ''}">${h}</div></div>`).join('');
 </script>

@@ -1562,6 +1562,11 @@ const DIGIT = ['111101101101111', '010110010010111', '111001111100111', '1110011
 const stencil = (n, u0, z0, cu = .09, cz = .075) => (u, z) => { const i = Math.floor((u - u0) / cu), r = 4 - Math.floor((z - z0) / cz), d = Math.floor(i / 4), c = i % 4; return r >= 0 && r <= 4 && i >= 0 && d < n.length && c < 3 && DIGIT[+n[d]][r * 3 + c] === '1'; };
 // a brace: a line two pixels thick
 function brace(a, b, c, d = [.07, 0, 0]) { ln(a, b, c); ln([a[0] + d[0], a[1] + d[1], a[2] + d[2]], [b[0] + d[0], b[1] + d[1], b[2] + d[2]], c); }
+// a solid slanted beam from a to b, w thick: little boxes stacked along it (so it shades like a box)
+function beam(a, b, w, c, seed) {
+  const n = Math.max(2, Math.ceil(Math.hypot(b[0] - a[0], b[1] - a[1], b[2] - a[2]) / .045));
+  for (let k = 0; k <= n; k++) { const x = lerp(a[0], b[0], k / n), y = lerp(a[1], b[1], k / n), z = lerp(a[2], b[2], k / n); fbox(x - w, y - w, z - w, x + w, y + w, z + w, c, seed, .5); }
+}
 // a hose or cable from a to b, sagging to the floor between them when it is long
 function hose(a, b, c, sag = .25) {
   const n = 8;
@@ -1592,23 +1597,25 @@ function drillHead(x, y, z0, z1, c, seed, fins) {
   if (fins) onY(y + .23, x - .2, x + .2, z0 + .04, z1 - .04, (xx, z) => ((z - z0) % .07) < .025 ? shade(rgb(...c), .6) : 0);
   onX(x + .23, y - .2, y + .2, z0 + .04, z1 - .04, (yy, z) => Math.abs(z - z1 + .08) < .02 ? shade(rgb(...c), .55) : 0);
 }
-// breakthrough: a timber frame over the pit with a jackhammer on a chain, fed by a little air compressor
+// breakthrough: two timber A-frames over the pit and a beam across them; a jackhammer hangs on a chain from the beam
+// (its steel is the spinning rod), fed by a little air compressor. Nothing stands in front of the bit, so it shows
 function jackFrame(fz, g) {
-  const { x, y } = PIT, wd = mat(WOOD, g), top = fz + 2.42;
-  for (const [dx, dy] of [[-.62, -.55], [.62, -.55], [-.62, .55], [.62, .55]]) fbox(x + dx - .07, y + dy - .07, fz, x + dx + .07, y + dy + .07, top, wd, 1100);
-  // beams on top, the middle one carrying the drill; ties at knee height on the two sides seen
-  for (const yy of [y - .55, y, y + .55]) fbox(x - .7, yy - .06, top - .12, x + .7, yy + .06, top, wd, 1101);
-  fbox(x + .56, y - .62, fz + .8, x + .68, y + .62, fz + .92, wd, 1102); fbox(x - .62, y + .49, fz + .8, x + .62, y + .61, fz + .92, wd, 1103);
-  brace([x + .69, y + .48, fz + .12], [x + .69, y - .48, fz + .8], shade(rgb(...wd), .8), [0, 0, .05]);
-  brace([x + .69, y - .48, fz + .93], [x + .69, y + .48, top - .14], shade(rgb(...wd), .8), [0, 0, .05]);
-  for (const [dx, dy, z] of [[.62, .55, .86], [-.62, .55, .86], [.62, -.55, .86], [.62, .55, top - fz - .06]]) fbox(x + dx - .09, y + dy - .09, fz + z - .05, x + dx + .09, y + dy + .09, fz + z + .05, DARK, 1104);
-  // the jackhammer: chain, body (red cap, handles), the chuck; its steel is the spinning rod
-  for (let z = fz + 2.2; z < top - .12; z += .05) pt(x, y, z, rgb(150, 150, 156));
-  drillHead(x, y, fz + 1.86, fz + 2.2, [150, 156, 164], 1105, true);
-  sbox(x - .2, y - .2, fz + 2.2, x + .2, y + .2, fz + 2.26, [190, 60, 44], 1107);
-  for (const s of [-1, 1]) fbox(x - .04, y + s * .23, fz + 2.06, x + .04, y + s * .36, fz + 2.1, DARK, 1108);
-  // the compressor: a red tank on a skid with its little engine, the hose to the drill
-  const cx = x + 1.05, cy = y + .18;
+  const { x, y } = PIT, wd = mat(WOOD, g), top = fz + 2.36;
+  for (const s of [-1, 1]) {
+    const ax = x + s * .78;
+    fbox(ax - .07, y - .7, fz, ax + .07, y + .7, fz + .09, WOOD_D, 1100);
+    beam([ax, y - .6, fz + .09], [ax, y - .03, top - .04], .065, wd, 1101); beam([ax, y + .6, fz + .09], [ax, y + .03, top - .04], .065, wd, 1101);
+    fbox(ax - .05, y - .4, fz + .86, ax + .05, y + .4, fz + .96, wd, 1102);
+    fbox(ax - .09, y - .1, top - .16, ax + .09, y + .1, top + .02, DARK, 1103);
+  }
+  fbox(x - .9, y - .07, top - .1, x + .9, y + .07, top + .06, wd, 1104);
+  for (let z = fz + 2.2; z < top - .1; z += .045) pt(x, y, z, rgb(150, 150, 156));
+  // the jackhammer: a steel body with a red band, its handles, the air hose to the compressor
+  drillHead(x, y, fz + 1.86, fz + 2.2, [156, 162, 170], 1105, true);
+  sbox(x - .24, y - .24, fz + 2.04, x + .24, y + .24, fz + 2.1, [196, 62, 44], 1106);
+  sbox(x - .14, y - .14, fz + 2.2, x + .14, y + .14, fz + 2.26, [70, 72, 78], 1107);
+  for (const s of [-1, 1]) fbox(x - .04, y + s * .24, fz + 2.14, x + .04, y + s * .42, fz + 2.18, DARK, 1108);
+  const cx = x + 1.05, cy = y + .3;
   fbox(cx, cy, fz, cx + .8, cy + .42, fz + .08, WOOD_D, 1110);
   sbox(cx + .04, cy + .04, fz + .08, cx + .76, cy + .38, fz + .4, [184, 62, 48], 1111);
   for (const xx of [cx + .1, cx + .66]) onY(cy + .38, xx - .015, xx + .015, fz + .1, fz + .38, rgb(120, 40, 32));
@@ -1616,12 +1623,12 @@ function jackFrame(fz, g) {
   onY(cy + .34, cx + .47, cx + .69, fz + .44, fz + .58, (xx, z) => ((z - fz) % .05) < .02 ? rgb(40, 40, 44) : 0);
   sbox(cx + .12, cy + .12, fz + .4, cx + .26, cy + .26, fz + .46, [210, 214, 220], 1113);
   pt(cx + .19, cy + .27, fz + .44, rgb(30, 30, 34));
-  hose([x + .23, y + .1, fz + 2.0], [cx + .1, cy + .2, fz + .3], rgb(36, 34, 38), .9);
-  footShadow(x - .7, y - .62, x + .7, y + .62, 1.2); footShadow(cx, cy, cx + .8, cy + .42, .5);
+  hose([x + .24, y + .1, fz + 2.0], [cx + .1, cy + .2, fz + .3], rgb(36, 34, 38), .9);
+  footShadow(x - .85, y - .7, x + .85, y + .7, 1.1); footShadow(cx, cy, cx + .8, cy + .42, .5);
 }
 // breakthrough: a welded steel tower with an electric motor on top, a switch box on a post wired to the wall
 function steelTower(fz, g) {
-  const { x, y } = PIT, st = mat([132, 140, 150], g), top = fz + 2.44, w = .6, d = .55;
+  const { x, y } = PIT, st = mat([132, 140, 150], g), top = fz + 2.44, w = .74, d = .42;
   for (const [dx, dy] of [[-w, -d], [w, -d], [-w, d], [w, d]]) fbox(x + dx - .05, y + dy - .05, fz, x + dx + .05, y + dy + .05, top, st, 1120);
   for (const z of [.12, .92, 1.72]) { fbox(x - w, y + d - .03, fz + z, x + w, y + d + .03, fz + z + .05, st, 1121); fbox(x + w - .03, y - d, fz + z, x + w + .03, y + d, fz + z + .05, st, 1122); fbox(x - w, y - d - .03, fz + z, x + w, y - d + .03, fz + z + .05, st, 1123); }
   const dk = shade(rgb(...st), .62);
@@ -1633,18 +1640,18 @@ function steelTower(fz, g) {
   fbox(x - w - .06, y - d - .06, top - .08, x + w + .06, y + d + .06, top, [96, 102, 110], 1124, .5);
   drillHead(x, y, fz + 1.84, top - .08, [62, 112, 96], 1125, true);
   onX(x + .232, y - .08, y + .08, fz + 2.12, fz + 2.24, rgb(232, 190, 50));
-  for (const [x0, y0, x1, y1] of [[x - .74, y - .74, x + .74, y - .66], [x - .74, y + .66, x + .74, y + .74], [x - .74, y - .66, x - .66, y + .66], [x + .66, y - .66, x + .74, y + .66]])
+  for (const [x0, y0, x1, y1] of [[x - .86, y - .58, x + .86, y - .5], [x - .86, y + .5, x + .86, y + .58], [x - .86, y - .5, x - .78, y + .5], [x + .78, y - .5, x + .86, y + .5]])
     fbox(x0, y0, fz, x1, y1, fz + .06, YELLOW, 1126, .4);
-  onZ(fz + .06, x - .74, y + .66, x + .74, y + .74, (xx, yy) => hazard(xx, yy));
+  onZ(fz + .06, x - .86, y + .5, x + .86, y + .58, (xx, yy) => hazard(xx, yy));
   // the switch box on its post, a cable up the tower and one along the floor to the back wall
-  const bx = x + 1.0, by = y + .62;
+  const bx = x + 1.15, by = y + .62;
   fbox(bx - .03, by - .03, fz, bx + .03, by + .03, fz + 1.0, DARK, 1127);
   sbox(bx - .16, by - .1, fz + .9, bx + .16, by + .1, fz + 1.28, [110, 118, 124], 1128);
   onY(by + .1, bx - .13, bx + .13, fz + .93, fz + 1.25, (xx, z) => Math.abs(z - fz - 1.15) < .04 && Math.abs(xx - bx + .06) < .04 ? lit(rgb(110, 255, 120)) : Math.abs(z - fz - 1.15) < .04 && Math.abs(xx - bx - .06) < .04 ? lit(rgb(255, 80, 60)) : Math.abs(z - fz - 1.0) < .02 ? rgb(60, 64, 70) : 0);
   ln([x + w, y + d, top - .3], [x + w, y + d, fz + .02], rgb(30, 30, 34)); ln([x + w, y + d, fz + .02], [bx, by, fz + .02], rgb(30, 30, 34));
   ln([bx, by - .1, fz + .02], [bx, yb(.25), fz + .02], rgb(30, 30, 34)); ln([bx, yb(.25), fz + .02], [bx, UG.y0 + .02, fz + 1.0], rgb(30, 30, 34));
   sbox(bx - .14, UG.y0, fz + 1.0, bx + .14, UG.y0 + .1, fz + 1.3, [110, 118, 124], 1129);
-  footShadow(x - .74, y - .74, x + .74, y + .74, 1.4);
+  footShadow(x - .86, y - .58, x + .86, y + .58, 1.4);
 }
 // military era: a core drill on tracks, its mast over the pit, the engine and the cab behind it
 function coreRig(fz, g) {
@@ -1656,10 +1663,10 @@ function coreRig(fz, g) {
   }
   // the hull: louvres, a number, hazard stripes on the nose
   const num = stencil('07', .75, .58);
-  sbox(x + .3, y - .62, fz + .34, x + 2.6, y + .62, fz + 1.02, body, 1201);
-  onY(y + .62, x + .32, x + 2.58, fz + .36, fz + 1.0, (xx, z) => {
+  sbox(x + .42, y - .62, fz + .34, x + 2.6, y + .62, fz + 1.02, body, 1201);
+  onY(y + .62, x + .44, x + 2.58, fz + .36, fz + 1.0, (xx, z) => {
     const u = xx - x, zz = z - fz;
-    if (u < .52) return (Math.floor((u + zz) * 6) & 1) ? HZ_Y : HZ_K;
+    if (u < .64) return (Math.floor((u + zz) * 6) & 1) ? HZ_Y : HZ_K;
     if (u > 1.7 && u < 2.45 && zz > .52 && zz < .9) return ((zz - .52) % .08) < .035 ? rgb(40, 44, 34) : 0;
     return num(u, zz) ? rgb(226, 222, 200) : 0;
   });
@@ -1672,8 +1679,8 @@ function coreRig(fz, g) {
   onY(y + .3, x + 1.0, x + 1.55, fz + 1.3, fz + 1.72, (xx, z) => Math.abs(xx - x - 1.27) < .02 ? rgb(46, 50, 38) : lit(rgb(150, 186, 196)));
   onX(x + 1.6, y - .5, y + .22, fz + 1.3, fz + 1.72, (yy, z) => Math.abs(yy - y + .14) < .02 ? rgb(46, 50, 38) : rgb(118, 150, 164));
   // the mast: four corner posts laced together, struts back to the hull, the rotary head on top
-  const mw = .24, md = .22, ms = mat([214, 170, 46], g);
-  fbox(x - .34, y - .34, fz + .3, x + .36, y + .34, fz + .42, OD_D, 1207);
+  const mw = .34, md = .14, ms = mat([214, 170, 46], g);
+  fbox(x - .42, y - .3, fz + .3, x + .42, y + .3, fz + .42, OD_D, 1207);
   for (const [dx, dy] of [[-mw, -md], [mw, -md], [-mw, md], [mw, md]]) fbox(x + dx - .04, y + dy - .04, fz + .42, x + dx + .04, y + dy + .04, top, ms, 1208);
   for (let z = .42; z < 2.3; z += .38) {
     fbox(x - mw, y + md - .02, fz + z, x + mw, y + md + .02, fz + z + .04, ms, 1209); fbox(x + mw - .02, y - md, fz + z, x + mw + .02, y + md, fz + z + .04, ms, 1210);
@@ -1811,15 +1818,30 @@ function mineLantern(fz) {
   AMB[2] = .6; lamp(2, x, y - .8, fz, 3, 2, FIRE_T);
   fbox(x - 1.2, y - .3, fz, x - .9, y, fz + .26, PLANK, 660); EM = 1; fbox(x - 1.12, y - .22, fz + .26, x - .98, y - .08, fz + .42, [255, 200, 110], 661); EM = 0;
 }
-// breakthrough: brass carbide lamps on the rock of both walls
+// breakthrough: carbide lamps on both walls: a brass reflector dish, the bright flame in front of it, a hook; the
+// whole room lighter
 function carbideLamps(fz, g) {
-  const RLx = RL(), brass = mat([176, 140, 70], g);
-  AMB[2] = .62;
-  for (const [a, b] of [[3.0, 1.3], [6.0, 1.3], [9.2, 1.3], [1.3, 4.4], [1.3, 6.6]]) lamp(2, XA(a), yb(b), fz, 3.8, 2.5, FIRE_T);
-  for (const a of [3.0, 6.0, 9.2]) { const lx = XA(a); fbox(lx - .06, UG.y0, fz + 1.7, lx + .06, UG.y0 + .16, fz + 1.86, brass, 680); EM = 1; fbox(lx - .03, UG.y0 + .1, fz + 1.86, lx + .03, UG.y0 + .16, fz + 1.96, [255, 220, 120], 681); EM = 0; halo(lx, UG.y0, fz + 1.88, .4, .35); }
-  for (const b of [4.4, 6.6]) { const ly = yb(b), x0 = UG.x0; fbox(x0, ly - .06, fz + 1.7, x0 + .16, ly + .06, fz + 1.86, brass, 682); EM = 1; fbox(x0 + .1, ly - .03, fz + 1.86, x0 + .16, ly + .03, fz + 1.96, [255, 220, 120], 683); EM = 0; haloX(x0, ly, fz + 1.88, .4, .35); }
-  if (RLx > 12.5) lamp(2, XA(RLx * .6), yb(RLx * .6), fz, 3.8, 2.5, FIRE_T);
+  const brass = mat([196, 156, 76], g), flame = [255, 236, 170];
+  AMB[2] = .67;
+  for (const a of [2.6, 4.7, 7.15, 9.7]) {
+    const x = XA(a), y = UG.y0, z = fz + 1.78;
+    onY(y + .01, x - .14, x + .14, z - .1, z + .18, (xx, zz) => Math.hypot(xx - x, (zz - z - .04) * 1.1) < .14 ? (Math.hypot(xx - x, (zz - z - .04) * 1.1) < .1 ? rgb(...brass) : shade(rgb(...brass), .7)) : 0);
+    fbox(x - .025, y, z + .18, x + .025, y + .14, z + .23, DARK, 680);
+    fbox(x - .05, y + .06, z - .1, x + .05, y + .16, z - .02, brass, 681);
+    EM = 1; fbox(x - .035, y + .08, z - .02, x + .035, y + .15, z + .12, flame, 682); EM = 0;
+    halo(x, y, z + .04, .6, .5); lamp(2, x, yb(1.5), fz, 4.6, 3.0, WARM_T);
+  }
+  for (const b of [4.4, 6.6]) {
+    const x = UG.x0, y = yb(b), z = fz + 1.78;
+    onX(x + .01, y - .14, y + .14, z - .1, z + .18, (yy, zz) => Math.hypot(yy - y, (zz - z - .04) * 1.1) < .14 ? (Math.hypot(yy - y, (zz - z - .04) * 1.1) < .1 ? rgb(...brass) : shade(rgb(...brass), .7)) : 0);
+    fbox(x, y - .025, z + .18, x + .14, y + .025, z + .23, DARK, 683);
+    fbox(x + .06, y - .05, z - .1, x + .16, y + .05, z - .02, brass, 684);
+    EM = 1; fbox(x + .08, y - .035, z - .02, x + .15, y + .035, z + .12, flame, 685); EM = 0;
+    haloX(x, y, z + .04, .6, .5); lamp(2, XA(1.5), y, fz, 4.6, 3.0, WARM_T);
+  }
+  lamp(2, XA(RL() * .55), yb(RL() * .62), fz, 4, 2.6, WARM_T);
 }
+
 /* ---------- from the drill to the store ---------- */
 // breakthrough: a wooden ore bin with a chute stepping down towards the rails
 function woodChute(fz, g) {
@@ -1840,15 +1862,31 @@ function beltLine(fz, g) {
   for (let xx = xa + .2; xx < xb - .2; xx += .32) oreChunk(xx, (y0 + y1) / 2, fz + h, .06, 853 + Math.floor(xx * 7));
   footShadow(xa, y0, xb, y1, h);
 }
-// breakthrough: a sloping wooden screen on legs, ore sorted on it and the rejects heaped in front
+// breakthrough: a sorting screen: ore shovelled into a hopper slides down a sloping wire screen on a timber frame; the
+// fines fall through into a box, the lumps roll off into a basket
 function sortScreen(fz, g) {
-  const sx = PIT.x + 1.4, sy = PIT.y - 1.6, wd = mat(WOOD, g);
-  for (const [lx, ly] of [[sx, sy], [sx + .9, sy], [sx, sy + .5], [sx + .9, sy + .5]]) fbox(lx, ly, fz, lx + .06, ly + .06, fz + .5 + (lx > sx ? .2 : 0), WOOD_D, 710);
-  fbox(sx, sy, fz + .55, sx + .96, sy + .56, fz + .63, wd, 711);
-  onZ(fz + .63, sx + .05, sy + .05, sx + .91, sy + .51, (xx, yy) => ((Math.floor((xx - sx) * 30) + Math.floor((yy - sy) * 30)) & 1) ? rgb(70, 70, 76) : 0);
-  for (let k = 0; k < 4; k++) oreChunk(sx + .2 + k * .2, sy + .25, fz + .63, .05, 712 + k);
-  for (let k = 0; k < 6; k++) oreChunk(sx + .1 + k * .15, sy + .8, fz, .06, 716 + k, k & 1);
-  footShadow(sx, sy, sx + .96, sy + .56, .6);
+  const x0 = PIT.x + 1.3, y0 = PIT.y - 1.75, len = 1.5, w = .7, wd = mat(WOOD, g), hi = 1.25, lo = .6, n = 6;
+  const zAt = t => fz + lerp(hi, lo, t);
+  for (const [dx, h] of [[0, hi], [len - .08, lo]]) for (const y of [y0, y0 + w - .08]) fbox(x0 + dx, y, fz, x0 + dx + .08, y + .08, fz + h, WOOD_D, 1700);
+  for (let k = 0; k < n; k++) {
+    const xa = x0 + k * len / n, xb = xa + len / n + .01, z = zAt((k + .5) / n);
+    fbox(xa, y0 - .02, z - .05, xb, y0 + .06, z + .06, wd, 1701); fbox(xa, y0 + w - .06, z - .05, xb, y0 + w + .02, z + .06, wd, 1701);
+    onZ(z, xa, y0 + .06, xb, y0 + w - .06, (xx, yy) => ((Math.floor((xx - x0) * 26) + Math.floor((yy - y0) * 26)) & 1) ? rgb(160, 164, 170) : rgb(60, 60, 66));
+  }
+  // the hopper on the high end
+  sbox(x0 - .12, y0 - .06, fz + hi, x0 + .42, y0 + w + .06, fz + hi + .1, wd, 1702);
+  sbox(x0 - .2, y0 - .14, fz + hi + .1, x0 + .5, y0 + w + .14, fz + hi + .26, wd, 1703);
+  onZ(fz + hi + .26, x0 - .16, y0 - .1, x0 + .46, y0 + w + .1, rgb(48, 36, 30));
+  for (let k = 0; k < 5; k++) oreChunk(x0 + .02 + (k % 3) * .14, y0 + .2 + (k > 2) * .26, fz + hi + .2, .07, 1704 + k);
+  for (let k = 0; k < 4; k++) oreChunk(x0 + .5 + k * .24, y0 + .2 + (k & 1) * .3, zAt((.4 + k * .24 * n / len / n) / 1) + .03, .06, 1710 + k);
+  // the fines box under the screen, the basket of lumps at its foot
+  fbox(x0 + .25, y0 + .1, fz, x0 + 1.2, y0 + w - .1, fz + .3, PLANKS, 1714);
+  onZ(fz + .3, x0 + .29, y0 + .14, x0 + 1.16, y0 + w - .14, (xx, yy) => hash(Math.floor(xx * 40), Math.floor(yy * 40)) > .6 ? rgb(84, 136, 210) : rgb(70, 66, 64));
+  const bx = x0 + len + .28, by = y0 + w / 2;
+  drum(bx, by, fz, fz + .38, .22, [150, 116, 70], 1715, 1.2);
+  onY(by + .22, bx - .16, bx + .16, fz + .04, fz + .34, (xx, z) => ((xx - bx + 1) % .08) < .025 || ((z - fz) % .1) < .025 ? rgb(110, 80, 50) : 0);
+  for (let k = 0; k < 4; k++) oreChunk(bx - .1 + (k & 1) * .18, by - .08 + (k >> 1) * .14, fz + .36, .08, 1716 + k);
+  footShadow(x0, y0, x0 + len, y0 + w, 1.2);
 }
 // military era: a jaw crusher at the end of the belt: hopper, the jaw housing, a flywheel and its motor
 function jawCrusher(fz, g) {
