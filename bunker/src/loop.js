@@ -54,11 +54,15 @@ function update(dt) {
     if (G.fenceDown && G.fenceHp >= max * .4) { G.fenceDown = false; G.sideDmg = [0, 0, 0, 0]; G.sideStage = [0, 0, 0, 0]; composeYard(); sound('hammer'); }
     else if (!G.fenceDown) fenceStages();
   }
-  // a boss stage starts with its boss, on its clock
-  if (isBossWave(G.wave) && G.bossFor !== G.wave) { G.bossFor = G.wave; spawnBoss(); }
-  if (G.bossLeft > 0 && bossAlive() && (G.bossLeft -= dt) <= 0) bossTimeout();
-  if ((G.spawnIn -= dt) <= 0) { if (G.zombies.reduce((n, z) => n + (z.state !== 'dying'), 0) < MAX_ZOMBIES) spawn(); G.spawnIn = spawnEvery(G.wave) * (.6 + Math.random() * .8); }
+  // an auto-skip runs the stage number up with nothing coming; else a boss stage starts with its boss, on its clock
+  if (G.skip) updateSkip(dt);
+  else {
+    if (isBossWave(G.wave) && G.bossFor !== G.wave) { G.bossFor = G.wave; spawnBoss(); }
+    if (G.bossLeft > 0 && bossAlive() && (G.bossLeft -= dt) <= 0) bossTimeout();
+    if ((G.spawnIn -= dt) <= 0) { if (G.zombies.reduce((n, z) => n + (z.state !== 'dying'), 0) < MAX_ZOMBIES) spawn(); G.spawnIn = spawnEvery(G.wave) * (.6 + Math.random() * .8); }
+  }
   updateZombies(dt);
+  bossTick(dt);
   if (G.hp <= 0) fall();
   updatePeople(dt);
   assignTargets(dt);
@@ -120,7 +124,7 @@ function drawYard() {
   for (const t of G.tracers) pxLine(Math.round(t.ax), Math.round(t.ay), Math.round(t.bx), Math.round(t.by), SIGNAL, 99);
   // acid globs: an arc from the spitter's mouth to where they land, with a short dripping trail
   for (const g of G.spits) for (let k = 0; k < 3; k++) {
-    const t = clamp(g.t / g.dur - k * .06, 0, 1), p = project(lerp(g.x, g.tx, t), lerp(g.y, g.ty, t), 1 + Math.sin(t * Math.PI) * 1.4 - t * .6);
+    const t = clamp(g.t / g.dur - k * .06, 0, 1), p = project(lerp(g.x, g.tx, t), lerp(g.y, g.ty, t), lerp(1, g.tz ?? .4, t) + Math.sin(t * Math.PI) * 1.4);
     const c = k ? rgb(120, 170, 40) : rgb(190, 235, 80), r = k ? 0 : 1;
     for (let dy = -r; dy <= r; dy++) for (let dx = -r; dx <= r; dx++) putPx(Math.round(p.sx) + dx, Math.round(p.sy) + dy, c, p.d + .3);
   }
@@ -145,8 +149,21 @@ function drawYard() {
     if (k >= 5 && Math.random() < .3) { const side = Math.floor(Math.random() * 4), [x, y] = SIDE_AT(side, (Math.random() * 2 - 1) * FENCE_R); const p = project(x, y, .3 + Math.random() * .3); putPx(Math.round(p.sx), Math.round(p.sy), rgb(200, 240, 255), 99); putPx(Math.round(p.sx) + 1, Math.round(p.sy), rgb(140, 210, 255), 99); }
   }
   drawBars();
+  drawBossClock();
   if (G.hero) drawAmmo(G.hero);
   for (const f of G.floats) { const p = project(f.x, f.y, f.z); if (f.life > .25 || Math.floor(f.life * 20) % 2) pixelText(f.text, p.sx, p.sy - 6, f.color); }
+}
+// the boss's clock over its health bar (red in the last ten seconds), and a titan's phases as pips beside it (the
+// spent ones dark)
+function drawBossClock() {
+  const z = G.bossLeft > 0 && G.zombies.find(o => o.type === 'boss' && !o.minion && o.state !== 'dying' && o.visible);
+  if (!z) return;
+  const x = Math.round(z.sx), y = z.top - 13;
+  pixelText(String(Math.ceil(G.bossLeft)), x, y, G.bossLeft < 10 ? rgb(255, 96, 80) : rgb(255, 255, 255));
+  if (z.phases) for (let k = 0; k < z.phases.length; k++) for (let dy = -1; dy < 4; dy++) for (let dx = -1; dx < 4; dx++) {
+    const ix = x + 9 + k * 5 + dx, iy = y + 1 + dy, edge = dx < 0 || dy < 0 || dx > 2 || dy > 2;
+    if (ix >= 0 && iy >= 0 && ix < W && iy < H) pix[iy * W + ix] = edge ? INK : k < z.phase ? rgb(70, 66, 64) : SIGNAL;
+  }
 }
 // a workshop hand at the bench swings its hammer (the miner's swing, hard hat and all)
 function drawHand(c) {

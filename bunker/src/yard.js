@@ -926,12 +926,16 @@ const BUNKER_ART = (() => {
      nobody on the roof ever hides a turret and no turret hides a face: placeCrew keeps every gunner clear of each
      turret's whole turning box. In the order they open: the left and right corners, then two along each front wall
      (the back walls are hidden behind the building; the two side corners close them off). The foxhole is low, so its
-     mounts stand further out in its still empty yard. A log crib on the wooden buildings, a concrete pad after them,
-     a steel turntable on each; SITES.mounts keeps where a turret sits ---- */
-  const MOUNT_DIRS = [[-1, 1], [1, -1], [-.15, 1], [1, -.15], [.55, 1], [1, .55]];
+     mounts stand further out in its still empty yard (it opens only the first three). Two logs laid flat on the wooden
+     buildings, a concrete pad after them, a steel turntable on each; SITES.mounts keeps where a turret sits ---- */
   // each building's ring, just clear of its walls and what stands at their foot (the compound's things begin at 2.35)
-  const MOUNT_RING = [0, 2.1, 2.15, 2.1, 2.15, 2.15, 2.15, 2.15, 2.2, 2.2];
-  const FOX_MOUNTS = [[-2.8, 2.8], [2.8, -2.8], [2.9, 2.9], [-1.3, 3.3], [3.3, -1.3], [-3.3, -3.3]];
+  const MOUNT_RING = [0, 2.1, 2.1, 2.1, 2.15, 2.15, 2.15, 2.15, 2.2, 2.2];
+  // the side mounts: how far along the front wall from the side corner (-1), toward the front, they stand: at the corner
+  // while the roof is low (its gunners near the ends stand low too), further in once corner things crowd it and the roof is high
+  const MOUNT_SIDE = [0, -1, -.9, -.9, -.9, -.6, -.6, -.6, -.6, -.6];
+  // the other four along the two front walls, spread evenly toward the front (the near pair first)
+  const MOUNT_FRONT = [[.68, 1], [1, .68], [.04, 1], [1, .04]];
+  const FOX_MOUNTS = [[-2.8, 2.8], [2.8, -2.8], [3.2, 3.2], [-1.3, 3.3], [3.3, -1.3], [-3.3, -3.3]];
   // the turret's frames round the foot of its ring (art/turrets.js, every facing): what no gunner may overlap
   const TURRET_BOX = [-24, -27, 23, 3];
   const turntable = (x, y, z, s) => pbox(x - s, y - s, z, x + s, y + s, z + .04, METAL, 26, (f, a, b) => {
@@ -942,13 +946,12 @@ const BUNKER_ART = (() => {
   function mounts(form) {
     const n = MOUNT_AT.filter(at => G.bunker >= at).length;
     for (let i = 0; i < n; i++) {
-      const [x, y] = form ? MOUNT_DIRS[i].map(d => d * MOUNT_RING[form]) : FOX_MOUNTS[i];
-      let t = .33;
-      if (form < 4) for (let l = 0; l < 3; l++) { // logs laid crosswise, three layers
-        const zz = l * .11, c = l & 1 ? [176, 132, 84] : WOOD, pat = (f, a, b) => f && rep(b - zz, .11) < PXZ ? -1.3 : 0;
-        for (const o of [-.15, .15]) l & 1 ? pbox(x + o - .055, y - .25, zz, x + o + .055, y + .25, zz + .11, c, 20 + l, pat) : pbox(x - .25, y + o - .055, zz, x + .25, y + o + .055, zz + .11, c, 20 + l, pat);
-      }
-      else { t = .12; pbox(x - .22, y - .22, 0, x + .22, y + .22, t, [182, 178, 166], 30, (f, a, b) => f ? (b > t - .04 ? .8 : 0) : Math.max(Math.abs(a - x), Math.abs(b - y)) > .18 ? .6 : 0, .2); }
+      const dir = i > 1 ? MOUNT_FRONT[i - 2] : i ? [1, MOUNT_SIDE[form]] : [MOUNT_SIDE[form], 1];
+      const [x, y] = form ? dir.map(d => d * MOUNT_RING[form]) : FOX_MOUNTS[i];
+      // kept flat, so the turret stands low and clears the gunners on the roof
+      const t = .08;
+      if (form < 4) for (const o of [-.13, .13]) pbox(x - .25, y + o - .06, 0, x + .25, y + o + .06, t, o < 0 ? WOOD : [176, 132, 84], 20, (f, a, b) => f ? -.4 : rep(a, .5, x + .25) < PXA ? -1.2 : 0); // two logs
+      else pbox(x - .24, y - .24, 0, x + .24, y + .24, t, [182, 178, 166], 30, (f, a, b) => f ? .4 : Math.max(Math.abs(a - x), Math.abs(b - y)) > .2 ? .6 : 0, .2);
       turntable(x, y, t, form < 4 ? .16 : .17);
       shade(x - .25, y - .25, x + .25, y + .25, 0, t + .04);
       const p = project(x, y, t + .04), bx = Math.round(p.sx), by = Math.round(p.sy);

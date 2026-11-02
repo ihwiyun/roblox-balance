@@ -30,7 +30,7 @@ const px = n => Math.max(1, Math.round(n * S / 12));
 /* ================= save ================= */
 // version 5: the game as before plus the systems' state (systems.js keeps it in G under these keys)
 const SYS_KEYS = ['gems', 'diamonds', 'medals', 'medalsLife', 'comps', 'record', 'runBest', 'runKills', 'evacs', 'evacAt', 'runs', 'medalUp', 'cmd',
-  'wInv', 'tInv', 'rel', 'cards', 'sums', 'equipW', 'equipT', 'manual', 'shop', 'counts', 'autoSet', 'autoShare', 'early', 'oreGems', 'daily', 'activity', 'rng', 'sysInit'];
+  'wInv', 'tInv', 'rel', 'cards', 'sums', 'equipW', 'equipT', 'manual', 'presets', 'shop', 'counts', 'autoSet', 'autoShare', 'early', 'oreGems', 'daily', 'activity', 'rng', 'sysInit'];
 // the jobs a hand can have: the roof's gunners (hired by bed), and the hands bought for the farm, the mine and the workshop
 const ALL_JOBS = [...JOBS, '정비공'];
 function save() {

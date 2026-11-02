@@ -11,7 +11,7 @@ var SYS = window.SYS || (() => {
   let Lg = null, on = false, rng = null, stc = null, ver = 0, queued = false;
   const tun = () => Lg.T;
   const now = () => Date.now();
-  const DAY_MS = 864e5, SLOTS_T = 6, SLOTS_R = 8;
+  const DAY_MS = 864e5, SLOTS_T = 6, SLOTS_R = 8, PRESETS = 3;
   const won = n => n.toLocaleString('en') + '원';
   // a price or a reward is only currencies with an amount (the screens show and check every key); extra facts ride
   // along as properties that do not enumerate
@@ -87,6 +87,7 @@ var SYS = window.SYS || (() => {
     if (G.shop.owned.autoMerge) G.early.autoMerge = true;
     G.oreGems = G.oreGems && typeof G.oreGems === 'object' ? G.oreGems : { day: '', n: 0 };
     G.daily = typeof G.daily === 'string' ? G.daily : '';
+    G.presets = fixArr(G.presets, PRESETS, null).map(p => (p && p.w && typeof p.w === 'object' && Array.isArray(p.r) ? { w: p.w, r: fixArr(p.r, SLOTS_R, -1), at: +p.at || 0 } : null));
     rng = Lg.makeRng(1);
     rng.setState((G.rng >>> 0) || (Math.random() * 4294967295) >>> 0);
     if (!G.sysInit) { G.sysInit = true; credit(G.record); }
@@ -151,6 +152,7 @@ var SYS = window.SYS || (() => {
       offlineH: md.offlineH, offlineEff: md.offlineEff + r('offlineEff'), offlineNoUpkeep: !!rm.offlineNoUpkeep,
       doubling: t.medals.doubling + r('doublingAdd'), medalH: r('medalH'), medalPerEvac: r('medalPerEvac'),
       relicFind: g('relicFind'), mergeCut: Math.min(.5, g('mergeCut')), reactions: rm.reactions || [],
+      turretResist: Math.min(1, r('turretResist') + g('turretResist')), stunResist: Math.min(1, r('stunResist')), skipMult: rm.skipMult || 0,
     };
     return stc;
   }
@@ -394,7 +396,10 @@ var SYS = window.SYS || (() => {
     const st = stats(), recent = G.evacAt.filter(t => now() - t < DAY_MS).length;
     return Lg.medalGain(G.runBest, G.medalsLife, { doubling: st.doubling, forced, bonus: st.medalPerEvac * recent, hAdd: st.medalH });
   }
-  const autoOn = a => (G.evacs >= a.evacs || !!G.early[a.key]) && (G.autoSet[a.key] ?? a.key !== 'autoEvac');
+  const autoUnlocked = a => G.evacs >= a.evacs || !!G.early[a.key];
+  const autoEnabled = a => G.autoSet[a.key] ?? a.key !== 'autoEvac';   // every switch starts on but the auto evacuation
+  const autoOn = a => autoUnlocked(a) && autoEnabled(a);
+  const autoKey = key => Lg.AUTOMATION.find(a => a.key === key);
   function prestigeInfo() {
     if (!on) return null;
     const st = stats(), gain = medalsNow();
@@ -402,7 +407,7 @@ var SYS = window.SYS || (() => {
       const level = G.medalUp[key] || 0, maxed = Lg.medalUpMaxed(key, level), price = maxed ? null : Lg.medalUpCost(key, level);
       return { key, name: Lg.MEDAL_UPS[key].name, desc: Lg.MEDAL_UPS[key].desc, level, price, maxed, canBuy: !maxed && G.evacs > 0 && G.medals >= price };
     });
-    const auto = Lg.AUTOMATION.map(a => ({ at: a.evacs, count: a.evacs, key: a.key, name: a.name, unlocked: G.evacs >= a.evacs || !!G.early[a.key], on: autoOn(a) }));
+    const auto = Lg.AUTOMATION.map(a => ({ at: a.evacs, count: a.evacs, key: a.key, name: a.name, unlocked: autoUnlocked(a), enabled: autoEnabled(a), on: autoOn(a) }));
     return { gainNow: gain, can: gain > 0, medals: G.medals, medalsLife: G.medalsLife, evacs: G.evacs, count: G.evacs, runBest: G.runBest, firstAt: tun().medals.firstAt,
       cap: Lg.medalCap(G.medalsLife, st.doubling), capStage: Lg.stageForCap(G.medalsLife, st.doubling),
       gems: Math.floor(tun().economy.evacGems0 + tun().economy.evacGemsPerStage * G.runBest), ups, upgrades: ups, auto, automation: auto, share: G.autoShare };
@@ -420,8 +425,13 @@ var SYS = window.SYS || (() => {
     G.runs = G.runs.slice(-100);
     for (const z of G.zombies) z.gone = true;
     Object.assign(G, { wave: 1, waveKills: 0, best: 1, repeat: false, bossFor: 0, bossLeft: 0, zombies: [], spits: [], money: 0, food: 0, mineral: 0,
-      runBest: 0, runKills: 0, spawnIn: 2, hungry: false, starve: 0 });
+      runBest: 0, runKills: 0, spawnIn: 2, hungry: false, starve: 0, skip: null });
     G.lv = { atk: 0, spd: 0, mag: 0 };
+    if (autoOn(autoKey('startSkip'))) {
+      let w = 1;
+      for (let to; (to = skipTo(w)) > w;) w = to;
+      if (w > 1) { G.wave = G.best = w; G.runBest = w - 1; notify('스킵', '스테이지 1 → ' + w); }
+    }
     G.hp = bunkerHp(G.bunker);
     if (G.fence) { G.fenceHp = fenceHp(G.fence); G.fenceDown = false; G.sideDmg = [0, 0, 0, 0]; G.sideStage = [0, 0, 0, 0]; if (typeof composeYard === 'function') composeYard(); }
     for (const s of shooters()) { s.ammo = gunStat('mag'); s.reload = 0; s.target = null; }
@@ -444,8 +454,18 @@ var SYS = window.SYS || (() => {
     changed(); return true;
   }
   function setAutomation(key, value) {
-    if (!on || !Lg.AUTOMATION.some(a => a.key === key)) return false;
+    if (!on || !autoKey(key)) return false;
     G.autoSet[key] = !!value; changed(); return true;
+  }
+  /* ================= auto-skip (doc 6; zombies.js runs it) ================= */
+  // the stage to play from stage w on: past every stage, up to 50, that the firepower beats mult times over and that
+  // lies within the record (mult 10; 5 with 12 evacuations; the clockwork relic's 7). In repeat mode nothing is skipped
+  function skipTo(w) {
+    if (!on || G.repeat || w > G.record) return w;
+    const t = tun(), mult = stats().skipMult || (autoOn(autoKey('skip5x')) ? t.stage.skipMultAuto : t.stage.skipMult), p = power();
+    let last = w - 1;
+    while (last - (w - 1) < t.stage.skipMax && last + 1 <= G.record && p >= mult * stageNeed(last + 1)) last++;
+    return last + 1;
   }
   function setAutoShare(x) { if (!on) return false; G.autoShare = clamp(+x || 0, .05, 1); changed(); return true; }
 
@@ -470,9 +490,40 @@ var SYS = window.SYS || (() => {
   }
   // what is on now: the stage, its kills, the boss and its clock
   function stageNow() {
-    const b = on && G.bossFor === G.wave && bossAlive() ? Lg.bossInfo(G.wave) : null;
+    const z = on && G.zombies.find(o => o.type === 'boss' && !o.minion && o.state !== 'dying'), b = z && Lg.bossInfo(G.wave);
     return { stage: G.wave, kills: G.waveKills, need: killsNeeded(G.wave), repeat: G.repeat, best: G.best, record: G.record,
-      boss: b && { name: b.name, kind: b.kind, left: Math.max(0, G.bossLeft || 0), limit: bossLimit(G.wave) } };
+      skip: G.skip ? { from: G.skip.from, to: G.skip.to, progress: Math.min(1, G.skip.t / G.skip.dur) } : null,
+      boss: b ? { name: b.name, kind: b.kind, left: Math.max(0, G.bossLeft || 0), limit: bossLimit(G.wave), hp: Math.max(0, z.hp / z.max),
+        phase: (z.phase || 0) + 1, phases: z.phases ? z.phases.length : 1, gathering: z.shield > 0,
+        patterns: b.patterns.map(p => ({ key: p.key, desc: Lg.PATTERNS[p.key].desc, half: p.w < 1 })), split: G.zombies.filter(o => o.minion && o.state !== 'dying').length } : null };
+  }
+
+  /* ================= equipment presets (the shop's 장비 프리셋): the weapons in the gunners' hands and the relics ================= */
+  function presets() {
+    const list = !on ? [] : G.presets.map((p, n) => ({ n, saved: !!p, at: p ? p.at : 0,
+      weapons: p ? Object.entries(p.w).map(([key, i]) => ({ key, who: nameOfKey(key), i, name: Lg.WEAPONS[i].name })) : [],
+      relics: p ? p.r.map((id, slot) => (id >= 0 ? { slot, id, name: Lg.RELICS[id].name } : null)).filter(Boolean) : [] }));
+    return Object.assign(list, { owned: on && !!G.shop.owned.presets, max: PRESETS });
+  }
+  function savePreset(n) {
+    if (!on || !G.shop.owned.presets || !(n >= 0 && n < PRESETS)) return false;
+    const w = {};
+    for (const k of shooterKeys()) if (G.equipW[k] != null) w[k] = G.equipW[k];
+    G.presets[n] = { w, r: G.rel.slots.slice(), at: now() };
+    changed(); return true;
+  }
+  // what a preset holds goes back in place as choices made by hand (gunners and slots it does not name stay automatic);
+  // a weapon or relic it gives to one is taken from any other
+  function loadPreset(n) {
+    const p = on && G.shop.owned.presets && G.presets[n];
+    if (!p) return false;
+    const keys = shooterKeys(), usedW = new Set();
+    for (const k of keys) { const i = p.w[k]; if (i != null && G.wInv.owned[i] && !usedW.has(i)) { G.equipW[k] = i; G.manual.w[k] = true; usedW.add(i); } }
+    for (const k of keys) if (!(k in p.w) && usedW.has(G.equipW[k])) { delete G.equipW[k]; G.manual.w[k] = false; }
+    const open = relicOpen(), usedR = new Set();
+    for (let s = 0; s < open; s++) { const id = p.r[s]; if (id >= 0 && G.rel.level[id] > 0 && !usedR.has(id)) { G.rel.slots[s] = id; G.manual.r[s] = true; usedR.add(id); } }
+    for (let s = 0; s < open; s++) if (!(p.r[s] >= 0) && usedR.has(G.rel.slots[s])) { G.rel.slots[s] = -1; G.manual.r[s] = false; }
+    autoEquip(); changed(); return true;
   }
 
   /* ================= the shop, with a test payment adapter ================= */
@@ -551,13 +602,18 @@ var SYS = window.SYS || (() => {
   }
 
   /* ================= records: this player's own runs (the raids and real ranking need the server) ================= */
+  // the base's firepower (damage a second): each gun on its fire rate and magazine uptime with its crits (the crew
+  // gunners on duty about four fifths of the time, none while starving), and the turrets
   function power() {
     if (!on) return 0;
+    const spd = gunStat('spd'), mag = gunStat('mag');
     let dps = 0;
-    for (const s of [G.hero, ...G.crew.filter(c => c && c.job === '사수')].filter(Boolean)) { const w = shooter(s); dps += damageOf() * w.mul * w.rate * gunStat('spd') * (1 + w.crit * (w.critMul - 1)); }
-    const mag = gunStat('mag'), up = (mag / gunStat('spd')) / (mag / gunStat('spd') + reloadTime());
-    for (let k = 0; k < turretOpen(); k++) if (G.equipT[k] >= 0) dps += turretDps(G.equipT[k]);
-    return Math.round(dps * up);
+    for (const s of [G.hero, ...(G.hungry ? [] : G.crew.filter(c => c && c.job === '사수'))].filter(Boolean)) {
+      const w = shooter(s), rate = spd * w.rate, up = w.noReload ? 1 : (mag / rate) / (mag / rate + reloadTime() * w.reload);
+      dps += damageOf() * w.mul * rate * up * (1 + w.crit * (w.critMul - 1)) * (s.hero ? 1 : .8);
+    }
+    for (let k = 0; k < turretOpen(); k++) if (G.equipT[k] >= 0 && G.tInv.owned[G.equipT[k]]) dps += turretDps(G.equipT[k]);
+    return Math.round(dps);
   }
   function records() {
     const rows = !on ? [] : G.runs.map(r => ({ name: `나 · ${r.n}회차`, stage: r.best, me: true, run: r.n, kills: r.kills || 0, at: r.at }));
@@ -627,7 +683,7 @@ var SYS = window.SYS || (() => {
   function near(z, r, skip) { return G.zombies.filter(o => o !== skip && alive(o) && Math.hypot(o.x - z.x, o.y - z.y) < r); }
   function towerFire(t, z) {
     const role = ROLES[t.role], st = stats(), boss = z.type === 'boss';
-    const dmg = turretDps(t.i) / TFIRE[t.role].rate * (boss ? role.boss * st.turretBoss * st.boss : 1);
+    const dmg = turretDps(t.i) / TFIRE[t.role].rate * (boss ? role.boss * st.turretBoss * st.boss : 1) * (z.armor ? 1 - z.armor * .3 : 1);
     t.flash = 1; t.recoil = 1; t.shots++;
     const mz = t.muzzle || [project(t.x, t.y, t.z + .3).sx, project(t.x, t.y, t.z + .3).sy], hit = project(z.x, z.y, .8);
     G.tracers.push({ ax: mz[0], ay: mz[1], bx: hit.sx, by: hit.sy, life: .06 });
@@ -647,6 +703,8 @@ var SYS = window.SYS || (() => {
     syncTowers();
     for (const t of towers) {
       t.recoil = Math.max(0, t.recoil - dt * 6);
+      // stopped by acid: it bubbles green until it clears
+      if (t.down > 0) { t.down -= dt; if (Math.random() < dt * 8) spray(t.x, t.y, t.z + .35, 2, .6, 1.2, .5, [rgb(170, 220, 60), rgb(120, 180, 40)]); continue; }
       if (!alive(t.target) || (t.retarget -= dt) <= 0) { t.target = towerTarget(t); t.retarget = .6; }
       const z = t.target;
       t.cool -= dt;
@@ -723,11 +781,30 @@ var SYS = window.SYS || (() => {
       for (const k of Object.keys(GUN)) { if (G.lv[k] >= GUN[k].max) continue; const c = capCost(gunCost(k, G.lv[k])); if (!bc || c.money < bc.money) { best = k; bc = c; } }
       if (best && canPay(bc) && bc.money <= G.money * G.autoShare) { pay(bc); G.lv[best]++; if (best === 'mag') for (const s of shooters()) if (!s.reload) s.ammo = gunStat('mag'); }
     }
+    if (A.autoBreakthrough) autoBreak();
     if (A.autoMerge && (mergeT += 1) >= 5) { mergeT = 0; mergeAll(); }
     if (A.autoEvac && G.runBest >= tun().medals.firstAt) {
       const gain = medalsNow();
       if (gain > 0 && gain >= Lg.medalCap(G.medalsLife, stats().doubling)) prestige();
     }
+  }
+  // 자동 돌파: when the next purchase of the bunker, the fence or a floor is its breakthrough and it can be paid, it is
+  // bought and applied as the screen's purchase would (the new look baked), without moving the view or a menu
+  const BREAKS = [['bunker', () => bunkerBreak(G.bunker) && bunkerCost(G.bunker)], ['fence', () => fenceBreak(G.fence) && fenceCost(G.fence)],
+    ['live', () => facBreak('live', G.live) && LIVE.cost(G.live)], ['farm', () => facBreak('farm', G.farm) && FARM.cost(G.farm)], ['mine', () => facBreak('mine', G.mine) && MINE.cost(G.mine)]];
+  function autoBreak() {
+    for (const [id, cost] of BREAKS) {
+      const c0 = cost(), c = c0 && capCost(c0);
+      if (!c || !canPay(c)) continue;
+      pay(c); G[id]++;
+      if (id === 'bunker') { G.hp = bunkerHp(G.bunker); bakeYard(); resyncPosts(); palCache.clear(); fitStage(); }
+      else if (id === 'fence') { G.fenceHp = fenceHp(G.fence); G.fenceDown = false; G.sideDmg = [0, 0, 0, 0]; G.sideStage = [0, 0, 0, 0]; composeYard(); }
+      else markUnder(['live', 'farm', 'mine'].indexOf(id), true);
+      notify('자동 돌파', { bunker: '벙커', fence: '울타리', live: '1층 침실', farm: '2층 식량', mine: '3층 채굴' }[id], 'good');
+      sound('buy'); changed();
+      return true;
+    }
+    return false;
   }
   function tick(dt) {
     if (!on) return;
@@ -762,6 +839,14 @@ var SYS = window.SYS || (() => {
     bossName: s => (on ? (Lg.bossInfo(s) || {}).name : null),
     titan: s => s % 100 === 0,
     band: s => (on ? Lg.bandOf(s).zombies : null),
+    bossPatterns: s => (on ? Lg.bossPatterns(s) : []),
+    bossPhases: s => (on ? { phases: (Lg.bossInfo(s) || { phases: [1] }).phases, gap: tun().stage.phaseGap } : null),
+    tRef: () => (on ? tun().stage.tRef : 45),
+    skipTo, skipStep: () => (on ? tun().stage.skipStepTime : .06),
+    skipped(last) { if (on && last > G.runBest) { G.runBest = last; changed(); } },
+    // acid on a turret's mount: it stops for sec seconds (less with the gas mask relic or a repair card)
+    downTower(slot, sec) { const t = towers.find(x => x.k === slot); if (t) t.down = Math.max(t.down || 0, sec * (1 - stats().turretResist)); },
+    stunResist: () => (on ? stats().stunResist : 0),
     zombieName: k => (on && Lg.ZOMBIES[k] ? Lg.ZOMBIES[k].name : null),
     // every kill: XP, parts, and a relic every 2,000 kills
     killed(z, s) {
@@ -846,10 +931,10 @@ var SYS = window.SYS || (() => {
     equipWeapon, equipTurret, equipRelic, equipBest: guard(equipBest, false),
     slots: guard(() => ({ turrets: turretOpen(), turretsMax: SLOTS_T, relics: relicOpen(), relicsMax: SLOTS_R, turretAt: MOUNT_AT.slice(), relicAt: tun().relics.slotsAt.slice() }), null),
     weaponOf: guard(id => { const pr = personOf(id); return pr && G.equipW[pr.key] != null ? G.equipW[pr.key] : -1; }, -1),
-    workers, buyWorker, commander, prestigeInfo, prestige, buyMedalUp, setAutomation, setAutoShare,
+    workers, buyWorker, commander, prestigeInfo, prestige, buyMedalUp, setAutomation, setAuto: setAutomation, setAutoShare, presets, savePreset, loadPreset,
     stageInfo, stageNow, shopCatalog: catalog, buy, records, currencies, power, stats: guard(() => stats(), null),
     // the turrets standing on the mounts right now (the bunker's picture must have the mounts: bunker level 25+)
-    towers: () => towers.map(t => ({ slot: t.k, i: t.i, name: Lg.TURRETS[t.i].name, role: t.role, x: t.x, y: t.y, z: t.z, yaw: t.yaw, shots: t.shots, dps: turretDps(t.i) })),
+    towers: () => towers.map(t => ({ slot: t.k, i: t.i, name: Lg.TURRETS[t.i].name, role: t.role, x: t.x, y: t.y, z: t.z, yaw: t.yaw, shots: t.shots, dps: turretDps(t.i), down: Math.max(0, t.down || 0) })),
     changed,
   };
   return api;

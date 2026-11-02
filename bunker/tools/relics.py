@@ -49,6 +49,8 @@ PAL = {
     'P': [238, 128, 222], 'i': [196, 140, 240], 'I': [155, 79, 209], 'j': [96, 46, 148],
     # smoke
     'p': [232, 230, 226], 'x': [184, 182, 184], 'X': [128, 126, 132],
+    # electric arc
+    'A': [244, 250, 255], 'l': [120, 220, 255],
     # rainbow (the eternal frame)
     '1': [224, 69, 69], '2': [240, 176, 32], '3': [240, 220, 70], '4': [69, 192, 112], '5': [69, 144, 224], '6': [160, 80, 224],
 }
@@ -825,6 +827,272 @@ def _icon7():
 
 
 ICONS[7] = _icon7
+
+
+# ---------------------------------------------------------------- small shared parts
+_flake = rows("""
+...L...
+.L.L.L.
+..LBL..
+LLBWBLL
+..LBL..
+.L.L.L.
+...L...
+""")
+_bolt = rows("""
+......ooo
+.....oYYo
+....oYYo.
+...oYWo..
+..oYYoooo
+.oYYYYYYo
+.ooooYYo.
+....oYo..
+...oYo...
+..oYo....
+..oo.....
+""")
+_coin = rows("""
+..oooo..
+.oYYYyo.
+oYWYYyuo
+oYYoyyuo
+oYyoyuuo
+oyyyuuuo
+.ouuuuo.
+..oooo..
+""")
+
+# 8 냉각 탄창: a rifle magazine under a crust of frost, a window of glowing coolant down its side, icicles
+_mag8 = rows("""
+....oo..oo......
+...oTWooTWo.....
+...oTtooTto.....
+..oYWyuYWyuo....
+.oooooooooooooo.
+.oLLLLLLLLLLLLo.
+oLLWLLggggLLaLLo
+oLggggggggggaako
+oLgGGggggggaaako
+oggGggBBBggaakko
+oggggBLWBgaaakko
+oggggBLBBgaaakko
+oggggBBLBgaaakko
+oggggBLBBgaaakko
+oggggBBBBgaaakko
+oggggBLWBgaaakko
+oggggBBBBgaaakko
+oggggggggaaaakko
+ogggggggaaaaakko
+oLggggggaaaaakko
+oLLgggggaaaaakko
+oLLLggggaaaakkko
+.oLLLLgaaaaakkko
+..oLLLLLLLaaakko
+...ooLBoLBoLBoo.
+.....oBo.oBo.L..
+......o...o.....
+""")
+
+
+def _icon8():
+    cv = blank()
+    stamp(cv, _mag8, 16, 8, 'magazine')
+    stamp(cv, _flake, 6, 10, 'flake')
+    stamp(cv, _flake, 35, 26, 'flake')
+    for x, y in ((9, 30), (38, 12), (12, 40)):
+        cv[y][x] = 'L'
+    return cv
+
+
+ICONS[8] = _icon8
+
+# 9 서리 종: a bronze bell iced over, icicles hanging off its lip, snow on its shoulder, snowflakes round it
+_bell9 = rows("""
+..........oooo..........
+..........oYyo..........
+.........ooyuoo.........
+........oYYyyuuo........
+.......oLLYyyyuuo.......
+.......oLWLyyyuuo.......
+.......oYWyyyyuuo.......
+......oYWYyyyyuuUo......
+......oYWyyyyyuuUo......
+.....oYYWyyyyyyuuUo.....
+.....oYWyyyyyyyuuUo.....
+....oYYWyyyyyyyyuuUUo....
+...oYYWyyyyyyyyuuuUUo...
+..oYYWyyyyyyyyyyuuuUUo..
+.oYYYWyyyyyyyyyyyuuuUUo.
+oLLLLLLLLLLLLLLLLLLLLLLo
+oLWLLLLLLLLLLBLLLLLLBLLo
+.oBLLoBLLLoBBLoLLBoBLo..
+..oBo.oBLo.oBo.oBo.oo...
+...o...oBo..o...o.......
+........o...............
+""")
+def _icon9():
+    cv = blank()
+    stamp(cv, _bell9, 12, 8, 'bell')
+    # the clapper under the lip
+    stamp(cv, rows("""
+.oo.
+okao
+okko
+.oo.
+"""), 22, 28, 'clapper')
+    stamp(cv, _flake, 4, 6, 'flake')
+    stamp(cv, _flake, 37, 30, 'flake')
+    stamp(cv, _flake, 38, 6, 'flake')
+    return cv
+
+
+ICONS[9] = _icon9
+
+# 10 아크 코일: a wound copper column between a terminal ball and a base plate, arcs leaping down round it
+_ball10 = rows("""
+.oooo.
+oGWGgo
+oGGgao
+oggaao
+.oaao.
+..oo..
+""")
+_cap10 = rows("""
+....oooooooooo....
+..ooGGGGGGGGgaoo..
+.oGGWGGGGGGggaaao.
+oGGGGGGGGGgggaaako
+.oaaaaaaaaaaakkko.
+..oooooooooooooo..
+""")
+_col10 = rows("""
+oTWTTtttthho
+otttthhhhhho
+oTWTTtttthho
+otttthhhhhho
+oTWTTtttthho
+otttthhhhhho
+oTWTTtttthho
+otttthhhhhho
+oTWTTtttthho
+otttthhhhhho
+oTWTTtttthho
+otttthhhhhho
+oTWTTtttthho
+otttthhhhhho
+oTWTTtttthho
+otttthhhhhho
+oTWTTtttthho
+otttthhhhhho
+""")
+_base10 = rows("""
+....oooooooooooooo....
+..ooaaaaaaaaaaaaaaoo..
+.oGGgggggggggggggaaao.
+oGgggggggggggggggaaako
+oaaaaaaaaaaaaaaaaakkko
+.okkkkkkkkkkkkkkkkkko.
+..oooooooooooooooooo..
+""")
+_arcl10 = rows("""
+.....lA.
+....lA..
+...lAl..
+..lA....
+..Al....
+.lAl....
+..lA....
+...Al...
+..lAl...
+..lA....
+...lA...
+....lA..
+.....Al.
+......Al
+""")
+
+
+def _icon10():
+    cv = blank()
+    stamp(cv, _col10, 18, 15, 'column')
+    stamp(cv, _base10, 13, 32, 'base')
+    stamp(cv, _cap10, 15, 10, 'cap')
+    stamp(cv, _ball10, 21, 5, 'ball')
+    stamp(cv, _arcl10, 9, 16, 'arc')
+    stamp(cv, [r[::-1] for r in _arcl10], 31, 16, 'arc')
+    for x, y, c in ((14, 15, 'A'), (33, 15, 'A'), (16, 31, 'l'), (31, 31, 'l'), (24, 3, 'A'), (20, 4, 'l'), (27, 4, 'l')):
+        cv[y][x] = c
+    return cv
+
+
+ICONS[10] = _icon10
+
+# 11 피뢰침: a lightning rod with a glass ball on a roof's ridge, a bolt striking its point
+_rod11 = rows("""
+..o..
+.oWo.
+.oGo.
+.oGo.
+.oGo.
+.oga.
+.oga.
+oBLBo
+oLWBb
+oBBbo
+.oao.
+.oga.
+.oga.
+.oga.
+.oga.
+.oga.
+oooooo
+""")
+_roof11 = rows("""
+..................oooooooooo..................
+...............oooRRRRRRRRRRooo...............
+............oooRRRrRRRRRRrRRRRRooo............
+.........oooRRRRRRRRRRrRRRRRRRRRRRRooo........
+......oooRRRrRRRRRRRRRRRRRRrRRRRRRRRRRRooo....
+...oooRRRRRRRRRRRRrRRRRRRRRRRRRRRRRrRRRRRRooo.
+oooRRRRRRRRrRRRRRRRRRRRRRRRRRRrRRRRRRRRRRRRRRo
+orrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrro
+oQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQo
+oooooooooooooooooooooooooooooooooooooooooooooo
+""")
+
+
+def _icon11():
+    cv = blank()
+    stamp(cv, _roof11, 1, 36, 'roof')
+    stamp(cv, _rod11, 21, 20, 'rod')
+    stamp(cv, rows("""
+...........ooo
+..........oYYo
+.........oYYo.
+........oYWo..
+.......oYYo...
+......oYYoooo.
+.....oYYYYYYo.
+.....ooooYYo..
+........oYo...
+.......oYo....
+......oYWo....
+.....oYYoooo..
+....oYYYYYYo..
+....ooooYYo...
+.......oYo....
+......oYo.....
+.....oWo......
+.....oo.......
+"""), 18, 2, 'bolt')
+    # sparks where the bolt meets the point
+    for x, y, c in ((20, 19, 'Y'), (26, 18, 'Y'), (19, 21, 'W'), (27, 21, 'W'), (21, 17, 'W'), (25, 21, 'Y')):
+        cv[y][x] = c
+    return cv
+
+
+ICONS[11] = _icon11
 
 
 def build_icon(rid, grade):

@@ -200,6 +200,8 @@ function fire(s, z) {
   let dmg = damageOf() * w.mul * (z.type === 'boss' ? w.boss : 1);
   const crit = Math.random() < w.crit;
   if (crit) dmg *= w.critMul;
+  // a boss in front armour shrugs off most of a shot from the front unless it pierces (grey sparks)
+  if (z.armor && !(w.pierce > 0) && angleGap(Math.atan2(s.y - z.y, s.x - z.x), z.yaw) < Math.PI / 3) { dmg *= 1 - z.armor; spray(z.x, z.y, 1.3, 3, 1.4, .8, .25, SPARK); }
   if (w.burn && Math.random() < w.burn) ignite(z, dmg * .3);
   if (w.slow) chill(z, w.slow);
   // shotguns and heavy guns splash the zombies around the target; a chain jumps to the next; a sniper's round goes on
@@ -216,8 +218,17 @@ function fire(s, z) {
   if (s.ammo === 0) startReload(s);
   return true;
 }
+// a boss lands with a shock that stuns one gunner on the roof for a few seconds (less with the gas mask relic)
+function stunGunner(sec) {
+  const list = shooters();
+  if (!list.length) return;
+  const s = list[Math.floor(Math.random() * list.length)];
+  s.stun = sec * (1 - SYS.hook.stunResist()); s.target = null;
+}
 function updateShooter(s, dt) {
   s.recoil = Math.max(0, s.recoil - dt * .8); s.flash = Math.max(0, s.flash - dt);
+  // stunned: no aim and no fire, stars over the head
+  if (s.stun > 0) { s.stun -= dt; if (Math.random() < dt * 8) part(s.x + (Math.random() - .5) * .5, s.y + (Math.random() - .5) * .5, s.z + 2.1, 0, 0, 1.2, .35, rgb(255, 232, 90), null); return; }
   if (s.reload > 0) {
     s.reload -= dt;
     const t = 1 - s.reload / s.reloadLen;

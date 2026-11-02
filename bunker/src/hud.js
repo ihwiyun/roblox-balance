@@ -310,7 +310,7 @@ function defHtml() {
     + cardHtml({ id: 'bunker', pic: 'lg', ico: 'bunker', name: '벙커', lv: bunkerInfo(B).name + ' · Lv ' + B, prog: B / MAX_BUNKER, max: B >= MAX_BUNKER })
     + cardHtml({ id: 'fence', pic: 'lg', ico: 'fence', name: '울타리', lv: (F ? fenceInfo(F).name + ' · ' : '') + 'Lv ' + F, prog: F / MAX_FENCE, max: F >= MAX_FENCE })
     + turretPlaces(B)
-    + sec('지하') + FLOORS_UI.map(([name, ico], k) => `<div class="floorrow"><button class="go" type="button" data-floor="${k}">${ph(FLOOR_SECTION[k] && sys() ? '48px' : '72px', '44px', ic(ico, 2))}<span>${name} · Lv ${floorLevel(k)}</span>${ic('next')}</button>${FLOOR_SECTION[k] ? workerBuy(FLOOR_SECTION[k]) : ''}</div>`).join('');
+    + sec('지하') + FLOORS_UI.map(([name, ico], k) => `<div class="floorrow"><button class="go" type="button" data-floor="${k}">${ph(FLOOR_SECTION[k] && sys() ? '48px' : '72px', '44px', ic(ico, 2))}<span>${name}<br>Lv ${floorLevel(k)}</span>${ic('next')}</button>${FLOOR_SECTION[k] ? workerBuy(FLOOR_SECTION[k]) : ''}</div>`).join('');
 }
 function underHtml() {
   const k = G.floorView || 0, L = floorLevel(k), max = [LIVE, FARM, MINE][k].max;
@@ -425,7 +425,8 @@ const PULL_PRICE = { gun: 100, turret: 150, relic: 300 }, PULL_KIND = { gun: 'we
 // weapons, a pixel icon for the rest; not owned yet: the same picture as a dark silhouette
 const artPics = new Map();
 const artSet = kind => kind === 'weapon' ? (typeof ART_WEAPONS !== 'undefined' ? ART_WEAPONS : null)
-  : kind === 'turret' ? (typeof ART_TURRETS !== 'undefined' ? ART_TURRETS : null) : kind === 'relic' ? (typeof ART_RELICS !== 'undefined' ? ART_RELICS : null) : null;
+  : kind === 'turret' ? (typeof ART_TURRETS !== 'undefined' ? ART_TURRETS : null) : kind === 'relic' ? (typeof ART_RELICS !== 'undefined' ? ART_RELICS : null)
+  : kind === 'crew' ? (typeof ART_PORTRAITS !== 'undefined' ? ART_PORTRAITS : null) : null;
 function artPic(kind, i) {
   const key = kind + ':' + i;
   if (artPics.has(key)) return artPics.get(key);
@@ -441,13 +442,14 @@ function artPic(kind, i) {
   return pic;
 }
 // the size a kind's pictures take at 2x (slots and cards are sized from it): the art agents' size, or the stand-ins'
-const ART_N = { weapon: 40, turret: 32, relic: 48 };
 function artBox(kind) {
-  for (let i = 0; i < (ART_N[kind] || 0); i++) { const p = artPic(kind, i); if (p) return { w: p.w * 2, h: p.h * 2 }; }
+  const set = artSet(kind), keys = !set ? [] : set.cards ? Object.keys(set.cards).map(k => k.slice(kind.length)) : Object.keys(set);
+  for (const i of keys) { const p = artPic(kind, i); if (p) return { w: p.w * 2, h: p.h * 2 }; }
   return kind === 'weapon' ? { w: 96, h: 48 } : { w: 64, h: 64 };
 }
+// i: the item's index (a crew card: its id, the portrait's key)
 function itemArt(kind, i, owned) {
-  const p = i >= 0 ? artPic(kind, i) : null, sil = owned ? '' : ' sil';
+  const p = typeof i === 'string' || i >= 0 ? artPic(kind, i) : null, sil = owned ? '' : ' sil';
   if (p) return `<img class="art${sil}" src="${p.url}" alt="" style="width:${p.w * 2}px;height:${p.h * 2}px">`;
   if (kind === 'weapon') { const g = gunPic(i >= 0 ? i % 5 : 0); return `<img class="gun${sil}" src="${g.url}" alt="" style="width:${g.w * 3}px;height:${g.h * 3}px">`; }
   return `<i class="ic ic-${kind === 'turret' ? 'bunker' : kind === 'relic' ? 'relic' : 'person'}${sil}" style="--s:2"></i>`;
@@ -478,7 +480,7 @@ function gearHtml() {
 }
 // 유물: the places that carry relics (opened by the best stage; a tap picks one), the sets, and the collection
 function relicPage(list) {
-  const box = artBox('relic'), worn = list ? list.filter(r => r.slot >= 0) : [], sl = sysCall('slots'), at = sl ? sl.relicAt : RELIC_AT, open = sl ? sl.relics : RELIC_AT.filter(r => G.best >= r).length;
+  const box = artBox('relic'), worn = list ? list.filter(r => r.slot >= 0) : [], sl = sysCall('slots'), at = sl ? sl.relicAt : RELIC_AT, open = sl ? sl.relics : RELIC_AT.filter(r => (G.record || 0) >= r).length;
   const places = at.slice(0, sl ? sl.relicsMax : at.length).map((r, k) => {
     if (k >= open) return `<div class="slot lock" style="height:${box.h + 32}px">${ic('lock')}<span class="aux">스테이지<br>${r.toLocaleString('en')}</span></div>`;
     const on = worn.find(x => x.slot === k);
@@ -600,7 +602,7 @@ function rankHtml() {
 function codexHtml() {
   const list = sysCall('weapons'), box = artBox('weapon'), has = (n, k) => list ? list[n * 5 + k].owned : false;
   return sec('보유', (list ? list.filter(w => w.owned).length : 0) + '/40') + GRADES.map((g, n) => sec(`<span class="gr g${n}">${g}</span>`, [0, 1, 2, 3, 4].filter(k => has(n, k)).length + '/5')
-    + gridOf(box.w + 16, WEAPON_LADDER[n].map((w, k) => `<div class="cell"><span class="slot g${n}" style="height:${box.h + 16}px;aspect-ratio:auto;width:100%">${itemArt('weapon', n * 5 + k, has(n, k))}</span><span>${w}</span></div>`), 5)).join('');
+    + gridOf(box.w + 16, WEAPON_LADDER[n].map((w, k) => `<div class="cell"><span class="slot g${n}" style="height:${box.h + 16}px;aspect-ratio:auto;width:100%">${itemArt('weapon', n * 5 + k, has(n, k))}</span><span>${list ? list[n * 5 + k].name : w}</span></div>`), 5)).join('');
 }
 function pageHtml() {
   const m = ui.open, p = ui.sub[m];
@@ -807,7 +809,7 @@ function foeImg(type) {
 function paintStage(pm = perMinute()) {
   const info = sysCall('stageInfo', G.wave), r = info && info.rewards || {};
   sdBody.innerHTML = `<div class="dh"><b class="t16">스테이지 ${G.wave}</b>${info ? `<span class="aux">${info.theme}</span>` : ''}<button class="ib tap" type="button" data-close aria-label="닫기">${ic('close', 1.5)}</button></div>`
-    + (info ? `<div class="foes">${info.zombies.map(z => `<span class="foe">${foeImg(z.key)}<span>${z.name}</span></span>`).join('')}</div>` : '')
+    + (info ? `<div class="foes">${info.zombies.map(z => `<span class="foe">${foeImg(z.sprite || z.key)}<span>${z.name}</span></span>`).join('')}</div>` : '')
     + (info && info.boss ? `<div class="boss">${foeImg('boss')}<b>${info.boss.name}</b><span class="num">${info.boss.time}초</span><span class="aux">${info.boss.desc}</span></div>` : '')
     + (info ? line('처치', `<b class="num">${info.kills}</b>`) + line('보상', priceHtml(r)) : '')
     + `<div class="mode"><button class="fchip tap" type="button" data-mode="repeat" aria-pressed="${G.repeat}">반복</button><button class="fchip tap" type="button" data-mode="advance" aria-pressed="${!G.repeat}">진행</button></div>`
@@ -827,9 +829,11 @@ function summonNow(kind, n) {
   const got = sysCall('summon', kind, n);
   if (!got || !got.length) return;
   sound('buy');
-  const cells = got.map(g => `<div class="rc"><span class="slot g${g.grade}">${itemArt(kind, kind === 'crew' ? -1 : g.i, true)}${g.isNew ? ic('star') : ''}</span><b>${g.name || ''}</b>`
-    + (g.toNextMerge != null ? `<span class="aux">${kind === 'crew' ? '다음 별까지' : kind === 'relic' ? '다음 레벨까지' : '합성까지'} ${g.toNextMerge}</span>` : '') + '</div>').join('');
-  openSheet(n > 1 ? n + '회 소환' : '소환', () => `<div class="rgrid">${cells}</div><div class="tool">${B('pri', '확인', 'data-close')}</div>`);
+  // a crew card: i is its grade, id the card (its portrait)
+  const box = artBox(kind), art = g => kind === 'crew' ? itemArt('crew', g.id === 'me' ? 'hero' : String(g.id), true) : itemArt(kind, g.i, true);
+  const cells = got.map(g => `<div class="rc"><span class="slot g${g.grade}" style="height:${box.h + 16}px">${art(g)}${g.isNew ? ic('star') : ''}</span><b>${g.name || ''}</b>`
+    + (g.toNextMerge != null ? `<span class="aux">${kind === 'crew' ? '다음 별까지' : kind === 'relic' ? '다음 레벨까지' : '합성까지'} ${g.toNextMerge}</span>` : '') + '</div>');
+  openSheet(n > 1 ? n + '회 소환' : '소환', () => gridOf(box.w + 16, cells, 5) + `<div class="tool">${B('pri', '확인', 'data-close')}</div>`);
 }
 const sheet = { el: document.getElementById('sheet'), title: document.getElementById('shTitle'), body: document.getElementById('shBody'), render: null, act: null };
 function openSheet(title, render, act) {

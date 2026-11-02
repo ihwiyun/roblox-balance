@@ -16,11 +16,11 @@ function mixOf(w) {
   const hitters = (keys, wts) => [keys.filter(k => ZTYPES[k].special !== 'burst'), wts.filter((_, i) => ZTYPES[keys[i]].special !== 'burst')];
   const oldKeys = MUTANT_ORDER.filter(k => w >= ZTYPES[k].from), oldW = oldKeys.map(k => oldWeight(k, w)), reward = avg(oldKeys, oldW, payOf);
   const band = (SYS.hook.band(w) || []).filter(k => ZTYPES[k] && k !== 'boss');
-  if (!band.length) m = { keys: oldKeys, weights: oldW, hp: 1, hit: 1, reward: 1, avgReward: reward };
+  if (!band.length) m = { keys: oldKeys, weights: oldW, hp: 1, hit: 1, reward: 1, avgReward: reward, tough: avg(oldKeys, oldW, toughOf) };
   else {
     const bw = band.map(k => BIG[k] ? .35 : 1), [ok, ow] = hitters(oldKeys, oldW), [bk, bwh] = hitters(band, bw);
     m = { keys: band, weights: bw, hp: avg(oldKeys, oldW, toughOf) / avg(band, bw, toughOf), hit: bk.length ? avg(ok, ow, pressOf) / avg(bk, bwh, pressOf) : 1,
-      reward: reward / avg(band, bw, payOf), avgReward: reward };
+      reward: reward / avg(band, bw, payOf), avgReward: reward, tough: avg(oldKeys, oldW, toughOf) };
   }
   mixes.set(w, m);
   return m;
@@ -33,6 +33,12 @@ function pickType(w) {
 }
 // the gold a stage pays before the multipliers (stage info): its zombies on average, and its boss
 const stageGold = s => (killsNeeded(s) - (isBossWave(s) ? 1 : 0)) * zombieReward(s) * mixOf(s).avgReward + (isBossWave(s) ? zombieReward(s) * ZTYPES.boss.reward * (s % 100 ? 1 : titanMul()) : 0);
+// the firepower stage w asks for (auto-skip: the logic's reqDps on the game's own numbers): its zombies' toughness over
+// the pace a stage is measured at, or its boss over the boss's clock
+function stageNeed(w) {
+  if (isBossWave(w)) return zombieHp(w) * ZTYPES.boss.hp * (w % 100 ? 1 : titanMul()) / Math.max(1, SYS.hook.bossLimit(w) || 45);
+  return killsNeeded(w) * zombieHp(w) * mixOf(w).tough / SYS.hook.tRef();
+}
 // the name a player sees: the logic's (the stage window's) when it is there
 const zombieName = k => SYS.hook.zombieName(k) || ZTYPES[k].name;
 function spawn(type) {
@@ -49,6 +55,7 @@ function spawn(type) {
 function spawnBoss() {
   const z = spawn('boss'), w = G.wave;
   z.swerve = 0; z.titan = w % 100 === 0; z.name = SYS.hook.bossName(w) || ZTYPES.boss.name;
+  bossSetup(z, w);
   G.bossLeft = SYS.hook.bossLimit(w);
   notify(z.titan ? '타이탄 출현' : '보스 출현', z.name, 'danger');
   sound('crash');
@@ -88,18 +95,23 @@ function updateZombies(dt) {
     z.visible = z.n < FIELD - .15 && !z.under && z.state !== 'dig';
     if (z.chillT > 0) z.chillT -= dt;
     if (z.burnT > 0) {
-      z.burnT -= dt; z.hp -= z.burnDps * dt;
+      z.burnT -= dt;
       if (Math.random() < dt * 10) part(z.x + (Math.random() - .5) * .3, z.y + (Math.random() - .5) * .3, .5 + Math.random() * .8, 0, 0, .9, .35, rgb(255, 170, 60), rgb(200, 70, 40), 1, 1);
-      if (z.hp <= 0) { kill(z); continue; }
+      if (!(z.shield > 0) && !z.under && wound(z, z.burnDps * dt)) continue;
     }
-    // a regenerator knits back together when it has not been hit for a moment (not while it burns)
-    z.healing = T.special === 'regen' && G.time - z.lastHit > 1.5 && z.hp < z.max && !(z.burnT > 0);
-    if (z.healing) z.hp = Math.min(z.max, z.hp + z.max * .06 * dt);
+    // a regenerator knits back together when it has not been hit for a moment; a regrowing boss all the time (its
+    // pattern); neither while it burns
+    z.healing = ((T.special === 'regen' && G.time - z.lastHit > 1.5) || z.regen > 0) && z.hp < z.max && !(z.burnT > 0);
+    if (z.healing) z.hp = Math.min(z.max, z.hp + z.max * (z.regen || .06) * dt);
     // tricks that take over the body for a moment: a leap over the fence, diving in, coming up
     if (z.state === 'leap') {
       const L = z.leap, t = Math.min(1, (z.st += dt) / L.dur);
       z.x = lerp(L.x0, L.x1, t); z.y = lerp(L.y0, L.y1, t); z.n = Math.max(Math.abs(z.x), Math.abs(z.y)); // the arc is in the art
-      if (t >= 1) { z.state = 'walk'; z.zh = 0; z.leapt = true; spray(z.x, z.y, .1, 8, 1.6, 1.2, .5, [rgb(120, 104, 80), rgb(150, 130, 100)]); sound('thud'); }
+      if (z.type === 'boss') z.zh = Math.sin(t * Math.PI) * 1.6; // a boss's art has none: it is lifted
+      if (t >= 1) {
+        z.state = 'walk'; z.zh = 0; z.leapt = true; spray(z.x, z.y, .1, 8, 1.6, 1.2, .5, [rgb(120, 104, 80), rgb(150, 130, 100)]); sound('thud');
+        if (z.landStun) { z.landStun = false; spray(z.x, z.y, .1, 18, 2.6, 1, .6, DUST); stunGunner(3); }
+      }
       continue;
     }
     if (z.state === 'dig' || z.state === 'emerge') {
@@ -110,14 +122,14 @@ function updateZombies(dt) {
     const stopAt = stopRing(z, T);
     if (z.n > stopAt) {
       const ang = Math.atan2(-z.y, -z.x) + z.swerve * clamp((z.n - FENCE_R) / 4, 0, 1);
-      const pace = z.speed * (z.n > FIELD - .3 ? 1.6 : 1) * (z.rage > 0 ? 1.6 : 1) * (z.under ? 1.3 : 1) * (z.chillT > 0 ? 1 - z.chill : 1) * dt;
+      const pace = z.speed * (z.n > FIELD - .3 ? 1.6 : 1) * (z.rage > 0 ? 1.6 : 1) * (z.under ? (z.type === 'boss' ? 4 : 1.3) : 1) * (z.charge > 0 ? 4 : 1) * (z.chillT > 0 ? 1 - z.chill : 1) * dt;
       z.x += Math.cos(ang) * pace; z.y += Math.sin(ang) * pace;
       z.n = Math.max(Math.abs(z.x), Math.abs(z.y));
       if (z.state === 'attack') z.leftAttack = G.time;
       z.walkDist += pace; z.yaw = ang; z.state = 'walk';
       if (z.under && Math.random() < dt * 6) spray(z.x, z.y, .05, 1, .8, 1.2, .4, [rgb(120, 96, 66)]);
       // a burrower dives as soon as it is on the island; a leaper jumps the fence from just outside it
-      if (T.special === 'burrow' && !z.dug && z.n < FIELD - .8) { z.dug = true; z.state = 'dig'; z.st = 0; }
+      if ((T.special === 'burrow' || z.burrows) && !z.dug && z.n < FIELD - .8) { z.dug = true; z.state = 'dig'; z.st = 0; }
       else if (T.special === 'leap' && !z.leapt && fenceUp() && z.n > FENCE_R && z.n <= FENCE_R + 1) {
         const k = (FENCE_R - .9) / z.n;
         z.state = 'leap'; z.st = 0; z.leap = { x0: z.x, y0: z.y, x1: z.x * k, y1: z.y * k, dur: .9 }; sound('leap');
@@ -129,6 +141,8 @@ function updateZombies(dt) {
     // stepping back in after a knockback keeps the windup it had; only a fresh approach starts from zero
     if (z.state !== 'attack') { if (G.time - (z.leftAttack || -9) > .8) z.atk = 0; z.state = 'attack'; z.yaw = Math.atan2(-z.y, -z.x); }
     z.lastAttack = G.time;
+    // a charge ends in three quick blows, twice as hard
+    if (z.charge > 0) { if ((z.chargeT -= dt) <= 0) { z.chargeT = .3; z.charge--; strike(z, atFence, 2); stomp(z); } continue; }
     const inc = dt * (z.rage > 0 ? 1.4 : 1) * (z.chillT > 0 ? 1 - z.chill : 1);
     z.atk += inc;
     if (T.special === 'burst') { if (z.atk >= T.every) burst(z, atFence); continue; }
@@ -146,7 +160,8 @@ function updateZombies(dt) {
     g.t += dt;
     if (g.t < g.dur) continue;
     g.done = true;
-    spray(g.tx, g.ty, .2, 10, 1.6, 1.4, .6, [rgb(170, 220, 60), rgb(120, 180, 40), rgb(210, 240, 120)]);
+    spray(g.tx, g.ty, g.tz ?? .2, 10, 1.6, 1.4, .6, ACID);
+    if (g.tower != null) { SYS.hook.downTower(g.tower, g.down); sound('spit'); continue; }
     if (g.side >= 0 && fenceUp()) damageFence(g.side, g.power);
     else { G.hp -= g.power; G.hurt = .3; }
     sound('thud');
@@ -178,8 +193,8 @@ function damageFence(side, amount) {
   if (G.fenceHp <= 0) breakFence(); else fenceStages();
 }
 const fenceMat = () => rampOf(fenceInfo().material);
-function strike(z, atFence) {
-  const amount = z.hitPower * SYS.hook.taken();
+function strike(z, atFence, k = 1) {
+  const amount = z.hitPower * SYS.hook.taken() * k;
   if (atFence) {
     const side = sideOf(z.x, z.y), R = FENCE_R, hx = side === 1 ? R : side === 3 ? -R : z.x, hy = side === 0 ? R : side === 2 ? -R : z.y;
     const mat = fenceMat(), ox = side === 1 ? -1 : side === 3 ? 1 : 0, oy = side === 0 ? -1 : side === 2 ? 1 : 0;
@@ -228,23 +243,38 @@ function fenceStages() {
 }
 function hurt(z, dmg, quiet, still, crit) {
   if (z.state === 'dying' || z.under) return;
+  // a titan gathering itself between phases: nothing gets through (grey sparks)
+  if (z.shield > 0) { spray(z.x, z.y, 1.3, 2, 1.4, .8, .25, SPARK); return; }
   dmg *= ZTYPES[z.type].armor || 1;
-  z.hp -= dmg; z.hit = .07; z.lastHit = G.time;
+  z.hit = .07; z.lastHit = G.time;
   const d = Math.hypot(z.x, z.y) || 1;
   if (!still && !BIG[z.type] && z.state !== 'leap') { z.x += z.x / d * .04; z.y += z.y / d * .04; z.n = Math.max(Math.abs(z.x), Math.abs(z.y)); }
   // spread so rapid hits stay readable; a critical hit shows in orange
   if (!quiet) { const j = Math.random() - .5; float(z.x + j * .7, z.y - j * .7, 1.8 + Math.random() * .3, fmt(Math.round(dmg)), crit ? rgb(255, 150, 50) : rgb(255, 255, 255)); }
   spray(z.x, z.y, .9, 3, 1.2, 1.5, .4, [rgb(110, 40, 40), rgb(80, 120, 60)]);
-  if (z.hp <= 0) kill(z);
+  wound(z, dmg);
+}
+// health lost: a titan's phase ends at its share of the health (the rest of the blow is lost and it gathers itself),
+// the split comes at half; true if it died
+function wound(z, dmg) {
+  const floor = phaseFloor(z);
+  z.hp -= dmg;
+  if (z.hp <= floor) { z.hp = floor; nextPhase(z); }
+  if (z.splitAt && z.hp <= z.max * z.splitAt) splitBoss(z);
+  if (z.hp > 0) return false;
+  kill(z);
+  return true;
 }
 function kill(z) {
   z.state = 'dying'; z.t = 0;
   if (z.type === 'bloater') { splatter(z); z.gone = true; }
   if (z.zh) z.zh = 0;
-  // the gold with the systems' multipliers (commander, medals); a boss also pays the bounty relic's share
-  const s = G.wave, boss = z.type === 'boss';
+  // the gold with the systems' multipliers (commander, medals); a boss also pays the bounty relic's share (a titan's
+  // split halves are plain kills); the clock stops with the last of them
+  const s = G.wave, boss = z.type === 'boss' && !z.minion;
   let gold = z.reward * SYS.hook.goldMul();
-  if (boss) { gold += SYS.hook.bossKilled(s) || 0; G.bossLeft = 0; }
+  if (boss) gold += SYS.hook.bossKilled(s) || 0;
+  if (!bossAlive()) G.bossLeft = 0;
   G.money += gold; G.totalKills++; G.earned += gold;
   SYS.hook.killed(z, s);
   if (boss) notify(z.titan ? '타이탄 처치' : '보스 처치', '+' + fmt(gold), 'good');
@@ -265,7 +295,7 @@ function kill(z) {
     // repeat: the same stage again (a boss stage brings its boss back)
     if (G.repeat) { G.bossFor = 0; return; }
     G.wave++; G.best = Math.max(G.best, G.wave);
-    announce(G.wave);
+    if (!trySkip()) announce(G.wave);
   }
 }
 // a new stage: the kinds met for the first time, or just its number
@@ -297,5 +327,115 @@ function goWave(w) {
   w = clamp(Math.round(w), 1, G.best);
   if (w === G.wave || G.over) return;
   for (const z of G.zombies) z.gone = true;
-  G.wave = w; G.waveKills = 0; G.zombies = []; G.spits = []; G.bossFor = 0; G.bossLeft = 0; G.spawnIn = 1;
+  G.wave = w; G.waveKills = 0; G.zombies = []; G.spits = []; G.bossFor = 0; G.bossLeft = 0; G.spawnIn = 1; G.skip = null;
+}
+
+/* ================= auto-skip (doc 6) ================= */
+// In progress mode, a stage the firepower beats ten times over (five after 12 evacuations, seven with the clockwork
+// relic) is skipped, up to 50 a jump, within the record (it re-climbs ground already won): the stage number runs up,
+// the field is swept clean, speed lines cross it; nothing is paid for the stages jumped
+function trySkip() {
+  if (G.skip || G.repeat || G.over) return false;
+  const to = SYS.hook.skipTo(G.wave);
+  if (!(to > G.wave)) return false;
+  for (const z of G.zombies) { if (z.state !== 'dying') spray(z.x, z.y, .3, 6, 1.6, 1.2, .5, DUST); z.gone = true; }
+  G.zombies = []; G.spits = []; G.bossFor = 0; G.bossLeft = 0;
+  G.skip = { from: G.wave, to, t: 0, dur: Math.max(.5, (to - G.wave) * SYS.hook.skipStep()) };
+  notify('스킵', '스테이지 ' + G.wave + ' → ' + to);
+  sound('leap');
+  return true;
+}
+function updateSkip(dt) {
+  const k = G.skip;
+  k.t += dt;
+  G.wave = Math.min(k.to, k.from + Math.floor((k.to - k.from) * k.t / k.dur));
+  for (let n = Math.floor(dt * 90 + Math.random()); n > 0; n--) part((Math.random() * 2 - 1) * FIELD, (Math.random() * 2 - 1) * FIELD, .3 + Math.random() * .9, -7, 7, 1.6, .22, rgb(248, 246, 236), null, 7, 1);
+  if (k.t < k.dur) return;
+  G.skip = null; G.wave = k.to; G.best = Math.max(G.best, G.wave); G.waveKills = 0; G.bossFor = 0; G.spawnIn = 1;
+  SYS.hook.skipped(k.to - 1);
+  if (!trySkip()) announce(G.wave);
+}
+
+/* ================= boss patterns (the logic's PATTERNS: its band's, and past stage 100 more at half strength) ================= */
+// Each runs on its own clock once the boss is on the island (a half-strength one half as often) and shows itself one
+// way: a charge kicks up dust before the dash, a swarm bursts out of the dust at the edge, acid arcs onto a turret,
+// armour throws grey sparks, a burrow leaves a mound, a howl rings out, a leap lands in dust and a gunner sees stars,
+// regrowth sparkles, a titan's next phase shakes the ground and its split bursts
+const BOSS_EVERY = { charge: 12, swarm: 8, acidPool: 10, howl: 15, leapStun: 14, turretStun: 15 };
+const DUST = [rgb(150, 130, 100), rgb(120, 104, 80), rgb(190, 176, 150)], ACID = [rgb(170, 220, 60), rgb(120, 180, 40), rgb(210, 240, 120)], SPARK = [rgb(222, 222, 230), rgb(150, 150, 160)];
+function bossSetup(z, w) {
+  const pats = SYS.hook.bossPatterns(w), str = k => pats.reduce((a, p) => a + (p.key === k ? p.w : 0), 0), ph = SYS.hook.bossPhases(w);
+  z.pats = pats.filter(p => BOSS_EVERY[p.key]).map(p => ({ key: p.key, w: p.w, t: BOSS_EVERY[p.key] / p.w * .5 }));
+  if (str('burrow') >= 1) z.burrows = true;            // the logic: only a full-strength burrow gets inside the fence
+  if (str('regen')) z.regen = .03 * str('regen');
+  if (str('frontArmor')) z.armor = Math.min(.9, .9 * str('frontArmor'));
+  if (str('split')) { z.splitAt = .5; z.splitShare = .125 * str('split'); }
+  if (ph && ph.phases.length > 1) { z.phases = ph.phases; z.phase = 0; z.phaseGap = ph.gap; }
+}
+function bossTick(dt) {
+  for (const z of G.zombies) {
+    if (z.type !== 'boss' || z.minion || z.state === 'dying' || !z.pats) continue;
+    if (z.shield > 0) z.shield -= dt;
+    if (z.n > FIELD - .3 || z.under || z.state !== 'walk' && z.state !== 'attack') continue;
+    for (const p of z.pats) if ((p.t -= dt) <= 0) { p.t += BOSS_EVERY[p.key] / p.w; BOSS_DO[p.key](z, p.w); }
+  }
+}
+// acid lobbed at a turret's mount: that turret stops for sec seconds (a base without turrets takes it on the wall)
+function lobAcid(z, t, sec) { G.spits.push({ x: z.x, y: z.y, tx: t.x, ty: t.y, tz: t.z + .25, t: 0, dur: .9, power: 0, side: -1, tower: t.slot, down: sec }); }
+const BOSS_DO = {
+  charge(z) { z.charge = 3; z.chargeT = 0; spray(z.x, z.y, .1, 16, 2.2, 1.4, .6, DUST); sound('thud'); },
+  swarm(z, w) {
+    // the pack comes in beside the boss out of a burst of dust at the island's edge
+    const a = Math.atan2(z.y, z.x), n = Math.round(2 + 3 * w);
+    for (let k = 0; k < n; k++) {
+      const b = a + (Math.random() - .5) * .8, c = Math.cos(b), d = Math.sin(b), r = (FIELD + .6) / Math.max(Math.abs(c), Math.abs(d)), o = spawn('runner');
+      o.x = c * r; o.y = d * r; o.n = Math.max(Math.abs(o.x), Math.abs(o.y)); o.yaw = Math.atan2(-o.y, -o.x);
+    }
+    const c = Math.cos(a), d = Math.sin(a), r = (FIELD - .2) / Math.max(Math.abs(c), Math.abs(d));
+    spray(c * r, d * r, .1, 22, 2.6, 1.2, .8, DUST); sound('scream');
+  },
+  acidPool(z) {
+    const ts = SYS.towers();
+    if (!ts.length) { spit(z, fenceUp() && z.n >= FENCE_R); return; }
+    lobAcid(z, ts[Math.floor(Math.random() * ts.length)], 5); sound('spit');
+  },
+  howl(z) {
+    for (const o of G.zombies) if (o.state !== 'dying') o.rage = Math.max(o.rage || 0, 5);
+    for (let k = 0; k < 24; k++) { const a = k / 24 * Math.PI * 2; part(z.x, z.y, 1.4, Math.cos(a) * 4.5, Math.sin(a) * 4.5, .5, .5, rgb(255, 214, 200), rgb(200, 120, 110), 1, 1); }
+    z.screamT = .8; sound('scream');
+  },
+  leapStun(z) {
+    // over the fence (or a hop in place at the wall) onto the gunners
+    const R = bunkerReach() + .3, k = z.n > R ? R / z.n : 1;
+    z.state = 'leap'; z.st = 0; z.leap = { x0: z.x, y0: z.y, x1: z.x * k, y1: z.y * k, dur: .9 }; z.landStun = true; sound('leap');
+  },
+  turretStun(z) {
+    const ts = SYS.towers();
+    if (!ts.length) return;
+    for (const t of ts) lobAcid(z, t, 5);
+    sound('spit');
+  },
+};
+// a titan's phases: where the current one ends, and the next one beginning (it gathers itself for the phase gap)
+function phaseFloor(z) {
+  if (!z.phases || z.phase >= z.phases.length - 1) return -Infinity;
+  let s = 0;
+  for (let k = 0; k <= z.phase; k++) s += z.phases[k];
+  return z.max * (1 - s);
+}
+function nextPhase(z) {
+  z.phase++; z.shield = z.phaseGap || 2;
+  notify('타이탄 ' + (z.phase + 1) + '단계', '', 'danger');
+  stomp(z); G.hurt = .45;
+  SYS.changed();
+}
+// a titan at half its health bursts into three: two halves of a quarter of its health walk on beside it
+function splitBoss(z) {
+  z.splitAt = 0;
+  spray(z.x, z.y, 1, 30, 3.4, 3, 1, [rgb(176, 196, 90), rgb(120, 150, 60), rgb(210, 220, 130)], 2, 2); sound('crash'); G.hurt = .4;
+  for (const side of [-1, 1]) {
+    const o = spawn('boss'), a = Math.atan2(z.y, z.x) + side * Math.PI / 2;
+    Object.assign(o, { minion: true, titan: z.titan, name: z.name, x: z.x + Math.cos(a) * .6, y: z.y + Math.sin(a) * .6, swerve: side * .3, state: 'walk', reward: z.reward * .1 });
+    o.n = Math.max(Math.abs(o.x), Math.abs(o.y)); o.max = o.hp = z.max * (z.splitShare || .125); o.yaw = z.yaw;
+  }
 }
