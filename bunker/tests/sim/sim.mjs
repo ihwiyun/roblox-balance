@@ -29,7 +29,7 @@ export function powerOf(st) {
   const pool = { fence: S.fenceMax, bunker: S.bunkerMax, fenceMax: S.fenceMax, bunkerMax: S.bunkerMax };
   const rb = L.resolveBoss(sb, S, pool);
   // the boss side counts its regeneration as extra need, so the ratio stays positive and every upgrade shows
-  return Math.max(1e-300, Math.min(S.dpsCrowd / L.reqDps(sn), (rb.have + rb.regen) / (rb.need + rb.regen)));
+  return Math.max(1e-300, Math.min(S.dpsCrowd / L.reqDps(sn), rb.gross / (rb.need + rb.regen)));
 }
 function trial(st, key) {
   const [a, b, c] = key.split(':');

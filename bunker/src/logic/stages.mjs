@@ -120,13 +120,13 @@ export function resolveBoss(s, st, pool) {
   const bossHp = (kind === 'titan' ? T.stage.titanHp : T.stage.bossHp) * hp * m.hpMul;
   const limit = bossLimit(kind) + (st.bossTimeBonus || 0);
   const regen = m.regen * bossHp * (1 - (st.burnUptime || 0));    // hp/s the boss heals back (fire stops it)
-  const dps = (st.dpsGunners * m.gunner + st.dpsTurrets * m.turret) * (st.bossMul || 1) - regen;
+  const gross = (st.dpsGunners * m.gunner + st.dpsTurrets * m.turret) * (st.bossMul || 1), dps = gross - regen;
   const time = dps > 0 ? Math.max(6, bossHp / dps) : Infinity;
   const fight = Math.min(time, limit);
   const dmg = m.pressure * zombieAtk(s) * fight * (1 - (st.slow || 0)) * (st.dmgTakenMul ?? 1);
   const after = hurt(pool, dmg, st.repairPerSec || 0, fight, m.bypassFence);
   const ok = time <= limit && after.bunker > 0;
-  return { ok, time: fight, dmg, kills: ok ? 1 : 0, need: bossHp / limit, have: dps, regen, ...after };
+  return { ok, time: fight, dmg, kills: ok ? 1 : 0, need: bossHp / limit, have: dps, gross, regen, ...after };
 }
 export const resolveStage = (s, st, pool) => (kindOf(s) === 'normal' ? resolveNormal(s, st, pool) : resolveBoss(s, st, pool));
 
