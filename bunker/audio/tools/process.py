@@ -99,15 +99,19 @@ def fade_edges(x, fade_in=0.0, fade_out=0.0):
     return x
 
 
-def trim_loop_edges(x, max_ms=80, floor_db=-80):
-    """Drop digital silence (an MP3 decoder's padding) from the very start/end of a loop.  Silence longer than
-    max_ms is musical (a rest) and is kept.  Returns (trimmed, head_ms, tail_ms)."""
-    mono = np.abs(x).max(axis=1)
-    thr = 10 ** (floor_db / 20)
-    loud = np.where(mono > thr)[0]
+def trim_loop_edges(x, max_ms=80, floor_db=-50, win_ms=1.0):
+    """Drop the near-silent lead-in / tail that an MP3 encoder and decoder add around a loop (it plays as a dropout at the wrap).
+    Looks at 1 ms RMS windows: everything before the first / after the last window louder than `floor_db` (dBFS) is cut, but at most
+    `max_ms` per side - a longer quiet stretch is a musical rest and stays.  Returns (trimmed, head_ms, tail_ms)."""
+    w = max(1, int(win_ms / 1000 * SR))
+    n = len(x) // w
+    if n < 4:
+        return x, 0.0, 0.0
+    rms = np.sqrt((x[:n * w].astype(np.float64) ** 2).mean(axis=1).reshape(n, w).mean(axis=1))
+    loud = np.where(rms > 10 ** (floor_db / 20))[0]
     if len(loud) == 0:
         return x, 0.0, 0.0
-    head, tail = loud[0], len(x) - 1 - loud[-1]
+    head, tail = loud[0] * w, len(x) - (loud[-1] + 1) * w
     lim = int(max_ms / 1000 * SR)
     a = head if head <= lim else 0
     b = tail if tail <= lim else 0

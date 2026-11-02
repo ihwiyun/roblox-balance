@@ -23,6 +23,22 @@ def cell(s):
     return str(s).replace('|', '\\|').replace('\n', ' ')
 
 
+def short(changes):
+    """The exact numbers (gains, trims) stay in catalog.json; here the edits are listed in plain words."""
+    out = []
+    for c in changes:
+        if c.startswith('20Hz'):
+            c = '직류 성분 제거'
+        elif c.startswith('모노로 변환'):
+            c = '모노, 최대 음량 -1 dBTP로 맞춤'
+        elif c.startswith('음량을'):
+            c = '음량 -16 LUFS로 맞춤' + (' (피크 리미터)' if '리미터' in c else '')
+        elif c.startswith('OGG Vorbis'):
+            c = 'OGG Vorbis로 변환'
+        out.append(c)
+    return '; '.join(out)
+
+
 def length(it):
     sec = it['seconds']
     return f'{int(sec // 60)}:{sec % 60:04.1f}' if sec >= 60 else f'{sec:.2f}초'
@@ -79,7 +95,7 @@ for sid in order:
     w('|---|---|---|')
     for it in items:
         members = ', '.join(it.get('source_files') or [it['member']])
-        w(f"| `{it['file']}` ({length(it)}) | {cell(members)} | {cell('; '.join(it['changes']))} |")
+        w(f"| `{it['file']}` ({length(it)}) | {cell(members)} | {cell(short(it['changes']))} |")
     w('')
 
 gen = by_source.get('generated', [])
@@ -91,7 +107,7 @@ if gen:
     w('| 만든 파일 | 합성 내용 | 가공 |')
     w('|---|---|---|')
     for it in gen:
-        w(f"| `{it['file']}` ({length(it)}) | {cell(it.get('generated_desc', it['mood']))} | {cell('; '.join(it['changes']))} |")
+        w(f"| `{it['file']}` ({length(it)}) | {cell(it.get('generated_desc', it['mood']))} | {cell(short(it['changes']))} |")
     w('')
 
 open(os.path.join(audio, 'LICENSES.md'), 'w', encoding='utf-8').write('\n'.join(out))

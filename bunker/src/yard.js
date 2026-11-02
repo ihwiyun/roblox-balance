@@ -429,8 +429,8 @@ const BUNKER_ART = (() => {
         if (nx) pbox(Math.min(x, x + nx * .04), y - w, 0, Math.max(x, x + nx * .04), y + w, z1, c, 12, pat); else pbox(x - w, Math.min(y, y + ny * .04), 0, x + w, Math.max(y, y + ny * .04), z1, c, 12, pat);
       }),
     ],
-    // log cribs: on the sandbags of the pit, on the deck corners once it stands
-    mounts: [(F, g) => mountsAt(F, F.up ? 1.05 : R0, F.up ? F.top : F.ringTop, (x, y, z) => logCrib(x, y, z, g))],
+    // log cribs on the sandbags, so the deck stays clear for the gunners
+    mounts: [(F, g) => mountsAt(F, R0, F.ringTop, (x, y, z) => logCrib(x, y, z, g))],
     lights: [
       null,
       // a lantern on a log post at every corner
@@ -438,13 +438,13 @@ const BUNKER_ART = (() => {
     ],
     comms: [
       null,
-      // a whip antenna with a dipole bar and a red light on the middle of every side of the parapet
-      (F, g) => { for (const [x, y, alongX] of [[0, R0, 1], [R0, 0, 0], [0, -R0, 1], [-R0, 0, 0]]) {
+      // a whip antenna with a dipole bar and a red light on the parapet of every side
+      (F, g) => byWalls(R0 - .15, -.35, .15, (x, y, nx) => {
         const z0 = F.ringTop, z1 = z0 + 1.05;
         post(x, y, z0 - .05, z1, .018, DARK, 32);
-        if (alongX) bar(x - .17, y, x + .17, y, z1 - .25, .012, .024, trimOf(g, DARK)); else bar(x, y - .17, x, y + .17, z1 - .25, .012, .024, trimOf(g, DARK));
+        if (nx) bar(x, y - .17, x, y + .17, z1 - .25, .012, .024, trimOf(g, DARK)); else bar(x - .17, y, x + .17, y, z1 - .25, .012, .024, trimOf(g, DARK));
         bulb(x, y, z1 + .03, [255, 70, 50]);
-      } },
+      }),
     ],
     flags: [
       null,
@@ -460,10 +460,10 @@ const BUNKER_ART = (() => {
       // supply crates stacked by every wall: a plank crate, a dark one and an olive one, a small olive one on top
       (F, g) => byWalls(F.m, .8, .3, (x, y, nx) => {
         const at = s => nx ? [x, y + s] : [x + s, y], band = col(...trimOf(g, [214, 178, 60]));
-        framed(...at(-.22), 0, .19, .19, .38, PLANK, 5);
-        framed(...at(.2), 0, .17, .17, .32, [150, 112, 72], 6);
-        framed(...at(-.2), .38, .14, .14, .26, PLANK, 7);
-        framed(...at(.52), 0, ...(nx ? [.1, .15] : [.15, .1]), .2, OLIVE, 8, band);
+        framed(...at(-.22), 0, .21, .21, .42, [222, 204, 170], 5);
+        framed(...at(.22), 0, .18, .18, .34, PLANK, 6);
+        framed(...at(-.2), .42, .15, .15, .28, [222, 204, 170], 7);
+        framed(...at(.55), 0, ...(nx ? [.11, .16] : [.16, .11]), .22, OLIVE, 8, band);
       }),
     ],
     workshop: [
@@ -477,13 +477,13 @@ const BUNKER_ART = (() => {
         pbox(vx - .06, vy - .06, .47, vx + .06, vy + .06, .58, [112, 122, 132], 27, (f, a, b) => f && b > .53 ? 1 : 0);
         pbox(tx - .11, ty - .11, .47, tx + .11, ty + .11, .6, trimOf(g, [196, 56, 44]), 28, (f, a, b) => f && Math.abs(b - .55) < .02 ? -1.6 : f === 0 ? .4 : 0);
         // the tool board on the wall behind it: a hammer, a saw and a wrench drawn dark on pale boards
-        wallBox(bx, by, nx, .3, .0125, .5, .84, [222, 204, 170], 29, (f, a, b) => {
+        wallBox(bx, by, nx, .36, .0125, .48, .86, [222, 204, 170], 29, (f, a, b) => {
           if (!f) return 0;
-          const u = a - (nx ? by : bx), v = b - .5, ink = col(54, 50, 56);
-          if (Math.abs(u) > .27 || v < .03 || v > .31) return -1.2;
-          if (u < -.09) return Math.abs(u + .18) < .022 && v > .06 && v < .22 || v > .2 && v < .26 && Math.abs(u + .18) < .07 ? ink : 0;
-          if (u < .09) return v > .08 && v < .26 && Math.abs(u) < .06 - (v - .08) * .15 ? ink : 0;
-          return Math.abs(u - .18) < .022 && v > .06 && v < .22 || v > .2 && v < .27 && Math.abs(u - .18) < .06 && Math.abs(u - .18) > .02 ? ink : 0;
+          const u = a - (nx ? by : bx), v = b - .48, ink = col(54, 50, 56);
+          if (Math.abs(u) > .33 || v < .035 || v > .345) return -1.2;
+          if (u < -.11) return Math.abs(u + .22) < .025 && v > .07 && v < .25 || v > .23 && v < .3 && Math.abs(u + .22) < .08 ? ink : 0;
+          if (u < .11) return v > .08 && v < .29 && Math.abs(u) < .07 - (v - .08) * .17 ? ink : 0;
+          return Math.abs(u - .22) < .025 && v > .07 && v < .25 || v > .23 && v < .31 && Math.abs(u - .22) < .07 && Math.abs(u - .22) > .025 ? ink : 0;
         }, .2);
         shade(x - .4, y - .4, x + .4, y + .4, 0, .6);
       }),

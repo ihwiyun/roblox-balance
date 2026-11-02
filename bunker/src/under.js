@@ -38,14 +38,16 @@ function layoutFloors() {
 }
 // where people stand, work and sleep below ground (the crew code asks here, so the floor plan stays in one file)
 // beds: five single beds lying along x (head at the -x end, mattress top 0.4 above the floor): beds 0-2 against the
-// back wall, beds 3-4 in a second row in front of them. The sleepers walk in along the aisle between the rows:
-// bedSpot is on the aisle side of each bed; sleepSpot is the floor point under the middle of the mattress, where
+// back wall, beds 3-4 in a second row in front of them. From the military era on they are bunks: beds 3 and 4 go up
+// onto beds 0 and 1, BUNK higher. The sleepers walk in along the aisle in front of the back wall: bedSpot is on the
+// aisle side of each bed; sleepSpot is the point under the middle of the mattress (raised for a top bunk), where
 // the sleeping figure is drawn
-const BED_L = 1.7, BEDS_A = [2, 4, 6, 2, 4];
+const BED_L = 1.7, BEDS_A = [2, 4, 6, 2, 4], BUNK = .95;
 const BED_X = i => XA(BEDS_A[i]);
-const bedY = i => i < 3 ? [yb(.08), yb(.86)] : [yb(2.55), yb(3.33)];
-const bedSpot = c => ({ where: 'ug', floor: 0, x: BED_X(c.i) + .85, y: yb(c.i < 3 ? 1.12 : 2.33), z: LEVEL_Z[0] });
-const sleepSpot = i => { const [a, b] = bedY(i); return { x: BED_X(i) + BED_L / 2, y: (a + b) / 2, z: FLOOR_Z[0] }; }; // drawn on the B1 picture
+const bunks = () => facLook('live', G.live).era > 0;
+const bedY = i => i < 3 || bunks() ? [yb(.08), yb(.86)] : [yb(2.55), yb(3.33)];
+const bedSpot = c => ({ where: 'ug', floor: 0, x: BED_X(c.i) + .85, y: yb(c.i < 3 || bunks() ? 1.12 : 2.33), z: LEVEL_Z[0] });
+const sleepSpot = i => { const [a, b] = bedY(i); return { x: BED_X(i) + BED_L / 2, y: (a + b) / 2, z: FLOOR_Z[0] + (i > 2 && bunks() ? BUNK : 0) }; }; // drawn on the B1 picture
 // workers are spread over the room. Every spot also says which way to face (yaw) and, for a miner, where the
 // pick strikes (hit, z above the floor). Farmer 0 tends the work row along the back wall from the aisle in front of
 // it; the others stand in the aisles between the plots, each facing the plot behind them (-y), spread along their
@@ -475,10 +477,11 @@ const R_RUGR = rampOf([168, 64, 54]), R_RUGC = rampOf([214, 196, 156]), R_RUGB =
 const R_WAIN = rampOf([70, 120, 112]), R_PAINT = rampOf([218, 204, 172]), TRIM = rgb(236, 230, 214);
 const R_TILE_T = rampOf([66, 118, 116]), R_TILE_G = rampOf([214, 176, 72]), R_TILE_W = rampOf([228, 226, 216]), R_TILE_S = rampOf([120, 170, 196]);
 const GROUT_T = rgb(46, 70, 70), GROUT_G = rgb(120, 96, 50), GROUT_W = rgb(176, 172, 164), R_PLANKW = rampOf([160, 120, 80]);
-function livingPaint(L, fz) {
-  const { x0, y0 } = UG, RLx = RL(), st = RLx - STORE, floorMat = L >= 35 ? 2 : L >= 2 ? 1 : 0, wallMat = L >= 30 ? 3 : L >= 18 ? 2 : L >= 9 ? 1 : 0, lb = loungeB();
-  const rug = L >= 13 ? [.75, lb, 3.65, lb + 2.6] : null, mat = L >= 2 ? [.45, 1.18, 1.45, 1.78] : null;
-  const wall = (a, z, ix, iy, side) => {
+// earth and dirt at first, then a plank floor (decor 1) and plank walls (decor 2); from the military era painted
+// concrete like the other floors, a concrete floor
+function livingPaint(L, fz, look) {
+  const { x0, y0 } = UG, st = RL() - STORE, e = look.era, d = look.step.decor, floorMat = e ? 2 : d >= 1 ? 1 : 0, wallMat = e ? 2 : d >= 2 ? 1 : 0;
+  const wall = (a, z, ix, iy) => {
     if (wallMat === 0) return earthWall(a, z, ix, iy);
     if (wallMat === 1) {
       const bd = a / .26, f = bd - Math.floor(bd), n = Math.floor(bd);
@@ -486,34 +489,20 @@ function livingPaint(L, fz) {
       if (z < .14) return R_WOOD[1];
       return pick(hash(n, 5) > .5 ? R_PLANKS : R_PLANKW, 2.1 + nz(n * 3, z * 1.4) * 1.1 + (hash(n, Math.floor(z * 3)) > .97 ? -1.4 : 0), ix, iy, .4);
     }
-    if (wallMat === 2) {
-      if (z < .9) { const p = a / .55 - Math.floor(a / .55); return pick(R_WAIN, z < .1 ? 1 : p < .06 ? 1.6 : 2.6 + (z > .8 ? .6 : 0), ix, iy, .3); }
-      if (z < .98) return TRIM;
-      return pick(R_PAINT, 2.5 + nz(a * 1.2, z * 1.5) * .6, ix, iy, .4);
-    }
-    if (side && z < 2.1 && a > RLx - 1.15 && L >= 29) return tileAt(a, z, ix, iy, R_TILE_S, .22);
-    if (z < .85) return tileAt(a, z, ix, iy, R_TILE_T, .34, GROUT_T);
-    if (z < 1.0) return tileAt(a + .1, z, ix, iy, R_TILE_G, .15, GROUT_G);
-    return tileAt(a, z, ix, iy, R_TILE_W, .25, GROUT_W);
+    if (z < .92) return (a % 1.2) < .03 ? R_ODW[1] : pick(R_ODW, 2.5 + nz(a * 2, z * 2) * .5, ix, iy, .4);
+    if (z < 1.0) return R_ODW[0];
+    return (a % 1.2) < .025 || (z % .62) < .025 ? R_PALEW[1] : pick(R_PALEW, 2.6 + nz(a * 1.4, z * 1.4) * .5, ix, iy, .4);
   };
   return {
     floor(x, y, ix, iy) {
       const a = x - x0, b = y - y0;
       if (a > st && b > st) return a < st + .14 || b < st + .14 ? hazard(a, b) : plateAt(a, b, ix, iy);
-      if (rug && a > rug[0] && a < rug[2] && b > rug[1] && b < rug[3]) {
-        const e = Math.min(a - rug[0], rug[2] - a, b - rug[1], rug[3] - b);
-        if (e < .07) return pick(R_RUGB, 2.4, ix, iy);
-        if (e < .14) return pick(R_RUGC, 2.8, ix, iy);
-        const dd = Math.abs((a - (rug[0] + rug[2]) / 2) * .55) + Math.abs(b - (rug[1] + rug[3]) / 2), ring = Math.floor(dd / .22) % 3;
-        return pick(ring === 0 ? R_RUGC : ring === 1 ? R_RUGR : R_RUGB, 2.6 + nz(a * 6, b * 6) * .5, ix, iy);
-      }
-      if (mat && a > mat[0] && a < mat[2] && b > mat[1] && b < mat[3]) return pick(R_MAT, (Math.floor(a * 14) & 1) ? 2.2 : 2.8, ix, iy, .3);
       if (floorMat === 0) return dirtAt(a, b, ix, iy);
       if (floorMat === 1) return planksAt(a, b, ix, iy);
-      return parquetAt(a, b, ix, iy);
+      return (a % 1.8) < .025 || (b % 1.8) < .025 ? R_CONC[1] : pick(R_CONC, 2.3 + nz(a * 1.5, b * 1.5) * .6, ix, iy, .5);
     },
-    back(x, z, ix, iy) { return wall(x - x0, z - fz, ix, iy, false); },
-    left(y, z, ix, iy) { return wall(y - y0, z - fz, ix, iy, true); },
+    back(x, z, ix, iy) { return wall(x - x0, z - fz, ix, iy); },
+    left(y, z, ix, iy) { return wall(y - y0, z - fz, ix, iy); },
     cap: wallMat >= 2 ? rampOf([200, 196, 186])[2] : wallMat === 1 ? R_WOOD[2] : R_SOILD[2],
   };
 }
@@ -521,17 +510,17 @@ function livingPaint(L, fz) {
 // each blanket is its sleeper's colour
 const BLANKET_EMPTY = [150, 142, 128], SHEET = [222, 214, 196], PILLOW = [244, 240, 230];
 const BED_STYLE = [
-  { frame: [104, 116, 78], legs: WOOD, head: 0, foot: 0 },
+  { frame: [104, 116, 78], legs: WOOD, head: 0, foot: 0, canvas: true },
   { frame: [128, 136, 146], legs: [128, 136, 146], head: .82, foot: .62, bars: true },
   { frame: WOOD, legs: WOOD_D, head: .72, foot: .55 },
   { frame: [176, 182, 190], legs: [150, 156, 164], head: .6, foot: 0, stripes: true },
   { frame: [112, 76, 50], legs: [92, 60, 40], head: 1.05, foot: .62, carved: true },
 ];
-function bed(i, fz) {
-  const st = BED_STYLE[i], bx = BED_X(i), [y0, y1] = bedY(i), L = BED_L, x1 = bx + L;
-  for (const [x, y] of [[bx + .03, y0 + .03], [x1 - .1, y0 + .03], [bx + .03, y1 - .1], [x1 - .1, y1 - .1]]) fbox(x, y, fz, x + .07, y + .07, fz + .22, st.legs, 50 + i);
+function bed(i, fz, st = BED_STYLE[i], top = false) {
+  const bx = BED_X(i), [y0, y1] = bedY(i), L = BED_L, x1 = bx + L;
+  if (!top) for (const [x, y] of [[bx + .03, y0 + .03], [x1 - .1, y0 + .03], [bx + .03, y1 - .1], [x1 - .1, y1 - .1]]) fbox(x, y, fz, x + .07, y + .07, fz + .22, st.legs, 50 + i);
   fbox(bx, y0, fz + .18, x1, y1, fz + .26, st.frame, 52 + i);
-  if (i === 0) { fbox(bx, y0, fz + .26, x1, y1, fz + .34, [104, 116, 78], 53); fbox(bx + .06, y0 + .06, fz + .34, x1 - .06, y1 - .06, fz + .4, [138, 146, 110], 54); }
+  if (st.canvas) { fbox(bx, y0, fz + .26, x1, y1, fz + .34, [104, 116, 78], 53); fbox(bx + .06, y0 + .06, fz + .34, x1 - .06, y1 - .06, fz + .4, [138, 146, 110], 54); }
   else {
     fbox(bx + .04, y0 + .04, fz + .26, x1 - .04, y1 - .04, fz + .4, st.stripes ? [214, 226, 236] : SHEET, 55 + i);
     if (st.stripes) onY(y1 - .04, bx + .04, x1 - .04, fz + .26, fz + .4, x => (Math.floor((x - bx) * 9) & 1) ? rgb(80, 110, 170) : 0);
@@ -546,7 +535,7 @@ function bed(i, fz) {
     if (st.carved) { fbox(bx - .05, y0 - .02, fz + st.head, bx + .05, y1 + .02, fz + st.head + .06, [140, 98, 64], 75); onX(bx + .04, y0 + .1, y1 - .1, fz + .55, fz + .95, (y, z) => Math.abs((y - (y0 + y1) / 2) * 2) + Math.abs(z - fz - .75) * 2.6 < .32 ? rgb(150, 108, 70) : 0); }
   }
   if (st.foot) fbox(x1 - .06, y0, fz, x1 + .02, y1, fz + st.foot, st.frame, 80 + i);
-  footShadow(bx, y0, x1, y1, .45);
+  if (!top) footShadow(bx, y0, x1, y1, .45);
 }
 function footlocker(fz) {
   const x = XA(2.05), y0 = yb(2.85), y1 = yb(3.25);
@@ -1262,9 +1251,9 @@ function soilBeds(fz) {
   farmRows().forEach(([xa, xb, b0, b1], r) => soilBed(xa, xb, b0, b1, fz, null, .3, 520 + r * 20));
 }
 function plantedBeds(fz, g) {
-  const kinds = ['carrot', 'potato', 'cabbage', 'herb', 'lettuce', 'carrot'], edge = mat(PLANKS, g);
-  soilBed(XA(2.0), XA(RL() - .4), .1, .92, fz, 'lettuce', 1, 500, edge);
-  farmRows().forEach(([xa, xb, b0, b1], r) => soilBed(xa, xb, b0, b1, fz, kinds[r], .95, 520 + r * 20, edge));
+  const kinds = ['carrot', 'tomato', 'lettuce', 'herb', 'carrot', 'tomato'], edge = mat(PLANKS, g);
+  soilBed(XA(2.0), XA(RL() - .4), .1, .92, fz, 'lettuce', .75, 500, edge);
+  farmRows().forEach(([xa, xb, b0, b1], r) => soilBed(xa, xb, b0, b1, fz, kinds[r], .8, 520 + r * 20, edge));
 }
 function woodPlanters(fz) {
   planter(XA(2.0), XA(RL() - .4), .1, .86, fz, 'herb', .9, 600, .3);
@@ -1296,15 +1285,15 @@ function towers(fz) {
 }
 // breakthrough: a rain barrel under a drip from the ceiling, two watering cans and a bucket (first bay)
 function rainBarrel(fz, g) {
-  const x = XA(.5), y = yb(2.45), r = .32, top = fz + .88, wd = mat(WOOD, g);
+  const x = XA(.55), y = yb(2.5), r = .4, top = fz + 1.0, wd = mat(WOOD, g);
   drum(x, y, fz, top, r, wd, 1310, 1.2);
-  for (const z of [.12, .44, .76]) drum(x, y, fz + z, fz + z + .05, r + .02, [64, 60, 62], 1311, .3);
+  for (const z of [.12, .48, .84]) drum(x, y, fz + z, fz + z + .05, r + .02, [64, 60, 62], 1311, .3);
   onZ(top, x - r, y - r, x + r, y + r, (xx, yy) => inDrum(xx - x, yy - y, r - .05) ? (Math.abs(xx - x + .08) < .03 && Math.abs(yy - y + .06) < .03 ? rgb(210, 236, 248) : rgb(70, 124, 156)) : inDrum(xx - x, yy - y, r) ? rampOf(wd)[1] : 0);
   fbox(x - .03, y - .03, top + .14, x + .03, y + .03, fz + UG.h, METAL, 1312);
   pt(x, y, top + .06, rgb(170, 214, 236)); pt(x, y, top + .02, rgb(150, 200, 226));
   footShadow(x - r, y - r, x + r, y + r, .88);
-  wateringCan(XA(1.02), yb(1.98), fz, [70, 140, 90]); wateringCan(XA(.98), yb(3.05), fz, [184, 72, 52]);
-  const bx = XA(1.0), by = yb(2.55);
+  wateringCan(XA(1.0), yb(2.0), fz, [70, 140, 90]); wateringCan(XA(.62), yb(3.2), fz, [184, 72, 52]);
+  const bx = XA(1.12), by = yb(2.85);
   drum(bx, by, fz, fz + .28, .14, [150, 156, 164], 1313, .4);
   onZ(fz + .28, bx - .14, by - .14, bx + .14, by + .14, (xx, yy) => inDrum(xx - bx, yy - by, .1) ? rgb(70, 124, 156) : 0);
   for (let t = 0; t <= 1; t += .1) pt(bx + Math.cos(t * Math.PI) * .13, by, fz + .3 + Math.sin(t * Math.PI) * .12, rgb(60, 60, 66));
