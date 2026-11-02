@@ -751,8 +751,15 @@ const cmdNode = document.getElementById('cmd'), cmdLv = document.getElementById(
 const bossNode = document.getElementById('boss'), bossName = document.getElementById('bossName'), bossTime = document.getElementById('bossTime'), bossFill = document.getElementById('bossFill'), bossCuts = document.getElementById('bossCuts');
 // the boss on the field (SYS.stageNow): one wide bar under the stage pill in place of the stage's own, with its name,
 // its health and its clock (red in the last ten seconds); a titan's bar is cut where its phases change
+// (without the systems, the game's own boss: its name, health and clock)
+function bossNow() {
+  const S = sysCall('stageNow');
+  if (S) return S.boss;
+  const z = G.zombies.find(o => o.type === 'boss' && !o.minion && o.state !== 'dying');
+  return z ? { name: z.name, left: Math.max(0, G.bossLeft || 0), hp: z.max ? Math.max(0, z.hp / z.max) : 1, phases: z.phases ? z.phases.length : 1, gathering: z.shield > 0 } : null;
+}
 function refreshBoss() {
-  const b = (sysCall('stageNow') || {}).boss;
+  const b = bossNow();
   nodes.app.classList.toggle('bossup', !!b);
   bossNode.hidden = !b;
   if (!b) return;
