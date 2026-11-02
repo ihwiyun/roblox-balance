@@ -6,6 +6,7 @@
 // profiles (doc 12): 'f2p' (ads only), 'light' (monthly 5,500 + season pass 9,900 KRW), 'heavy' (100,000 KRW a month:
 //   passes, then the step packages as they open, then diamonds), 'whale' (300,000 a month, to show diminishing returns)
 import * as L from '../../src/logic/index.mjs';
+import { makeLogger } from './log.mjs';
 const { T } = L;
 
 const DAY = 86400;
@@ -64,7 +65,8 @@ function bunkerSlotGain(st) {
 export function run(opts = {}) {
   const { bot = 'human', profile = 'f2p', seed = 1, days = 60, untilStage = 1000, sessionMin = 26, maxActiveH = 400, sample = 600 } = opts;
   const prof = PROFILES[profile], human = bot === 'human';
-  const st = L.newGame(seed), rng = L.makeRng(seed * 7919 + 13);
+  const st = L.newGame(seed), rng = L.makeRng(seed * 7919 + 13), LOG = opts.log ? makeLogger(st, () => relicAxis()) : null;
+  const income = (res, amount, src) => LOG && LOG.onEvent('earn', { res, amount, src });
   // is the next purchase on this track a breakthrough (materials) rather than a level?
   const btKey = key => {
     const [a, b, c] = key.split(':');
@@ -83,7 +85,7 @@ export function run(opts = {}) {
     buys: {}, step1BestUntil: null, goldHeldMin: [],
   };
   const ctx = { checks: 0, failT: -1, lastRecordT: 0, lastRecord: 0, gemPlan: { weapon: 0, turret: 0, relic: 0, recruit: 0 }, monthStart: 0, krwThisMonth: 0,
-    stallLimit: 10 * 60, runBestT: 0 };
+    stallLimit: 10 * 60, runBestT: 0, blocked: new Set() };
   let bestW = 0, teamW = 0;
   const climb = () => {      // the run's best stage moved (a new record is one): the "can't climb" clock restarts
     const gap = st.active - M.lastClimb;
@@ -113,6 +115,7 @@ export function run(opts = {}) {
       ws: { ...st.ws }, bunker: st.bunker, fence: st.fence, bestW: Math.max(0, ...st.equipW), sec: JSON.parse(JSON.stringify(st.sec)), gems: st.gems };
   };
   st.ev = (type, data) => {
+    if (LOG) LOG.onEvent(type, data);
     if (type === 'clear') {
       if (st.last && st.last.rw.kind === 'normal') M.clears.push(st.last.res.time + 2);
       if (data > ctx.runBest) { ctx.runBest = data; ctx.runBestT = st.active; climb(); }
@@ -127,8 +130,9 @@ export function run(opts = {}) {
   ctx.runBest = 0;
   const tally = key => { const k = key.split(':').slice(0, 2).join(':'); M.buys[k] = (M.buys[k] || 0) + 1; };
   const buy = key => {
-    const c = L.price(st, key);
+    const c = L.price(st, key), wasBt = LOG && btKey(key);
     if (!L.canPay(st, c) || !L.buy(st, key)) return false;
+    if (wasBt) LOG.onBreakthrough(key);
     tally(key);
     if (key.startsWith('ws:')) M.ws.push(st.active);
     bought();
@@ -141,7 +145,7 @@ export function run(opts = {}) {
   function payerShop() {
     if (profile === 'f2p') return;
     if (st.t - ctx.monthStart >= 30 * DAY) { ctx.monthStart = st.t; ctx.krwThisMonth = 0; }
-    if (prof.monthly && st.t >= st.shop.monthlyUntil) { st.shop.monthlyUntil = st.t + 30 * DAY; st.gems += L.PASSES.monthly.now; pay(L.PASSES.monthly.krw); }
+    if (prof.monthly && st.t >= st.shop.monthlyUntil) { st.shop.monthlyUntil = st.t + 30 * DAY; st.gems += L.PASSES.monthly.now; income('gems', L.PASSES.monthly.now, 'monthly pass'); pay(L.PASSES.monthly.krw); }
     if (prof.season && st.t >= st.shop.seasonUntil) { st.shop.seasonUntil = st.t + 60 * DAY; pay(L.PASSES.season.krw); }
     if (!prof.krwMonth) return;
     if (prof.steps) for (const line of ['weapon', 'crew', 'turret']) {
@@ -150,6 +154,7 @@ export function run(opts = {}) {
         pay(s.krw); L.buyStep(st, line, s, s.krw);
         L.assignCrew(st); L.equipBest(st);
         M.packages.push({ line, step: st.shop.steps[line], krw: s.krw, at: st.active / 3600, record: rec, jump: powerOf(st) / before });
+        if (LOG) LOG.event(`패키지 구매: ${{ weapon: '무기', crew: '동료', turret: '터렛' }[line]} ${st.shop.steps[line]}단계`, { krw: s.krw, powerJump: +(powerOf(st) / before).toFixed(2) });
         if (line === 'weapon' && st.shop.steps.weapon === 1) M.step1At = st.active;
       }
     }
@@ -158,7 +163,7 @@ export function run(opts = {}) {
     const room = prof.krwMonth * (stepsLeft ? 0.5 : 1);
     for (let i = L.DIAMOND_PACKS.length - 1; i >= 0; i--) {
       const p = L.DIAMOND_PACKS[i];
-      while (ctx.krwThisMonth + p.krw <= room) { st.diamonds += L.diamondsFor(st.shop, i); st.shop.packsBought[i] = true; pay(p.krw); }
+      while (ctx.krwThisMonth + p.krw <= room) { const d = L.diamondsFor(st.shop, i); st.diamonds += d; income('diamonds', d, 'purchase'); st.shop.packsBought[i] = true; pay(p.krw); }
     }
   }
 
@@ -285,15 +290,17 @@ export function run(opts = {}) {
     }
     // the growth lock (doc 8): food output must cover 1.15x the upkeep after a level-up
     if (S.prod.food < S.upkeep * 1.3) { const c = L.price(st, 'sec:food:lv'); if (c && !btKey('sec:food:lv') && goldOf(c) < 0.6 * st.gold) buy('sec:food:lv'); }
-    for (const sec of ['food', 'mine', 'shop', 'bed', 'roof']) if (btKey(`sec:${sec}:lv`)) buy(`sec:${sec}:lv`);
-    for (const id of Object.keys(st.crew.cards)) if (btKey('crew:' + id)) buy('crew:' + id);
+    // what a wanted breakthrough or tier is still short of (the week's bottleneck report)
+    const short = key => { const c = L.price(st, key); if (c) for (const [k, v] of Object.entries(c)) if (st[k] < v) ctx.blocked.add(k); };
+    for (const sec of ['food', 'mine', 'shop', 'bed', 'roof']) if (btKey(`sec:${sec}:lv`) && !buy(`sec:${sec}:lv`)) short(`sec:${sec}:lv`);
+    for (const id of Object.keys(st.crew.cards)) if (btKey('crew:' + id) && !buy('crew:' + id)) short('crew:' + id);
     for (const sec of tiers) {
       const c = L.price(st, `sec:${sec}:tier`);
       if (c && Object.entries(c).every(([k, v]) => st[k] - v >= (k === 'food' ? S.upkeep * 300 : 0))) buy(`sec:${sec}:tier`);
     }
     // the kitchen trims upkeep: a small steady share
     const kc = L.price(st, 'sec:bed:lv'); if (kc && !btKey('sec:bed:lv') && goldOf(kc) < 0.05 * st.gold) buy('sec:bed:lv');
-    for (const k of [...st.equipW.map(i => 'enh:w:' + i), ...st.equipT.map(i => 'enh:t:' + i)]) if (!k.endsWith(':-1') && btKey(k)) buy(k);
+    for (const k of [...st.equipW.map(i => 'enh:w:' + i), ...st.equipT.map(i => 'enh:t:' + i)]) if (!k.endsWith(':-1') && btKey(k) && !buy(k)) short(k);
     // a new top piece is weaker than the maxed one it should replace until it is enhanced: a person enhances it first
     for (const [w, inv, mul, n] of [['w', st.weapons, L.weaponEquipMul, st.equipW.length], ['t', st.turrets, L.turretMul, st.equipT.length]]) {
       const eq = w === 'w' ? st.equipW : st.equipT, weakest = Math.min(...eq.filter(i => i >= 0).map(i => mul(i, inv.enh[i])), Infinity);
@@ -352,6 +359,7 @@ export function run(opts = {}) {
       if (bc && !btKey('bunker') && slot > 0) scored.push({ key: 'bunker', c: bc, v: slot / (goldOf(bc) / rate + 5), ok: L.canPay(st, bc) });
       if (!scored.length) return;
       scored.sort((a, b) => b.v - a.v);
+      if (!scored[0].ok) ctx.blocked.add('gold');
       let pick = scored[0].ok ? scored[0] : scored.find(x => x.ok && x.v >= 0.6 * scored[0].v);
       // off-best: now and then a person taps whatever looks nice (less once the workshop runs itself)
       if (human && rng.chance(auto.autoWorkshop ? 0.05 : 0.15)) { const ok = scored.filter(x => x.ok); if (ok.length) pick = rng.pick(ok); }
@@ -396,6 +404,7 @@ export function run(opts = {}) {
     if (!human || rng.chance(0.4) || L.auto(st).autoMerge) { if (L.merge(st)) bought(); }
     L.equipBest(st);
     pickRelics();
+    if (LOG) LOG.onCheck(L.stats(st));
     const w = Math.max(0, ...st.equipW), team = st.equipW.reduce((a, b) => a + Math.max(0, b), 0);
     if (w > bestW) { bestW = w; M.stepUps.push({ active: st.active / 3600, w, record: st.record }); }
     if (team > teamW) { teamW = team; M.teamUps.push({ active: st.active / 3600, team }); }
@@ -425,12 +434,14 @@ export function run(opts = {}) {
     if (st.goldRate > 0) M.goldHeldMin.push(st.gold / (st.goldRate * 60));
   };
   outer: for (day = 0; day < days; day++) {
-    st.gems += T.economy.dailyGems; M.gemsIn += T.economy.dailyGems;
-    if (st.t < st.shop.monthlyUntil) st.gems += L.PASSES.monthly.daily;
+    if (LOG && day > 0 && day % 7 === 0) LOG.snapshotWeek(day / 7);
+    st.gems += T.economy.dailyGems; M.gemsIn += T.economy.dailyGems; income('gems', T.economy.dailyGems, 'daily');
+    if (st.t < st.shop.monthlyUntil) { st.gems += L.PASSES.monthly.daily; income('gems', L.PASSES.monthly.daily, 'monthly pass'); }
     let boosts = prof.ads.boosts, offAds = prof.ads.offline, raids = T.economy.raidsPerDay;
     if (prof.ads.pull) { L.freeSummon(st); }
     for (let si = 0; si < SESSION_AT.length; si++) {
       const start = day * DAY + SESSION_AT[si];
+      if (st.t === 0) st.t = start;               // the clock starts with the first session: no offline before installing
       if (st.t < start) {
         const away = start - st.t, before = { food: st.food, ore: st.ore, parts: st.parts };
         const S = L.stats(st), dbl = offAds > 0 && away > 2 * 3600;
@@ -451,10 +462,17 @@ export function run(opts = {}) {
       const len = (sessionMin + (human ? rng.range(-6, 6) : 0)) * 60;
       const end = st.t + len;
       while (end - st.t > 1e-6) {          // advance() may stop a hair short of `end`; never loop on the crumb
-        const dt = Math.min(end - st.t, human ? rng.range(30, 120) : 30);
+        const dt = Math.min(end - st.t, human ? rng.range(30, 120) : 30), rb0 = ctx.runBest, ev0 = st.evacs, rec0 = st.record;
         L.advance(st, dt);
         trackFull(dt);
+        ctx.blocked = new Set();
         act();
+        if (LOG) {
+          const last = st.last, kind = last && last.rw.kind;
+          const state = st.record > rec0 ? 'new record' : ctx.runBest > rb0 || st.evacs > ev0 ? 're-climbing' : last && !last.res.ok
+            ? (last.res.bunker <= 0 ? 'defense' : kind === 'titan' ? 'titan timer' : kind === 'boss' ? 'boss timer' : 'normal stage too slow') : 'replaying';
+          LOG.onTime(dt, state, ctx.blocked);
+        }
         while (raids > 0 && L.raid(st)) raids--;
         if (st.active >= nextSample) { sampleNow(); nextSample += sample; }
         if (st.record >= untilStage || st.active >= maxActiveH * 3600) break outer;
@@ -462,6 +480,7 @@ export function run(opts = {}) {
     }
   }
   sampleNow();
+  if (LOG) { LOG.snapshotWeek(Math.round(st.t / (7 * DAY))); M.log = LOG; }
   M.st = st;
   M.endActive = st.active / 3600; M.endDays = st.t / DAY;
   return M;

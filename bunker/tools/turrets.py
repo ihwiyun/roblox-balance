@@ -90,7 +90,8 @@ def palette(g, mats, glow=None):
 
 
 # ---------------------------------------------------------------- drawing helpers
-W, H, AX, AY = 32, 32, 16, 28
+W, H, AX, AY = 48, 40, 24, 35
+DX, DY = 8, 7   # where the 32x32 design box of every drawing sits in the frame
 
 
 def rows(s):
@@ -107,7 +108,7 @@ def stamp(cv, rs, x, y, name='?'):
         for i, ch in enumerate(r):
             if ch == '.':
                 continue
-            if not (0 <= y + j < H and 0 <= x + i < W):
+            if not (0 <= y + j < len(cv) and 0 <= x + i < len(cv[0])):
                 raise ValueError(f'{name}: pixel outside the frame at {x + i},{y + j}')
             cv[y + j][x + i] = ch
 
@@ -150,95 +151,282 @@ RING_AT = (9, 21)
 # screen; fx = what the fire frame shows at the muzzle.
 T = {}
 
-# ---- 0 / scrap machine cannon: a box of welded plates, two mismatched pipe barrels, a rusty mantlet
-_box0_se = rows('''
+# ---- era 0 machine cannon: a welded receiver, two long barrels along its top edges, a round ammo drum on each side
+_recv0_se = rows("""
+....oo....
+..ooddoo..
+oeddeddddo
+oceeddddbo
+occceebbbo
+ocmmcbbbbo
+ocmncbbebo
+ocsmcbbbbo
+oascbbbbao
+..oocboo..
+....oo....
+""")
+_recv0_nw = rows("""
+....oo....
+..ooddoo..
+oedddeddbo
+oceeddddbo
+occceebbbo
+occcbaaabo
+ocmmbaKabo
+ocmncaaabo
+oasccbbbao
+..oocboo..
+....oo....
+""")
+_drum0 = rows("""
+..oooo..
+.ottttoo
+osuuttro
+ossttrro
+ossssrro
+otttttro
+ossssrro
+.ossrrro
+..oooro.
+....oo..
+""")
+_bar0_se = rows("""
+.oo...............
+ojjoo.............
+ohhiijjoo.........
+.oohhiijjoo.......
+...oohhiijjoo.....
+.....oohhiijjoo...
+.......oohhiijjoo.
+.........oohhiijjo
+...........oohhgKo
+.............oooo.
+""")
+_bar0r_se = rows("""
+.oo...............
+ojjoo.............
+ohhssjjoo.........
+.oohssrsjoo.......
+...oohssrsjoo.....
+.....oohhsiijoo...
+.......oohhiijjoo.
+.........oohhiijjo
+...........oohhgKo
+.............oooo.
+""")
+_bar0_nw = rows("""
+.oo.............
+ojjoo...........
+ohgiijjoo.......
+.oohhiijjoo.....
+...oohhiijjoo...
+.....oohhiijjoo.
+.......oohhiijjo
+.........oohhiio
+...........oooo.
+""")
+T[0, 0] = dict(
+    se=[['head', _recv0_se, 11, 16], ['head', _drum0, 8, 19], ['gun', _bar0_se, 14, 13], ['gun', _bar0r_se, 9, 15]],
+    nw=[['head', _recv0_nw, 11, 16], ['head', _drum0, 8, 19], ['gun', _bar0_nw, 6, 10], ['gun', _bar0_nw, 2, 13]],
+    muzzle={'se': (28, 23), 'nw': (3, 12)}, axis={'se': (2, 1), 'nw': (-2, -1)}, recoil={'se': (-2, -1), 'nw': (2, 1)},
+    fx='flash2', pal={'mat3': (112, 118, 84)})
+
+# ---- era 0 sprayer (flamethrower): a welded platform, a red jerry can standing at the back, a pipe nozzle
+_plat0 = rows("""
 ......oo......
 ....ooddoo....
 ..oodeddddoo..
-oeddddbddddddo
-oceeddbdddddbo
-occceebdddbbbo
-ocmmcceebbbbbo
-ocmnncccbbbbbo
-ocmmmcscbbbbbo
-occcccscbbebbo
-oaccacscbbbbao
-..ooacscbboo..
+oeddddddddddbo
+oceeddddddddbo
+occeceeddbbbbo
+oacccceebbebao
+..ooacccbboo..
 ....ooacoo....
 ......oo......
-''')
-_box0_nw = rows('''
-......oo......
-....ooddoo....
-..ooddddddoo..
-oeddddddbddddo
-oceeddddbdddbo
-occceeddbdbbbo
-occcmmeebbbbbo
-occcmnccbaaabo
-ocscmmccbaeabo
-ocscccccbaaabo
-oacsccccbbbbao
-..ooscccbboo..
-....ooacoo....
-......oo......
-''')
-_bar0_se = rows('''
-oo..........
-jioo........
-hhiioo......
-oohhiioo....
-..oohhiioo..
-....oohhijoo
-......oohgKo
-........oooo
-''')
-_bar0b_se = rows('''
-oo..........
-jioo........
-hhssoo......
-oohsrsoo....
-..oohsrsoo..
-....oohhijoo
-......oohgKo
-........oooo
-''')
-_mant0_se = rows('''
-..oo.
-.otso
-otsro
-osrro
-osro.
+""")
+_can0 = rows("""
+....oo.....
+..ooqtoo...
+oottqqttoo.
+osuuttqtnno
+osssuuttnno
+osssssuurro
+osttssstrro
+ossttstrrro
+osssttsrrro
+ossttstrrro
+osttsssrrro
+osssssrrrro
+oqsssssrrqo
+..oosssrroo
+....oosroo.
+......oo...
+""")
+_noz0_se = rows("""
+oo........
+ihoo......
+hhiioo....
+oohhiioo..
+..oohhiijo
+....oohhjjo
+......ohgKo
+.......oooo
+""")
+_hose0_se = rows("""
 .oo..
-''')
-_bar0_nw = rows('''
+oKKoo
+.ooKo
+...oo
+""")
+_noz0_nw = rows("""
 .oo.........
-ojioo.......
-ohhiioo.....
-.oohhiioo...
-...oohhiioo.
-.....oohhiio
-.......oohhi
-.........ooh
-''')
-_scope0 = rows('''
-.oo.
-ojgo
-ohgo
-ohgo
-''')
-T[0, 0] = dict(
-    se=[['head', _box0_se, 9, 14], ['head', _scope0, 11, 11], ['gun', _bar0_se, 18, 19], ['gun', _bar0b_se, 16, 21], ['head', _mant0_se, 15, 20]],
-    nw=[['gun', _bar0_nw, 4, 11], ['gun', _bar0_nw, 2, 13], ['head', _box0_nw, 9, 14], ['head', _scope0, 17, 12]],
-    muzzle={'se': (29, 26), 'nw': (3, 12)}, axis={'se': (2, 1), 'nw': (-2, -1)}, recoil={'se': (-2, -1), 'nw': (2, 1)},
-    fx='flash')
+ojjoo.......
+oiihhoo.....
+oghhiiioo...
+.ooooohhiioo
+......oohhii
+........oohh
+""")
+T[0, 1] = dict(
+    se=[['head', _plat0, 9, 18], ['head', _can0, 9, 8], ['head', _hose0_se, 16, 20], ['gun', _noz0_se, 17, 19]],
+    nw=[['gun', _noz0_nw, 3, 14], ['head', _plat0, 9, 18], ['head', _can0, 12, 10]],
+    muzzle={'se': (28, 25), 'nw': (3, 15)}, axis={'se': (2, 1), 'nw': (-2, -1)}, recoil={'se': (0, 0), 'nw': (0, 0)},
+    fx='flame', pal={'mat3': (186, 58, 46)})
+
+# ---- era 0 electric coil: a car battery, copper wound round a pipe, a hubcap on top, a bent rod with a ball
+_batt0 = rows("""
+....oo....
+..ooqqoo..
+outKtnqtto
+osuuttttro
+osssuurrro
+ossssrrrro
+osmmsrrrro
+osmnsrrrro
+oqmmsrrrqo
+..oosroo..
+....oo....
+""")
+_coil0 = rows("""
+ojihgo
+ohggfo
+ojihgo
+ohggfo
+ojihgo
+ohggfo
+ojihgo
+ohggfo
+ojihgo
+.oggo.
+""")
+_hub0 = rows("""
+....oooo....
+..oonppnoo..
+onppnnnnmmlo
+onnnnKKnnmlo
+.ommnnnnmllo
+..oollllloo.
+....oooooo..
+""")
+_emit0_se = rows("""
+oo........
+nmoo......
+oonmoo....
+..oonmooo.
+....oonpno
+.....onnmo
+.....olmlo
+......ooo.
+""")
+_emit0_nw = rows("""
+.ooo......
+onpnoo....
+onnmmmoo..
+olmlonmoo.
+.ooo.oonmo
+.......ooo
+""")
+T[0, 2] = dict(
+    se=[['head', _batt0, 11, 16], ['head', _coil0, 13, 9], ['head', _hub0, 10, 4], ['gun', _emit0_se, 17, 10]],
+    nw=[['gun', _emit0_nw, 5, 8], ['head', _batt0, 11, 16], ['head', _coil0, 13, 9], ['head', _hub0, 10, 4]],
+    muzzle={'se': (26, 14), 'nw': (6, 9)}, axis={'se': (2, 1), 'nw': (-2, -1)}, recoil={'se': (0, 0), 'nw': (0, 0)},
+    fx='arc', pal={'metal': (196, 118, 62), 'acc': (170, 172, 176), 'mat3': (66, 64, 72)})
+
+# ---- era 0 mortar: a manhole cover for a base plate, sandbags, a pipe for a tube on rebar legs
+_plate0 = rows("""
+....oooooo....
+..oodeeeedoo..
+.odeddddddedo.
+odedbdbdbdbdco
+ocdddddddddcbo
+.occddddddcbo.
+..oaccccbbaoo.
+....oooooo....
+""")
+_bag0 = rows("""
+.oooo.
+ottuto
+osstro
+.oooo.
+""")
+_tube0_se = rows("""
+......oooo
+.....oijjio
+.....oiKKgo
+.....ojhhgo
+....oihhhgo
+....oihhhgo
+...omnnnlo.
+...oihhhgo.
+..oihhhgo..
+..oihhhgo..
+.oihhhgo...
+.oihhhgfo..
+..ooooooo..
+""")
+_legs0_se = rows("""
+....fo.
+...f..f
+...f..f
+..f....f
+..f....f
+.ff....ff
+""")
+_tube0_nw = rows("""
+...oooo...
+..ojjiiho.
+..oiihhgo.
+..oihhhgo.
+..oihhhgo.
+..oihhhgo.
+..omnnnlo.
+...oihhhgo
+...oihhhgo
+...oihhhgo
+...oihhhgo
+....oihhhgo
+....ojhhhgfo
+.....oooooo.
+""")
+_legs0_nw = rows("""
+..fo...
+.f..f..
+.f...f.
+f.....f
+f.....f
+""")
+T[0, 3] = dict(
+    se=[['head', _plate0, 9, 20], ['head', _bag0, 18, 20], ['gun', _tube0_se, 11, 10], ['head', _legs0_se, 15, 18], ['head', _bag0, 9, 23]],
+    nw=[['head', _legs0_nw, 9, 17], ['head', _plate0, 9, 20], ['head', _bag0, 18, 20], ['gun', _tube0_nw, 9, 8], ['head', _bag0, 9, 23]],
+    muzzle={'se': (19, 11), 'nw': (14, 9)}, axis={'se': (1, -2), 'nw': (-1, -3)}, recoil={'se': (-1, 1), 'nw': (1, 1)},
+    fx='blast', pal={'metal': (92, 94, 104), 'mat3': (190, 166, 116)})
 
 
 def frames_of(g, r):
     """the 8 frames of a turret: {facing: [idle rows, fire rows]}, and the muzzle per facing and frame"""
     spec = T[g, r]
     ring = canvas()
-    stamp(ring, RINGS[min(g, len(RINGS) - 1)], *RING_AT, name='ring')
+    stamp(ring, RINGS[min(g, len(RINGS) - 1)], RING_AT[0] + DX, RING_AT[1] + DY, name='ring')
     ring = flat(ring)
     out, muz = {}, {}
     for view in ('se', 'nw'):
@@ -249,12 +437,12 @@ def frames_of(g, r):
             behind = view == 'nw'
             fxl = FX[spec['fx']][view] if firing else None
             mx, my = spec['muzzle'][view]
-            mx, my = mx + dx, my + dy
+            mx, my = mx + dx + DX, my + dy + DY
             if fxl and behind:
                 stamp(cv, fxl[0], mx - fxl[1], my - fxl[2], name='fx')
             for kind, rs, x, y in spec[view]:
                 ox, oy = (dx, dy) if kind == 'gun' else (0, 0)
-                stamp(cv, rs, x + ox, y + oy, name=f'{g},{r},{view}')
+                stamp(cv, rs, x + ox + DX, y + oy + DY, name=f'{g},{r},{view}')
             if fxl and not behind:
                 stamp(cv, fxl[0], mx - fxl[1], my - fxl[2], name='fx')
             pair.append(flat(cv))
@@ -273,25 +461,165 @@ def frames_of(g, r):
 
 # ---------------------------------------------------------------- fire-frame effects: [rows, x, y of the muzzle]
 FX = {
-    'flash': {
-        'se': [rows('''
-...Y.....
-.OYFY..O.
-..FWFYOY.
-.OYFFWFY.
-...OYFYO.
-.....O...
-'''), 3, 2],
-        'nw': [rows('''
-...O.....
-.OYFYO...
-.YFWFFYO.
-.OYFWFY..
-..O.YFYO.
-.....Y...
-'''), 5, 3],
+    # two bursts, one at each barrel's end (the muzzle point is between them)
+    'flash2': {
+        'se': [rows("""
+......Y...
+.....YFO..
+....YFWFO.
+..Y..OFYO.
+.YFO..O...
+YFWFO.....
+.OFYO.....
+..O.......
+"""), 4, 3],
+        'nw': [rows("""
+.....O.....
+....OYFY...
+...OFWFY...
+.O..YFYO...
+OYFY.Y.....
+OFWFY......
+.YFYO......
+..Y........
+"""), 3, 3],
+    },
+    # a tongue of flame out of the nozzle, white-hot at the nozzle, red and ember at the end
+    'flame': {
+        'se': [rows("""
+.YO.........
+FFYYO.......
+.FFFYYOO....
+..YFFFYOOR..
+...OYYFYOORD
+....ROOYOORD
+......RROOD.
+........RD..
+"""), 0, 1],
+        'nw': [rows("""
+..DR........
+.DROOR......
+DROOYOOR....
+.RROYFYYOR..
+...OOYFFFYO.
+.....OOYFFFY
+.......OOYFF
+.........OY.
+"""), 11, 6],
+    },
+    # crackling arcs: hub to the emitter ball, round the hub's rim, a spark on the ball
+    'arc': {
+        'se': [rows("""
+......ZAZ..........
+..Z..ZA.AZ.....Z...
+.ZAZ.A....A...ZAZ..
+.ZA...Z...AZ.ZA....
+..A........AA......
+.ZAZ.........AZ....
+..Z...........AA...
+..............ZAZ..
+...............AZ..
+.............ZZAAZZ
+..............ZAAZ.
+...............ZZ..
+"""), 15, 9],
+        'nw': [rows("""
+...Z..............
+..ZAZ......Z......
+....AZ....ZAZ..Z..
+....A.....A..ZAZ..
+...ZA....A....A...
+...A.....Z.....A..
+..AZ...........AZ.
+.ZA.............A.
+Z.A..........ZAZ..
+.ZAZ..........Z...
+..Z...............
+"""), 1, 8],
+    },
+    # the round leaves in a white flash, a puff of smoke rolls up
+    'blast': {
+        'se': [rows("""
+...STS..
+.SSTTSS.
+STSSTTTS
+TSFYFSTT
+.TYWWYT.
+..OFFO..
+...OO...
+"""), 3, 6],
+        'nw': [rows("""
+..STS...
+.SSTTSS.
+STTSSTST
+TTSFYFST
+.TYWWYT.
+..OFFO..
+...OO...
+"""), 4, 6],
     },
 }
+
+
+def trim(f):
+    """rows without their trailing transparent pixels (cells keep their x; drawSprite needs no padding)"""
+    out = [r.rstrip('.') for r in f]
+    while out and not out[-1]:
+        out.pop()
+    return out
+
+
+def turret_set(g, r):
+    """one turret as a sprite set in the game's format (src/sprites.js decodeSet + paletteOf)"""
+    spec = T[g, r]
+    pal = palette(g, spec.get('pal'), spec.get('glow'))
+    fr, muz = frames_of(g, r)
+    used = set()
+    anims = {}
+    for k in ('se', 'sw', 'nw', 'ne'):
+        ax_, ay_ = spec['axis']['se' if k in ('se', 'sw') else 'nw']
+        if k in ('sw', 'ne'):
+            ax_ = -ax_
+        n = (ax_ * ax_ + ay_ * ay_) ** .5
+        frames = []
+        for i, f in enumerate(fr[k]):
+            mx, my = muz[k][i]
+            used |= set(''.join(f))
+            # gun: a point back along the barrel, then the muzzle (shots leave along this line)
+            frames.append({'rows': trim(f), 'gun': [round(mx - ax_ / n * 6), round(my - ay_ / n * 6), mx, my], 'muzzle': [mx, my]})
+        anims[k] = {'fps': 12, 'loop': False, 'F': frames}
+    used.discard('.')
+    name = PREFIX[g] + ' ' + base_name(g, r)
+    element = ('fire' if g % 2 == 0 else 'frost') if r == 1 else 'shock' if r == 2 else None
+    return {'i': g * 4 + r, 'name': name, 'grade': g, 'role': ROLES[r], 'element': element,
+            'w': W, 'h': H, 'ax': AX, 'ay': AY, 'pal': {k: pal[k] for k in sorted(used)}, 'anims': anims}
+
+
+def build():
+    types = {}
+    for (g, r) in sorted(T):
+        types['turret%d' % (g * 4 + r)] = turret_set(g, r)
+    return types
+
+
+def write_js(types, cards):
+    head = """'use strict';
+// Turrets: 32 sprite sets (8 grades x 4 roles, index i = TURRETS[i] in src/logic/gear.mjs), generated by
+// tools/turrets.py - edit that, not this file. Every pixel placed by hand.
+// types['turret' + i] is a sprite set like ART_ZOMBIES_A.types: {w, h, ax, ay, pal, anims}, so decodeSet and
+// paletteOf (src/sprites.js) take it as it is; (ax, ay) = the middle of the ring's foot, put on a mount
+// (SITES.mounts). Also i, name, grade, role, element.
+// anims: one per facing, each two frames F[0] idle and F[1] fire (show the fire frame for one frame per shot):
+//   se = down-right (+x), sw = down-left (+y), nw = up-left (-x), ne = up-right (-y); all four drawn unmirrored.
+//   From a yaw: const f = facingOf(yaw), dir = f.view === 'F' ? (f.mirror ? 'sw' : 'se') : (f.mirror ? 'ne' : 'nw');
+//   drawSprite('turret' + i, dir, 'F', firing ? 1 : 0, false, x, y, z, pal)
+// frame.gun = [x0, y0, x1, y1]: back along the barrel, then the muzzle (frame pixels); shots leave from the
+// muzzle along that line (frameSpot(info, [gun[2], gun[3]]) is the muzzle on screen). frame.muzzle = [x1, y1].
+// cards['turret' + i] = {w, h, rows, pal}: the card icon for the UI slots (the idle down-right turret).
+"""
+    body = 'window.ART_TURRETS = ' + json.dumps({'types': types, 'cards': cards}, ensure_ascii=False, separators=(',', ':')) + ';\n'
+    with open(os.path.join(GAME, 'art', 'turrets.js'), 'w', encoding='utf-8') as fh:
+        fh.write(head + body)
 
 
 def check(dirname):
@@ -314,5 +642,8 @@ def check(dirname):
 
 
 if __name__ == '__main__':
+    types = build()
+    write_js(types, {})
+    print('art/turrets.js:', len(types), 'turrets')
     if '--check' in sys.argv:
         check(sys.argv[sys.argv.index('--check') + 1])

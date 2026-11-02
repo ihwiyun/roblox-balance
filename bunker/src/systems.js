@@ -64,6 +64,8 @@ var SYS = window.SYS || (() => {
     G.equipW = {};
     for (const [k, i] of Object.entries(ew)) if (Number.isInteger(i) && i >= 0 && i < Lg.WEAPONS.length) G.equipW[k] = i;
     G.equipT = fixArr(G.equipT, SLOTS_T, -1).map(x => (Number.isInteger(x) && x >= 0 && x < Lg.TURRETS.length ? x : -1));
+    const mn = G.manual || {};
+    G.manual = { w: mn.w && typeof mn.w === 'object' ? mn.w : {}, t: fixArr(mn.t, SLOTS_T, false).map(Boolean), r: fixArr(mn.r, SLOTS_R, false).map(Boolean) };
     const c = G.cmd || {};
     G.cmd = { level: Math.max(1, nat(c.level)), xp: Math.max(0, +c.xp || 0), unspent: nat(c.unspent), points: Object.fromEntries(Lg.STATS.map(k => [k, nat(c.points && c.points[k])])) };
     const up = {};
@@ -163,25 +165,23 @@ var SYS = window.SYS || (() => {
   }
   const nameOfKey = k => (k === 'me' ? '나' : (G.crew.find(c => c && c.look.key === k) || { name: k }).name);
   const holderOf = i => { for (const [k, v] of Object.entries(G.equipW)) if (v === i) return k; return null; };
-  // fill the empty hands, turret slots and relic slots with the best of what is free (a choice made on screen stays)
+  // A choice made on screen stays (G.manual); every other hand, turret slot and relic slot takes the best of what is
+  // free, hero first, so a better summon goes straight into use until the player picks something themselves
   function autoEquip() {
-    const keys = shooterKeys(), taken = new Set(Object.values(G.equipW));
-    for (const k of keys) {
-      const cur = G.equipW[k];
-      if (cur != null && G.wInv.owned[cur]) continue;
-      for (let i = Lg.WEAPONS.length - 1; i >= 0; i--) if (G.wInv.owned[i] && !taken.has(i)) { G.equipW[k] = i; taken.add(i); break; }
-    }
-    const takenT = new Set(G.equipT.filter(i => i >= 0));
-    for (let s = 0; s < turretOpen(); s++) if (G.equipT[s] < 0) for (let i = Lg.TURRETS.length - 1; i >= 0; i--) if (G.tInv.owned[i] && !takenT.has(i)) { G.equipT[s] = i; takenT.add(i); break; }
-    const takenR = new Set(G.rel.slots.filter(x => x >= 0)), score = id => (Lg.RELICS[id].grade + 1) * (4 + G.rel.level[id]);
-    const free = Lg.RELICS.map(x => x.id).filter(id => G.rel.level[id] > 0 && !takenR.has(id)).sort((a, b) => score(b) - score(a));
-    for (let s = 0; s < relicOpen() && free.length; s++) if (G.rel.slots[s] < 0) G.rel.slots[s] = free.shift();
+    const man = G.manual, keys = shooterKeys();
+    for (const k of Object.keys(G.equipW)) if (!keys.includes(k)) { delete G.equipW[k]; delete man.w[k]; } // no longer shoots
+    const heldW = new Set(keys.filter(k => man.w[k] && G.equipW[k] != null).map(k => G.equipW[k])), freeW = [];
+    for (let i = Lg.WEAPONS.length - 1; i >= 0; i--) if (G.wInv.owned[i] && !heldW.has(i)) freeW.push(i);
+    for (const k of keys) if (!man.w[k]) { const i = freeW.shift(); if (i == null) delete G.equipW[k]; else G.equipW[k] = i; }
+    const openT = turretOpen(), heldT = new Set(G.equipT.filter((i, s) => s < openT && man.t[s] && i >= 0)), freeT = [];
+    for (let i = Lg.TURRETS.length - 1; i >= 0; i--) if (G.tInv.owned[i] && !heldT.has(i)) freeT.push(i);
+    for (let s = 0; s < SLOTS_T; s++) if (s >= openT) G.equipT[s] = -1; else if (!man.t[s]) G.equipT[s] = freeT.length ? freeT.shift() : -1;
+    const openR = relicOpen(), heldR = new Set(G.rel.slots.filter((id, s) => s < openR && man.r[s] && id >= 0)), score = id => (Lg.RELICS[id].grade + 1) * (4 + G.rel.level[id]);
+    const freeR = Lg.RELICS.map(x => x.id).filter(id => G.rel.level[id] > 0 && !heldR.has(id)).sort((a, b) => score(b) - score(a));
+    for (let s = 0; s < SLOTS_R; s++) if (s >= openR) G.rel.slots[s] = -1; else if (!man.r[s]) G.rel.slots[s] = freeR.length ? freeR.shift() : -1;
   }
-  // the best of everything, everywhere (a button on the screens)
-  function equipBest() {
-    G.equipW = {}; G.equipT = G.equipT.map(() => -1); G.rel.slots = G.rel.slots.map(() => -1);
-    autoEquip(); changed(); return true;
-  }
+  // the best of everything, everywhere (a button on the screens): every hand choice is let go
+  function equipBest() { G.manual = { w: {}, t: [], r: [] }; autoEquip(); changed(); return true; }
 
   /* ================= collections ================= */
   const invOf = kind => (kind === 'weapon' ? G.wInv : G.tInv);
@@ -322,24 +322,28 @@ var SYS = window.SYS || (() => {
   function equipWeapon(personId, i) {
     const pr = on && personOf(personId);
     if (!pr || !(pr.p.hero || pr.p.job === '사수')) return false;
-    if (i == null || i < 0) { delete G.equipW[pr.key]; changed(); return true; }
-    if (!G.wInv.owned[i]) return false;
+    if (i != null && i >= 0 && !G.wInv.owned[i]) return false;
+    G.manual.w[pr.key] = true;
+    if (i == null || i < 0) { delete G.equipW[pr.key]; autoEquip(); changed(); return true; }
     const other = holderOf(i), mine = G.equipW[pr.key];
     if (other && other !== pr.key) { if (mine != null) G.equipW[other] = mine; else delete G.equipW[other]; }
     G.equipW[pr.key] = i;
-    changed(); return true;
+    autoEquip(); changed(); return true;
   }
-  function equipSlot(list, open, slot, id, owned) {
+  function equipSlot(list, man, open, slot, id, owned) {
     if (!on || !(slot >= 0 && slot < open)) return false;
-    if (id == null || id < 0) { list[slot] = -1; changed(); return true; }
-    if (!owned(id)) return false;
-    const at = list.indexOf(id);
-    if (at >= 0 && at !== slot) list[at] = at < open ? list[slot] : -1;
-    list[slot] = id;
-    changed(); return true;
+    if (id != null && id >= 0 && !owned(id)) return false;
+    man[slot] = true;
+    if (id == null || id < 0) list[slot] = -1;
+    else {
+      const at = list.indexOf(id);
+      if (at >= 0 && at !== slot) list[at] = at < open ? list[slot] : -1;
+      list[slot] = id;
+    }
+    autoEquip(); changed(); return true;
   }
-  const equipTurret = (slot, i) => equipSlot(G.equipT, turretOpen(), slot, i, x => G.tInv.owned[x]);
-  const equipRelic = (slot, id) => equipSlot(G.rel.slots, relicOpen(), slot, id, x => G.rel.level[x] > 0);
+  const equipTurret = (slot, i) => equipSlot(G.equipT, G.manual.t, turretOpen(), slot, i, x => G.tInv.owned[x]);
+  const equipRelic = (slot, id) => equipSlot(G.rel.slots, G.manual.r, relicOpen(), slot, id, x => G.rel.level[x] > 0);
 
   /* ================= workers, bought per floor ================= */
   // farm, mine and workshop take nameless hands bought for that floor; the roof's gunners are hired as before (a bed
@@ -679,21 +683,23 @@ var SYS = window.SYS || (() => {
         return;
       } catch { turretSets.set(t.i, null); }
     }
-    // stand-in: a squat steel body with a band of its grade's colour on the turntable, and a barrel aimed at the target
+    // stand-in: a squat steel body (dark edges like the bunker's) with a band of its grade's colour, on the turntable,
+    // and a barrel by role aimed at the target: twin for the machine gun, a thick tube for the mortar or rockets, a
+    // coil tip for the tesla, a nozzle with a tank for flame or frost
     const p = project(t.x, t.y, t.z), bx = Math.round(p.sx), by = Math.round(p.sy), d0 = p.d + .3;
     const dark = rgb(40, 40, 46), mid = rgb(96, 100, 108), lite = rgb(150, 154, 160), band = rgb(...GRADE_RGB[t.grade]);
-    for (let y = 0; y < 5; y++) for (let x = -4; x < 4; x++) {
-      const edge = x === -4 || x === 3 || y === 0, c = y === 4 ? lite : y === 2 ? band : edge ? dark : mid;
+    for (let y = 0; y < 7; y++) for (let x = -5; x < 5; x++) {
+      const edge = x === -5 || x === 4 || y === 0 || y === 6, c = edge ? dark : y === 2 ? band : y >= 4 ? lite : mid;
       putPx(bx + x, by - 1 - y, c, d0 + y * .02);
     }
-    const a = project(t.x, t.y, t.z + .25), e = project(t.x + Math.cos(t.yaw) * .5, t.y + Math.sin(t.yaw) * .5, t.z + .25);
+    const a = project(t.x, t.y, t.z + .3), e = project(t.x + Math.cos(t.yaw) * .5, t.y + Math.sin(t.yaw) * .5, t.z + .3);
     let ux = e.sx - a.sx, uy = e.sy - a.sy;
     const n = Math.hypot(ux, uy) || 1; ux /= n; uy /= n;
-    const len = TFIRE[t.role].len - t.recoil * 1.5, sx = bx, sy = by - 4, ex = Math.round(sx + ux * len), ey = Math.round(sy + uy * len), db = d0 + (uy > 0 ? .25 : -.05);
-    pxLine(sx, sy, ex, ey, dark, db, t.role === 'blast' ? 2 : 1);
-    if (t.role === 'mg') pxLine(sx, sy + 1, ex, ey + 1, mid, db);
-    if (t.role === 'tesla') { putPx(ex, ey - 1, rgb(140, 210, 255), db + .01); putPx(ex + 1, ey - 1, rgb(220, 240, 255), db + .01); }
-    if (t.role === 'status') { for (let y = 0; y < 3; y++) putPx(bx - 3, by - 6 - y, t.el === 'fire' ? rgb(200, 70, 50) : rgb(110, 190, 230), d0 + .2); }
+    const len = TFIRE[t.role].len + 2 - t.recoil * 1.5, sx = bx, sy = by - 5, ex = Math.round(sx + ux * len), ey = Math.round(sy + uy * len), db = d0 + (uy > 0 ? .3 : -.05);
+    pxLine(sx, sy, ex, ey, dark, db, t.role === 'blast' || t.role === 'mg' ? 2 : 1);
+    if (t.role === 'mg') pxLine(sx, sy, ex, ey, mid, db + .01);
+    if (t.role === 'tesla') { putPx(ex, ey - 1, rgb(140, 210, 255), db + .01); putPx(ex + 1, ey - 1, rgb(220, 240, 255), db + .01); putPx(ex, ey, rgb(140, 210, 255), db + .01); }
+    if (t.role === 'status') for (let y = 0; y < 4; y++) putPx(bx - 4, by - 7 - y, t.el === 'fire' ? rgb(200, 70, 50) : rgb(110, 190, 230), d0 + .2);
     t.muzzle = [Math.round(ex + ux), Math.round(ey + uy)];
     if (t.flash) flashAt(t.muzzle[0], t.muzzle[1], db + .05);
     t.flash = 0;
@@ -847,6 +853,8 @@ var SYS = window.SYS || (() => {
     weaponOf: guard(id => { const pr = personOf(id); return pr && G.equipW[pr.key] != null ? G.equipW[pr.key] : -1; }, -1),
     workers, buyWorker, commander, prestigeInfo, prestige, buyMedalUp, setAutomation, setAutoShare,
     stageInfo, stageNow, shopCatalog: catalog, buy, records, currencies, power, stats: guard(() => stats(), null),
+    // the turrets standing on the mounts right now (the bunker's picture must have the mounts: bunker level 25+)
+    towers: () => towers.map(t => ({ slot: t.k, i: t.i, name: Lg.TURRETS[t.i].name, role: t.role, x: t.x, y: t.y, z: t.z, yaw: t.yaw, shots: t.shots, dps: turretDps(t.i) })),
     changed,
   };
   return api;

@@ -279,7 +279,8 @@ const rawUpkeep = st => { let u = 0; for (const id of Object.values(st.crew.assi
 export function buy(st, key) {
   const c = price(st, key);
   if (!canPay(st, c)) return false;
-  payCost(st, c, key.split(':').slice(0, 2).join(':') + (needsBreakthroughKey(st, key) ? ':bt' : ''));
+  const parts = key.split(':'), track = parts[0] === 'sec' ? parts.join(':') : parts[0] === 'crew' ? 'crew' : parts.slice(0, 2).join(':');
+  payCost(st, c, track + (needsBreakthroughKey(st, key) ? ':bt' : ''));
   const [a, b, d] = key.split(':'), S = stats(st);
   if (a === 'ws') st.ws[b]++;
   else if (a === 'bunker' || a === 'fence') {

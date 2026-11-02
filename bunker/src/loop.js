@@ -16,10 +16,10 @@ function update(dt) {
   G.time += dt;
   // food and minerals from the floors below and parts from the workshop, up to what their stores hold (what does not
   // fit becomes commander XP, systems.js); then mouths to feed
-  const keep = (k, cap, add) => { const kept = Math.min(Math.max(0, cap - G[k]), add); G[k] += kept; if (add > kept) SYS.hook.spill(add - kept); return kept; };
-  keep('food', foodCap(), rateOf('food') * dt);
-  SYS.hook.ore(keep('mineral', mineralCap(), rateOf('mineral') * dt));
-  keep('comps', partsCap(), rateOf('parts') * dt);
+  const store = (k, cap, add) => { const kept = Math.min(Math.max(0, cap - G[k]), add); G[k] += kept; if (add > kept) SYS.hook.spill(add - kept); return kept; };
+  store('food', foodCap(), rateOf('food') * dt);
+  SYS.hook.ore(store('mineral', mineralCap(), rateOf('mineral') * dt));
+  store('comps', partsCap(), rateOf('parts') * dt);
   const eat = hired().length * UPKEEP * SYS.hook.upkeep();
   G.food -= eat * dt;
   const wasHungry = G.hungry;

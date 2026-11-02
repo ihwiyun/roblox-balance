@@ -20,10 +20,11 @@ function workSpot(c) {
   const n = Math.max(0, jobIndex(c));
   return c.job === '정비공' ? shopSpot(n) : c.job === '농부' ? farmSpot(n) : mineSpot(n);
 }
-// the workshop is above ground (doc 8): its hands work on the ground in the front-left strip of the yard, between the
-// bunker and the workbench that stands there later (yard.js), facing it
-const SHOP_AT = [1.05, .45, 1.65, -.15];
-const shopSpot = n => ({ where: 'yard', x: SHOP_AT[n % SHOP_AT.length], y: 2.3, z: 0, yaw: Math.PI / 2 });
+// the workshop is above ground (doc 8): its hands work on the open ground before the bunker's two front faces, far
+// enough apart that no two overlap, each facing out to the strip in front of it (yard.js: the workbench at the first
+// spot, the gun turret and the crates at the others), clear of the gunners on the roof
+const SHOP_AT = [[.6, 2.3, Math.PI / 2], [2.3, .6, 0], [-1, 2.3, Math.PI / 2], [2.3, -1, 0]];
+const shopSpot = n => { const [x, y, yaw] = SHOP_AT[n % SHOP_AT.length]; return { where: 'yard', x, y, z: 0, yaw }; };
 // a hand bought for a floor (systems.js): a free bed, nameless (the job is its name), and off to work
 function hireWorker(job) {
   const i = G.crew.findIndex((c, k) => !c && k < bedsOf(G.live));
