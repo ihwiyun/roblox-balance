@@ -167,6 +167,10 @@ function pageHtml() {
   if (tab === 'relic' && p === 'set') return RELIC_SETS.map((name, n) => block('rset' + n, name, '0/3', `<div class="slots">${slot('off', '')}${slot('off', '')}${slot('off', '')}</div>`));
   return null;
 }
+// every 10th level the next purchase is a breakthrough (materials + gold) that changes the look
+const BREAKS = { bunker: () => typeof bunkerBreak === 'function' && bunkerBreak(G.bunker), fence: () => typeof fenceBreak === 'function' && fenceBreak(G.fence),
+  live: () => typeof facBreak === 'function' && facBreak('live', G.live), farm: () => typeof facBreak === 'function' && facBreak('farm', G.farm), mine: () => typeof facBreak === 'function' && facBreak('mine', G.mine) };
+const withBreak = c => c && !c.max && BREAKS[c.id] && BREAKS[c.id]() ? { ...c, lv: c.lv + ' · 돌파' } : c;
 function cards() {
   const page = pageHtml();
   if (page) return page;
@@ -187,7 +191,7 @@ function cards() {
       { id: 'bunker', ico: 'bunker', name: '벙커 · ' + bunkerInfo(B).name, lv: 'Lv ' + B + '/' + MAX_BUNKER, desc: bmax ? '최대 레벨' : `체력 ${fmt(bunkerHp(B))} → ${fmt(bunkerHp(B + 1))}<br>다음: ${bunkerAddName(B + 1)}`, cost: priceOf('bunker'), max: bmax, prog: B / MAX_BUNKER },
       { id: 'fence', ico: 'fence', name: '울타리' + (F ? ' · ' + fenceInfo(F).name : ''), lv: 'Lv ' + F + '/' + MAX_FENCE, desc: fmax ? '최대 레벨' : `체력 ${fmt(fenceHp(F))} → ${fmt(fenceHp(F + 1))}<br>다음: ${fenceAddName(F + 1)}${fenceInfo(F + 1).electric && !(F && fenceInfo(F).electric) ? ' (공격한 좀비 감전)' : ''}`, cost: priceOf('fence'), max: fmax, prog: F / MAX_FENCE },
     ];
-    return list.filter(c => c.id === sub.def);
+    return list.filter(c => c.id === sub.def).map(withBreak);
   }
   if (tab === 'under') {
     const Lv = G.live, Fm = G.farm, Mn = G.mine;
@@ -196,7 +200,7 @@ function cards() {
       { id: 'farm', floor: 1, ico: 'farm', name: '지하 2층 · 식량층' + (Fm ? ' · ' + FARM_TIERS[facTier(Fm)] : ''), lv: Fm ? 'Lv ' + Fm + '/' + FARM.max : '미개척', desc: Fm >= FARM.max ? '최대 레벨' : `식량 초당 ${fmt(FARM.rate(Fm))} → ${fmt(FARM.rate(Fm + 1))} (농부 1명당 +100%)<br>다음: ${FARM_ITEMS[Fm]}`, cost: priceOf('farm'), max: Fm >= FARM.max, prog: Fm / FARM.max },
       { id: 'mine', floor: 2, ico: 'pick', name: '지하 3층 · 채굴층' + (Mn ? ' · ' + MINE_TIERS[facTier(Mn)] : ''), lv: Mn ? 'Lv ' + Mn + '/' + MINE.max : '미개척', desc: Mn >= MINE.max ? '최대 레벨' : `광물 초당 ${fmt(MINE.rate(Mn))} → ${fmt(MINE.rate(Mn + 1))} (광부 1명당 +100%)<br>다음: ${MINE_ITEMS[Mn]}`, cost: priceOf('mine'), max: Mn >= MINE.max, prog: Mn / MINE.max },
     ];
-    return [floors[G.floorView || 0]];
+    return [withBreak(floors[G.floorView || 0])];
   }
   const beds = bedsOf(G.live);
   return G.crew.map((c, i) => {
