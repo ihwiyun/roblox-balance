@@ -1,0 +1,356 @@
+{
+ "items": [
+  {
+   "id": "bgm_ground_spacebattle",
+   "group": "music-ground",
+   "kind": "music",
+   "source": "minto_space_battle",
+   "member": "space_battle_bpm130.ogg",
+   "title": "Space Battle",
+   "loop": "whole",
+   "bpm": 130,
+   "mood": "신스 중심의 박진감 있는 전투곡 (A 마이너). 작곡가가 반복 가능(loopable)이라고 표기.",
+   "author": "MintoDog",
+   "file": "candidates/music-ground/bgm_ground_spacebattle.ogg",
+   "bytes": 1179692,
+   "seconds": 88.615,
+   "lufs_i": -16.0,
+   "true_peak": -5.0,
+   "lufs_m_max": -120.0,
+   "changes": [
+    "loudness normalised to -16 LUFS (gain -4.5 dB)",
+    "encoded OGG Vorbis q3"
+   ],
+   "source_files": [
+    "space_battle_bpm130.ogg"
+   ],
+   "direct_files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/space_battle_bpm130_0.ogg",
+     "name": "space_battle_bpm130.ogg",
+     "sha256": "22de767fe7b621eec9cd081d12f4fce4d5effda528bfee90e404dcc2916d485b",
+     "members": []
+    }
+   ],
+   "bpm_est": 130.0,
+   "loop_start": 0.0,
+   "loop_end": 88.615,
+   "seam": {
+    "click_pct": 18.28,
+    "gap_db": -0.7,
+    "ok": true
+   },
+   "loop_beats": 192.0
+  },
+  {
+   "id": "bgm_shelter_afternoon",
+   "group": "music-shelter",
+   "kind": "music",
+   "source": "minto_postapoc",
+   "member": "post-apocalyptic_afternoon_bpm85.ogg",
+   "title": "Post-Apocalyptic Afternoon",
+   "loop": "whole",
+   "bpm": 85,
+   "star": true,
+   "mood": "피아노·어쿠스틱 기타·신스의 잔잔하고 쓸쓸한 곡 (D 마이너). 음이 성겨서 오래 들어도 부담이 적음.",
+   "author": "MintoDog",
+   "file": "candidates/music-shelter/bgm_shelter_afternoon.ogg",
+   "bytes": 1763337,
+   "seconds": 135.529,
+   "lufs_i": -16.1,
+   "true_peak": -3.7,
+   "lufs_m_max": -120.0,
+   "changes": [
+    "loudness normalised to -16 LUFS (gain -3.2 dB)",
+    "encoded OGG Vorbis q3"
+   ],
+   "source_files": [
+    "post-apocalyptic_afternoon_bpm85.ogg"
+   ],
+   "direct_files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/post-apocalyptic_afternoon_bpm85_0.ogg",
+     "name": "post-apocalyptic_afternoon_bpm85.ogg",
+     "sha256": "658f47d0b8e329e2e1051c5d9f6041da65c92da04df831da758379b0f342d221",
+     "members": []
+    }
+   ],
+   "bpm_est": 85.0,
+   "loop_start": 0.0,
+   "loop_end": 135.529,
+   "seam": {
+    "click_pct": 84.81,
+    "gap_db": -2.7,
+    "ok": true
+   },
+   "loop_beats": 192.0
+  },
+  {
+   "id": "bgm_boss_epic",
+   "group": "music-boss",
+   "kind": "music",
+   "source": "jj_boss",
+   "member": "Juhani Junkala - Epic Boss Battle [Seamlessly Looping].wav",
+   "title": "Epic Boss Battle [Seamlessly Looping]",
+   "loop": "whole",
+   "star": true,
+   "mood": "웅장한 오케스트라풍 보스전 곡. 작곡가가 이음새 없는 반복(심리스 루프)이라고 표기.",
+   "author": "SubspaceAudio",
+   "file": "candidates/music-boss/bgm_boss_epic.ogg",
+   "bytes": 1763455,
+   "seconds": 123.429,
+   "lufs_i": -16.1,
+   "true_peak": -6.1,
+   "lufs_m_max": -120.0,
+   "changes": [
+    "loudness normalised to -16 LUFS (gain -9.2 dB)",
+    "encoded OGG Vorbis q3"
+   ],
+   "source_files": [
+    "Juhani Junkala - Epic Boss Battle [Seamlessly Looping].wav"
+   ],
+   "direct_files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/Juhani%20Junkala%20-%20Epic%20Boss%20Battle%20%5BSeamlessly%20Looping%5D.wav",
+     "name": "Juhani Junkala - Epic Boss Battle [Seamlessly Looping].wav",
+     "sha256": "35f75b4381dfbb053992876f7dfc567d9fd959d61b73954d5b1cd519753e7df1",
+     "members": []
+    }
+   ],
+   "bpm_est": 87.5,
+   "loop_start": 0.0,
+   "loop_end": 123.429,
+   "seam": {
+    "click_pct": 97.94,
+    "gap_db": 2.4,
+    "ok": true
+   },
+   "loop_beats": 180.0
+  },
+  {
+   "id": "bgm_shop_shoppingtime",
+   "group": "music-shop",
+   "kind": "music",
+   "source": "skyle_shopping",
+   "member": "shopping_time_loop.ogg",
+   "title": "Shopping Time!",
+   "loop": "whole",
+   "star": true,
+   "mood": "가볍고 경쾌한 8비트 상점 곡. 작곡가가 '픽셀 RPG 게임에 어울린다'고 설명 (C 메이저).",
+   "author": "SkyleTheFrench",
+   "file": "candidates/music-shop/bgm_shop_shoppingtime.ogg",
+   "bytes": 1091362,
+   "seconds": 88.74,
+   "lufs_i": -16.0,
+   "true_peak": -6.3,
+   "lufs_m_max": -120.0,
+   "changes": [
+    "loudness normalised to -16 LUFS (gain -7.7 dB)",
+    "encoded OGG Vorbis q3"
+   ],
+   "source_files": [
+    "shopping_time_loop.ogg"
+   ],
+   "direct_files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/shopping_time_loop.ogg",
+     "name": "shopping_time_loop.ogg",
+     "sha256": "6e1d8674f0699e1d5927a4a2ff92d7cd997998620f7271ae589fea642a5f622b",
+     "members": []
+    }
+   ],
+   "bpm_est": 119.0,
+   "loop_start": 0.0,
+   "loop_end": 88.74,
+   "seam": {
+    "click_pct": 93.93,
+    "gap_db": -3.2,
+    "ok": true
+   },
+   "loop_beats": 176.0
+  },
+  {
+   "id": "sfx_pistol_shot",
+   "group": "sfx-weapon",
+   "kind": "sfx",
+   "source": "ffsl",
+   "member": "Prepared SFX Library/1911/A_42P.wav",
+   "event": 0,
+   "event_tail": 0.6,
+   "fade_out": 0.25,
+   "title": "권총 사격",
+   "star": true,
+   "mood": "1911 .45 권총 실제 녹음, 첫 발 (잔향 포함).",
+   "author": "Ben Jaszczak, et al.",
+   "file": "candidates/sfx-weapon/sfx_pistol_shot.ogg",
+   "bytes": 11749,
+   "seconds": 0.995,
+   "lufs_i": -24.4,
+   "true_peak": -1.0,
+   "lufs_m_max": -120.0,
+   "changes": [
+    "took sound #1 of 2 in the file",
+    "0.25 s fade-out",
+    "mono; peak-normalised to -1 dBTP (gain -4.1 dB)",
+    "encoded OGG Vorbis q4 (gain trimmed -0.15 dB to keep the true-peak target)"
+   ],
+   "source_files": [
+    "Prepared SFX Library/1911/A_42P.wav"
+   ],
+   "direct_files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/Prepared%20SFX%20Library.7z",
+     "name": "Prepared SFX Library.7z",
+     "sha256": "cc1ab5a99a0a365105c7c5dd783f4b0b1fe90938114d3ceec53856bfe005f7d6",
+     "members": [
+      "Prepared SFX Library/1911/A_42P.wav"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "sfx_rifle_shot",
+   "group": "sfx-weapon",
+   "kind": "sfx",
+   "source": "ffsl",
+   "member": "Prepared SFX Library/AR-15/D_32P.wav",
+   "event": 0,
+   "event_tail": 0.6,
+   "fade_out": 0.25,
+   "title": "소총 사격",
+   "star": true,
+   "mood": "AR-15 (.223) 실제 녹음, 첫 발 (잔향 포함).",
+   "author": "Ben Jaszczak, et al.",
+   "file": "candidates/sfx-weapon/sfx_rifle_shot.ogg",
+   "bytes": 10948,
+   "seconds": 0.894,
+   "lufs_i": -25.7,
+   "true_peak": -1.0,
+   "lufs_m_max": -120.0,
+   "changes": [
+    "took sound #1 of 2 in the file",
+    "trimmed 0.05 s of leading/trailing silence",
+    "0.25 s fade-out",
+    "mono; peak-normalised to -1 dBTP (gain -3.5 dB)",
+    "encoded OGG Vorbis q4 (gain trimmed +0.30 dB to keep the true-peak target)"
+   ],
+   "source_files": [
+    "Prepared SFX Library/AR-15/D_32P.wav"
+   ],
+   "direct_files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/Prepared%20SFX%20Library.7z",
+     "name": "Prepared SFX Library.7z",
+     "sha256": "cc1ab5a99a0a365105c7c5dd783f4b0b1fe90938114d3ceec53856bfe005f7d6",
+     "members": [
+      "Prepared SFX Library/AR-15/D_32P.wav"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "sfx_zombie_groan_1",
+   "group": "sfx-zombie",
+   "kind": "sfx",
+   "source": "emo_zombie_moans",
+   "member": "ZombieMoans - Track 5 - ZombieMoan1.wav",
+   "title": "좀비 신음 1",
+   "star": true,
+   "mood": "사람 목소리로 녹음한 좀비 신음 (약 2초).",
+   "author": "EmoPreben",
+   "file": "candidates/sfx-zombie/sfx_zombie_groan_1.ogg",
+   "bytes": 23753,
+   "seconds": 2.13,
+   "lufs_i": -17.5,
+   "true_peak": -1.4,
+   "lufs_m_max": -120.0,
+   "changes": [
+    "mono; peak-normalised to -1 dBTP (gain +2.9 dB)",
+    "encoded OGG Vorbis q4"
+   ],
+   "source_files": [
+    "ZombieMoans - Track 5 - ZombieMoan1.wav"
+   ],
+   "direct_files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/zombiemoans_-_wav.zip",
+     "name": "zombiemoans_-_wav.zip",
+     "sha256": "013633f44207d221fbf764c4ecfd3f1a7c158423b7410f0e49527dd8c2f13df1",
+     "members": [
+      "ZombieMoans - Track 5 - ZombieMoan1.wav"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "sfx_ui_button",
+   "group": "sfx-ui",
+   "kind": "sfx",
+   "source": "generated",
+   "member": "ui_button",
+   "title": "버튼",
+   "star": true,
+   "mood": "짧고 부드러운 사각파 블립 (생성).",
+   "author": "synth.mjs (이 프로젝트)",
+   "file": "candidates/sfx-ui/sfx_ui_button.ogg",
+   "bytes": 4554,
+   "seconds": 0.067,
+   "lufs_i": -70.0,
+   "true_peak": -1.2,
+   "lufs_m_max": -120.0,
+   "changes": [
+    "mono; peak-normalised to -1 dBTP (gain +0.0 dB)",
+    "encoded OGG Vorbis q4 (gain trimmed -0.30 dB to keep the true-peak target)"
+   ],
+   "source_files": [],
+   "generated_desc": "Short soft select blip (square, 1.05 → 1.4 kHz)"
+  },
+  {
+   "id": "sfx_ui_purchase",
+   "group": "sfx-ui",
+   "kind": "sfx",
+   "source": "generated",
+   "member": "ui_purchase",
+   "title": "구매",
+   "star": true,
+   "mood": "동전 '챙' 소리: 두 음(B5→E6)과 작은 반짝임 (생성).",
+   "author": "synth.mjs (이 프로젝트)",
+   "file": "candidates/sfx-ui/sfx_ui_purchase.ogg",
+   "bytes": 7717,
+   "seconds": 0.597,
+   "lufs_i": -8.2,
+   "true_peak": -1.0,
+   "lufs_m_max": -120.0,
+   "changes": [
+    "mono; peak-normalised to -1 dBTP (gain -0.4 dB)",
+    "encoded OGG Vorbis q4 (gain trimmed -0.30 dB to keep the true-peak target)"
+   ],
+   "source_files": [],
+   "generated_desc": "Coin \"ka-ching\": two square notes B5 → E6 with a small sparkle"
+  },
+  {
+   "id": "sfx_reveal_4_epic",
+   "group": "sfx-gacha",
+   "kind": "sfx",
+   "source": "generated",
+   "member": "reveal_4_epic",
+   "title": "등급 공개: 영웅",
+   "star": true,
+   "mood": "상승 휘익 소리 후 D장조 아르페지오와 반짝이는 코드 (생성, 약 1.4초).",
+   "author": "synth.mjs (이 프로젝트)",
+   "file": "candidates/sfx-gacha/sfx_reveal_4_epic.ogg",
+   "bytes": 20737,
+   "seconds": 1.836,
+   "lufs_i": -13.5,
+   "true_peak": -1.1,
+   "lufs_m_max": -120.0,
+   "changes": [
+    "trimmed 0.08 s of leading/trailing silence",
+    "mono; peak-normalised to -1 dBTP (gain -0.9 dB)",
+    "encoded OGG Vorbis q4 (gain trimmed +0.30 dB to keep the true-peak target)"
+   ],
+   "source_files": [],
+   "generated_desc": "영웅: whoosh, D-major run to a held chord with sparkles"
+  }
+ ]
+}

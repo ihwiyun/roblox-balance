@@ -117,9 +117,10 @@ export function summonWeapon(rng, inv, sum) { const g = rollGrade(rng, sum), i =
 export function summonTurret(rng, inv, sum) { const g = rollGrade(rng, sum), i = g * 4 + rng.int(0, 3); addCopy(inv, i); return i; }
 
 /* ---------- merging: n copies of step i -> one of step i + 1 ---------- */
-export function mergeAll(inv, n = T.gear.mergeN) {
+// pay(i) may refuse (the economy charges a few parts a merge)
+export function mergeAll(inv, n = T.gear.mergeN, pay = () => true) {
   let made = 0;
-  for (let i = 0; i < inv.copies.length - 1; i++) while (inv.copies[i] >= n) { inv.copies[i] -= n; addCopy(inv, i + 1); made++; }
+  for (let i = 0; i < inv.copies.length - 1; i++) while (inv.copies[i] >= n && pay(i)) { inv.copies[i] -= n; addCopy(inv, i + 1); made++; }
   return made;
 }
 export const toNextMerge = (inv, i, n = T.gear.mergeN) => n - (inv.copies[i] % n);

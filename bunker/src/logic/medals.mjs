@@ -5,17 +5,18 @@ import { H } from './stages.mjs';
 import { capToStores } from './curves.mjs';
 
 // doc 18: floor(10 * 10^(0.55 (H(best) - H(50)))), best = the stage cleared in this run (50 needs its boss)
-export function medalRaw(runBest) {
+// hAdd: the archive relic counts the run a little harder
+export function medalRaw(runBest, hAdd = 0) {
   if (runBest < T.medals.firstAt) return 0;
-  return Math.floor(T.medals.base * 10 ** (T.medals.pow * (H(runBest) - H(T.medals.firstAt))));
+  return Math.floor(T.medals.base * 10 ** (T.medals.pow * (H(runBest) + hAdd - H(T.medals.firstAt))));
 }
 // one evacuation never more than doubles the medals earned so far (doctrine research raises the factor)
 export function medalCap(lifetime, doubling = T.medals.doubling) {
   return Math.max(T.medals.floor, Math.floor(lifetime * (doubling - 1)));
 }
 // forced: a breach while starving pays half; pin: the commander pin relic (+1% per evacuation in 24 h)
-export function medalGain(runBest, lifetime, { doubling, forced = false, bonus = 0 } = {}) {
-  const raw = medalRaw(runBest);
+export function medalGain(runBest, lifetime, { doubling, forced = false, bonus = 0, hAdd = 0 } = {}) {
+  const raw = medalRaw(runBest, hAdd);
   if (!raw) return 0;
   const g = Math.min(raw, medalCap(lifetime, doubling)) * (1 + bonus);
   return Math.floor(forced ? g * T.medals.starveShare : g);

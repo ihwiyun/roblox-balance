@@ -1,0 +1,117 @@
+{
+ "note": "Checkpoint selection: one candidate per music category + 6 sound effects. process.py reads this file; mood/star feed the listening page.",
+ "candidates": [
+  {
+   "id": "bgm_ground_spacebattle",
+   "group": "music-ground",
+   "kind": "music",
+   "source": "minto_space_battle",
+   "member": "space_battle_bpm130.ogg",
+   "title": "Space Battle",
+   "loop": "whole",
+   "bpm": 130,
+   "mood": "신스 중심의 박진감 있는 전투곡 (A 마이너). 작곡가가 반복 가능(loopable)이라고 표기.",
+   "star": true
+  },
+  {
+   "id": "bgm_shelter_afternoon",
+   "group": "music-shelter",
+   "kind": "music",
+   "source": "minto_postapoc",
+   "member": "post-apocalyptic_afternoon_bpm85.ogg",
+   "title": "Post-Apocalyptic Afternoon",
+   "loop": "whole",
+   "bpm": 85,
+   "star": true,
+   "mood": "피아노·어쿠스틱 기타·신스의 잔잔하고 쓸쓸한 곡 (D 마이너). 음이 성겨서 오래 들어도 부담이 적음."
+  },
+  {
+   "id": "bgm_boss_epic",
+   "group": "music-boss",
+   "kind": "music",
+   "source": "jj_boss",
+   "member": "Juhani Junkala - Epic Boss Battle [Seamlessly Looping].wav",
+   "title": "Epic Boss Battle [Seamlessly Looping]",
+   "loop": "whole",
+   "star": true,
+   "mood": "웅장한 오케스트라풍 보스전 곡. 작곡가가 이음새 없는 반복(심리스 루프)이라고 표기."
+  },
+  {
+   "id": "bgm_shop_shoppingtime",
+   "group": "music-shop",
+   "kind": "music",
+   "source": "skyle_shopping",
+   "member": "shopping_time_loop.ogg",
+   "title": "Shopping Time!",
+   "loop": "whole",
+   "star": true,
+   "mood": "가볍고 경쾌한 8비트 상점 곡. 작곡가가 '픽셀 RPG 게임에 어울린다'고 설명 (C 메이저)."
+  },
+  {
+   "id": "sfx_pistol_shot",
+   "group": "sfx-weapon",
+   "kind": "sfx",
+   "source": "ffsl",
+   "member": "Prepared SFX Library/1911/A_42P.wav",
+   "event": 0,
+   "event_tail": 0.6,
+   "fade_out": 0.25,
+   "title": "권총 사격",
+   "star": true,
+   "mood": "1911 .45 권총 실제 녹음, 첫 발 (잔향 포함)."
+  },
+  {
+   "id": "sfx_rifle_shot",
+   "group": "sfx-weapon",
+   "kind": "sfx",
+   "source": "ffsl",
+   "member": "Prepared SFX Library/AR-15/D_32P.wav",
+   "event": 0,
+   "event_tail": 0.6,
+   "fade_out": 0.25,
+   "title": "소총 사격",
+   "star": true,
+   "mood": "AR-15 (.223) 실제 녹음, 첫 발 (잔향 포함)."
+  },
+  {
+   "id": "sfx_zombie_groan_1",
+   "group": "sfx-zombie",
+   "kind": "sfx",
+   "source": "emo_zombie_moans",
+   "member": "ZombieMoans - Track 5 - ZombieMoan1.wav",
+   "title": "좀비 신음 1",
+   "star": true,
+   "mood": "사람 목소리로 녹음한 좀비 신음 (약 2초)."
+  },
+  {
+   "id": "sfx_ui_button",
+   "group": "sfx-ui",
+   "kind": "sfx",
+   "source": "generated",
+   "member": "ui_button",
+   "title": "버튼",
+   "star": true,
+   "mood": "짧고 부드러운 사각파 블립 (생성)."
+  },
+  {
+   "id": "sfx_ui_purchase",
+   "group": "sfx-ui",
+   "kind": "sfx",
+   "source": "generated",
+   "member": "ui_purchase",
+   "title": "구매",
+   "star": true,
+   "mood": "동전 '챙' 소리: 두 음(B5→E6)과 작은 반짝임 (생성)."
+  },
+  {
+   "id": "sfx_reveal_4_epic",
+   "group": "sfx-gacha",
+   "kind": "sfx",
+   "source": "generated",
+   "member": "reveal_4_epic",
+   "title": "등급 공개: 영웅",
+   "star": true,
+   "mood": "상승 휘익 소리 후 D장조 아르페지오와 반짝이는 코드 (생성, 약 1.4초)."
+  }
+ ]
+}
