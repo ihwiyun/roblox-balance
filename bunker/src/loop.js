@@ -83,10 +83,7 @@ function update(dt) {
 // the ground with its stains and its swaying grass only changes at the wind's 8 steps a second (or when the
 // baked picture or the stains change), so it is kept between those steps instead of redrawn every frame
 const groundFrame = new Uint32Array(W * H);
-let groundWind = -1, groundFade = -1, groundCut = -1, groundDecals = 0, groundSrc = null, bakedVersion = 0;
-// every new picture behind the actors arrives through showYard()/showUnder(): count them, so the kept ground
-// frame knows when it is stale
-for (const name of ['showYard', 'showUnder']) { const show = window[name]; window[name] = function () { bakedVersion++; return show.apply(this, arguments); }; }
+let groundWind = -1, groundFade = -1, groundCut = -1, groundDecals = 0, groundSrc = null;
 function drawYard() {
   const windT = STILL || !settings.wind ? 0 : Math.floor(G.time * WIND_FPS) / WIND_FPS;
   // redrawn at each wind step, while a stain fades (4 times a second), or when one is gone; a new stain is

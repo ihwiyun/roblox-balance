@@ -385,7 +385,7 @@ function showFloor(k) {
   G.floorView = k;
   refreshUnder();
 }
-function showUnder() { bakedPix.set(underPix); bakedZ.set(underZ); groundZ.set(UNDER_GZ); ground.set(UNDER_GROUND); staticShadow.fill(0); }
+function showUnder() { bakedVersion++; bakedPix.set(underPix); bakedZ.set(underZ); groundZ.set(UNDER_GZ); ground.set(UNDER_GROUND); staticShadow.fill(0); }
 
 
 /* ================= materials: floors and walls ================= */

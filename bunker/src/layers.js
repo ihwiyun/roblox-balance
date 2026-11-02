@@ -61,6 +61,9 @@ function objectBounds(refZ, pad) {
 
 // After an upgrade, whatever it changed in the picture flashes warm white for a couple of seconds, so it is
 // easy to see what grew. (Sprites are drawn over the flash, so only the buildings and rooms light up.)
+// bumped whenever a new picture goes behind the actors (showYard / showUnder), so the kept ground frame in
+// loop.js knows it is stale
+let bakedVersion = 0;
 let flash = null;
 function flashDiff(before, after, view, floor = 0) {
   const idx = [];
