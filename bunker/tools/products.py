@@ -1,13 +1,13 @@
-# Shop product pictures for the blueprint, placed pixel by pixel in the game's own colours: the icon palette of
-# ../../art.js plus the grade colours of the UI (digits 0-7) for trims. 64x64 for the 다이아 packs, the step
+# Shop product pictures, placed pixel by pixel in the game's own colours: the icon palette of ../art.js plus the grade colours of the UI (digits 0-7) for trims. 64x64 for the 다이아 packs, the step
 # packages and the passes; 48x48 for the convenience items. Every object gets the icons' 1px dark outline and
 # light from the top left.
-# Run: python3 -I products.py   (writes img/prod-*.png beside it, and img/prod-sheet.png to look at them all)
+# Run: python3 -I products.py   (writes ../art/products.js for the game, and the blueprint's
+# ../samples/ui-plan/img/prod-*.png with prod-sheet.png to look at them all)
 import json, os, re
 from PIL import Image, ImageDraw
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-ART = json.loads(re.search(r'const ART = (.*);\n', open(os.path.join(HERE, '..', '..', 'art.js')).read()).group(1))
+ART = json.loads(re.search(r'const ART = (.*);\n', open(os.path.join(HERE, '..', 'art.js')).read()).group(1))
 PAL = dict(ART['iconPal'])
 for i, h in enumerate(['#9a9a9a', '#4caf50', '#3d7be0', '#9b4fd1', '#f08a24', '#d63a3a', '#c99a10', '#e0459b']):
     PAL[str(i)] = [int(h[k:k + 2], 16) for k in (1, 3, 5)]
@@ -587,11 +587,18 @@ PRODUCTS = {
 
 
 def main():
-    out = os.path.join(HERE, 'img')
+    out = os.path.join(HERE, '..', 'samples', 'ui-plan', 'img')
     os.makedirs(out, exist_ok=True)
-    ims = []
+    ims, game = [], {}
     for name, fn in PRODUCTS.items():
-        ims.append((name, fn().png(os.path.join(out, f'prod-{name}.png'))))
+        a = fn()
+        ims.append((name, a.png(os.path.join(out, f'prod-{name}.png'))))
+        used = sorted({c for row in a.g for c in row if c != '.'})
+        game[name] = {'rows': [''.join(row) for row in a.g], 'pal': {c: PAL[c] for c in used}}
+    # the game's copy: rows of letters and each letter's colour, as art/portraits.js
+    with open(os.path.join(HERE, '..', 'art', 'products.js'), 'w') as f:
+        f.write("'use strict';\n// shop product pictures for the bunker game: 64x64 and 48x48, rows of letters and each letter's colour (made by tools/products.py)\n")
+        f.write('const ART_PRODUCTS = ' + json.dumps(game, separators=(',', ':')) + ';\n')
     # a sheet to look at them all, at 3x on the blueprint's paper
     Z, pad = 3, 16
     cols = 6

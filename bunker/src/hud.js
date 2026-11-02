@@ -121,17 +121,17 @@ function perMinute() {
 // too (the floor shows in the picture above it). 환생 and 랭킹 (beside the picture) and 도감 (in settings) open
 // over the whole screen
 const MENUS = {
-  up: { title: '강화', tabs: [['fire', '화력'], ['cmd', '지휘관']] },
+  up: { title: '강화' },
   gear: { title: '장비', tabs: [['gun', '무기'], ['turret', '터렛'], ['relic', '유물']] },
-  crew: { title: '캐릭터', tabs: [['crew', '동료'], ['cmd', '지휘관']] },
+  crew: { title: '캐릭터' },
   base: { title: '기지', tabs: [['def', '방어'], ['under', '지하'], ['zones', '배치']] },
-  shop: { title: '상점', tabs: [['pull', '뽑기'], ['pack', '패키지'], ['gem', '다이아'], ['pass', '편의·패스']] },
+  shop: { title: '상점', tabs: [['pack', '패키지'], ['gem', '다이아'], ['pass', '편의·패스']] },
   rebirth: { title: '환생' },
   rank: { title: '랭킹', tabs: [['best', '최고 기록'], ['raid', '기지 털기']] },
   codex: { title: '도감' },
 };
 // what is open, the page of each menu, levels bought per tap (0: MAX), the grade shown, the person picked
-const ui = { open: null, sub: { up: 'fire', gear: 'gun', crew: 'crew', base: 'def', shop: 'pull', rank: 'best' }, bulk: 1, grade: -1, sel: -1, jobs: false };
+const ui = { open: null, sub: { up: 'fire', gear: 'gun', crew: 'crew', base: 'def', shop: 'pack', rank: 'best' }, bulk: 1, grade: -1, sel: -1, jobs: false };
 const sheetOf = m => m === 'up' ? 'up' : m === 'base' && ui.sub.base === 'under' ? 'ug' : null;
 const menuCovers = () => !!ui.open && !sheetOf(ui.open);
 function layout() {
@@ -295,13 +295,23 @@ function zoneHtml(title, job) {
   return sec(title, who.length + '/5') + grid(5, Array.from({ length: 5 }, (_, i) => who[i] ? faceCell(who[i], 40)
     : `<button class="cell off" type="button" data-assign="${job}"${can ? '' : ' disabled'}>${ph('100%', '40px', '+')}<span>배치</span></button>`));
 }
+// 기지's turret places: opened by the bunker level; a tap picks the turret that stands there
+function turretPlaces(B) {
+  const list = sysCall('turrets'), open = TURRET_AT.filter(L => B >= L).length, box = artBox('turret');
+  const cells = TURRET_AT.map((L, k) => {
+    if (B < L) return `<div class="slot lock" style="height:${box.h + 32}px">${ic('lock')}<span class="aux">Lv ${L}</span></div>`;
+    const on = list && list.find(t => t.slot === k);
+    return on ? itemCard('turret', on, `data-turretslot="${k}"`) : `<button class="icard slot" type="button" data-turretslot="${k}" style="height:${box.h + 32}px"${list ? '' : ' disabled'}></button>`;
+  });
+  return sec('터렛 칸', (list ? list.filter(t => t.slot >= 0).length : 0) + '/' + open) + gridOf(box.w + 16, cells, 6);
+}
 function defHtml() {
   const B = G.bunker, F = G.fence;
   return bulkHtml()
     + cardHtml({ id: 'bunker', pic: 'lg', ico: 'bunker', name: '벙커', lv: bunkerInfo(B).name + ' · Lv ' + B, prog: B / MAX_BUNKER, max: B >= MAX_BUNKER })
     + cardHtml({ id: 'fence', pic: 'lg', ico: 'fence', name: '울타리', lv: (F ? fenceInfo(F).name + ' · ' : '') + 'Lv ' + F, prog: F / MAX_FENCE, max: F >= MAX_FENCE })
-    + sec('터렛 칸', '0/6') + grid(6, TURRET_AT.map(L => B >= L ? slot('') : slot('off', '잠김')))
-    + sec('지하') + FLOORS_UI.map(([name, ico], k) => `<button class="go" type="button" data-floor="${k}">${ph('72px', '44px', ic(ico, 2))}<span>${name} · Lv ${floorLevel(k)}</span>›</button>`).join('');
+    + turretPlaces(B)
+    + sec('지하') + FLOORS_UI.map(([name, ico], k) => `<div class="floorrow"><button class="go" type="button" data-floor="${k}">${ph(FLOOR_SECTION[k] && sys() ? '48px' : '72px', '44px', ic(ico, 2))}<span>${name} · Lv ${floorLevel(k)}</span>${ic('next')}</button>${FLOOR_SECTION[k] ? workerBuy(FLOOR_SECTION[k]) : ''}</div>`).join('');
 }
 function underHtml() {
   const k = G.floorView || 0, L = floorLevel(k), max = [LIVE, FARM, MINE][k].max;
@@ -309,11 +319,20 @@ function underHtml() {
   const card = cardHtml({ id: ['live', 'farm', 'mine'][k], pic: 'sm', ico: FLOORS_UI[k][1], name: ['침대', '씨앗', '곡괭이'][k], lv: '레벨 · Lv ' + L, inline: true, prog: L / max, max: L >= max });
   // the living floor: its beds, and who sleeps in them
   const beds = bedsOf(G.live);
-  const workers = k ? zoneHtml('일꾼', k === 1 ? '농부' : '광부')
+  const workers = k ? (sys() ? `<div class="sec"><span>일꾼</span>${workerBuy(FLOOR_SECTION[k], '')}</div>` : '')
     : sec('일꾼', hired().length + '/5') + grid(5, G.crew.map((c, i) => c ? faceCell(c, 40) : i < beds ? hireCell(i, 40) : shutCell(40, '잠김', true)));
   return chips + bulkHtml() + card + workers;
 }
-const zonesHtml = () => zoneHtml('지붕 초소', '사수') + zoneHtml('2층 식량', '농부') + zoneHtml('3층 채굴', '광부') + sec('작업장', '잠김') + grid(5, Array.from({ length: 5 }, () => shutCell(40, '')));
+// the roof's gunners are placed by name (for now); the floors' workers are bought per floor (기지 > 지하)
+const zonesHtml = () => zoneHtml('지붕 초소', '사수') + sec('작업장', '잠김') + grid(5, Array.from({ length: 5 }, () => shutCell(40, '')));
+// a floor's workers: how many of how many, and +1 with its price
+const FLOOR_SECTION = [null, 'food', 'mine'];
+function workerBuy(section, cls = 'sm') {
+  const w = sysCall('workers', section);
+  if (!w) return '';
+  const full = w.count >= w.max;
+  return `<span class="wbuy"><span class="num">${w.count}/${w.max}</span>${B('sub ' + cls, full ? '최대' : '+1 ' + priceHtml(w.price), full || !canAfford(w.price) ? 'disabled' : `data-worker="${section}"`)}</span>`;
+}
 // the one picked, standing as the game draws them: the idle frames side by side (body, then face and headgear by
 // the depth rule of drawPerson), shown four times as large as a CSS strip that steps through them
 const stands = new Map();
@@ -348,21 +367,24 @@ const standHtml = (p, k = 4) => { const st = stand(p); return `<span class="stan
 const crewCell = (i, c, picked) => `<button type="button" class="cell" data-sel="${i}" aria-pressed="${picked}">${ph('50px', '50px', face(c, 40))}<span>${c.name}</span></button>`;
 function crewHtml() {
   const p = ui.sel >= 0 && G.crew[ui.sel] || G.hero, shoots = p.hero || p.job === '사수', fam = weaponFamily(G.lv.atk);
+  // the weapon this person carries (systems), else the rifle the game draws for all
+  const pid = p.hero ? 'me' : p.look.key, ws = sysCall('weapons'), w = ws && ws.find(x => x.equippedBy === pid);
   // the weapon slot beside the one standing: only those who shoot carry one. The game has one rifle for all for now
-  const slotHtml = extra => `<span class="slot ${extra}">${gunImg(fam)}<em>Lv ${G.lv.atk}</em></span>`;
-  const weapon = shoots ? `<button class="wslot tap" type="button" data-pick aria-label="무기 고르기">${slotHtml('')}<span class="aux">${weaponLookName(G.lv.atk)}</span></button>` : '';
+  const slotHtml = extra => w ? `<span class="slot g${w.grade} ${extra}" style="width:${artBox('weapon').w + 16}px;height:${artBox('weapon').h + 32}px">${itemArt('weapon', w.i, true)}<em>Lv ${w.level}</em></span>`
+    : `<span class="slot ${extra}">${gunImg(fam)}<em>Lv ${G.lv.atk}</em></span>`;
+  const weapon = shoots ? `<button class="wslot tap" type="button" data-pick aria-label="무기 고르기">${slotHtml('')}<span class="aux">${w ? w.name : weaponLookName(G.lv.atk)}</span></button>` : '';
   const top = `<div class="hero">${standHtml(p)}${weapon}</div><div class="info"><b class="t16">${p.name}</b><div class="role">${p.hero ? '사수' : p.job}</div>`
     + (p.hero ? '' : `<div class="tired"><span data-tired="${p.i}"></span></div>`)
     // a stat shows once the game has a value for it (체력, 능력 come with the crew stats)
     + [['사격', shoots ? fmt(damageOf()) : null], ['체력', null], ['능력', null]].filter(([, v]) => v != null).map(([k, v]) => line(k, `<b class="num">${v}</b>`)).join('') + '</div>';
   // the weapons to pick from (a tap on the weapon slot): those owned, the one carried outlined
+  if (ui.pick && shoots && ws) { pickSheet('무기', 'weapon', w ? w.i : -1, i => sysCall('equipWeapon', pid, i)); ui.pick = false; }
   if (ui.pick && shoots) return top + `<div class="wpick"><div class="sh"><b class="t16">무기</b><button class="ib tap" type="button" data-unpick aria-label="닫기">${ic('close', 1.5)}</button></div>`
     + sec('보유', '1') + grid(5, [slotHtml('ring')]) + '<div class="tool">' + B('sub', '장비로', 'data-gogear') + '</div></div>';
-  const btns = `<div class="acts">${B('pri grow', '레벨업', 'disabled')}${B('sub', '배치', p.hero ? 'disabled' : 'data-jobs')}${B('sub', '대표', 'disabled')}</div>`;
-  const jobs = ui.jobs && !p.hero ? `<div class="tool"><div class="chipset">${JOBS.map(j => `<button class="fchip tap" type="button" data-job="${j}" aria-pressed="${p.job === j}">${j}</button>`).join('')}</div></div>` : '';
+  const btns = `<div class="acts">${B('pri grow', '레벨업', 'disabled')}${B('sub', '대표', 'disabled')}</div>`;
   const beds = bedsOf(G.live);
   const cells = [crewCell(-1, G.hero, p === G.hero), ...G.crew.map((c, i) => c ? crewCell(i, c, p === c) : i < beds ? hireCell(i, 50, '50px') : shutCell(50, '???', true, '50px')), ...Array.from({ length: 6 }, () => shutCell(50, '???', false, '50px'))];
-  return top + btns + jobs + sec('보유 동료', 1 + hired().length + '/24') + strip('crew', '동료 모집', 200, 'mid') + grid(4, cells);
+  return top + btns + sec('보유 동료', 1 + hired().length + '/24') + strip('crew', '동료 모집', 200, 'mid') + grid(4, cells);
 }
 // buttons: the primary filled (one a screen), the secondary an outline; small icons and labels go inside
 const B = (cls, inner, attrs = '') => `<button class="b ${cls} tap" type="button"${attrs ? ' ' + attrs : ''}>${inner}</button>`;
@@ -425,40 +447,155 @@ function itemArt(kind, i, owned) {
   if (kind === 'weapon') { const g = gunPic(i >= 0 ? i % 5 : 0); return `<img class="gun${sil}" src="${g.url}" alt="" style="width:${g.w * 3}px;height:${g.h * 3}px">`; }
   return `<i class="ic ic-${kind === 'turret' ? 'bunker' : kind === 'relic' ? 'relic' : 'person'}${sil}" style="--s:2"></i>`;
 }
+// slots are sized from the pictures (2x the art), as many in a row as fit the page: fewer and larger, never cramped
+const panelW = () => Math.max(240, (nodes.panel.clientWidth || nodes.app.clientWidth) - 24);
+const colsFor = (cardW, max = 5) => Math.max(2, Math.min(max, Math.floor((panelW() + 8) / (cardW + 8))));
+const gridOf = (cardW, cells, max) => `<div class="grid" style="grid-template-columns:repeat(${colsFor(cardW, max)},minmax(0,1fr))">${cells.join('')}</div>`;
+const MERGE_N = 4; // copies one merge takes (doc); an item may say its own (mergeN)
+const idOf = it => it.i ?? it.id;
+// one item: its picture in its grade colour; owned, its level and its copies toward the next merge
+function itemCard(kind, it, attrs) {
+  const own = it.owned, n = it.mergeN || MERGE_N, box = artBox(kind);
+  return `<button class="icard slot g${it.grade}" type="button" ${attrs || `data-item="${kind}:${idOf(it)}"`} style="height:${box.h + 32}px">${itemArt(kind, idOf(it), own)}`
+    + (own ? `<em>Lv ${it.level}</em>${kind === 'relic' ? '' : `<u class="${it.copies >= n ? 'full' : ''}">${Math.min(it.copies, n)}/${n}</u>`}` : '') + '</button>';
+}
+const listOf = kind => (kind === 'weapon' ? sysCall('weapons') : kind === 'turret' ? sysCall('turrets') : kind === 'relic' ? sysCall('relics') : null);
 function gearHtml() {
-  const tab = ui.sub.gear, top = strip(PULL_KIND[tab], '소환', PULL_PRICE[tab]);
-  if (tab === 'relic') {
-    const all = GRADES.flatMap((g, k) => Array.from({ length: 6 }, () => slot('g' + k + ' off'))).slice(0, 48);
-    return top + sec('장착 칸', '0/' + RELIC_AT.length)
-      + grid(4, RELIC_AT.map(r => G.best >= r ? slot('') : `<div class="slot lock">${ic('lock')}<span class="aux">스테이지<br>${r.toLocaleString('en')}</span></div>`))
-      + sec('세트') + RELIC_SETS.map(n => line(n, '<b class="num">0/3</b>')).join('') + sec('보유', '0/48') + grid(6, all);
-  }
-  const per = tab === 'turret' ? 4 : 5;
+  const tab = ui.sub.gear, kind = PULL_KIND[tab], top = strip(kind, '소환', PULL_PRICE[tab]), list = listOf(kind);
+  if (tab === 'relic') return top + relicPage(list);
+  const per = tab === 'turret' ? 4 : 5, box = artBox(kind);
   const chips = `<div class="chiprow">${[-1, 0, 1, 2, 3, 4, 5, 6, 7].map(n => `<button class="fchip tap${n < 0 ? '' : ' gq g' + n}" type="button" data-grade="${n}" aria-pressed="${ui.grade === n}">${n < 0 ? '전체' : GRADES[n]}</button>`).join('')}</div>`;
-  return top + chips + GRADES.map((g, n) => ui.grade >= 0 && ui.grade !== n ? '' : sec(`<span class="gr g${n}">${g}</span>`, '0/' + per)
-    + grid(5, Array.from({ length: per }, (_, k) => `<div class="slot g${n} off">${tab === 'gun' ? gunImg(k) : ''}</div>`))).join('');
+  return top + chips + GRADES.map((g, n) => {
+    if (ui.grade >= 0 && ui.grade !== n) return '';
+    const items = list ? list.filter(it => it.grade === n) : Array.from({ length: per }, (_, k) => ({ i: n * per + k, grade: n, owned: false }));
+    return sec(`<span class="gr g${n}">${g}</span>`, items.filter(it => it.owned).length + '/' + items.length) + gridOf(box.w + 16, items.map(it => itemCard(kind, it)), per);
+  }).join('');
 }
-const PULLS = [['무기', 100], ['터렛', 150], ['동료', 200], ['유물', 300]];
-const PACKS = [['희귀 5번 무기 + 보석 300', '1,200원'], ['영웅 3번 무기 + 희귀 동료', '3,300원'], ['전설 1번 무기 + 유물 상자 5', '5,900원'], ['전설 5번 무기 + 영웅 터렛', '12,000원'], ['불멸 1번 무기 + 전설 동료', '33,000원'], ['신화 1번 무기 + 유물 상자 30', '69,000원']];
-const GEMS = ['1,200', '5,900', '12,000', '33,000', '69,000', '119,000'];
-// purchases and pulls come later: their buttons are there, switched off
+// 유물: the places that carry relics (opened by the best stage; a tap picks one), the sets, and the collection
+function relicPage(list) {
+  const box = artBox('relic'), worn = list ? list.filter(r => r.slot >= 0) : [];
+  const places = RELIC_AT.map((r, k) => {
+    if (G.best < r) return `<div class="slot lock" style="height:${box.h + 32}px">${ic('lock')}<span class="aux">스테이지<br>${r.toLocaleString('en')}</span></div>`;
+    const on = worn.find(x => x.slot === k);
+    return on ? itemCard('relic', on, `data-relicslot="${k}"`) : `<button class="icard slot" type="button" data-relicslot="${k}" style="height:${box.h + 32}px"${list ? '' : ' disabled'}></button>`;
+  });
+  const owned = list ? list.filter(r => r.owned).length : 0;
+  return sec('장착 칸', worn.length + '/' + RELIC_AT.filter(r => G.best >= r).length) + gridOf(box.w + 16, places, 4)
+    + sec('세트') + RELIC_SETS.map(n => line(n, '<b class="num">0/3</b>')).join('')
+    + sec('보유', owned + '/' + (list ? list.length : 48)) + gridOf(box.w + 16, (list || Array.from({ length: 48 }, (_, i) => ({ id: i, grade: Math.floor(i / 6), owned: false }))).map(r => itemCard('relic', r)), 5);
+}
+// an item up close: its picture, grade, what it does, its level and the next merge; owned weapons and turrets enhance
+function itemSheet(kind, i) {
+  const find = () => (listOf(kind) || []).find(x => idOf(x) === i);
+  const it = find();
+  if (!it) return;
+  openSheet(it.name, () => {
+    const x = find(), price = x.owned && kind !== 'relic' ? sysCall('enhancePrice', kind, i) : null, n = x.mergeN || MERGE_N;
+    return `<div class="ihero slot g${x.grade}">${itemArt(kind, i, x.owned)}</div><div class="sec"><span class="gr g${x.grade}">${GRADES[x.grade]}</span><span>${x.owned ? 'Lv ' + x.level : ''}</span></div>`
+      + (x.desc ? `<p class="aux">${x.desc}</p>` : '') + (x.owned && kind !== 'relic' ? line('합성까지', `<b class="num">${x.toNextMerge ?? Math.max(0, n - x.copies)}</b>`) : '')
+      + (price ? `<div class="tool">${B('pri grow', '강화 ' + priceHtml(price), canAfford(price) ? 'data-enh' : 'disabled')}</div>` : '');
+  }, d => { if ('enh' in d && sysCall('enhance', kind, i, 1) !== false) sound('buy'); });
+}
+// a place to fill (a relic place, a turret place, a weapon slot): the owned ones to pick from, the one in it outlined
+function pickSheet(title, kind, on, choose) {
+  openSheet(title, () => {
+    const own = (listOf(kind) || []).filter(x => x.owned);
+    return own.length ? gridOf(artBox(kind).w + 16, own.map(x => itemCard(kind, x, `data-choose="${idOf(x)}"`).replace('class="icard', `class="icard${idOf(x) === on ? ' ring' : ''}`)), 4)
+      : `<div class="tool">${B('sub', '장비로', 'data-gogear')}</div>`;
+  }, d => {
+    if (d.choose != null) { choose(+d.choose); sound('buy'); closeSheet(); }
+    else if ('gogear' in d) { closeSheet(); ui.sub.gear = kind === 'turret' ? 'turret' : kind === 'relic' ? 'relic' : 'gun'; openMenu('gear'); }
+  });
+}
+// all at once: merge what can be merged; enhance every owned item one level while it can be paid
+function mergeAllNow() { const n = sysCall('mergeAll'); if (n) sound('buy'); openSheet('일괄 합성', () => `<div class="sec"><span>합성</span><span class="num">${n || 0}</span></div><div class="tool">${B('pri', '확인', 'data-close')}</div>`); }
+function enhanceAllNow() {
+  const kind = PULL_KIND[ui.sub.gear];
+  let n = 0;
+  for (const it of (listOf(kind) || []).filter(x => x.owned)) { const p = sysCall('enhancePrice', kind, idOf(it)); if (p && canAfford(p) && sysCall('enhance', kind, idOf(it), 1) !== false) n++; }
+  if (n) sound('buy');
+  openSheet('일괄 강화', () => `<div class="sec"><span>강화</span><span class="num">${n}</span></div><div class="tool">${B('pri', '확인', 'data-close')}</div>`);
+}
+// the shop: what is paid for (packages, diamonds, passes and conveniences), each with its picture (art/products.js)
+const prodPics = new Map();
+function prodImg(id, k = 2) {
+  let p = prodPics.get(id);
+  if (p === undefined) {
+    const e = typeof ART_PRODUCTS !== 'undefined' && ART_PRODUCTS[id];
+    p = null;
+    if (e) {
+      const h = e.rows.length, w = e.rows[0].length, c = document.createElement('canvas'), g = c.getContext('2d');
+      c.width = w; c.height = h;
+      e.rows.forEach((row, y) => [...row].forEach((ch, x) => { const col = ch !== '.' && e.pal[ch]; if (col) { g.fillStyle = `rgb(${col[0]},${col[1]},${col[2]})`; g.fillRect(x, y, 1, 1); } }));
+      p = { url: c.toDataURL(), w, h };
+    }
+    prodPics.set(id, p);
+  }
+  return p ? `<img class="prod" src="${p.url}" alt="" style="width:${p.w * k}px;height:${p.h * k}px">` : '';
+}
+const krw = n => n.toLocaleString('en') + '원';
+// a price that looks like a button inside a product card (the card itself is the button)
+const priceTag = (it, primary) => `<span class="b ${primary ? 'pri' : 'sub'}${it.locked ? ' off' : ''}">${it.locked ? ic('lock') : ''}<span class="num">${krw(it.price)}</span></span>`;
 function shopHtml() {
-  const p = ui.sub.shop;
-  if (p === 'pack') return sec('성장 패키지', '1/6') + PACKS.map(([what, price], n) => `<div class="ucard${n ? ' off' : ''}">${ph('90px', '60px')}<div class="body">`
-    + (n ? `<div>${n + 1}단계 · ${what}</div>` : `<div class="name">1단계</div><div>${what}</div>`) + `<button class="btn${n ? '' : ' dark'}" type="button" disabled style="width:100%;margin-top:4px">${n ? '잠김' : price}</button></div></div>`).join('');
-  if (p === 'gem') return sec('다이아') + grid(3, GEMS.map(pr => `<div class="cell">${ph('100%', '40px')}<b style="font-size:13px">${pr}원</b><span>첫 구매 2배</span></div>`));
-  if (p === 'pass') return sec('편의') + ['광고 제거', '자동 합성', '오프라인 +12시간', '장비 프리셋', '연구 칸 +1', '배속 상시'].map(n => line(n, off('구매'))).join('')
-    + sec('패스') + line('월정액', off('5,500원')) + line('시즌 패스', off('9,900원'));
-  return PULLS.map(([n, price]) => `<div class="ucard" style="display:grid;gap:4px">${ph('100%', '70px')}<div class="sec" style="margin:0"><span>${n} · 소환 Lv 1</span><span class="muted">확률</span></div>`
-    + `<div class="prog" style="width:100%"><i style="width:0"></i></div><div class="row"><button class="btn" type="button" disabled>1회 ${ic('mineral')}${price}</button><button class="btn dark" type="button" disabled>10회 ${ic('mineral')}${price * 10}</button></div></div>`).join('');
+  const tab = ui.sub.shop, cat = sysCall('shopCatalog');
+  if (!cat) return '';
+  const of = t => cat.filter(x => x.tab === t);
+  if (tab === 'pack') {
+    const steps = of('pack'), next = steps.find(x => !x.locked);
+    return sec('성장 패키지', steps.filter(x => x.bought).length + '/' + steps.length) + steps.map(it => `<button class="pk2" type="button" data-product="${it.id}">${prodImg(it.id)}<span class="bd"><b>${it.name}</b><span>${it.contents.join(' + ')}</span>`
+      + (it.locked && it.lockReason ? `<span class="aux">${it.lockReason}에 열림</span>` : '') + priceTag(it, it === next) + '</span></button>').join('');
+  }
+  if (tab === 'gem') return `<div class="grid c2 top">${of('dia').map(it => `<button class="cv2" type="button" data-product="${it.id}">${prodImg(it.id)}<span class="amt">${ic('diamond')}<b class="num">${(it.dia || 0).toLocaleString('en')}</b></span><span>${krw(it.price)}</span><span class="aux">첫 구매 2배</span></button>`).join('')}</div>`;
+  const passes = of('pass');
+  return sec('패스') + passes.map((it, k) => `<button class="pk2" type="button" data-product="${it.id}">${prodImg(it.id)}<span class="bd"><b>${it.name}</b><span class="aux">${it.contents.join(' + ')}</span>${priceTag(it, k === 0)}</span></button>`).join('')
+    + sec('편의') + `<div class="grid c2">${of('conv').map(it => `<button class="cv2" type="button" data-product="${it.id}">${prodImg(it.id)}<b>${it.name}</b><span class="aux">${it.contents.join(' + ')}</span>${priceTag(it, false)}</button>`).join('')}</div>`;
 }
-const rebirthHtml = () => `<div class="ucard" style="display:grid;justify-items:center;gap:4px">${ph('80px', '80px')}<b style="font-size:16px">받을 훈장 +0</b><span class="muted">보유 0</span><button class="btn dark" type="button" disabled style="width:100%">환생</button></div>`
-  + sec('훈장 강화') + grid(4, ['화력', '군자금', '오프라인', '보스', '치명', '발견', '유지비', '설계도'].map(n => `<div class="cell">${ph('100%', '36px')}<span>${n}</span><span class="muted">Lv 0</span></div>`))
-  + sec('자동화', '환생 0회') + grid(6, [1, 3, 5, 8, 12, 20].map(n => `<div class="cell off">${ph('30px', '30px')}<span>${n}회</span></div>`));
-// rankings come with the server: the places are there, still empty
-const rankRow = (place, who, pic, wave) => `<div class="rowline"><span><b style="width:30px">${place}</b>${pic}<span>${who}</span></span><b>${wave}</b></div>`;
-const rankHtml = () => ui.sub.rank === 'raid' ? line('습격권', '0/5') + line('리그', '—') : Array.from({ length: 7 }, (_, k) => rankRow(k + 1, '—', ph('32px', '32px'), '—')).join('');
-const codexHtml = () => sec('보유', '0/40') + GRADES.map((g, n) => sec(`<span class="gr g${n}">${g}</span>`, '0/5') + grid(5, WEAPON_LADDER[n].map(w => `<div class="cell">${slot('g' + n, '<i class="sil"></i>')}<span>${w}</span></div>`))).join('');
+// a product up close: its picture, what is in it, the price and 구매 (a test payment for now); then what came
+function productSheet(id) {
+  const find = () => (sysCall('shopCatalog') || []).find(x => x.id === id), it = find();
+  if (!it) return;
+  openSheet(it.name, () => {
+    const x = find();
+    return `<div class="phero">${prodImg(id, 3)}</div><ul class="contents">${x.contents.map(c => `<li>${c}</li>`).join('')}</ul>`
+      + (x.locked ? (x.lockReason ? `<p class="aux">${x.lockReason}에 열림</p>` : '') + `<div class="tool">${B('pri grow', ic('lock') + `<span class="num">${krw(x.price)}</span>`, 'disabled')}</div>`
+        : `<div class="tool">${B('pri grow', `구매 · <span class="num">${krw(x.price)}</span>`, 'data-buy')}</div>`);
+  }, d => {
+    if (!('buy' in d)) return;
+    const got = sysCall('buy', id);
+    if (!got) return;
+    sound('buy');
+    openSheet('받은 것', () => `<div class="phero">${prodImg(id, 2)}</div><ul class="contents">${got.map(c => `<li>${c}</li>`).join('')}</ul><div class="tool">${B('pri', '확인', 'data-close')}</div>`);
+  });
+}
+// 환생: the medals it gives now and those kept, the medal upgrades and their prices, what the count of rebirths opens
+function rebirthHtml() {
+  const P = sysCall('prestigeInfo');
+  if (!P) return '';
+  return `<div class="rb">${ic('medal', 2)}<span><span class="aux">받을 훈장</span><b class="num">+${fmt(P.gainNow)}</b></span><span><span class="aux">보유</span><b class="num">${fmt(P.medals)}</b></span></div>`
+    + `<div class="tool">${B('pri grow', '환생', P.gainNow > 0 ? 'data-rebirth' : 'disabled')}</div>`
+    + sec('훈장 강화') + grid(4, P.ups.map(u => `<button class="cell up" type="button" data-medal="${u.key}"${u.maxed || P.medals < u.price ? ' disabled' : ''}><b>${u.name}</b><span class="aux">Lv ${u.level}</span>`
+      + (u.maxed ? '<span class="aux">최대</span>' : `<span class="cost${P.medals < u.price ? ' short' : ''}">${ic('medal')}<span class="num">${fmt(u.price)}</span></span>`) + '</button>'))
+    + sec('자동화', '환생 ' + P.evacs + '회') + P.auto.map(a => line(a.name, a.on ? '<b>켜짐</b>' : `<span class="aux">${ic('lock')} 환생 ${a.at}회</span>`)).join('');
+}
+function rebirthConfirm() {
+  const P = sysCall('prestigeInfo');
+  if (!P) return;
+  openSheet('환생', () => `<div class="rb">${ic('medal', 2)}<span><span class="aux">받을 훈장</span><b class="num">+${fmt(P.gainNow)}</b></span></div>`
+    + '<p>스테이지와 강화가 처음으로 돌아가고, 훈장은 남습니다.</p>'
+    + `<div class="tool">${B('sub', '취소', 'data-close')}${B('pri grow', '환생', 'data-yes')}</div>`, d => { if ('yes' in d) { sysCall('prestige'); sound('buy'); closeSheet(); } });
+}
+// 랭킹: the player's own runs, best first (other players come with the server); raiding is shown, switched off
+function rankHtml() {
+  if (ui.sub.rank === 'raid') return `<div class="tool top">${B('pri grow', ic('lock') + ' 기지 털기', 'disabled')}</div>`;
+  const R = sysCall('records');
+  if (!R) return '';
+  return R.map(r => `<div class="rowline${r.me ? ' me' : ''}"><span><b class="num rank">${r.rank}</b><span>${r.name}</span></span><b class="num">스테이지 ${r.stage.toLocaleString('en')}</b></div>`).join('');
+}
+function codexHtml() {
+  const list = sysCall('weapons'), box = artBox('weapon'), has = (n, k) => list ? list[n * 5 + k].owned : false;
+  return sec('보유', (list ? list.filter(w => w.owned).length : 0) + '/40') + GRADES.map((g, n) => sec(`<span class="gr g${n}">${g}</span>`, [0, 1, 2, 3, 4].filter(k => has(n, k)).length + '/5')
+    + gridOf(box.w + 16, WEAPON_LADDER[n].map((w, k) => `<div class="cell"><span class="slot g${n}" style="height:${box.h + 16}px;aspect-ratio:auto;width:100%">${itemArt('weapon', n * 5 + k, has(n, k))}</span><span>${w}</span></div>`), 5)).join('');
+}
 function pageHtml() {
   const m = ui.open, p = ui.sub[m];
   if (m === 'up') return p === 'cmd' ? cmdHtml() : fireHtml();
@@ -472,8 +609,7 @@ function pageHtml() {
   return '';
 }
 function footHtml() {
-  if (ui.open === 'gear' && ui.sub.gear !== 'relic') return B('sub', '도감', 'data-codex') + B('sub', '일괄 강화', 'disabled') + B('pri grow', '일괄 합성', 'disabled');
-  if (ui.open === 'rank' && ui.sub.rank === 'best') return `<div class="rowline" style="flex:1;border:0;padding:0"><span><b style="width:30px">—</b>${face(G.hero, 32)}<span>나</span></span><b>웨이브 ${G.best}</b></div>`;
+  if (ui.open === 'gear' && ui.sub.gear !== 'relic') { const on = !!sys(); return B('sub', '도감', 'data-codex') + B('sub', '일괄 강화', on ? 'data-enhall' : 'disabled') + B('pri grow', '일괄 합성', on ? 'data-mergeall' : 'disabled'); }
   return '';
 }
 // a menu is rebuilt only when what it shows changed (and not under a finger: a rebuilt button loses the tap)
@@ -520,6 +656,13 @@ nodes.panel.addEventListener('click', e => {
   else if (d.sel) { ui.sel = +d.sel; ui.jobs = false; ui.pick = false; renderPanel(true); }
   else if ('jobs' in d) { ui.jobs = !ui.jobs; renderPanel(true); }
   else if (d.rates) openSheet('확률', () => ratesHtml(d.rates));
+  else if (d.item) { const [kind, i] = d.item.split(':'); itemSheet(kind, +i); }
+  else if (d.relicslot != null) { const k = +d.relicslot, on = (listOf('relic') || []).find(r => r.slot === k); pickSheet('유물', 'relic', on ? on.id : -1, id => sysCall('equipRelic', k, id)); }
+  else if (d.turretslot != null) { const k = +d.turretslot, on = (listOf('turret') || []).find(t => t.slot === k); pickSheet('터렛', 'turret', on ? on.i : -1, i => sysCall('equipTurret', k, i)); }
+  else if (d.worker) { if (sysCall('buyWorker', d.worker)) sound('buy'); }
+  else if (d.product) productSheet(d.product);
+  else if ('rebirth' in d) rebirthConfirm();
+  else if (d.medal) { if (sysCall('buyMedalUp', d.medal)) sound('buy'); }
   else if (d.summon) { const [kind, n] = d.summon.split(':'); summonNow(kind, +n); }
   else if ('pick' in d) { ui.pick = true; renderPanel(true); }
   else if ('unpick' in d) { ui.pick = false; renderPanel(true); }
@@ -577,6 +720,7 @@ function act(id, want = ui.bulk) {
 /* ================= over the picture ================= */
 const resNodes = ['money', 'food', 'mineral'].map(r => [r, document.getElementById('r-' + r), document.getElementById('rr-' + r)]);
 const gemNode = document.getElementById('r-gem'), diaNode = document.getElementById('r-dia');
+const cmdNode = document.getElementById('cmd'), cmdLv = document.getElementById('cmdLv'), cmdBar = document.getElementById('cmdBar');
 function refreshTop() {
   sampleEarn();
   const pm = perMinute();
@@ -589,6 +733,7 @@ function refreshTop() {
     rate.classList.toggle('neg', net < 0 && !full);
   }
   { const c = sysCall('currencies'); setText(gemNode, fmt(c ? c.gems || 0 : 0)); setText(diaNode, fmt(c ? c.diamonds || 0 : 0)); }
+  { const cm = sysCall('commander'); cmdNode.hidden = !cm; if (cm) { setText(cmdLv, 'Lv ' + cm.level); setWidth(cmdBar, cm.need ? cm.xp / cm.need : 0); } }
   setText(nodes.waveBtn, '스테이지 ' + G.wave);
   setWidth(nodes.waveBar, G.waveKills / killsNeeded(G.wave));
   setOff(nodes.wavePrev, G.wave <= 1); setOff(nodes.waveNext, G.wave >= G.best);
@@ -724,7 +869,11 @@ vol.addEventListener('input', () => { settings.volume = vol.value / 100; saveSet
 music.addEventListener('input', () => { settings.music = music.value / 100; saveSettings(); });
 document.getElementById('saverToggle').addEventListener('click', () => { dlg.close(); powerSave(true); });
 document.getElementById('codexBtn').addEventListener('click', () => { dlg.close(); openMenu('codex'); });
-nodes.menuFoot.addEventListener('click', e => { const b = e.target.closest('button'); if (b && !b.disabled && 'codex' in b.dataset) openMenu('codex'); });
+nodes.menuFoot.addEventListener('click', e => {
+  const b = e.target.closest('button');
+  if (!b || b.disabled) return;
+  if ('codex' in b.dataset) openMenu('codex'); else if ('mergeall' in b.dataset) mergeAllNow(); else if ('enhall' in b.dataset) enhanceAllNow();
+});
 let skipSave = false;
 resetBtn.addEventListener('click', () => {
   if (resetBtn.textContent !== '한 번 더 누르면 삭제') { resetBtn.textContent = '한 번 더 누르면 삭제'; return; }

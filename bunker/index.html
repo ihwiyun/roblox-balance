@@ -76,6 +76,10 @@
   .fill { height: 100%; background: #6aa64a; width: 0; }
   #fenceFill { background: #a0784a; }
   .hurt .fill { background: #d0503c; }
+  /* above the bunker's health: the commander's level, its experience as a thin bar along the bottom */
+  #cmd { position: absolute; left: var(--sl); bottom: calc(var(--nav) + 56px); z-index: 3; height: 32px; padding: 0 8px; display: flex; align-items: center; gap: 4px; background: var(--glass); border: 1px solid var(--ink); pointer-events: none; font-size: 14px; font-variant-numeric: tabular-nums; }
+  #cmd[hidden] { display: none; }
+  #cmd .bar { position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: var(--line); } #cmd .bar i { display: block; height: 100%; width: 0; background: var(--ink); }
   /* bottom right: the hero's magazine (a big number, a bar while reloading), the speed button right above it */
   #br { position: absolute; right: var(--sr); bottom: calc(var(--nav) + 8px); display: grid; justify-items: end; gap: 8px; z-index: 3; }
   #speed { width: 48px; height: 32px; padding: 0; border: 1px solid var(--ink); background: var(--glass); font-weight: 700; white-space: nowrap; cursor: pointer; }
@@ -197,6 +201,34 @@
   .chiprow.end { -webkit-mask-image: none; mask-image: none; }
   .gq { font-weight: 700; }
   .sil { filter: brightness(0); opacity: .3; }
+  /* a collection item: its picture in its grade colour, level bottom left, copies toward a merge top right */
+  .icard { width: 100%; aspect-ratio: auto; padding: 0; cursor: pointer; font: inherit; }
+  .icard:active { background: var(--line); }
+  .icard.ring { outline: 2px solid var(--ink); outline-offset: 2px; overflow: visible; }
+  .slot u { position: absolute; right: 3px; top: 1px; text-decoration: none; font-size: 11px; line-height: 14px; font-weight: 700; color: var(--muted); }
+  .slot u.full { color: var(--ink); }
+  .ihero { width: 100%; aspect-ratio: auto; height: 120px; margin-bottom: 8px; }
+  /* a floor's workers: count and +1 with its price */
+  .floorrow { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; } .floorrow .go { flex: 1; margin: 0; }
+  .wbuy { display: inline-flex; align-items: center; gap: 8px; font-weight: 700; }
+  .sec .wbuy { font-size: 13px; color: var(--ink); }
+  /* shop: product cards are the buttons; the price inside only looks like one */
+  .pk2 { width: 100%; display: grid; grid-template-columns: 128px minmax(0, 1fr); gap: 12px; align-items: center; padding: 8px; margin-bottom: 8px; border: 1px solid var(--line); background: var(--paper); text-align: left; font: inherit; color: inherit; cursor: pointer; }
+  .pk2 .bd { display: grid; gap: 4px; } .pk2 .b { margin-top: 4px; width: 100%; }
+  .cv2 { display: grid; justify-items: center; align-content: start; gap: 4px; padding: 8px; border: 1px solid var(--line); background: var(--paper); text-align: center; font: inherit; color: inherit; cursor: pointer; }
+  .cv2 .b { width: 100%; margin-top: 4px; } .cv2 .amt { display: flex; align-items: center; gap: 4px; }
+  .pk2:active, .cv2:active { background: var(--soft); }
+  .b.off { border-color: var(--line); color: #b3afa7; } .b.pri.off { background: var(--line); color: var(--muted); }
+  img.prod { image-rendering: pixelated; display: block; flex: none; }
+  .grid.top { margin-top: 12px; }
+  .phero { display: grid; place-items: center; padding: 8px 0; background: var(--soft); margin-bottom: 8px; }
+  .contents { margin: 0 0 8px; padding: 0 0 0 16px; } .contents li { padding: 2px 0; }
+  /* 환생: the medals now and kept; the upgrades as cells with their price */
+  .rb { display: flex; align-items: center; gap: 16px; padding: 12px; margin: 4px 0; background: var(--soft); } .rb > span { display: grid; gap: 2px; } .rb .num { font-size: 16px; }
+  .cell.up { gap: 4px; padding: 8px 4px; } .cell.up b { font-size: 13px; }
+  .rowline .rank { width: 28px; display: inline-block; } .rowline.me { font-weight: 700; }
+  .rowline > span:first-child { display: flex; align-items: center; gap: 8px; }
+  .tool.top { padding-top: 12px; } .tool .b + .b { margin-left: 8px; }
   img.art { image-rendering: pixelated; display: block; }
   /* summon results: each item in its grade colour, new ones marked with a star, the next merge under it */
   .rgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: 8px; padding: 4px 0 8px; }
@@ -225,7 +257,7 @@
   .rowline { display: flex; justify-content: space-between; align-items: center; gap: 8px; min-height: 32px; padding: 5px 0; border-bottom: 1px solid var(--line); }
   .rowline > span:last-child { display: flex; align-items: center; gap: 6px; }
   .go { width: 100%; display: flex; align-items: center; gap: 8px; margin-bottom: 4px; padding: 6px; border: 1px solid var(--line); background: var(--paper); text-align: left; cursor: pointer; }
-  .go > span { flex: 1; }
+  .go > span { flex: 1; } .go > .ph { flex: none; }
   .mini { min-height: 44px; min-width: 44px; background: var(--paper); border: 1px solid var(--line); padding: 4px 9px; cursor: pointer; font-size: 12px; }
   .mini[aria-pressed="true"] { background: var(--ink); color: #fff; border-color: var(--ink); }
   .mini[disabled] { color: #b3afa7; cursor: default; }
@@ -289,6 +321,7 @@
   <button class="ib" id="settingsBtn" type="button" aria-label="설정" data-ico="gear" data-s="2"></button>
   <div id="side"><button class="ibl" type="button" data-open="rebirth" data-ico="medal" data-s="2">환생</button><button class="ibl" type="button" data-open="rank" data-ico="trophy" data-s="2">랭킹</button></div>
   <div id="notes" aria-live="polite"></div>
+  <div id="cmd" hidden aria-label="지휘관 레벨"><span data-ico="person" data-s="1"></span><b id="cmdLv">Lv 1</b><div class="bar"><i id="cmdBar"></i></div></div>
   <div id="hp">
     <span class="lbl" id="bunkerText">벙커</span><div class="track" id="bunkerTrack"><div class="fill" id="bunkerFill"></div></div>
     <span class="lbl" id="fenceText">울타리 없음</span><div class="track"><div class="fill" id="fenceFill"></div></div>
@@ -355,6 +388,11 @@
 <script src="art/humans.js"></script>
 <script src="art/zombiesA.js"></script>
 <script src="art/zombiesB.js"></script>
+<script src="art/products.js"></script>
+<!-- the collections' pictures (the art agents' files; the screens fall back to stand-ins while one is missing) -->
+<script src="art/weapons.js" onerror="this.remove()"></script>
+<script src="art/turrets.js" onerror="this.remove()"></script>
+<script src="art/relics.js" onerror="this.remove()"></script>
 <!-- the game, one file per job; they share globals and load in this order -->
 <script src="src/config.js"></script>
 <script src="src/buildings.js"></script>
