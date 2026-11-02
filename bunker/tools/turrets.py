@@ -2,23 +2,28 @@
 """Turrets for the bunker game: 32 turrets (8 grades x 4 roles, the order of TURRETS in src/logic/gear.mjs),
 every pixel placed by hand.
 
-Run from this folder:  python3 turrets.py           -> writes ../art/turrets.js (window.ART_TURRETS)
-                       python3 turrets.py --sheet   -> also writes ../samples/turrets/sheet.png (needs Pillow)
-                       python3 turrets.py --check DIR  -> a quick 4-facing check sheet into DIR
+Run from this folder:  python3 turrets.py               -> writes ../art/turrets.js (window.ART_TURRETS)
+                       python3 turrets.py --sheet 2,7   -> also writes ../samples/turrets/sheet.png (needs Pillow):
+                                                           all cards, and every role's four facings for those grades
+                       python3 turrets.py --check DIR   -> a quick sheet of every turret's frames into DIR
 
 How a turret is made
-- A frame is 32x32 game pixels; the anchor (ax, ay) = (16, 28) is the middle of the turret ring's foot, the
-  point that stands on the bunker's mount (SITES.mounts in src/yard.js). A turret is 20-27 px tall.
-- Two parts: the ring (one per grade; it never turns) and the head (one per turret; it turns). The head is drawn
-  by hand looking down-right (se: +x in the world) and looking up-left (nw: -x). Every head is symmetric about
-  the way it looks, so looking down-left (sw: +y) and up-right (ne: -y) are the same pixels mirrored, with the
-  two wall shades swapped so the light still comes from the top left (the game's light: the top bright, the
-  wall facing down-left mid, the wall facing down-right dark).
+- A frame is 48x40 game pixels so the fire frame's flash, flame, frost, arcs and rockets fit; the turret itself is
+  drawn in a 32x32 box placed at (8, 7) and stands 20-27 px tall. The anchor (ax, ay) = (24, 35) is the middle
+  of the turret ring's foot, the point that stands on the bunker's mount (SITES.mounts in src/yard.js).
+- Two parts: the ring (one per grade, with a band in the UI grade colour; it never turns) and the head (one per
+  turret; it turns). The head is drawn by hand looking down-right (se: +x in the world) and looking up-left (nw:
+  -x). Every head is symmetric about the way it looks, so looking down-left (sw: +y) and up-right (ne: -y) are
+  the same pixels mirrored, with the two wall shades swapped so the light still comes from the top left (the
+  game's light: the top bright, the wall facing down-left mid, the wall facing down-right dark).
+- Parts are hand-drawn stamps laid in order (a receiver, barrels, a tank, a coil...); a part may reappear in
+  another turret of the same grade (the experimental coil stands on the experimental cannon's receiver).
 - Colours: every material is one base colour run through the engine's own ramp (rampOf in engine.js), five
   shades from violet shadow to warm light, the same way the bunker is shaded. Outline rgb(30,24,26) as on the
-  survivors and zombies.
+  survivors and zombies. Grade materials match the weapon cards (tools/weapons.py).
 - The fire frame: barrels and tubes kick back along their axis (they never jump sideways) and the muzzle shows
   its flash, flame, frost, arc or blast for that one frame only (no trail).
+- The card (32x32): the idle down-right turret on a floor in its grade colour, centred across the card.
 
 Letters (one palette per turret)
   o outline   K bore black   W glint
