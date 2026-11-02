@@ -3258,6 +3258,834 @@
    ],
    "punch_db": -15.5,
    "preview_gain_db": -4.5
+  },
+  {
+   "id": "sfx_ui_purchase_a",
+   "group": "sfx-ui",
+   "slot": "ui_purchase",
+   "slot_label": "구매",
+   "kind": "sfx",
+   "source": "generated",
+   "member": "ui_purchase",
+   "title": "생성: 동전",
+   "mood": "동전 \"챙\", 두 음과 반짝임.",
+   "star": true,
+   "author": "synth.mjs (이 프로젝트)",
+   "file": "candidates/sfx-ui/sfx_ui_purchase_a.ogg",
+   "bytes": 7724,
+   "seconds": 0.597,
+   "lufs_i": -8.3,
+   "true_peak": -1.0,
+   "lufs_m_max": -7.0,
+   "changes": [
+    "20Hz 이하 제거(직류 성분 제거)",
+    "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -0.3 dB)",
+    "OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 -0.45 dB 조정)"
+   ],
+   "source_files": [],
+   "generated_desc": "Coin \"ka-ching\": two square notes B5 → E6 with a small sparkle",
+   "punch_db": -4.5,
+   "preview_gain_db": -15.5
+  },
+  {
+   "id": "sfx_ui_purchase_b",
+   "group": "sfx-ui",
+   "slot": "ui_purchase",
+   "slot_label": "구매",
+   "kind": "sfx",
+   "source": "rd_rpg",
+   "member": "item_coins_02.ogg",
+   "title": "동전 소리",
+   "mood": "짧은 동전 소리.",
+   "author": "rubberduck",
+   "file": "candidates/sfx-ui/sfx_ui_purchase_b.ogg",
+   "bytes": 9184,
+   "seconds": 0.596,
+   "lufs_i": -25.2,
+   "true_peak": -1.2,
+   "lufs_m_max": -23.7,
+   "changes": [
+    "앞뒤 무음 0.04초 제거",
+    "20Hz 이하 제거(직류 성분 제거)",
+    "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -3.1 dB)",
+    "OGG Vorbis q4로 변환"
+   ],
+   "source_files": [
+    "item_coins_02.ogg"
+   ],
+   "direct_files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/80-CC0-RPG-SFX_0.zip",
+     "name": "80-CC0-RPG-SFX.zip",
+     "sha256": "1c2f06ff4e8563b5b8b745b23cf213c1474142a69bb82bd8f5e10d9b3f7a7bbd",
+     "members": [
+      "item_coins_02.ogg"
+     ]
+    }
+   ],
+   "punch_db": -21.0,
+   "preview_gain_db": 0.0
+  },
+  {
+   "id": "sfx_ui_levelup_a",
+   "group": "sfx-ui",
+   "slot": "ui_levelup",
+   "slot_label": "레벨업",
+   "kind": "sfx",
+   "source": "generated",
+   "member": "ui_levelup",
+   "title": "생성: 상승 아르페지오",
+   "mood": "올라가는 아르페지오와 길게 끄는 높은 음.",
+   "star": true,
+   "author": "synth.mjs (이 프로젝트)",
+   "file": "candidates/sfx-ui/sfx_ui_levelup_a.ogg",
+   "bytes": 15095,
+   "seconds": 1.224,
+   "lufs_i": -16.3,
+   "true_peak": -1.1,
+   "lufs_m_max": -13.1,
+   "changes": [
+    "앞뒤 무음 0.18초 제거",
+    "20Hz 이하 제거(직류 성분 제거)",
+    "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -0.1 dB)",
+    "OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 -0.15 dB 조정)"
+   ],
+   "source_files": [],
+   "generated_desc": "Rising C-major arpeggio with a held top note",
+   "punch_db": -12.9,
+   "preview_gain_db": -7.1
+  },
+  {
+   "id": "sfx_ui_levelup_b",
+   "group": "sfx-ui",
+   "slot": "ui_levelup",
+   "slot_label": "레벨업",
+   "kind": "sfx",
+   "source": "mouse_chimey",
+   "member": "Chime_LevelUp.mp3",
+   "title": "차임 레벨업",
+   "mood": "부드러운 차임.",
+   "author": "MouseBYTE",
+   "file": "candidates/sfx-ui/sfx_ui_levelup_b.ogg",
+   "bytes": 12498,
+   "seconds": 1.616,
+   "lufs_i": -12.4,
+   "true_peak": -1.0,
+   "lufs_m_max": -10.2,
+   "changes": [
+    "앞뒤 무음 0.16초 제거",
+    "20Hz 이하 제거(직류 성분 제거)",
+    "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 +0.5 dB)",
+    "OGG Vorbis q4로 변환"
+   ],
+   "source_files": [
+    "Chime_LevelUp.mp3"
+   ],
+   "direct_files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/mousebyte_chimeyui.7z",
+     "name": "mousebyte_chimeyui.7z",
+     "sha256": "6272bac49c8f3e9aa251a8c9e974a2e7f5756119657d0414197baeb129b0c549",
+     "members": [
+      "Chime_LevelUp.mp3"
+     ]
+    }
+   ],
+   "punch_db": -8.7,
+   "preview_gain_db": -11.3
+  },
+  {
+   "id": "sfx_ui_clear_a",
+   "group": "sfx-ui",
+   "slot": "ui_clear",
+   "slot_label": "스테이지 클리어",
+   "kind": "sfx",
+   "source": "generated",
+   "member": "ui_stage_clear",
+   "title": "생성: 클리어 징글",
+   "mood": "상승 음 뒤 C장조 화음, 가벼운 드럼.",
+   "star": true,
+   "author": "synth.mjs (이 프로젝트)",
+   "file": "candidates/sfx-ui/sfx_ui_clear_a.ogg",
+   "bytes": 20661,
+   "seconds": 1.6,
+   "lufs_i": -16.6,
+   "true_peak": -1.2,
+   "lufs_m_max": -14.7,
+   "changes": [
+    "앞뒤 무음 0.19초 제거",
+    "20Hz 이하 제거(직류 성분 제거)",
+    "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -0.1 dB)",
+    "OGG Vorbis q4로 변환"
+   ],
+   "source_files": [],
+   "generated_desc": "Short clear jingle: G-C-E-G run into a C-major chord with a light drum hit",
+   "punch_db": -11.5,
+   "preview_gain_db": -8.5
+  },
+  {
+   "id": "sfx_ui_clear_b",
+   "group": "sfx-ui",
+   "slot": "ui_clear",
+   "slot_label": "스테이지 클리어",
+   "kind": "sfx",
+   "source": "joth_ui",
+   "member": "Level Up.mp3",
+   "title": "레벨업 징글",
+   "mood": "상승 아르페지오와 반짝임(앞 3.2초).",
+   "segment": [
+    0,
+    3.2
+   ],
+   "fade_out": 0.6,
+   "author": "Joth",
+   "file": "candidates/sfx-ui/sfx_ui_clear_b.ogg",
+   "bytes": 31872,
+   "seconds": 3.18,
+   "lufs_i": -18.2,
+   "true_peak": -1.1,
+   "lufs_m_max": -13.1,
+   "changes": [
+    "원본 0.00–3.20초 구간만 사용",
+    "앞뒤 무음 0.02초 제거",
+    "20Hz 이하 제거(직류 성분 제거)",
+    "0.6초 페이드아웃",
+    "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -2.4 dB)",
+    "OGG Vorbis q4로 변환"
+   ],
+   "source_files": [
+    "Level Up.mp3"
+   ],
+   "direct_files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/UISoundEffects.zip",
+     "name": "UISoundEffects.zip",
+     "sha256": "a04c6ea7d7b378949733365410b5141ca7fcfc4ee270be322773d8d69911012d",
+     "members": [
+      "Level Up.mp3"
+     ]
+    }
+   ],
+   "punch_db": -10.2,
+   "preview_gain_db": -9.8
+  },
+  {
+   "id": "sfx_ui_warning_a",
+   "group": "sfx-ui",
+   "slot": "ui_warning",
+   "slot_label": "경고",
+   "kind": "sfx",
+   "source": "generated",
+   "member": "ui_warning",
+   "title": "생성: 경보",
+   "mood": "두 음 경보를 두 번.",
+   "star": true,
+   "author": "synth.mjs (이 프로젝트)",
+   "file": "candidates/sfx-ui/sfx_ui_warning_a.ogg",
+   "bytes": 9864,
+   "seconds": 0.697,
+   "lufs_i": -2.9,
+   "true_peak": -1.1,
+   "lufs_m_max": -2.9,
+   "changes": [
+    "20Hz 이하 제거(직류 성분 제거)",
+    "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 +0.0 dB)",
+    "OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 -0.70 dB 조정)"
+   ],
+   "source_files": [],
+   "generated_desc": "Two-tone alarm pulse (880/660 Hz) played twice",
+   "punch_db": -2.2,
+   "preview_gain_db": -17.8
+  },
+  {
+   "id": "sfx_ui_warning_b",
+   "group": "sfx-ui",
+   "slot": "ui_warning",
+   "slot_label": "경고",
+   "kind": "sfx",
+   "source": "yd_short_alarm",
+   "member": "alarm.ogg",
+   "title": "짧은 경보",
+   "mood": "네 번 울리는 삐 소리.",
+   "author": "yd",
+   "file": "candidates/sfx-ui/sfx_ui_warning_b.ogg",
+   "bytes": 14282,
+   "seconds": 1.456,
+   "lufs_i": -11.8,
+   "true_peak": -1.0,
+   "lufs_m_max": -9.4,
+   "changes": [
+    "앞뒤 무음 0.25초 제거",
+    "20Hz 이하 제거(직류 성분 제거)",
+    "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -1.9 dB)",
+    "OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 -0.15 dB 조정)"
+   ],
+   "source_files": [
+    "alarm.ogg"
+   ],
+   "direct_files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/alarm_0.ogg",
+     "name": "alarm.ogg",
+     "sha256": "dc76a67748c9cef0b91913fafbe47cf8ee4499c4f813dbe12e028d2806f1eab8",
+     "members": []
+    }
+   ],
+   "punch_db": -6.3,
+   "preview_gain_db": -13.7
+  },
+  {
+   "id": "sfx_ui_notify_a",
+   "group": "sfx-ui",
+   "slot": "ui_notify",
+   "slot_label": "알림",
+   "kind": "sfx",
+   "source": "generated",
+   "member": "ui_notify",
+   "title": "생성: 차임",
+   "mood": "두 음의 부드러운 종소리.",
+   "star": true,
+   "author": "synth.mjs (이 프로젝트)",
+   "file": "candidates/sfx-ui/sfx_ui_notify_a.ogg",
+   "bytes": 10702,
+   "seconds": 1.217,
+   "lufs_i": -14.0,
+   "true_peak": -1.0,
+   "lufs_m_max": -10.2,
+   "changes": [
+    "앞뒤 무음 0.16초 제거",
+    "20Hz 이하 제거(직류 성분 제거)",
+    "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -0.1 dB)",
+    "OGG Vorbis q4로 변환"
+   ],
+   "source_files": [],
+   "generated_desc": "Soft two-note bell chime (E6 → B6)",
+   "punch_db": -10.4,
+   "preview_gain_db": -9.6
+  },
+  {
+   "id": "sfx_ui_notify_b",
+   "group": "sfx-ui",
+   "slot": "ui_notify",
+   "slot_label": "알림",
+   "kind": "sfx",
+   "source": "robin_ui",
+   "member": "ui_wav/Ding.wav",
+   "title": "딩",
+   "mood": "맑은 한 음, 악기 샘플.",
+   "author": "Robin Lamb",
+   "file": "candidates/sfx-ui/sfx_ui_notify_b.ogg",
+   "bytes": 7661,
+   "seconds": 0.648,
+   "lufs_i": -22.3,
+   "true_peak": -1.0,
+   "lufs_m_max": -19.4,
+   "changes": [
+    "앞뒤 무음 0.35초 제거",
+    "20Hz 이하 제거(직류 성분 제거)",
+    "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -0.9 dB)",
+    "OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 -0.45 dB 조정)"
+   ],
+   "source_files": [
+    "ui_wav/Ding.wav"
+   ],
+   "direct_files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/ui_wav.zip",
+     "name": "ui_wav.zip",
+     "sha256": "8e4e23dd4ec501776dab1428c5f1e405b5065e296518feb04816f2892d163053",
+     "members": [
+      "ui_wav/Ding.wav"
+     ]
+    }
+   ],
+   "punch_db": -16.9,
+   "preview_gain_db": -3.1
+  },
+  {
+   "id": "sfx_gacha_roll_a",
+   "group": "sfx-gacha",
+   "slot": "gacha_roll",
+   "slot_label": "굴림",
+   "kind": "sfx",
+   "source": "generated",
+   "member": "gacha_roll",
+   "title": "생성: 굴림",
+   "mood": "점점 빨라지는 딸깍과 북소리, 마지막에 상승.",
+   "star": true,
+   "author": "synth.mjs (이 프로젝트)",
+   "file": "candidates/sfx-gacha/sfx_gacha_roll_a.ogg",
+   "bytes": 20875,
+   "seconds": 1.71,
+   "lufs_i": -15.4,
+   "true_peak": -1.1,
+   "lufs_m_max": -11.7,
+   "changes": [
+    "20Hz 이하 제거(직류 성분 제거)",
+    "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 +0.0 dB)",
+    "OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 -0.45 dB 조정)"
+   ],
+   "source_files": [],
+   "generated_desc": "Gacha roll: ticking wheel that speeds up over a rising drum roll, ends on an upbeat (reveal follows)",
+   "punch_db": -13.3,
+   "preview_gain_db": -6.7
+  },
+  {
+   "id": "sfx_gacha_roll_b",
+   "group": "sfx-gacha",
+   "slot": "gacha_roll",
+   "slot_label": "굴림",
+   "kind": "sfx",
+   "source": "bart_workshop",
+   "member": "workshop/workshop - ratchet2.wav",
+   "title": "래칫 돌리기",
+   "mood": "공구 래칫 소리, 캡슐 기계 느낌(앞 1.9초).",
+   "segment": [
+    0,
+    1.9
+   ],
+   "fade_out": 0.2,
+   "author": "bart",
+   "file": "candidates/sfx-gacha/sfx_gacha_roll_b.ogg",
+   "bytes": 23159,
+   "seconds": 1.824,
+   "lufs_i": -17.6,
+   "true_peak": -1.4,
+   "lufs_m_max": -16.0,
+   "changes": [
+    "원본 0.00–1.90초 구간만 사용",
+    "앞뒤 무음 0.08초 제거",
+    "20Hz 이하 제거(직류 성분 제거)",
+    "0.2초 페이드아웃",
+    "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 +8.3 dB)",
+    "OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 +0.15 dB 조정)"
+   ],
+   "source_files": [
+    "workshop/workshop - ratchet2.wav"
+   ],
+   "direct_files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/workshop.7z",
+     "name": "workshop.7z",
+     "sha256": "79d7801041b5fbc8e181d9aaaa8dafb94b68bb51f325017e82fb37448e2fb1d3",
+     "members": [
+      "workshop/workshop - ratchet2.wav"
+     ]
+    }
+   ],
+   "punch_db": -14.6,
+   "preview_gain_db": -5.4
+  },
+  {
+   "id": "sfx_reveal_1",
+   "group": "sfx-gacha",
+   "slot": "reveal_1",
+   "slot_label": "1. 일반",
+   "kind": "sfx",
+   "source": "generated",
+   "member": "reveal_1_common",
+   "title": "생성: 일반",
+   "mood": "중립적인 작은 \"퐁\".",
+   "star": true,
+   "author": "synth.mjs (이 프로젝트)",
+   "file": "candidates/sfx-gacha/sfx_reveal_1.ogg",
+   "bytes": 5403,
+   "seconds": 0.166,
+   "lufs_i": -70.0,
+   "true_peak": -1.1,
+   "lufs_m_max": -120.7,
+   "changes": [
+    "20Hz 이하 제거(직류 성분 제거)",
+    "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -0.2 dB)",
+    "OGG Vorbis q4로 변환"
+   ],
+   "source_files": [],
+   "generated_desc": "일반: neutral soft pop (triangle glide)",
+   "punch_db": -11.6,
+   "preview_gain_db": -8.4
+  },
+  {
+   "id": "sfx_reveal_2",
+   "group": "sfx-gacha",
+   "slot": "reveal_2",
+   "slot_label": "2. 고급",
+   "kind": "sfx",
+   "source": "generated",
+   "member": "reveal_2_uncommon",
+   "title": "생성: 고급",
+   "mood": "밝은 두 음이 올라감.",
+   "star": true,
+   "author": "synth.mjs (이 프로젝트)",
+   "file": "candidates/sfx-gacha/sfx_reveal_2.ogg",
+   "bytes": 10267,
+   "seconds": 0.747,
+   "lufs_i": -14.1,
+   "true_peak": -1.0,
+   "lufs_m_max": -11.4,
+   "changes": [
+    "20Hz 이하 제거(직류 성분 제거)",
+    "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 +0.0 dB)",
+    "OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 -0.15 dB 조정)"
+   ],
+   "source_files": [],
+   "generated_desc": "고급: bright two-note step up (E5 → A5)",
+   "punch_db": -8.9,
+   "preview_gain_db": -11.1
+  },
+  {
+   "id": "sfx_reveal_3",
+   "group": "sfx-gacha",
+   "slot": "reveal_3",
+   "slot_label": "3. 희귀",
+   "kind": "sfx",
+   "source": "generated",
+   "member": "reveal_3_rare",
+   "title": "생성: 희귀",
+   "mood": "아르페지오와 반짝임 몇 개.",
+   "star": true,
+   "author": "synth.mjs (이 프로젝트)",
+   "file": "candidates/sfx-gacha/sfx_reveal_3.ogg",
+   "bytes": 14309,
+   "seconds": 1.344,
+   "lufs_i": -10.6,
+   "true_peak": -1.0,
+   "lufs_m_max": -7.4,
+   "changes": [
+    "20Hz 이하 제거(직류 성분 제거)",
+    "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 +0.0 dB)",
+    "OGG Vorbis q4로 변환"
+   ],
+   "source_files": [],
+   "generated_desc": "희귀: C-major arpeggio with a few sparkles",
+   "punch_db": -6.7,
+   "preview_gain_db": -13.3
+  },
+  {
+   "id": "sfx_reveal_4",
+   "group": "sfx-gacha",
+   "slot": "reveal_4",
+   "slot_label": "4. 영웅",
+   "kind": "sfx",
+   "source": "generated",
+   "member": "reveal_4_epic",
+   "title": "생성: 영웅",
+   "mood": "휙 하는 소리 뒤 D장조 아르페지오와 화음.",
+   "star": true,
+   "author": "synth.mjs (이 프로젝트)",
+   "file": "candidates/sfx-gacha/sfx_reveal_4.ogg",
+   "bytes": 20688,
+   "seconds": 1.805,
+   "lufs_i": -13.5,
+   "true_peak": -1.1,
+   "lufs_m_max": -10.9,
+   "changes": [
+    "앞뒤 무음 0.11초 제거",
+    "20Hz 이하 제거(직류 성분 제거)",
+    "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -0.9 dB)",
+    "OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 +0.30 dB 조정)"
+   ],
+   "source_files": [],
+   "generated_desc": "영웅: whoosh, D-major run to a held chord with sparkles",
+   "punch_db": -12.1,
+   "preview_gain_db": -7.9
+  },
+  {
+   "id": "sfx_reveal_5",
+   "group": "sfx-gacha",
+   "slot": "reveal_5",
+   "slot_label": "5. 전설",
+   "kind": "sfx",
+   "source": "generated",
+   "member": "reveal_5_legendary",
+   "title": "생성: 전설",
+   "mood": "상승음, 충격, 금관 화음, 반짝이는 소리.",
+   "star": true,
+   "author": "synth.mjs (이 프로젝트)",
+   "file": "candidates/sfx-gacha/sfx_reveal_5.ogg",
+   "bytes": 20512,
+   "seconds": 1.937,
+   "lufs_i": -17.2,
+   "true_peak": -1.1,
+   "lufs_m_max": -13.9,
+   "changes": [
+    "앞뒤 무음 0.27초 제거",
+    "20Hz 이하 제거(직류 성분 제거)",
+    "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -0.7 dB)",
+    "OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 +0.30 dB 조정)"
+   ],
+   "source_files": [],
+   "generated_desc": "전설: riser, impact, brass E-major chord, sparkle run",
+   "punch_db": -9.7,
+   "preview_gain_db": -10.3
+  },
+  {
+   "id": "sfx_reveal_6",
+   "group": "sfx-gacha",
+   "slot": "reveal_6",
+   "slot_label": "6. 불멸",
+   "kind": "sfx",
+   "source": "generated",
+   "member": "reveal_6_immortal",
+   "title": "생성: 불멸",
+   "mood": "이중 충격, 저음과 큰 화음, 합창 패드.",
+   "star": true,
+   "author": "synth.mjs (이 프로젝트)",
+   "file": "candidates/sfx-gacha/sfx_reveal_6.ogg",
+   "bytes": 27948,
+   "seconds": 2.767,
+   "lufs_i": -18.8,
+   "true_peak": -1.1,
+   "lufs_m_max": -15.1,
+   "changes": [
+    "앞뒤 무음 0.21초 제거",
+    "20Hz 이하 제거(직류 성분 제거)",
+    "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 +0.1 dB)",
+    "OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 -0.15 dB 조정)"
+   ],
+   "source_files": [],
+   "generated_desc": "불멸: double impact, low octave and big F#-major chord with choir pad",
+   "punch_db": -10.6,
+   "preview_gain_db": -9.4
+  },
+  {
+   "id": "sfx_reveal_7",
+   "group": "sfx-gacha",
+   "slot": "reveal_7",
+   "slot_label": "7. 신화",
+   "kind": "sfx",
+   "source": "generated",
+   "member": "reveal_7_mythic",
+   "title": "생성: 신화",
+   "mood": "긴 상승음, 충격, 종소리 폭포, 금관 화음.",
+   "star": true,
+   "author": "synth.mjs (이 프로젝트)",
+   "file": "candidates/sfx-gacha/sfx_reveal_7.ogg",
+   "bytes": 33541,
+   "seconds": 3.193,
+   "lufs_i": -15.1,
+   "true_peak": -1.2,
+   "lufs_m_max": -12.4,
+   "changes": [
+    "앞뒤 무음 0.26초 제거",
+    "20Hz 이하 제거(직류 성분 제거)",
+    "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -0.4 dB)",
+    "OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 +0.30 dB 조정)"
+   ],
+   "source_files": [],
+   "generated_desc": "신화: long riser, impact, golden bell cascade over two octaves, brass A-major chord",
+   "punch_db": -9.0,
+   "preview_gain_db": -11.0
+  },
+  {
+   "id": "sfx_reveal_8",
+   "group": "sfx-gacha",
+   "slot": "reveal_8",
+   "slot_label": "8. 영원",
+   "kind": "sfx",
+   "source": "generated",
+   "member": "reveal_8_eternal",
+   "title": "생성: 영원",
+   "mood": "가장 긴 상승, 거대한 충격, 무지개 음계, 합창과 종.",
+   "star": true,
+   "author": "synth.mjs (이 프로젝트)",
+   "file": "candidates/sfx-gacha/sfx_reveal_8.ogg",
+   "bytes": 44530,
+   "seconds": 4.129,
+   "lufs_i": -16.6,
+   "true_peak": -1.2,
+   "lufs_m_max": -12.4,
+   "changes": [
+    "앞뒤 무음 0.21초 제거",
+    "20Hz 이하 제거(직류 성분 제거)",
+    "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -0.5 dB)",
+    "OGG Vorbis q4로 변환"
+   ],
+   "source_files": [],
+   "generated_desc": "영원: longest riser with accelerating ticks, huge impact, three-octave rainbow run, full chord, choir and bells",
+   "punch_db": -9.4,
+   "preview_gain_db": -10.6
+  },
+  {
+   "id": "sfx_relic_a",
+   "group": "sfx-misc",
+   "slot": "relic",
+   "slot_label": "유물 획득",
+   "kind": "sfx",
+   "source": "generated",
+   "member": "relic_pickup",
+   "title": "생성: 마법 습득",
+   "mood": "오음계 종소리가 빠르게 올라가고 부드러운 패드.",
+   "star": true,
+   "author": "synth.mjs (이 프로젝트)",
+   "file": "candidates/sfx-misc/sfx_relic_a.ogg",
+   "bytes": 16421,
+   "seconds": 1.442,
+   "lufs_i": -13.7,
+   "true_peak": -1.0,
+   "lufs_m_max": -11.0,
+   "changes": [
+    "앞뒤 무음 0.11초 제거",
+    "20Hz 이하 제거(직류 성분 제거)",
+    "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -0.1 dB)",
+    "OGG Vorbis q4로 변환"
+   ],
+   "source_files": [],
+   "generated_desc": "Magic pickup: fast pentatonic bell run upward with a soft pad",
+   "punch_db": -11.4,
+   "preview_gain_db": -8.6
+  },
+  {
+   "id": "sfx_relic_b",
+   "group": "sfx-misc",
+   "slot": "relic",
+   "slot_label": "유물 획득",
+   "kind": "sfx",
+   "source": "bobjt_gem",
+   "member": "gem-gather-stereo-reverb.wav",
+   "title": "보석 획득",
+   "mood": "반짝이는 소리에 잔향을 더한 것(희귀 아이템용).",
+   "author": "Bobjt",
+   "file": "candidates/sfx-misc/sfx_relic_b.ogg",
+   "bytes": 13033,
+   "seconds": 1.003,
+   "lufs_i": -24.9,
+   "true_peak": -1.0,
+   "lufs_m_max": -22.0,
+   "changes": [
+    "앞뒤 무음 0.50초 제거",
+    "20Hz 이하 제거(직류 성분 제거)",
+    "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 +10.5 dB)",
+    "OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 -0.70 dB 조정)"
+   ],
+   "source_files": [
+    "gem-gather-stereo-reverb.wav"
+   ],
+   "direct_files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/gem-gather-stereo-reverb.wav",
+     "name": "gem-gather-stereo-reverb.wav",
+     "sha256": "2d44fbb79f0839b8450e570a076154822b53ab31987ed2e8590d42792eb0a4d3",
+     "members": []
+    }
+   ],
+   "punch_db": -19.4,
+   "preview_gain_db": -0.6
+  },
+  {
+   "id": "sfx_raid_a",
+   "group": "sfx-misc",
+   "slot": "raid",
+   "slot_label": "습격 시작",
+   "kind": "sfx",
+   "source": "generated",
+   "member": "raid_start",
+   "title": "생성: 전쟁 나팔",
+   "mood": "낮은 뿔피리와 북 두 번, 상승하는 경보.",
+   "star": true,
+   "author": "synth.mjs (이 프로젝트)",
+   "file": "candidates/sfx-misc/sfx_raid_a.ogg",
+   "bytes": 24221,
+   "seconds": 2.354,
+   "lufs_i": -16.3,
+   "true_peak": -1.1,
+   "lufs_m_max": -13.5,
+   "changes": [
+    "앞뒤 무음 0.23초 제거",
+    "20Hz 이하 제거(직류 성분 제거)",
+    "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 +0.2 dB)",
+    "OGG Vorbis q4로 변환"
+   ],
+   "source_files": [],
+   "generated_desc": "Raid start: low war-horn glide over two drum hits and a rising alarm sweep",
+   "punch_db": -7.6,
+   "preview_gain_db": -12.4
+  },
+  {
+   "id": "sfx_raid_b",
+   "group": "sfx-misc",
+   "slot": "raid",
+   "slot_label": "습격 시작",
+   "kind": "sfx",
+   "source": "stumpy_horn",
+   "member": "theircoming3.ogg",
+   "title": "낮은 뿔피리",
+   "mood": "영화 예고편 같은 낮은 뿔피리(끝의 잡음 제거).",
+   "segment": [
+    0,
+    4.95
+   ],
+   "fade_out": 0.5,
+   "author": "StumpyStrust",
+   "file": "candidates/sfx-misc/sfx_raid_b.ogg",
+   "bytes": 41727,
+   "seconds": 4.95,
+   "lufs_i": -13.2,
+   "true_peak": -1.2,
+   "lufs_m_max": -10.5,
+   "changes": [
+    "원본 0.00–4.95초 구간만 사용",
+    "20Hz 이하 제거(직류 성분 제거)",
+    "0.5초 페이드아웃",
+    "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 +1.3 dB)",
+    "OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 -0.45 dB 조정)"
+   ],
+   "source_files": [
+    "theircoming3.ogg"
+   ],
+   "direct_files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/theircoming3_0.ogg",
+     "name": "theircoming3.ogg",
+     "sha256": "4f2e3500b4f06470727012e36709931d3edfc186d78999cee59674a521d06538",
+     "members": []
+    }
+   ],
+   "punch_db": -6.8,
+   "preview_gain_db": -13.2
+  },
+  {
+   "id": "sfx_raid_c",
+   "group": "sfx-misc",
+   "slot": "raid",
+   "slot_label": "습격 시작",
+   "kind": "sfx",
+   "source": "aquinn_sirens",
+   "member": "siren.mp3",
+   "title": "사이렌",
+   "mood": "사이렌 한 바퀴(앞 2.6초).",
+   "segment": [
+    0,
+    2.6
+   ],
+   "fade_out": 0.4,
+   "author": "aquinn",
+   "file": "candidates/sfx-misc/sfx_raid_c.ogg",
+   "bytes": 21578,
+   "seconds": 2.464,
+   "lufs_i": -9.4,
+   "true_peak": -1.0,
+   "lufs_m_max": -8.9,
+   "changes": [
+    "원본 0.00–2.60초 구간만 사용",
+    "앞뒤 무음 0.14초 제거",
+    "20Hz 이하 제거(직류 성분 제거)",
+    "0.4초 페이드아웃",
+    "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 +3.3 dB)",
+    "OGG Vorbis q4로 변환"
+   ],
+   "source_files": [
+    "siren.mp3"
+   ],
+   "direct_files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/siren_0.mp3",
+     "name": "siren.mp3",
+     "sha256": "fabe96ad2116d310b38acc143780e1c47c3cb27227deda13f84ce8e3cfb2248b",
+     "members": []
+    }
+   ],
+   "punch_db": -9.0,
+   "preview_gain_db": -11.0
   }
  ]
 }

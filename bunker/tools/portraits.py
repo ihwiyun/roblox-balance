@@ -117,6 +117,7 @@ def full_pal(key):
         'j': [v * .7 for v in p['H']],        # hair in the clefts between clumps
         'i': mix(p['h'], p['F'], .2),         # hair catching the light
         'e': p['F'],                          # the light in the eyes
+        'n': mix(p['H'], p['s'], .45),        # skin showing through stubble at a hairline
     })
     p.update(GUN)
     return {k: [min(255, int(v)) for v in c] for k, c in p.items()}

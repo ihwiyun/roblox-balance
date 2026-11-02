@@ -1500,24 +1500,47 @@ function mineRubble(fz, keep) {
     for (let j = 0; j < 9; j++) { const a = hash(j, k) * 6.28, d = hash(k, j) * .42, x = cx + Math.cos(a) * d, y = cy + Math.sin(a) * d * .8, r = .12 + hash(j + k, 3) * .13; fbox(x - r, y - r * .8, fz + .1, x + r, y + r * .8, fz + .1 + r * (1.6 - d * 1.5), hash(j, k * 3) > .75 ? ORE_B : [136 - j * 3, 130 - j * 3, 122 - j * 2], 1050 + j + k * 9); }
   }
 }
-// a wheelbarrow (pointing +x, the wheel in front), heaped with ore or empty
+// a wheelbarrow about a person's size, pointing +x: a deep red pan with a sloped front, the wheel under its nose, two
+// handles back to the grips with a leg under each, heaped with ore (or empty)
 function barrow(x, y, fz, ore, seed, g) {
-  const tray = mat(RUST, g);
-  for (const s of [-1, 1]) { fbox(x - .9, y + s * .19 - .025, fz + .34, x - .2, y + s * .19 + .025, fz + .39, WOOD, seed); fbox(x - .3, y + s * .17 - .025, fz, x - .25, y + s * .17 + .025, fz + .34, WOOD_D, seed + 1); }
-  fbox(x - .34, y - .23, fz + .22, x + .28, y + .23, fz + .5, tray, seed + 2);
-  onY(y + .23, x - .34, x + .28, fz + .22, fz + .5, (xx, z) => Math.abs(z - fz - .47) < .025 ? shade(rgb(...tray), 1.25) : xx < x - .3 + (z - fz - .22) * .3 ? rgb(60, 40, 32) : 0);
-  onZ(fz + .5, x - .3, y - .19, x + .24, y + .19, rgb(52, 34, 28));
-  onY(y + .02, x + .2, x + .46, fz, fz + .26, (xx, z) => { const r = Math.hypot(xx - x - .33, z - fz - .13); return r < .13 ? (r > .085 ? rgb(40, 40, 44) : r < .03 ? rgb(170, 170, 176) : rgb(120, 96, 66)) : 0; });
-  if (ore) for (let k = 0; k < 6; k++) oreChunk(x - .2 + (k % 3) * .17, y - .1 + (k > 2) * .18, fz + .48 + (k === 1 ? .06 : 0), .07, seed + 5 + k);
-  footShadow(x - .4, y - .23, x + .4, y + .23, .5);
+  const tray = mat([190, 84, 50], g), dk = shade(rgb(...tray), .55);
+  for (const s of [-1, 1]) {
+    const yy = y + s * .27;
+    fbox(x - 1.35, yy - .05, fz + .55, x - .2, yy + .05, fz + .66, [178, 136, 88], seed, .6);
+    fbox(x - 1.4, yy - .06, fz + .54, x - 1.12, yy + .06, fz + .67, [52, 46, 42], seed + 1);
+    fbox(x - .56, yy - .05, fz, x - .46, yy + .05, fz + .55, [150, 112, 72], seed + 2);
+    brace([x + .3, y + s * .12, fz + .45], [x + .68, y + s * .12, fz + .28], rgb(70, 70, 76), [0, 0, .03]);
+  }
+  // the pan: three courses stepping forward, so its front slopes out like a real one; dark inside under the lip
+  sbox(x - .45, y - .36, fz + .38, x + .3, y + .36, fz + .52, tray, seed + 3);
+  sbox(x - .47, y - .37, fz + .52, x + .42, y + .37, fz + .66, tray, seed + 4);
+  sbox(x - .49, y - .38, fz + .66, x + .54, y + .38, fz + .78, tray, seed + 5);
+  fbox(x - .51, y - .4, fz + .78, x + .56, y + .4, fz + .82, tray.map(v => Math.min(255, v * 1.2 + 12)), seed + 6, .3);
+  onZ(fz + .82, x - .45, y - .34, x + .5, y + .34, dk);
+  onY(y + .38, x - .49, x + .54, fz + .66, fz + .78, (xx) => Math.abs(xx - x - .02) < .03 ? dk : 0);
+  // the wheel: tyre, rim, hub, seen from the side
+  onY(y + .13, x + .38, x + .98, fz, fz + .58, (xx, z) => {
+    const r = Math.hypot(xx - x - .68, (z - fz - .28) * 1.0);
+    if (r > .28) return 0;
+    if (r > .2) return rgb(38, 38, 42);
+    if (r > .16) return rgb(150, 154, 160);
+    if (r < .05) return rgb(210, 214, 220);
+    return ((Math.atan2(z - fz - .28, xx - x - .68) * 4 / Math.PI + 9) % 1) < .3 ? rgb(150, 154, 160) : rgb(70, 70, 76);
+  });
+  if (ore) for (let k = 0; k < 13; k++) { const r = k < 7 ? 0 : k < 11 ? 1 : 2, a = (k + r * .5) * 2.4; oreChunk(x + .02 + Math.cos(a) * (.34 - r * .14), y + Math.sin(a) * (.24 - r * .1), fz + .8 + r * .11, .11 - r * .01, seed + 9 + k); }
+  footShadow(x - .5, y - .38, x + .55, y + .38, .8);
 }
-// breakthrough: wheelbarrows, and a runway of planks along the front where the rails will be laid
+// breakthrough: wheelbarrows; a short boardwalk into the ore store, one barrow on it heaped with ore, another by the
+// rubble at the bays
 function barrows(fz, g) {
   mineRubble(fz, [1, 2, 3]);
-  const [b0, b1] = railB(), y0 = yb(b0) - .05, y1 = yb(b1) + .05, xa = XA(.9), xb = XA(RL() - STORE + .2);
-  for (const [ya, yz] of [[y0, y0 + .16], [y1 - .16, y1]]) { fbox(xa, ya, fz, xb, yz, fz + .04, PLANKS, 1130, 1.6); onZ(fz + .04, xa, ya, xb, yz, x => ((x - xa) % 1.4) < .03 ? R_WOOD[1] : 0); }
-  barrow(XA(RL() - STORE - 1.3), (y0 + y1) / 2, fz + .04, true, 1131, g);
-  barrow(XA(2.6), yb(RL() * .5) + .75, fz, false, 1140, g);
+  const st = RL() - STORE, [b0, b1] = railB(), y0 = yb(b0) - .2, y1 = yb(b1) + .2;
+  for (let k = 0, x = XA(st - 2.9); x < XA(st - .05); x += .27, k++) {
+    fbox(x, y0 + hash(k, 7) * .06, fz, x + .22, y1 - hash(7, k) * .06, fz + .05, k & 1 ? PLANKS : [162, 124, 84], 1130 + k, 1.4);
+    onZ(fz + .05, x, y0, x + .22, y1, (xx, yy) => Math.abs(yy - y0 - .12) < .02 || Math.abs(yy - y1 + .12) < .02 ? rgb(70, 60, 54) : 0);
+  }
+  barrow(XA(st - 1.25), (y0 + y1) / 2, fz + .05, true, 1140, g);
+  barrow(XA(3.4), yb(RL() * .5) + 1.05, fz, false, 1160, g);
 }
 // the rails: sleepers and two steel rails along the front edge
 function rails(fz, x0, x1, sleeper = WOOD_D) {
