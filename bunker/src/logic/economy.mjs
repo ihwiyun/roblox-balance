@@ -47,7 +47,13 @@ export function assignCrew(st) {
 }
 // the best weapons in the shooters' hands, the best turrets in the slots, the strongest relics in the relic slots
 export function equipBest(st) {
-  st.equipW = bestOwned(st.weapons, shooterSlots(st.bunker));
+  // the best guns go to the strongest shooters (equipW[j] is held by crew.assign.roof[j]). The hero has no crew-level
+  // multiplier, so handing it the best weapon (the old order) left weapons and the packages that sell them nearly idle
+  const roof = st.crew.assign.roof.slice(0, shooterSlots(st.bunker)), best = bestOwned(st.weapons, roof.length);
+  const strength = id => (id === 'me' ? 1 : 1 + T.crew.gunnerPerLevel * st.crew.cards[id].level) * (id === st.crew.leader ? 1 + T.crew.leaderPct : 1);
+  const order = roof.map((id, j) => j).sort((a, b) => strength(roof[b]) - strength(roof[a]));
+  st.equipW = new Array(roof.length).fill(-1);
+  order.forEach((j, k) => { st.equipW[j] = best[k] ?? -1; });
   st.equipT = bestOwned(st.turrets, turretSlots(st.bunker));
   const n = relicSlots(st.record), score = id => (RELICS[id].grade + 1) * (4 + st.relics.level[id]);
   st.relics.equipped = RELICS.map(r => r.id).filter(id => st.relics.level[id] > 0).sort((a, b) => score(b) - score(a)).slice(0, n);

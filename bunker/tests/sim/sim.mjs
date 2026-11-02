@@ -110,7 +110,7 @@ export function run(opts = {}) {
   const snapshot = () => {
     const S = L.stats(st), axes = { ...S.axes, relics: relicAxis() };
     return { active: st.active / 3600, days: st.t / DAY, evacs: st.evacs, medals: st.medalsLife, axes, dps: S.dps, cmd: st.cmd.level,
-      ws: { ...st.ws }, bunker: st.bunker, fence: st.fence, bestW: st.equipW[0] ?? 0, sec: JSON.parse(JSON.stringify(st.sec)), gems: st.gems };
+      ws: { ...st.ws }, bunker: st.bunker, fence: st.fence, bestW: Math.max(0, ...st.equipW), sec: JSON.parse(JSON.stringify(st.sec)), gems: st.gems };
   };
   st.ev = (type, data) => {
     if (type === 'clear') {
@@ -184,6 +184,30 @@ export function run(opts = {}) {
       if (kind === 'recruit') L.assignCrew(st);
       bought();
     }
+  }
+
+  /* ---- relics: a person reads the effects and equips what helps the fight (greedy by measured power) ---- */
+  let relicSig = '', relicPick = [];
+  function pickRelics() {
+    const n = L.relicSlots(st.record), sig = n + ':' + st.relics.level.join(',') + ':' + st.equipW.join(',') + ':' + st.equipT.join(',');
+    if (sig !== relicSig) {
+      relicSig = sig;
+      const owned = [];
+      st.relics.level.forEach((l, id) => { if (l > 0) owned.push(id); });
+      const chosen = [];
+      for (let k = 0; k < n && chosen.length < owned.length; k++) {
+        let best = -1, bv = -Infinity;
+        for (const id of owned) {
+          if (chosen.includes(id)) continue;
+          st.relics.equipped = [...chosen, id]; st.S = null;
+          const v = powerOf(st);
+          if (v > bv) { bv = v; best = id; }
+        }
+        chosen.push(best);
+      }
+      relicPick = chosen;
+    }
+    st.relics.equipped = relicPick.slice(); st.S = null;
   }
 
   /* ---- medals and research ---- */
@@ -339,8 +363,9 @@ export function run(opts = {}) {
     if (human && !a.autoEvac) {
       // a person notices the run has stopped climbing (no new best for several minutes) and the medal number is
       // worth a restart; at the cap ("최대") going deeper pays nothing more, so a shorter stall is enough
-      go = (stall > ctx.stallLimit && gain >= Math.max(T.medals.floor, 0.3 * st.medalsLife)) || (gain >= cap && stall > 0.4 * ctx.stallLimit);
-    } else go = gain >= cap || (stall > 6 * 60 && gain >= 0.3 * st.medalsLife);
+      go = (stall > ctx.stallLimit && gain >= Math.max(T.medals.floor, 0.3 * st.medalsLife)) || (gain >= cap && stall > 0.4 * ctx.stallLimit) ||
+        stall > 2 * ctx.stallLimit;                                   // stuck for long: restart for whatever it pays
+    } else go = gain >= cap || (stall > 6 * 60 && gain >= 0.3 * st.medalsLife) || stall > 15 * 60;
     if (!go) return;
     const runBest = st.runBest, g = L.evacuate(st);
     if (g) {
@@ -359,7 +384,8 @@ export function run(opts = {}) {
     spendGems();
     if (!human || rng.chance(0.4) || L.auto(st).autoMerge) { if (L.merge(st)) bought(); }
     L.equipBest(st);
-    const w = st.equipW[0] ?? 0, team = st.equipW.reduce((a, b) => a + Math.max(0, b), 0);
+    pickRelics();
+    const w = Math.max(0, ...st.equipW), team = st.equipW.reduce((a, b) => a + Math.max(0, b), 0);
     if (w > bestW) { bestW = w; M.stepUps.push({ active: st.active / 3600, w, record: st.record }); }
     if (team > teamW) { teamW = team; M.teamUps.push({ active: st.active / 3600, team }); }
     if (M.step1At != null && M.step1BestUntil == null && w > L.weaponId('희귀', 5)) M.step1BestUntil = st.active;
@@ -378,7 +404,7 @@ export function run(opts = {}) {
     const S = L.stats(st);
     M.samples.push({ active: st.active / 3600, days: st.t / DAY, stage: st.stage, record: st.record, evacs: st.evacs, medals: st.medalsLife,
       gold: st.gold, food: st.food, ore: st.ore, parts: st.parts, caps: { ...S.caps }, prod: { ...S.prod }, upkeep: S.upkeep, gems: st.gems,
-      ws: { ...st.ws }, bunker: st.bunker, fence: st.fence, bestW: st.equipW[0] ?? 0, axes: { ...S.axes }, dps: S.dps, cmd: st.cmd.level,
+      ws: { ...st.ws }, bunker: st.bunker, fence: st.fence, bestW: Math.max(0, ...st.equipW), axes: { ...S.axes }, dps: S.dps, cmd: st.cmd.level,
       tiers: Object.fromEntries(Object.entries(st.sec).map(([k, v]) => [k, v.tier])), goldRate: st.goldRate });
   };
   const trackFull = dt => {
@@ -450,7 +476,7 @@ export function summarize(M) {
     fullPctActive: Object.fromEntries(Object.entries(M.fullAct).map(([k, v]) => [k, (100 * v) / Math.max(1, M.fullActT)])),
     fullPctOffline: Object.fromEntries(Object.entries(M.fullOff).map(([k, v]) => [k, (100 * v) / Math.max(1, M.fullOffT)])),
     maxNoBuyMin: M.maxNoBuy / 60, maxNoClimbMin: M.maxNoClimb / 60, maxNoClimbAt: M.maxNoClimbAt,
-    stepUps: M.stepUps.length, stepUpGapMaxH: upGaps.length ? Math.max(...upGaps) : null, bestW: st.equipW[0],
+    stepUps: M.stepUps.length, stepUpGapMaxH: upGaps.length ? Math.max(...upGaps) : null, bestW: Math.max(0, ...st.equipW),
     goldHeldMinMedian: median(M.goldHeldMin),
     spentKrw: st.shop.spent, step1BestH: M.step1BestUntil != null && M.step1At != null ? (M.step1BestUntil - M.step1At) / 3600 : null,
     end: { activeH: M.endActive, days: M.endDays, record: st.record },
