@@ -595,6 +595,36 @@ def turret_set(g, r):
             'w': W, 'h': H, 'ax': AX, 'ay': AY, 'pal': {k: pal[k] for k in sorted(used)}, 'anims': anims}
 
 
+# the card: the idle down-right turret on a floor in its grade colour, the whole turret centred across the card
+CARD = 32
+_floor = rows("""
+.....llllllllllll.....
+..lllmmmmmmmmmmmmlll..
+.llmmmmmmmmmmmmmmmmll.
+..lllmmmmmmmmmmmmlll..
+.....llllllllllll.....
+""")
+
+
+def card_of(g, r):
+    spec = T[g, r]
+    pal = palette(g, spec.get('pal'), spec.get('glow'))
+    f = frames_of(g, r)[0]['se'][0]
+    xs = [x for row in f for x, ch in enumerate(row) if ch != '.']
+    x0, x1 = min(xs), max(xs)
+    sx = (CARD - (x1 - x0 + 1)) // 2 - x0          # frame x -> card x
+    sy = (AY - 7) - AY + (CARD - 32)                # the ring's foot one row above the card's floor line
+    cv = [['.'] * CARD for _ in range(CARD)]
+    stamp(cv, _floor, AX + sx - 11, AY + sy - 2, name='floor')
+    for y, row in enumerate(f):
+        for x, ch in enumerate(row):
+            if ch != '.' and 0 <= y + sy < CARD and 0 <= x + sx < CARD:
+                cv[y + sy][x + sx] = ch
+    out = flat(cv)
+    used = set(''.join(out)) - {'.'}
+    return {'w': CARD, 'h': CARD, 'rows': out, 'pal': {k: pal[k] for k in sorted(used)}}
+
+
 def build():
     types = {}
     for (g, r) in sorted(T):
@@ -643,7 +673,8 @@ def check(dirname):
 
 if __name__ == '__main__':
     types = build()
-    write_js(types, {})
+    cards = {k: card_of(t['grade'], ROLES.index(t['role'])) for k, t in types.items()}
+    write_js(types, cards)
     print('art/turrets.js:', len(types), 'turrets')
     if '--check' in sys.argv:
         check(sys.argv[sys.argv.index('--check') + 1])
