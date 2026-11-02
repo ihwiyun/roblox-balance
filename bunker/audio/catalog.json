@@ -2601,6 +2601,455 @@
    ],
    "punch_db": -10.4,
    "preview_gain_db": -9.6
+  },
+  {
+   "id": "sfx_boss_stomp_a",
+   "group": "sfx-boss",
+   "slot": "boss_stomp",
+   "slot_label": "쿵",
+   "kind": "sfx",
+   "source": "rd_creature2",
+   "member": "stomp_01.ogg",
+   "title": "발구름",
+   "mood": "저음 중심의 짧은 쿵.",
+   "star": true,
+   "author": "rubberduck",
+   "file": "candidates/sfx-boss/sfx_boss_stomp_a.ogg",
+   "bytes": 5644,
+   "seconds": 0.454,
+   "lufs_i": -17.9,
+   "true_peak": -1.1,
+   "lufs_m_max": -17.8,
+   "changes": [
+    "앞뒤 무음 0.01초 제거",
+    "20Hz 이하 제거(직류 성분 제거)",
+    "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -2.7 dB)",
+    "OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 -0.15 dB 조정)"
+   ],
+   "source_files": [
+    "stomp_01.ogg"
+   ],
+   "direct_files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/80-CC0-creature-sfx-2.zip",
+     "name": "80-CC0-creature-sfx-2.zip",
+     "sha256": "6d251aeaaaa9c2fffed8fc2f64bab3104725ceabf9259a8441994e7a20cfe22f",
+     "members": [
+      "stomp_01.ogg"
+     ]
+    }
+   ],
+   "punch_db": -11.0,
+   "preview_gain_db": -9.0
+  },
+  {
+   "id": "sfx_boss_stomp_b",
+   "group": "sfx-boss",
+   "slot": "boss_stomp",
+   "slot_label": "쿵",
+   "kind": "sfx",
+   "source": "generated",
+   "member": "boss_stomp",
+   "title": "생성: 육중한 쿵",
+   "mood": "중음 쿵과 저음 낙하, 짧은 먼지 소리.",
+   "author": "synth.mjs (이 프로젝트)",
+   "file": "candidates/sfx-boss/sfx_boss_stomp_b.ogg",
+   "bytes": 11021,
+   "seconds": 1.007,
+   "lufs_i": -22.2,
+   "true_peak": -1.0,
+   "lufs_m_max": -16.6,
+   "changes": [
+    "20Hz 이하 제거(직류 성분 제거)",
+    "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 +1.5 dB)",
+    "OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 -0.15 dB 조정)"
+   ],
+   "source_files": [],
+   "generated_desc": "Heavy stomp: mid thump (220 → 70 Hz), sub drop, a short low crack and a dust rumble",
+   "punch_db": -8.8,
+   "preview_gain_db": -11.2
+  },
+  {
+   "id": "sfx_fence_hit_a",
+   "group": "sfx-base",
+   "slot": "fence_hit",
+   "slot_label": "울타리 타격",
+   "kind": "sfx",
+   "source": "rd_metal_wood",
+   "member": "wood_slam_02.ogg",
+   "title": "나무 내리침",
+   "mood": "나무 울타리를 때리는 소리.",
+   "star": true,
+   "author": "rubberduck",
+   "file": "candidates/sfx-base/sfx_fence_hit_a.ogg",
+   "bytes": 7712,
+   "seconds": 0.426,
+   "lufs_i": -17.9,
+   "true_peak": -1.0,
+   "lufs_m_max": -17.9,
+   "changes": [
+    "앞뒤 무음 0.05초 제거",
+    "20Hz 이하 제거(직류 성분 제거)",
+    "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -2.8 dB)",
+    "OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 +0.30 dB 조정)"
+   ],
+   "source_files": [
+    "wood_slam_02.ogg"
+   ],
+   "direct_files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/100-CC0-wood-metal-SFX.zip",
+     "name": "100-CC0-wood-metal-SFX.zip",
+     "sha256": "be6eba63b03409ac0c77787a956b1503a7c186403d04aef9725c52644a4b7878",
+     "members": [
+      "wood_slam_02.ogg"
+     ]
+    }
+   ],
+   "punch_db": -13.7,
+   "preview_gain_db": -6.3
+  },
+  {
+   "id": "sfx_fence_hit_b",
+   "group": "sfx-base",
+   "slot": "fence_hit",
+   "slot_label": "울타리 타격",
+   "kind": "sfx",
+   "source": "rd_metal_wood",
+   "member": "metal_slam_01.ogg",
+   "title": "철판 내리침",
+   "mood": "금속 울타리를 때리는 소리.",
+   "author": "rubberduck",
+   "file": "candidates/sfx-base/sfx_fence_hit_b.ogg",
+   "bytes": 7787,
+   "seconds": 0.429,
+   "lufs_i": -23.0,
+   "true_peak": -1.2,
+   "lufs_m_max": -23.0,
+   "changes": [
+    "앞뒤 무음 0.14초 제거",
+    "20Hz 이하 제거(직류 성분 제거)",
+    "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -4.1 dB)",
+    "OGG Vorbis q4로 변환"
+   ],
+   "source_files": [
+    "metal_slam_01.ogg"
+   ],
+   "direct_files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/100-CC0-wood-metal-SFX.zip",
+     "name": "100-CC0-wood-metal-SFX.zip",
+     "sha256": "be6eba63b03409ac0c77787a956b1503a7c186403d04aef9725c52644a4b7878",
+     "members": [
+      "metal_slam_01.ogg"
+     ]
+    }
+   ],
+   "punch_db": -17.0,
+   "preview_gain_db": -3.0
+  },
+  {
+   "id": "sfx_fence_break_a",
+   "group": "sfx-base",
+   "slot": "fence_break",
+   "slot_label": "울타리 붕괴",
+   "kind": "sfx",
+   "source": "rd_breaking",
+   "member": "bfh1_breaking_01.ogg",
+   "title": "무너지는 소리",
+   "mood": "약 1초, 부서지며 쏟아짐.",
+   "star": true,
+   "author": "rubberduck",
+   "file": "candidates/sfx-base/sfx_fence_break_a.ogg",
+   "bytes": 13212,
+   "seconds": 1.015,
+   "lufs_i": -24.9,
+   "true_peak": -1.0,
+   "lufs_m_max": -22.5,
+   "changes": [
+    "앞뒤 무음 0.05초 제거",
+    "20Hz 이하 제거(직류 성분 제거)",
+    "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -1.8 dB)",
+    "OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 +0.45 dB 조정)"
+   ],
+   "source_files": [
+    "bfh1_breaking_01.ogg"
+   ],
+   "direct_files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/sfx_breaking_and_falling.zip",
+     "name": "sfx_breaking_and_falling.zip",
+     "sha256": "e6ee04d91c5f4d30cfda1260d2c9d1faf96fda36319287215fbd07bcb1a80451",
+     "members": [
+      "bfh1_breaking_01.ogg"
+     ]
+    }
+   ],
+   "punch_db": -20.9,
+   "preview_gain_db": 0.0
+  },
+  {
+   "id": "sfx_fence_break_b",
+   "group": "sfx-base",
+   "slot": "fence_break",
+   "slot_label": "울타리 붕괴",
+   "kind": "sfx",
+   "source": "qbd_wood_crack",
+   "member": "wood_impact/crack01.mp3.flac",
+   "title": "나무 갈라짐",
+   "mood": "길게 쪼개지며 부서지는 소리(앞 1.9초).",
+   "segment": [
+    0,
+    1.9
+   ],
+   "fade_out": 0.3,
+   "author": "Independent.nu",
+   "file": "candidates/sfx-base/sfx_fence_break_b.ogg",
+   "bytes": 19936,
+   "seconds": 1.654,
+   "lufs_i": -22.4,
+   "true_peak": -1.3,
+   "lufs_m_max": -17.2,
+   "changes": [
+    "원본 0.00–1.90초 구간만 사용",
+    "앞뒤 무음 0.25초 제거",
+    "20Hz 이하 제거(직류 성분 제거)",
+    "0.3초 페이드아웃",
+    "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -3.6 dB)",
+    "OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 -1.00 dB 조정)"
+   ],
+   "source_files": [
+    "wood_impact/crack01.mp3.flac"
+   ],
+   "direct_files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/independent_nu_ljudbank-wood_crack_hit_destruction.7z",
+     "name": "independent_nu_ljudbank-wood_crack_hit_destruction.7z",
+     "sha256": "2f9723be0147c32ea07db8ef7406229fb8f1a6ce8feabdf0dbf2dc5ee2aacd1a",
+     "members": [
+      "wood_impact/crack01.mp3.flac"
+     ]
+    }
+   ],
+   "punch_db": -14.1,
+   "preview_gain_db": -5.9
+  },
+  {
+   "id": "sfx_repair_a",
+   "group": "sfx-base",
+   "slot": "repair",
+   "slot_label": "수리 망치",
+   "kind": "sfx",
+   "source": "bart_workshop",
+   "member": "workshop/workshop - metal hammering 3.wav",
+   "title": "금속 망치 3번",
+   "mood": "금속을 세 번 두드림.",
+   "star": true,
+   "segment": [
+    0,
+    1.7
+   ],
+   "fade_out": 0.06,
+   "author": "bart",
+   "file": "candidates/sfx-base/sfx_repair_a.ogg",
+   "bytes": 18280,
+   "seconds": 1.593,
+   "lufs_i": -18.6,
+   "true_peak": -1.0,
+   "lufs_m_max": -17.0,
+   "changes": [
+    "원본 0.00–1.70초 구간만 사용",
+    "앞뒤 무음 0.11초 제거",
+    "20Hz 이하 제거(직류 성분 제거)",
+    "0.06초 페이드아웃",
+    "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 +7.5 dB)",
+    "OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 +0.15 dB 조정)"
+   ],
+   "source_files": [
+    "workshop/workshop - metal hammering 3.wav"
+   ],
+   "direct_files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/workshop.7z",
+     "name": "workshop.7z",
+     "sha256": "79d7801041b5fbc8e181d9aaaa8dafb94b68bb51f325017e82fb37448e2fb1d3",
+     "members": [
+      "workshop/workshop - metal hammering 3.wav"
+     ]
+    }
+   ],
+   "punch_db": -14.1,
+   "preview_gain_db": -5.9
+  },
+  {
+   "id": "sfx_repair_b",
+   "group": "sfx-base",
+   "slot": "repair",
+   "slot_label": "수리 망치",
+   "kind": "sfx",
+   "source": "bart_workshop",
+   "member": "workshop/workshop - wood hammering.wav",
+   "title": "나무 망치 3번",
+   "mood": "나무를 세 번 두드림.",
+   "segment": [
+    0,
+    1.45
+   ],
+   "fade_out": 0.06,
+   "author": "bart",
+   "file": "candidates/sfx-base/sfx_repair_b.ogg",
+   "bytes": 14813,
+   "seconds": 1.238,
+   "lufs_i": -24.0,
+   "true_peak": -1.2,
+   "lufs_m_max": -22.6,
+   "changes": [
+    "원본 0.00–1.45초 구간만 사용",
+    "앞뒤 무음 0.21초 제거",
+    "20Hz 이하 제거(직류 성분 제거)",
+    "0.06초 페이드아웃",
+    "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -3.6 dB)",
+    "OGG Vorbis q4로 변환"
+   ],
+   "source_files": [
+    "workshop/workshop - wood hammering.wav"
+   ],
+   "direct_files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/workshop.7z",
+     "name": "workshop.7z",
+     "sha256": "79d7801041b5fbc8e181d9aaaa8dafb94b68bb51f325017e82fb37448e2fb1d3",
+     "members": [
+      "workshop/workshop - wood hammering.wav"
+     ]
+    }
+   ],
+   "punch_db": -16.7,
+   "preview_gain_db": -3.3
+  },
+  {
+   "id": "sfx_repair_c",
+   "group": "sfx-base",
+   "slot": "repair",
+   "slot_label": "수리 망치",
+   "kind": "sfx",
+   "source": "rd_metal_wood",
+   "member": "hammer_01.ogg",
+   "title": "망치 한 번",
+   "mood": "한 번 두드리는 소리.",
+   "author": "rubberduck",
+   "file": "candidates/sfx-base/sfx_repair_c.ogg",
+   "bytes": 6226,
+   "seconds": 0.302,
+   "lufs_i": -70.0,
+   "true_peak": -1.2,
+   "lufs_m_max": -120.7,
+   "changes": [
+    "앞뒤 무음 0.20초 제거",
+    "20Hz 이하 제거(직류 성분 제거)",
+    "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -4.1 dB)",
+    "OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 -0.15 dB 조정)"
+   ],
+   "source_files": [
+    "hammer_01.ogg"
+   ],
+   "direct_files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/100-CC0-wood-metal-SFX.zip",
+     "name": "100-CC0-wood-metal-SFX.zip",
+     "sha256": "be6eba63b03409ac0c77787a956b1503a7c186403d04aef9725c52644a4b7878",
+     "members": [
+      "hammer_01.ogg"
+     ]
+    }
+   ],
+   "punch_db": -17.0,
+   "preview_gain_db": -3.0
+  },
+  {
+   "id": "sfx_build_a",
+   "group": "sfx-base",
+   "slot": "build",
+   "slot_label": "건설",
+   "kind": "sfx",
+   "source": "bart_workshop",
+   "member": "workshop/workshop - drill short 1.wav",
+   "title": "전동 드릴",
+   "mood": "약 1.9초.",
+   "star": true,
+   "author": "bart",
+   "file": "candidates/sfx-base/sfx_build_a.ogg",
+   "bytes": 21988,
+   "seconds": 1.896,
+   "lufs_i": -16.1,
+   "true_peak": -1.2,
+   "lufs_m_max": -12.6,
+   "changes": [
+    "20Hz 이하 제거(직류 성분 제거)",
+    "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 +18.3 dB)",
+    "OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 -0.15 dB 조정)"
+   ],
+   "source_files": [
+    "workshop/workshop - drill short 1.wav"
+   ],
+   "direct_files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/workshop.7z",
+     "name": "workshop.7z",
+     "sha256": "79d7801041b5fbc8e181d9aaaa8dafb94b68bb51f325017e82fb37448e2fb1d3",
+     "members": [
+      "workshop/workshop - drill short 1.wav"
+     ]
+    }
+   ],
+   "punch_db": -13.3,
+   "preview_gain_db": -6.7
+  },
+  {
+   "id": "sfx_build_b",
+   "group": "sfx-base",
+   "slot": "build",
+   "slot_label": "건설",
+   "kind": "sfx",
+   "source": "bart_workshop",
+   "member": "workshop/workshop - drill2.wav",
+   "title": "드릴 길게",
+   "mood": "앞 2.6초, 끝이 길게 이어짐.",
+   "segment": [
+    0,
+    2.6
+   ],
+   "fade_out": 0.3,
+   "author": "bart",
+   "file": "candidates/sfx-base/sfx_build_b.ogg",
+   "bytes": 26378,
+   "seconds": 2.388,
+   "lufs_i": -15.2,
+   "true_peak": -1.2,
+   "lufs_m_max": -11.4,
+   "changes": [
+    "원본 0.00–2.60초 구간만 사용",
+    "앞뒤 무음 0.21초 제거",
+    "20Hz 이하 제거(직류 성분 제거)",
+    "0.3초 페이드아웃",
+    "모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 +0.8 dB)",
+    "OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 +0.30 dB 조정)"
+   ],
+   "source_files": [
+    "workshop/workshop - drill2.wav"
+   ],
+   "direct_files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/workshop.7z",
+     "name": "workshop.7z",
+     "sha256": "79d7801041b5fbc8e181d9aaaa8dafb94b68bb51f325017e82fb37448e2fb1d3",
+     "members": [
+      "workshop/workshop - drill2.wav"
+     ]
+    }
+   ],
+   "punch_db": -12.3,
+   "preview_gain_db": -7.7
   }
  ]
 }
