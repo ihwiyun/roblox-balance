@@ -52,7 +52,8 @@ for (const id of ['app', 'stage', 'tabs', 'menu', 'menuTitle', 'menuTabs', 'pane
 const sys = () => (typeof SYS !== 'undefined' && SYS.ok && SYS.ready ? SYS : null);
 const sysCall = (fn, ...a) => { const S = sys(); return S && typeof S[fn] === 'function' ? S[fn](...a) : null; };
 addEventListener('sys-ready', () => { refreshTop(); renderPanel(true); });
-addEventListener('sys-change', () => { refreshTop(); renderPanel(true); if (sheet.render && !sheet.el.hidden) sheet.body.innerHTML = sheet.render(); });
+// a change rebuilds only what it changed (a rebuilt button under a finger loses the tap)
+addEventListener('sys-change', () => { refreshTop(); renderPanel(false); if (sheet.render && !sheet.el.hidden) { const h = sheet.render(); if (h !== sheet.key) { sheet.key = h; sheet.body.innerHTML = h; } } });
 // prices from the systems: a number is gold, or an object of currencies; red when short
 const CUR_ICON = { gold: 'coin', money: 'coin', food: 'food', ore: 'mineral', mineral: 'mineral', gems: 'ruby', diamonds: 'diamond', parts: 'drill', medals: 'medal' };
 const curOf = () => sysCall('currencies') || { gold: G.money, food: G.food, ore: G.mineral };
@@ -852,10 +853,10 @@ function summonNow(kind, n) {
     + (g.toNextMerge != null ? `<span class="aux">${kind === 'crew' ? '다음 별까지' : kind === 'relic' ? '다음 레벨까지' : '합성까지'} ${g.toNextMerge}</span>` : '') + '</div>');
   openSheet(n > 1 ? n + '회 소환' : '소환', () => gridOf(box.w + 16, cells, 5) + `<div class="tool">${B('pri', '확인', 'data-close')}</div>`);
 }
-const sheet = { el: document.getElementById('sheet'), title: document.getElementById('shTitle'), body: document.getElementById('shBody'), render: null, act: null };
+const sheet = { el: document.getElementById('sheet'), title: document.getElementById('shTitle'), body: document.getElementById('shBody'), render: null, act: null, key: '' };
 function openSheet(title, render, act) {
   sheet.render = render; sheet.act = act || null;
-  sheet.title.textContent = title; sheet.body.innerHTML = render(); sheet.el.hidden = false;
+  sheet.title.textContent = title; sheet.body.innerHTML = sheet.key = render(); sheet.el.hidden = false;
   sheet.el.querySelector('.shp').scrollTop = 0;
 }
 function closeSheet() { sheet.el.hidden = true; sheet.render = null; sheet.act = null; }
