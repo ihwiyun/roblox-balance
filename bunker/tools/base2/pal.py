@@ -31,3 +31,37 @@ def c(name):
 
 def rgb(i):
     return COLORS[i]
+
+
+# one step darker / lighter inside each hue family (hand-picked, hue-shifted the way a pixel artist
+# ramps: darks drift toward purple, lights toward yellow). Used for cast shadows and selective outlines.
+_RAMPS = [
+    'white foam mist lilac stone slate ink',
+    'khaki beige rose mauve grape ink',
+    'blush peach salmon rosy berry wine grape ink',
+    'cream sand tan copper rust plum grape ink',
+    'gold amber flame vermil red blood plum grape',
+    'orange copper',
+    'pink rosy',
+    'pale sprout mint leaf pine abyss navy ink',
+    'lime moss olive soil grape ink',
+    'celadon sage fern char ink',
+    'ice surf aqua teal abyss navy ink',
+    'cyan sky blue indigo navy ink',
+    'orchid lilac2 violet purple grape ink',
+    'hotpink cerise magenta wine grape ink',
+    'scarlet crimson blood plum grape ink',
+]
+DARK, LIGHT = {}, {}
+for _r in _RAMPS:
+    _ids = [N[w] for w in _r.split()]
+    for _a, _b in zip(_ids, _ids[1:]):
+        DARK.setdefault(_a, _b)
+        LIGHT.setdefault(_b, _a)
+DARK.setdefault(N['ink'], N['ink'])
+
+
+def dark(i, steps=1):
+    for _ in range(steps):
+        i = DARK.get(i, i)
+    return i

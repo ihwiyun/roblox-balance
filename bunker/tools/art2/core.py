@@ -3,13 +3,13 @@
 Every shape in this folder is drawn by hand as a text grid (one character per pixel) or as an
 explicit pixel list. This module only does the bookkeeping the brief allows:
   - parse grids into layers of palette indices (-1 = transparent),
-  - place whole parts on a frame (offset), mirror them, recolour them (e.g. far-side darker),
+  - place whole parts on a frame (offset), mirror them, recolour them (e.g. far side one step darker),
   - apply explicit per-frame pixel patches,
   - export PNG sheets / JSON and build enlarged check sheets.
-It never generates a shape (no ellipses, capsules, auto-shading or outlines).
+It never generates a shape (no ellipses, capsules, auto-shading or auto-outlines).
 
-Palette: Resurrect 64 (Lospec), read from bunker/art/resurrect-64.hex. Colours are referred to by
-their index 0..63 (see R64 below for the names used in the per-asset key tables).
+Palette: Resurrect 64 (Kerrie Lake, via Lospec), read from bunker/art/resurrect-64.hex. Colours are
+referred to by index 0..63; R64 gives the names used in the per-asset key tables.
 """
 import json
 import os
@@ -42,31 +42,33 @@ R64 = dict(
     grape=49, violet=50, orchid=51, lavender=52, blush=53, mauve=54, rose=55, pink=56, candy=57,
     berry=58, ruby=59, punch=60, salmon=61, peach=62, cream2=63,
 )
-
-
-def keys(**kw):
-    """Build a char->palette-index table. Values are R64 names or ints."""
-    out = {}
-    for ch, v in kw.items():
-        out[ch] = R64[v] if isinstance(v, str) else int(v)
-    return out
+NAME = {v: k for k, v in R64.items()}
 
 
 def K(table):
-    """Same as keys() but from a {char: name} dict (allows chars that are not identifiers)."""
+    """Build a char -> palette-index table from {char: name-or-index}."""
     return {ch: (R64[v] if isinstance(v, str) else int(v)) for ch, v in table.items()}
 
 
+def ramp_map(*pairs):
+    """Recolour map from (src_name, dst_name) pairs (used for 'far side one step darker')."""
+    return {R64[a]: R64[b] for a, b in pairs}
+
+
 TRANSPARENT = '.'
-ERASE = ','          # erases what is underneath when the part is placed (rarely used)
+ERASE = ','          # erases what is underneath when the part is placed
+
+
+def _rows(text):
+    rows = [r.strip() for r in text.strip('\n').split('\n')]
+    return [r for r in rows if r != '']
 
 
 class Part:
     """A hand-drawn grid with an anchor pixel (ax, ay)."""
 
     def __init__(self, text, table, ax=0, ay=0, name=''):
-        rows = [r.strip() for r in text.strip('\n').split('\n')]
-        rows = [r for r in rows]
+        rows = _rows(text)
         w = max(len(r) for r in rows)
         h = len(rows)
         arr = np.full((h, w), -1, dtype=np.int16)
@@ -94,23 +96,22 @@ class Part:
     def h(self):
         return self.a.shape[0]
 
-    def mirrored(self):
+    def _clone(self, a, erase, ax, ay, suffix):
         p = Part.__new__(Part)
-        p.a = self.a[:, ::-1].copy()
-        p.erase = self.erase[:, ::-1].copy()
-        p.ax, p.ay = self.w - 1 - self.ax, self.ay
-        p.name = self.name + '~m'
+        p.a, p.erase, p.ax, p.ay, p.name = a, erase, ax, ay, self.name + suffix
         return p
 
+    def mirrored(self):
+        return self._clone(self.a[:, ::-1].copy(), self.erase[:, ::-1].copy(), self.w - 1 - self.ax, self.ay, '~m')
+
     def recolored(self, cmap):
-        p = Part.__new__(Part)
-        p.a = self.a.copy()
+        a = self.a.copy()
         for src, dst in cmap.items():
-            p.a[self.a == src] = dst
-        p.erase = self.erase.copy()
-        p.ax, p.ay = self.ax, self.ay
-        p.name = self.name + '~r'
-        return p
+            a[self.a == src] = dst
+        return self._clone(a, self.erase.copy(), self.ax, self.ay, '~r')
+
+    def with_anchor(self, ax, ay):
+        return self._clone(self.a.copy(), self.erase.copy(), ax, ay, '')
 
 
 def part(text, table, ax=0, ay=0, name=''):
@@ -130,8 +131,9 @@ class Frame:
     def h(self):
         return self.a.shape[0]
 
-    def put(self, p, x, y, cmap=None, mirror=False):
-        """Place part p so that its anchor lands on (x, y)."""
+    def put(self, p, x, y, cmap=None, mirror=False, under=False):
+        """Place part p so that its anchor lands on (x, y).
+        under=True only fills pixels that are still empty (drawing something 'behind')."""
         if mirror:
             p = p.mirrored()
         if cmap:
@@ -146,10 +148,10 @@ class Frame:
                 tx = ox + xx
                 if tx < 0 or tx >= W:
                     continue
-                if p.erase[yy, xx]:
+                if p.erase[yy, xx] and not under:
                     self.a[ty, tx] = -1
                 v = p.a[yy, xx]
-                if v >= 0:
+                if v >= 0 and (not under or self.a[ty, tx] < 0):
                     self.a[ty, tx] = v
         return self
 
@@ -164,15 +166,14 @@ class Frame:
 
     def patch(self, text, table, x0, y0):
         """Explicit pixel patch given as a small grid; '.' leaves the pixel, ',' clears it."""
-        rows = [r.strip() for r in text.strip('\n').split('\n')]
-        for yy, r in enumerate(rows):
+        for yy, r in enumerate(_rows(text)):
             for xx, ch in enumerate(r):
                 if ch == TRANSPARENT:
                     continue
-                if ch == ERASE:
-                    self.a[y0 + yy, x0 + xx] = -1
-                else:
-                    self.a[y0 + yy, x0 + xx] = table[ch]
+                ty, tx = y0 + yy, x0 + xx
+                if not (0 <= ty < self.h and 0 <= tx < self.w):
+                    continue
+                self.a[ty, tx] = -1 if ch == ERASE else table[ch]
         return self
 
     def copy(self):
@@ -193,20 +194,21 @@ class Frame:
         f.meta = json.loads(json.dumps(self.meta))
         return f
 
-    def flipped(self):
-        f = Frame(self.w, self.h)
-        f.a = self.a[:, ::-1].copy()
-        f.meta = json.loads(json.dumps(self.meta))
+    def recolored(self, cmap):
+        f = self.copy()
+        for src, dst in cmap.items():
+            f.a[self.a == src] = dst
         return f
 
     def rgba(self):
         return to_rgba(self.a)
 
 
-def frame_from(text, table):
+def frame_from(text, table, meta=None):
     p = Part(text, table)
     f = Frame(p.w, p.h)
     f.a = p.a.copy()
+    f.meta = dict(meta or {})
     return f
 
 
@@ -221,11 +223,20 @@ def to_rgba(a):
     return Image.fromarray(_LUT[idx], 'RGBA')
 
 
-def flash(a, color=R64['white']):
-    """Hit-flash: every opaque pixel becomes one colour (white by default)."""
-    out = a.copy()
-    out[a >= 0] = color
-    return out
+def flash_frame(f, color=R64['white'], keep=(R64['ink'],)):
+    """Hit-flash: every opaque pixel becomes one colour, the darkest outline kept so the shape reads."""
+    g = f.copy()
+    m = (f.a >= 0) & ~np.isin(f.a, keep)
+    g.a[m] = color
+    return g
+
+
+class Anim:
+    """One animation of one view: frames + fps + loop + notes (what was checked) + extra data."""
+
+    def __init__(self, name, frames, fps=8, loop=True, notes='', **extra):
+        self.name, self.frames, self.fps, self.loop, self.notes = name, frames, fps, loop, notes
+        self.extra = extra
 
 
 def sheet(frames, cols=None, pad=0):
@@ -241,6 +252,23 @@ def sheet(frames, cols=None, pad=0):
         img.paste(f.rgba(), (x, y))
         rects.append([x, y, w, h])
     return img, rects
+
+
+def pack_anims(anims_by_view, pad=1):
+    """anims_by_view: list of (key, Anim). One row per Anim. Returns (Image, {key: [rects]})."""
+    w = max(f.w for _, a in anims_by_view for f in a.frames)
+    h = max(f.h for _, a in anims_by_view for f in a.frames)
+    cols = max(len(a.frames) for _, a in anims_by_view)
+    img = Image.new('RGBA', (cols * (w + pad), len(anims_by_view) * (h + pad)), (0, 0, 0, 0))
+    out = {}
+    for r, (key, a) in enumerate(anims_by_view):
+        rects = []
+        for c, f in enumerate(a.frames):
+            x, y = c * (w + pad), r * (h + pad)
+            img.paste(f.rgba(), (x, y))
+            rects.append([x, y, f.w, f.h])
+        out[key] = rects
+    return img, out
 
 
 def save(img, path):
@@ -262,7 +290,7 @@ def check_palette(img_path):
     op = im[..., 3] > 0
     if (im[..., 3][op] != 255).any():
         return False, 'semi-transparent pixels'
-    cols = {tuple(c) for c in im[..., :3][op].reshape(-1, 3)}
+    cols = {tuple(int(v) for v in c) for c in im[..., :3][op].reshape(-1, 3)}
     bad = [c for c in cols if c not in set(PAL)]
     return (not bad), bad
 

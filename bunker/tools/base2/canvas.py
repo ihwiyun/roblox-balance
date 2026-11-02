@@ -165,6 +165,31 @@ class Canvas:
                     c = self.a[py, px]
                     self.a[py, px] = remap.get(int(c), c)
 
+    # ------------------------------------------------------------------ layers
+    def layer(self):
+        """an empty canvas with the same projection: draw one object here, outline it, then paste"""
+        return Canvas(self.w, self.h, self.ox, self.oy)
+
+    def paste(self, lay, kind=2):
+        m = lay.a != CLEAR
+        self.a[m] = lay.a[m]
+        self.kind[m] = kind
+
+    def stamp(self, spr, px, py, only=None, kind=None):
+        """screen-space sprite with its top-left at (px, py); only=set of kinds it may paint over"""
+        h, w = spr.shape
+        for j in range(h):
+            for i in range(w):
+                c = spr[j, i]
+                x, y = px + i, py + j
+                if c == CLEAR or not (0 <= x < self.w and 0 <= y < self.h):
+                    continue
+                if only is not None and self.kind[y, x] not in only:
+                    continue
+                self.a[y, x] = c
+                if kind is not None:
+                    self.kind[y, x] = kind
+
     def rgba(self, scale=1, bg=None):
         from PIL import Image
         h, w = self.a.shape
@@ -188,3 +213,34 @@ def point_in_poly(x, y, poly):
             if x < x1 + t * (x2 - x1):
                 inside = not inside
     return inside
+
+
+def selout(lay, ink=0, dark=None, sides='br', soft='tl'):
+    """selective outline, inside the silhouette of one layer.
+    Edge pixels whose empty neighbour is on a `sides` side (b bottom, r right, t top, l left) become `ink`;
+    edges on a `soft` side become one ramp step darker than themselves (`dark` maps index -> darker)."""
+    a = lay.a
+    m = a != CLEAR
+    H, W = a.shape
+    emp = {}
+    pad = np.pad(~m, 1, constant_values=True)
+    emp['t'] = pad[:-2, 1:-1]
+    emp['b'] = pad[2:, 1:-1]
+    emp['l'] = pad[1:-1, :-2]
+    emp['r'] = pad[1:-1, 2:]
+    hard = np.zeros_like(m)
+    for s in sides:
+        hard |= emp[s]
+    hard &= m
+    softm = np.zeros_like(m)
+    for s in soft:
+        softm |= emp[s]
+    softm &= m & ~hard
+    out = a.copy()
+    out[hard] = ink
+    if dark is not None:
+        ys, xs = np.nonzero(softm)
+        for y, x in zip(ys, xs):
+            out[y, x] = dark.get(int(a[y, x]), int(a[y, x]))
+    lay.a = out
+    return lay

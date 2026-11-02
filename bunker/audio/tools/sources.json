@@ -1,0 +1,1699 @@
+{
+ "note": "Every source below was checked on its own OpenGameArt page on the retrieval date. Only CC0 is used.",
+ "sources": [
+  {
+   "id": "jj_action",
+   "page": "https://opengameart.org/content/5-chiptunes-action",
+   "title": "5 Chiptunes (Action)",
+   "author": "SubspaceAudio",
+   "author_url": "https://opengameart.org/users/subspaceaudio",
+   "licenses_on_page": [
+    "CC0"
+   ],
+   "license": "CC0 1.0",
+   "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "evidence": "License: CC0. \"5 tracks, all seamlessly looping!\"",
+   "retrieved": "2026-11-02",
+   "files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/5%20Action%20Chiptunes%20By%20Juhani%20Junkala.zip",
+     "name": "5 Action Chiptunes By Juhani Junkala.zip",
+     "bytes": 49639688
+    }
+   ]
+  },
+  {
+   "id": "jj_boss",
+   "page": "https://opengameart.org/content/boss-battle-music",
+   "title": "Boss Battle Music",
+   "author": "SubspaceAudio",
+   "author_url": "https://opengameart.org/users/subspaceaudio",
+   "licenses_on_page": [
+    "CC0"
+   ],
+   "license": "CC0 1.0",
+   "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "evidence": "License: CC0. \"Epic boss battle music ... Loops seamlessly!\"",
+   "retrieved": "2026-11-02",
+   "files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/Juhani%20Junkala%20-%20Epic%20Boss%20Battle%20%5BSeamlessly%20Looping%5D.wav",
+     "name": "Juhani Junkala - Epic Boss Battle [Seamlessly Looping].wav",
+     "bytes": 21773152
+    }
+   ]
+  },
+  {
+   "id": "minto_space_battle",
+   "page": "https://opengameart.org/content/space-battle",
+   "title": "Space Battle",
+   "author": "MintoDog",
+   "author_url": "https://opengameart.org/users/mintodog",
+   "licenses_on_page": [
+    "CC0"
+   ],
+   "license": "CC0 1.0",
+   "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "evidence": "License: CC0. \"This music is loopable.\"",
+   "retrieved": "2026-11-02",
+   "files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/space_battle_bpm130_0.ogg",
+     "name": "space_battle_bpm130.ogg",
+     "bytes": 2898663
+    }
+   ]
+  },
+  {
+   "id": "minto_postapoc",
+   "page": "https://opengameart.org/content/post-apocalyptic-morning-afternoon-and-night",
+   "title": "Post-Apocalyptic Morning, Afternoon and Night",
+   "author": "MintoDog",
+   "author_url": "https://opengameart.org/users/mintodog",
+   "licenses_on_page": [
+    "CC0"
+   ],
+   "license": "CC0 1.0",
+   "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "evidence": "License: CC0. \"All music tracks are loopable.\"",
+   "retrieved": "2026-11-02",
+   "files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/post-apocalyptic_morning_bpm80_0.ogg",
+     "name": "post-apocalyptic_morning_bpm80.ogg",
+     "bytes": 3586072
+    },
+    {
+     "url": "https://opengameart.org/sites/default/files/post-apocalyptic_afternoon_bpm85_0.ogg",
+     "name": "post-apocalyptic_afternoon_bpm85.ogg",
+     "bytes": 4123477
+    },
+    {
+     "url": "https://opengameart.org/sites/default/files/post-apocalyptic_night_bpm80_0.ogg",
+     "name": "post-apocalyptic_night_bpm80.ogg",
+     "bytes": 3084925
+    }
+   ]
+  },
+  {
+   "id": "minto_urban_shop",
+   "page": "https://opengameart.org/content/urban-shop",
+   "title": "Urban Shop",
+   "author": "MintoDog",
+   "author_url": "https://opengameart.org/users/mintodog",
+   "licenses_on_page": [
+    "CC0"
+   ],
+   "license": "CC0 1.0",
+   "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "evidence": "License: CC0. \"This music is loopable.\"",
+   "retrieved": "2026-11-02",
+   "files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/urban_shop_bpm92_0.ogg",
+     "name": "urban_shop_bpm92.ogg",
+     "bytes": 2735750
+    }
+   ]
+  },
+  {
+   "id": "minto_jingles",
+   "page": "https://opengameart.org/content/8bit-action-jingle-mini-loop",
+   "title": "8bit Action Jingle & Mini Loop",
+   "author": "MintoDog",
+   "author_url": "https://opengameart.org/users/mintodog",
+   "licenses_on_page": [
+    "CC0"
+   ],
+   "license": "CC0 1.0",
+   "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "evidence": "License: CC0.",
+   "retrieved": "2026-11-02",
+   "files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/ogg_8bit_action_jingle_mini_loop.zip",
+     "name": "ogg_8bit_action_jingle_mini_loop.zip",
+     "bytes": 1214309
+    }
+   ]
+  },
+  {
+   "id": "cb_item_shop",
+   "page": "https://opengameart.org/content/welcome-to-the-item-shop",
+   "title": "Welcome to the Item Shop",
+   "author": "congusbongus",
+   "author_url": "https://opengameart.org/users/congusbongus",
+   "licenses_on_page": [
+    "CC0"
+   ],
+   "license": "CC0 1.0",
+   "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "evidence": "License: CC0.",
+   "retrieved": "2026-11-02",
+   "files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/welcome_to_the_item_shop_1.ogg",
+     "name": "welcome_to_the_item_shop.ogg",
+     "bytes": 3169385
+    }
+   ]
+  },
+  {
+   "id": "cb_assault",
+   "page": "https://opengameart.org/content/assault",
+   "title": "Assault",
+   "author": "congusbongus",
+   "author_url": "https://opengameart.org/users/congusbongus",
+   "licenses_on_page": [
+    "CC0"
+   ],
+   "license": "CC0 1.0",
+   "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "evidence": "License: CC0.",
+   "retrieved": "2026-11-02",
+   "files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/assault.ogg",
+     "name": "assault.ogg",
+     "bytes": 5063369
+    }
+   ]
+  },
+  {
+   "id": "cb_victory_nes",
+   "page": "https://opengameart.org/content/glorious-victory-fanfare-nes",
+   "title": "Glorious victory fanfare NES",
+   "author": "congusbongus",
+   "author_url": "https://opengameart.org/users/congusbongus",
+   "licenses_on_page": [
+    "CC0"
+   ],
+   "license": "CC0 1.0",
+   "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "evidence": "License: CC0.",
+   "retrieved": "2026-11-02",
+   "files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/victory2_0.ogg",
+     "name": "victory2.ogg",
+     "bytes": 263719
+    }
+   ]
+  },
+  {
+   "id": "cb_winner",
+   "page": "https://opengameart.org/content/and-the-winner-is",
+   "title": "And the winner is",
+   "author": "congusbongus",
+   "author_url": "https://opengameart.org/users/congusbongus",
+   "licenses_on_page": [
+    "CC0"
+   ],
+   "license": "CC0 1.0",
+   "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "evidence": "License: CC0.",
+   "retrieved": "2026-11-02",
+   "files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/winneris_0.ogg",
+     "name": "winneris.ogg",
+     "bytes": 95926
+    }
+   ]
+  },
+  {
+   "id": "cb_better_luck",
+   "page": "https://opengameart.org/content/better-luck-next-time",
+   "title": "Better luck next time",
+   "author": "congusbongus",
+   "author_url": "https://opengameart.org/users/congusbongus",
+   "licenses_on_page": [
+    "CC0"
+   ],
+   "license": "CC0 1.0",
+   "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "evidence": "License: CC0.",
+   "retrieved": "2026-11-02",
+   "files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/betterluck_0.ogg",
+     "name": "betterluck.ogg",
+     "bytes": 83738
+    }
+   ]
+  },
+  {
+   "id": "cb_new_thing",
+   "page": "https://opengameart.org/content/new-thing-get",
+   "title": "New thing get!",
+   "author": "congusbongus",
+   "author_url": "https://opengameart.org/users/congusbongus",
+   "licenses_on_page": [
+    "CC0"
+   ],
+   "license": "CC0 1.0",
+   "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "evidence": "License: CC0.",
+   "retrieved": "2026-11-02",
+   "files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/newthingget_0.ogg",
+     "name": "newthingget.ogg",
+     "bytes": 173459
+    }
+   ]
+  },
+  {
+   "id": "cb_twist",
+   "page": "https://opengameart.org/content/a-surprising-twist-nes-sting",
+   "title": "A surprising twist (NES sting)",
+   "author": "congusbongus",
+   "author_url": "https://opengameart.org/users/congusbongus",
+   "licenses_on_page": [
+    "CC0"
+   ],
+   "license": "CC0 1.0",
+   "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "evidence": "License: CC0.",
+   "retrieved": "2026-11-02",
+   "files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/surprise_0.ogg",
+     "name": "surprise.ogg",
+     "bytes": 85071
+    }
+   ]
+  },
+  {
+   "id": "hg_danger_boss",
+   "page": "https://opengameart.org/content/8-bit-danger-strong-boss",
+   "title": "8-bit Danger!! Strong Boss",
+   "author": "HydroGene",
+   "author_url": "https://opengameart.org/users/hydrogene",
+   "licenses_on_page": [
+    "CC0"
+   ],
+   "license": "CC0 1.0",
+   "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "evidence": "License: CC0. \"credits are NOT mandatory\"",
+   "retrieved": "2026-11-02",
+   "files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/8-bit_danger_strong_boss_0.mp3",
+     "name": "8-bit_danger_strong_boss.mp3",
+     "bytes": 5348902
+    }
+   ]
+  },
+  {
+   "id": "hg_last_mission",
+   "page": "https://opengameart.org/content/8-bit-last-mission",
+   "title": "8-bit - Last Mission",
+   "author": "HydroGene",
+   "author_url": "https://opengameart.org/users/hydrogene",
+   "licenses_on_page": [
+    "CC0"
+   ],
+   "license": "CC0 1.0",
+   "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "evidence": "License: CC0. \"credits are NOT mandatory\"",
+   "retrieved": "2026-11-02",
+   "files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/8-bit_last_mission_intro.mp3",
+     "name": "8-bit_last_mission_intro.mp3",
+     "bytes": 550731
+    },
+    {
+     "url": "https://opengameart.org/sites/default/files/8-bit_last_mission_loop.mp3",
+     "name": "8-bit_last_mission_loop.mp3",
+     "bytes": 2196445
+    }
+   ]
+  },
+  {
+   "id": "nene_boss9",
+   "page": "https://opengameart.org/content/boss-battle-9-metal",
+   "title": "Boss Battle #9 [Metal]",
+   "author": "nene",
+   "author_url": "https://opengameart.org/users/nene",
+   "licenses_on_page": [
+    "CC0"
+   ],
+   "license": "CC0 1.0",
+   "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "evidence": "License: CC0. Opening + loop files supplied.",
+   "retrieved": "2026-11-02",
+   "files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/boss_battle_9_metal_opening.wav",
+     "name": "boss_battle_9_metal_opening.wav",
+     "bytes": 2997386
+    },
+    {
+     "url": "https://opengameart.org/sites/default/files/boss_battle_9_metal_loop.wav",
+     "name": "boss_battle_9_metal_loop.wav",
+     "bytes": 7493242
+    }
+   ]
+  },
+  {
+   "id": "cow_biohazard",
+   "page": "https://opengameart.org/content/bio-hazard-menustage",
+   "title": "Bio-Hazard (Menu/Stage)",
+   "author": "Centurion_of_war",
+   "author_url": "https://opengameart.org/users/centurionofwar",
+   "licenses_on_page": [
+    "CC0"
+   ],
+   "license": "CC0 1.0",
+   "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "evidence": "License: CC0. \"Made for a zombie/alien invasion dark game\"",
+   "retrieved": "2026-11-02",
+   "files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/biohazardsv3_0.ogg",
+     "name": "biohazardsv3.ogg",
+     "bytes": 5217049
+    }
+   ]
+  },
+  {
+   "id": "iam_final_stand",
+   "page": "https://opengameart.org/content/final-stand",
+   "title": "Final Stand",
+   "author": "iamoneabe",
+   "author_url": "https://opengameart.org/users/iamoneabe",
+   "licenses_on_page": [
+    "CC0"
+   ],
+   "license": "CC0 1.0",
+   "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "evidence": "License: CC0. Notice: \"CC0 // Public Domain\"",
+   "retrieved": "2026-11-02",
+   "files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/final_stand.wav",
+     "name": "final_stand.wav",
+     "bytes": 11290334
+    }
+   ]
+  },
+  {
+   "id": "tg_outpost",
+   "page": "https://opengameart.org/content/the-world-fell-silent",
+   "title": "The World Fell Silent",
+   "author": "Tsorthan Grove",
+   "author_url": "https://opengameart.org/users/tsorthan-grove",
+   "licenses_on_page": [
+    "CC0"
+   ],
+   "license": "CC0 1.0",
+   "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "evidence": "License: CC0. Notice: \"CC0 / Public Domain. No Rights Reserved. Free to use however you like with no attribution required.\"",
+   "retrieved": "2026-11-02",
+   "files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/outpost_loop.flac",
+     "name": "outpost_loop.flac",
+     "bytes": 13138965
+    }
+   ]
+  },
+  {
+   "id": "tg_safe_space",
+   "page": "https://opengameart.org/content/safe-space-0",
+   "title": "Safe Space",
+   "author": "Tsorthan Grove",
+   "author_url": "https://opengameart.org/users/tsorthan-grove",
+   "licenses_on_page": [
+    "CC0"
+   ],
+   "license": "CC0 1.0",
+   "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "evidence": "License: CC0. Notice: \"CC0 / Public Domain. No Rights Reserved. Free to use however you like with no attribution required.\"",
+   "retrieved": "2026-11-02",
+   "files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/safe_space_loop.flac",
+     "name": "safe_space_loop.flac",
+     "bytes": 14604660
+    }
+   ]
+  },
+  {
+   "id": "trex_small_fire",
+   "page": "https://opengameart.org/content/a-small-fire-will-do-calming-loop",
+   "title": "A Small Fire Will Do (Calming Loop)",
+   "author": "Trex0n",
+   "author_url": "https://opengameart.org/users/trex0n",
+   "licenses_on_page": [
+    "CC0"
+   ],
+   "license": "CC0 1.0",
+   "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "evidence": "License: CC0. Notice: \"Credit would be appreciated\" (optional, not a condition).",
+   "retrieved": "2026-11-02",
+   "files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/a_small_fire_will_do.wav",
+     "name": "a_small_fire_will_do.wav",
+     "bytes": 16934546
+    }
+   ]
+  },
+  {
+   "id": "zl_hush_hamlet",
+   "page": "https://opengameart.org/content/hush-hamlet",
+   "title": "Hush Hamlet",
+   "author": "Zane Little Music",
+   "author_url": "https://opengameart.org/users/zane-little-music",
+   "licenses_on_page": [
+    "CC0"
+   ],
+   "license": "CC0 1.0",
+   "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "evidence": "License: CC0.",
+   "retrieved": "2026-11-02",
+   "files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/hush_hamlet_loop_0.wav",
+     "name": "hush_hamlet_loop.wav",
+     "bytes": 36864210
+    }
+   ]
+  },
+  {
+   "id": "skyle_shopping",
+   "page": "https://opengameart.org/content/shopping-time",
+   "title": "Shopping Time!",
+   "author": "SkyleTheFrench",
+   "author_url": "https://opengameart.org/users/skylethefrench",
+   "licenses_on_page": [
+    "CC0"
+   ],
+   "license": "CC0 1.0",
+   "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "evidence": "License: CC0. Notice: \"No need to credit\"",
+   "retrieved": "2026-11-02",
+   "files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/shopping_time_loop.ogg",
+     "name": "shopping_time_loop.ogg",
+     "bytes": 2158153
+    }
+   ]
+  },
+  {
+   "id": "joth_bossa",
+   "page": "https://opengameart.org/content/bossa-nova",
+   "title": "Bossa Nova",
+   "author": "Joth",
+   "author_url": "https://opengameart.org/users/joth",
+   "licenses_on_page": [
+    "CC0"
+   ],
+   "license": "CC0 1.0",
+   "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "evidence": "License: CC0.",
+   "retrieved": "2026-11-02",
+   "files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/8bit%20Bossa.mp3",
+     "name": "8bit Bossa.mp3",
+     "bytes": 1196325
+    }
+   ]
+  },
+  {
+   "id": "emma_sad_game_over",
+   "page": "https://opengameart.org/content/sad-game-over",
+   "title": "Sad game over",
+   "author": "Emma_MA",
+   "author_url": "https://opengameart.org/users/emmama",
+   "licenses_on_page": [
+    "CC0"
+   ],
+   "license": "CC0 1.0",
+   "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "evidence": "License: CC0. Notice: \"This track has been released into the public domain as of January 2017.\"",
+   "retrieved": "2026-11-02",
+   "files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/sad_game_over.wav",
+     "name": "sad_game_over.wav",
+     "bytes": 3353414
+    }
+   ]
+  },
+  {
+   "id": "kosmo_game_over",
+   "page": "https://opengameart.org/content/game-over-short-jingle",
+   "title": "Game over short jingle",
+   "author": "Kosmo The Cat",
+   "author_url": "https://opengameart.org/users/kosmo-the-cat",
+   "licenses_on_page": [
+    "CC0"
+   ],
+   "license": "CC0 1.0",
+   "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "evidence": "License: CC0.",
+   "retrieved": "2026-11-02",
+   "files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/Game%20over%20jingle_0.ogg",
+     "name": "Game over jingle.ogg",
+     "bytes": 66983
+    }
+   ]
+  },
+  {
+   "id": "haley_lick",
+   "page": "https://opengameart.org/content/8bit-fanfare-jingle-the-lick",
+   "title": "8bit fanfare jingle \"The Lick\"",
+   "author": "Haley Halcyon",
+   "author_url": "https://opengameart.org/users/haley-halcyon",
+   "licenses_on_page": [
+    "CC0"
+   ],
+   "license": "CC0 1.0",
+   "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "evidence": "License: CC0.",
+   "retrieved": "2026-11-02",
+   "files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/life.wav",
+     "name": "life.wav",
+     "bytes": 273082
+    }
+   ]
+  },
+  {
+   "id": "zl_hyper_fanfare",
+   "page": "https://opengameart.org/content/hyper-ultra-fanfare",
+   "title": "Hyper-Ultra-Fanfare",
+   "author": "Zane Little Music",
+   "author_url": "https://opengameart.org/users/zane-little-music",
+   "licenses_on_page": [
+    "CC0"
+   ],
+   "license": "CC0 1.0",
+   "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "evidence": "License: CC0.",
+   "retrieved": "2026-11-02",
+   "files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/sboe.wav",
+     "name": "sboe.wav",
+     "bytes": 2161074
+    }
+   ]
+  },
+  {
+   "id": "beard_tense_drive",
+   "page": "https://opengameart.org/content/tense-drive",
+   "title": "Tense Drive",
+   "author": "beardalaxy",
+   "author_url": "https://opengameart.org/users/beardalaxy",
+   "licenses_on_page": [
+    "CC0"
+   ],
+   "license": "CC0 1.0",
+   "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "evidence": "License: CC0. \"Anyone can use it. Credit not necessary\"",
+   "retrieved": "2026-11-02",
+   "files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/tense_drive.mp3",
+     "name": "tense_drive.mp3",
+     "bytes": 2602462
+    }
+   ]
+  },
+  {
+   "id": "yd_zombies_march",
+   "page": "https://opengameart.org/content/zombies-march",
+   "title": "Zombies' March",
+   "author": "yd",
+   "author_url": "https://opengameart.org/users/yd",
+   "licenses_on_page": [
+    "CC0"
+   ],
+   "license": "CC0 1.0",
+   "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "evidence": "License: CC0.",
+   "retrieved": "2026-11-02",
+   "files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/ZombiesAreComing.ogg",
+     "name": "ZombiesAreComing.ogg",
+     "bytes": 1730976
+    }
+   ]
+  },
+  {
+   "id": "ffsl",
+   "page": "https://opengameart.org/content/the-free-firearm-sound-library",
+   "title": "The Free Firearm Sound Library",
+   "author": "bart",
+   "author_url": "https://opengameart.org/users/bart",
+   "licenses_on_page": [
+    "CC0"
+   ],
+   "license": "CC0 1.0",
+   "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "evidence": "License: CC0. Quoted from the library authors: \"Our team holds CC0 NO RIGHTS RESERVED for this library. It may be used without royalty or credit ... for any application, personal or professional.\"",
+   "retrieved": "2026-11-02",
+   "files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/Prepared%20SFX%20Library.7z",
+     "name": "Prepared SFX Library.7z",
+     "bytes": 193954738
+    }
+   ]
+  },
+  {
+   "id": "legit_fire_staff",
+   "page": "https://opengameart.org/content/fire-staff-sound-effects",
+   "title": "Fire Staff Sound Effects",
+   "author": "LEGIT Audio",
+   "author_url": "https://opengameart.org/users/legit-audio",
+   "licenses_on_page": [
+    "CC0"
+   ],
+   "license": "CC0 1.0",
+   "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "evidence": "License: CC0. \"All these sounds were created by LEGIT Audio and are ready to use in your projects, CC0.\"",
+   "retrieved": "2026-11-02",
+   "files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/legit_audio_fire_staff_-_free_0.zip",
+     "name": "legit_audio_fire_staff_-_free.zip",
+     "bytes": 29242305
+    }
+   ]
+  },
+  {
+   "id": "fax_electricity",
+   "page": "https://opengameart.org/content/electricity-game-sound-pack",
+   "title": "Electricity Game Sound Pack",
+   "author": "faxcorp",
+   "author_url": "https://opengameart.org/users/faxcorp",
+   "licenses_on_page": [
+    "CC0"
+   ],
+   "license": "CC0 1.0",
+   "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "evidence": "License: CC0.",
+   "retrieved": "2026-11-02",
+   "files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/charge.wav",
+     "name": "charge.wav",
+     "bytes": 729164
+    },
+    {
+     "url": "https://opengameart.org/sites/default/files/chargestart.wav",
+     "name": "chargestart.wav",
+     "bytes": 713406
+    },
+    {
+     "url": "https://opengameart.org/sites/default/files/crackleelectricityloop.wav",
+     "name": "crackleelectricityloop.wav",
+     "bytes": 88300
+    },
+    {
+     "url": "https://opengameart.org/sites/default/files/death_1.wav",
+     "name": "death.wav",
+     "bytes": 307196
+    },
+    {
+     "url": "https://opengameart.org/sites/default/files/groundhit.wav",
+     "name": "groundhit.wav",
+     "bytes": 50304
+    },
+    {
+     "url": "https://opengameart.org/sites/default/files/hit.wav",
+     "name": "hit.wav",
+     "bytes": 389140
+    },
+    {
+     "url": "https://opengameart.org/sites/default/files/shieldhit.wav",
+     "name": "shieldhit.wav",
+     "bytes": 137858
+    },
+    {
+     "url": "https://opengameart.org/sites/default/files/snaploop.wav",
+     "name": "snaploop.wav",
+     "bytes": 435524
+    }
+   ]
+  },
+  {
+   "id": "bmac_electricity",
+   "page": "https://opengameart.org/content/electricity-sound-effects-0",
+   "title": "Electricity Sound Effects",
+   "author": "BMacZero",
+   "author_url": "https://opengameart.org/users/bmaczero",
+   "licenses_on_page": [
+    "CC0"
+   ],
+   "license": "CC0 1.0",
+   "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "evidence": "License: CC0. Notice: \"Optionally credit Brian MacIntosh.\"",
+   "retrieved": "2026-11-02",
+   "files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/continuousspark.wav",
+     "name": "continuousspark.wav",
+     "bytes": 19244
+    },
+    {
+     "url": "https://opengameart.org/sites/default/files/spark.wav",
+     "name": "spark.wav",
+     "bytes": 29740
+    }
+   ]
+  },
+  {
+   "id": "bmac_metal",
+   "page": "https://opengameart.org/content/metal-impact-sounds",
+   "title": "Metal Impact Sounds",
+   "author": "BMacZero",
+   "author_url": "https://opengameart.org/users/bmaczero",
+   "licenses_on_page": [
+    "CC0"
+   ],
+   "license": "CC0 1.0",
+   "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "evidence": "License: CC0. Notice: \"Optionally credit Brian MacIntosh.\"",
+   "retrieved": "2026-11-02",
+   "files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/bing1.wav",
+     "name": "bing1.wav",
+     "bytes": 63532
+    },
+    {
+     "url": "https://opengameart.org/sites/default/files/bong1.wav",
+     "name": "bong1.wav",
+     "bytes": 186412
+    },
+    {
+     "url": "https://opengameart.org/sites/default/files/clink1_0.wav",
+     "name": "clink1.wav",
+     "bytes": 27692
+    },
+    {
+     "url": "https://opengameart.org/sites/default/files/clink2.wav",
+     "name": "clink2.wav",
+     "bytes": 22572
+    },
+    {
+     "url": "https://opengameart.org/sites/default/files/clink3.wav",
+     "name": "clink3.wav",
+     "bytes": 25644
+    },
+    {
+     "url": "https://opengameart.org/sites/default/files/thud2.wav",
+     "name": "thud2.wav",
+     "bytes": 51244
+    },
+    {
+     "url": "https://opengameart.org/sites/default/files/thud3.wav",
+     "name": "thud3.wav",
+     "bytes": 36908
+    }
+   ]
+  },
+  {
+   "id": "zer0_handgun_reload",
+   "page": "https://opengameart.org/content/handgun-reload-sound-effect",
+   "title": "Handgun Reload Sound Effect",
+   "author": "zer0_sol",
+   "author_url": "https://opengameart.org/users/zer0sol",
+   "licenses_on_page": [
+    "CC0"
+   ],
+   "license": "CC0 1.0",
+   "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "evidence": "License: CC0. Notice: \"No attribution required.\"",
+   "retrieved": "2026-11-02",
+   "files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/reload.wav",
+     "name": "reload.wav",
+     "bytes": 280620
+    }
+   ]
+  },
+  {
+   "id": "zer0_shotgun_reload",
+   "page": "https://opengameart.org/content/shotgun-reload-sound-effects",
+   "title": "Shotgun Reload Sound effects",
+   "author": "zer0_sol",
+   "author_url": "https://opengameart.org/users/zer0sol",
+   "licenses_on_page": [
+    "CC0"
+   ],
+   "license": "CC0 1.0",
+   "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "evidence": "License: CC0. \"Feel free to use these sounds without attribution\"",
+   "retrieved": "2026-11-02",
+   "files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/shotgunsounds.zip",
+     "name": "shotgunsounds.zip",
+     "bytes": 324193
+    }
+   ]
+  },
+  {
+   "id": "springy_reloads",
+   "page": "https://opengameart.org/content/gun-reload-sounds",
+   "title": "Gun reload sounds",
+   "author": "SpringySpringo",
+   "author_url": "https://opengameart.org/users/springyspringo",
+   "licenses_on_page": [
+    "CC0"
+   ],
+   "license": "CC0 1.0",
+   "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "evidence": "License: CC0. Notice: \"Credit isn't required, but appreciated.\"",
+   "retrieved": "2026-11-02",
+   "files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/gunreload1.wav",
+     "name": "gunreload1.wav",
+     "bytes": 278572
+    },
+    {
+     "url": "https://opengameart.org/sites/default/files/assaultriflereload1_0.wav",
+     "name": "assaultriflereload1.wav",
+     "bytes": 274476
+    },
+    {
+     "url": "https://opengameart.org/sites/default/files/shotguncock_0.wav",
+     "name": "shotguncock.wav",
+     "bytes": 83628
+    }
+   ]
+  },
+  {
+   "id": "zl_fleshy",
+   "page": "https://opengameart.org/content/fleshy-bone-breaksnap-sfx",
+   "title": "Fleshy Bone Break/Snap SFX",
+   "author": "Zane Little Music",
+   "author_url": "https://opengameart.org/users/zane-little-music",
+   "licenses_on_page": [
+    "CC0"
+   ],
+   "license": "CC0 1.0",
+   "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "evidence": "License: CC0. \"Feel free to use these however you like\"",
+   "retrieved": "2026-11-02",
+   "files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/wet_breaks.zip",
+     "name": "wet_breaks.zip",
+     "bytes": 2712724
+    }
+   ]
+  },
+  {
+   "id": "qbd_wet_squish",
+   "page": "https://opengameart.org/content/8-wet-squish-slurp-impacts",
+   "title": "8 wet squish, slurp impacts",
+   "author": "qubodup",
+   "author_url": "https://opengameart.org/users/qubodup",
+   "licenses_on_page": [
+    "CC0"
+   ],
+   "license": "CC0 1.0",
+   "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "evidence": "License: CC0. From the Independent.nu Ljudbank, whose rights statement (quoted in the comments) is: free to use in any context without permission or condition.",
+   "retrieved": "2026-11-02",
+   "files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/independent_nu_ljudbank-wet_squish_slurp_impacts.7z",
+     "name": "independent_nu_ljudbank-wet_squish_slurp_impacts.7z",
+     "bytes": 586806
+    }
+   ]
+  },
+  {
+   "id": "qbd_wood_crack",
+   "page": "https://opengameart.org/content/35-wooden-crackshitsdestructions",
+   "title": "35 wooden cracks/hits/destructions",
+   "author": "qubodup",
+   "author_url": "https://opengameart.org/users/qubodup",
+   "licenses_on_page": [
+    "CC0"
+   ],
+   "license": "CC0 1.0",
+   "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "evidence": "License: CC0. From the Independent.nu Ljudbank, whose rights statement (quoted in the comments) is: free to use in any context without permission or condition.",
+   "retrieved": "2026-11-02",
+   "files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/independent_nu_ljudbank-wood_crack_hit_destruction.7z",
+     "name": "independent_nu_ljudbank-wood_crack_hit_destruction.7z",
+     "bytes": 3855318
+    }
+   ]
+  },
+  {
+   "id": "qbd_metal",
+   "page": "https://opengameart.org/content/metal-interactions",
+   "title": "Metal Interactions",
+   "author": "qubodup",
+   "author_url": "https://opengameart.org/users/qubodup",
+   "licenses_on_page": [
+    "CC0"
+   ],
+   "license": "CC0 1.0",
+   "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "evidence": "License: CC0.",
+   "retrieved": "2026-11-02",
+   "files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/metal_interactions.7z",
+     "name": "metal_interactions.7z",
+     "bytes": 166271
+    }
+   ]
+  },
+  {
+   "id": "rd_breaking",
+   "page": "https://opengameart.org/content/75-cc0-breaking-falling-hit-sfx",
+   "title": "75 CC0 breaking / falling / hit sfx",
+   "author": "rubberduck",
+   "author_url": "https://opengameart.org/users/rubberduck",
+   "licenses_on_page": [
+    "CC0"
+   ],
+   "license": "CC0 1.0",
+   "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "evidence": "License: CC0. \"i made 75 breaking, falling and hit sounds\"",
+   "retrieved": "2026-11-02",
+   "files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/sfx_breaking_and_falling.zip",
+     "name": "sfx_breaking_and_falling.zip",
+     "bytes": 1624406
+    }
+   ]
+  },
+  {
+   "id": "rd_metal_wood",
+   "page": "https://opengameart.org/content/100-cc0-metal-and-wood-sfx",
+   "title": "100 CC0 metal and wood SFX",
+   "author": "rubberduck",
+   "author_url": "https://opengameart.org/users/rubberduck",
+   "licenses_on_page": [
+    "CC0"
+   ],
+   "license": "CC0 1.0",
+   "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "evidence": "License: CC0.",
+   "retrieved": "2026-11-02",
+   "files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/100-CC0-wood-metal-SFX.zip",
+     "name": "100-CC0-wood-metal-SFX.zip",
+     "bytes": 1990361
+    }
+   ]
+  },
+  {
+   "id": "rd_100_2",
+   "page": "https://opengameart.org/content/100-cc0-sfx-2",
+   "title": "100 CC0 SFX #2",
+   "author": "rubberduck",
+   "author_url": "https://opengameart.org/users/rubberduck",
+   "licenses_on_page": [
+    "CC0"
+   ],
+   "license": "CC0 1.0",
+   "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "evidence": "License: CC0.",
+   "retrieved": "2026-11-02",
+   "files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/sfx_100_v2.zip",
+     "name": "sfx_100_v2.zip",
+     "bytes": 2367871
+    }
+   ]
+  },
+  {
+   "id": "rd_creature",
+   "page": "https://opengameart.org/content/80-cc0-creature-sfx",
+   "title": "80 CC0 creature SFX",
+   "author": "rubberduck",
+   "author_url": "https://opengameart.org/users/rubberduck",
+   "licenses_on_page": [
+    "CC0"
+   ],
+   "license": "CC0 1.0",
+   "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "evidence": "License: CC0. \"i created 80 creature sound effects\"",
+   "retrieved": "2026-11-02",
+   "files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/80-CC0-creature-SFX_0.zip",
+     "name": "80-CC0-creature-SFX.zip",
+     "bytes": 1885648
+    }
+   ]
+  },
+  {
+   "id": "rd_creature2",
+   "page": "https://opengameart.org/content/80-cc0-creture-sfx-2",
+   "title": "80 CC0 creture SFX #2",
+   "author": "rubberduck",
+   "author_url": "https://opengameart.org/users/rubberduck",
+   "licenses_on_page": [
+    "CC0"
+   ],
+   "license": "CC0 1.0",
+   "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "evidence": "License: CC0.",
+   "retrieved": "2026-11-02",
+   "files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/80-CC0-creature-sfx-2.zip",
+     "name": "80-CC0-creature-sfx-2.zip",
+     "bytes": 1890174
+    }
+   ]
+  },
+  {
+   "id": "rd_bang",
+   "page": "https://opengameart.org/content/25-cc0-bang-firework-sfx",
+   "title": "25 CC0 bang / firework SFX",
+   "author": "rubberduck",
+   "author_url": "https://opengameart.org/users/rubberduck",
+   "licenses_on_page": [
+    "CC0"
+   ],
+   "license": "CC0 1.0",
+   "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "evidence": "License: CC0. \"I recorded 25 bang / firework / cannon / explosions\"",
+   "retrieved": "2026-11-02",
+   "files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/25-CC0-bang-sfx.zip",
+     "name": "25-CC0-bang-sfx.zip",
+     "bytes": 1390498
+    }
+   ]
+  },
+  {
+   "id": "rd_retro",
+   "page": "https://opengameart.org/content/50-cc0-retro-synth-sfx",
+   "title": "50 CC0 retro / synth SFX",
+   "author": "rubberduck",
+   "author_url": "https://opengameart.org/users/rubberduck",
+   "licenses_on_page": [
+    "CC0"
+   ],
+   "license": "CC0 1.0",
+   "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "evidence": "License: CC0. \"All synth effects are made from scratch\"",
+   "retrieved": "2026-11-02",
+   "files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/50-CC0-retro-synth-SFX.zip",
+     "name": "50-CC0-retro-synth-SFX.zip",
+     "bytes": 1938142
+    }
+   ]
+  },
+  {
+   "id": "ad_zombies",
+   "page": "https://opengameart.org/content/zombies-sound-pack",
+   "title": "Zombies Sound Pack",
+   "author": "artisticdude",
+   "author_url": "https://opengameart.org/users/artisticdude",
+   "licenses_on_page": [
+    "CC0"
+   ],
+   "license": "CC0 1.0",
+   "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "evidence": "License: CC0.",
+   "retrieved": "2026-11-02",
+   "files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/zombies.zip",
+     "name": "zombies.zip",
+     "bytes": 4667201
+    }
+   ]
+  },
+  {
+   "id": "dar_zombie_moans",
+   "page": "https://opengameart.org/content/zombie-moans",
+   "title": "Zombie moans",
+   "author": "Darsycho",
+   "author_url": "https://opengameart.org/users/darsycho",
+   "licenses_on_page": [
+    "CC0"
+   ],
+   "license": "CC0 1.0",
+   "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "evidence": "License: CC0. Notice: \"Feel free to use for whatever, credit is appreciated!\"",
+   "retrieved": "2026-11-02",
+   "files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/darsycho__zombie-moans_0.ogg",
+     "name": "darsycho__zombie-moans.ogg",
+     "bytes": 181933
+    }
+   ]
+  },
+  {
+   "id": "dar_hungry_ghoul",
+   "page": "https://opengameart.org/content/hungry-ghoul",
+   "title": "Hungry ghoul",
+   "author": "Darsycho",
+   "author_url": "https://opengameart.org/users/darsycho",
+   "licenses_on_page": [
+    "CC0"
+   ],
+   "license": "CC0 1.0",
+   "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "evidence": "License: CC0. Notice: \"Feel free to use for whatever, credit is appreciated!\"",
+   "retrieved": "2026-11-02",
+   "files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/hungry-ghoul_0.ogg",
+     "name": "hungry-ghoul.ogg",
+     "bytes": 355731
+    }
+   ]
+  },
+  {
+   "id": "dar_troll",
+   "page": "https://opengameart.org/content/big-scary-troll-sounds",
+   "title": "Big scary troll sounds",
+   "author": "Darsycho",
+   "author_url": "https://opengameart.org/users/darsycho",
+   "licenses_on_page": [
+    "CC0"
+   ],
+   "license": "CC0 1.0",
+   "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "evidence": "License: CC0. Notice: \"Feel free to use for whatever, credit is appreciated!\"",
+   "retrieved": "2026-11-02",
+   "files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/troll-roars_0.ogg",
+     "name": "troll-roars.ogg",
+     "bytes": 126464
+    },
+    {
+     "url": "https://opengameart.org/sites/default/files/troll-idle-noises_0.ogg",
+     "name": "troll-idle-noises.ogg",
+     "bytes": 291562
+    }
+   ]
+  },
+  {
+   "id": "emo_zombie_moans",
+   "page": "https://opengameart.org/content/zombie-moans-01-by-emopreben",
+   "title": "Zombie Moans 01 - By EmoPreben",
+   "author": "EmoPreben",
+   "author_url": "https://opengameart.org/users/emopreben",
+   "licenses_on_page": [
+    "CC0"
+   ],
+   "license": "CC0 1.0",
+   "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "evidence": "License: CC0. \"Feel free to do whatever you want with them\"",
+   "retrieved": "2026-11-02",
+   "files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/zombiemoans_-_wav.zip",
+     "name": "zombiemoans_-_wav.zip",
+     "bytes": 732642
+    }
+   ]
+  },
+  {
+   "id": "ian_zombie_noises",
+   "page": "https://opengameart.org/content/zombie-noises-and-moans",
+   "title": "Zombie noises and moans",
+   "author": "ianzazz",
+   "author_url": "https://opengameart.org/users/ianzazz",
+   "licenses_on_page": [
+    "CC0"
+   ],
+   "license": "CC0 1.0",
+   "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "evidence": "License: CC0. \"you are free to use it for whatever\"",
+   "retrieved": "2026-11-02",
+   "files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/zombienoises.zip",
+     "name": "zombienoises.zip",
+     "bytes": 223566
+    }
+   ]
+  },
+  {
+   "id": "antum_undead",
+   "page": "https://opengameart.org/content/undead-moans",
+   "title": "Undead Moans",
+   "author": "AntumDeluge",
+   "author_url": "https://opengameart.org/users/antumdeluge",
+   "licenses_on_page": [
+    "CC0"
+   ],
+   "license": "CC0 1.0",
+   "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "evidence": "License: CC0. \"Licensing: Creative Commons Zero (CC0)\"",
+   "retrieved": "2026-11-02",
+   "files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/undead-moans.zip",
+     "name": "undead-moans.zip",
+     "bytes": 96239
+    }
+   ]
+  },
+  {
+   "id": "arcade_voices",
+   "page": "https://opengameart.org/content/zombie-skeleton-monster-voice-effects",
+   "title": "Zombie / Skeleton / Monster Voice Effects",
+   "author": "ArcadeParty",
+   "author_url": "https://opengameart.org/users/arcadeparty",
+   "licenses_on_page": [
+    "CC0"
+   ],
+   "license": "CC0 1.0",
+   "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "evidence": "License: CC0.",
+   "retrieved": "2026-11-02",
+   "files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/Voice%20Effects%20Zombie-Skeleton-Monster%20Human%20Male.zip",
+     "name": "Voice Effects Zombie-Skeleton-Monster Human Male.zip",
+     "bytes": 2047881
+    }
+   ]
+  },
+  {
+   "id": "ogre_monsters",
+   "page": "https://opengameart.org/content/monster-sound-pack-volume-1",
+   "title": "Monster Sound Pack, Volume 1",
+   "author": "Ogrebane",
+   "author_url": "https://opengameart.org/users/ogrebane",
+   "licenses_on_page": [
+    "CC0"
+   ],
+   "license": "CC0 1.0",
+   "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "evidence": "License: CC0.",
+   "retrieved": "2026-11-02",
+   "files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/monster-sounds-volume-2.zip",
+     "name": "monster-sounds-volume-2.zip",
+     "bytes": 2024392
+    }
+   ]
+  },
+  {
+   "id": "trazzz_roar",
+   "page": "https://opengameart.org/content/cc0-deep-monster-roar",
+   "title": "CC0 Deep Monster Roar",
+   "author": "trazzz123",
+   "author_url": "https://opengameart.org/users/trazzz123",
+   "licenses_on_page": [
+    "CC0"
+   ],
+   "license": "CC0 1.0",
+   "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "evidence": "License: CC0. \"Feel free to use it as you please\"",
+   "retrieved": "2026-11-02",
+   "files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/monster_roar.wav",
+     "name": "monster_roar.wav",
+     "bytes": 1273958
+    }
+   ]
+  },
+  {
+   "id": "stumpy_horn",
+   "page": "https://opengameart.org/content/their-coming-generic-horn-sound",
+   "title": "Their Coming (generic horn sound)",
+   "author": "StumpyStrust",
+   "author_url": "https://opengameart.org/users/stumpystrust",
+   "licenses_on_page": [
+    "CC0"
+   ],
+   "license": "CC0 1.0",
+   "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "evidence": "License: CC0.",
+   "retrieved": "2026-11-02",
+   "files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/theircoming3_0.ogg",
+     "name": "theircoming3.ogg",
+     "bytes": 119570
+    },
+    {
+     "url": "https://opengameart.org/sites/default/files/theircoming_0.ogg",
+     "name": "theircoming.ogg",
+     "bytes": 117400
+    }
+   ]
+  },
+  {
+   "id": "aquinn_sirens",
+   "page": "https://opengameart.org/content/sirens-and-alarm-noise",
+   "title": "Sirens and Alarm Noise",
+   "author": "aquinn",
+   "author_url": "https://opengameart.org/users/aquinn",
+   "licenses_on_page": [
+    "CC0"
+   ],
+   "license": "CC0 1.0",
+   "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "evidence": "License: CC0. The author confirms in the comments that it is their own work.",
+   "retrieved": "2026-11-02",
+   "files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/siren_0.mp3",
+     "name": "siren.mp3",
+     "bytes": 661211
+    }
+   ]
+  },
+  {
+   "id": "yd_short_alarm",
+   "page": "https://opengameart.org/content/short-alarm",
+   "title": "Short alarm",
+   "author": "yd",
+   "author_url": "https://opengameart.org/users/yd",
+   "licenses_on_page": [
+    "CC0"
+   ],
+   "license": "CC0 1.0",
+   "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "evidence": "License: CC0.",
+   "retrieved": "2026-11-02",
+   "files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/alarm_0.ogg",
+     "name": "alarm.ogg",
+     "bytes": 27529
+    }
+   ]
+  },
+  {
+   "id": "bart_workshop",
+   "page": "https://opengameart.org/content/68-workshop-sounds",
+   "title": "68 Workshop Sounds",
+   "author": "bart",
+   "author_url": "https://opengameart.org/users/bart",
+   "licenses_on_page": [
+    "CC0"
+   ],
+   "license": "CC0 1.0",
+   "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "evidence": "License: CC0. \"Recorded in my garage with various tools. Credit appreciated.\"",
+   "retrieved": "2026-11-02",
+   "files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/workshop.7z",
+     "name": "workshop.7z",
+     "bytes": 24571012
+    }
+   ]
+  },
+  {
+   "id": "jj_512",
+   "page": "https://opengameart.org/content/512-sound-effects-8-bit-style",
+   "title": "512 Sound Effects (8-bit style)",
+   "author": "SubspaceAudio",
+   "author_url": "https://opengameart.org/users/subspaceaudio",
+   "licenses_on_page": [
+    "CC0"
+   ],
+   "license": "CC0 1.0",
+   "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "evidence": "License: CC0. Author comment: \"It's CC0 license so you are free to do what ever you like with these sounds.\"",
+   "retrieved": "2026-11-02",
+   "files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/The%20Essential%20Retro%20Video%20Game%20Sound%20Effects%20Collection%20%5B512%20sounds%5D.zip",
+     "name": "The Essential Retro Video Game Sound Effects Collection [512 sounds].zip",
+     "bytes": 20582855
+    }
+   ]
+  },
+  {
+   "id": "mouse_chimey",
+   "page": "https://opengameart.org/content/chimey-ui-sounds",
+   "title": "Chimey UI Sounds",
+   "author": "MouseBYTE",
+   "author_url": "https://opengameart.org/users/mousebyte",
+   "licenses_on_page": [
+    "CC0"
+   ],
+   "license": "CC0 1.0",
+   "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "evidence": "License: CC0. Notice: \"No rights reserved, no credit needed.\"",
+   "retrieved": "2026-11-02",
+   "files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/mousebyte_chimeyui.7z",
+     "name": "mousebyte_chimeyui.7z",
+     "bytes": 382290
+    }
+   ]
+  },
+  {
+   "id": "robin_ui",
+   "page": "https://opengameart.org/content/ui-sound-effects-button-clicks-user-feedback-notifications",
+   "title": "UI Sound Effects (Button Clicks, User Feedback, Notifications)",
+   "author": "Robin Lamb",
+   "author_url": "https://opengameart.org/users/robin-lamb",
+   "licenses_on_page": [
+    "CC0"
+   ],
+   "license": "CC0 1.0",
+   "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "evidence": "License: CC0. Built from the public-domain sample libraries VCSL and VSCO 2 CE.",
+   "retrieved": "2026-11-02",
+   "files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/ui_wav.zip",
+     "name": "ui_wav.zip",
+     "bytes": 1364100
+    }
+   ]
+  },
+  {
+   "id": "wobble_levelup",
+   "page": "https://opengameart.org/content/level-up-power-up-coin-get-13-sounds",
+   "title": "Level up, power up, Coin get (13 Sounds)",
+   "author": "wobbleboxx",
+   "author_url": "https://opengameart.org/users/wobbleboxx",
+   "licenses_on_page": [
+    "CC0"
+   ],
+   "license": "CC0 1.0",
+   "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "evidence": "License: CC0. Notice: \"This pack is released under the public domain CC0 license. If you want to give credit (not required)\"",
+   "retrieved": "2026-11-02",
+   "files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/SoundPack01.zip",
+     "name": "SoundPack01.zip",
+     "bytes": 6780792
+    }
+   ]
+  },
+  {
+   "id": "bobjt_gem",
+   "page": "https://opengameart.org/content/gem-collect-sfx",
+   "title": "Gem collect SFX",
+   "author": "Bobjt",
+   "author_url": "https://opengameart.org/users/bobjt",
+   "licenses_on_page": [
+    "CC0"
+   ],
+   "license": "CC0 1.0",
+   "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "evidence": "License: CC0.",
+   "retrieved": "2026-11-02",
+   "files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/gem-gather-stereo.wav",
+     "name": "gem-gather-stereo.wav",
+     "bytes": 50828
+    },
+    {
+     "url": "https://opengameart.org/sites/default/files/gem-gather-stereo-reverb.wav",
+     "name": "gem-gather-stereo-reverb.wav",
+     "bytes": 398572
+    }
+   ]
+  },
+  {
+   "id": "lokif_gui",
+   "page": "https://opengameart.org/content/gui-sound-effects",
+   "title": "GUI Sound Effects",
+   "author": "LokiF",
+   "author_url": "https://opengameart.org/users/lokif",
+   "licenses_on_page": [
+    "CC0"
+   ],
+   "license": "CC0 1.0",
+   "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "evidence": "License: CC0.",
+   "retrieved": "2026-11-02",
+   "files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/GUI_Sound_Effects_by_Lokif.7z",
+     "name": "GUI_Sound_Effects_by_Lokif.7z",
+     "bytes": 2276118
+    }
+   ]
+  },
+  {
+   "id": "ogre_wood_metal",
+   "page": "https://opengameart.org/content/wood-and-metal-sound-effects-volume-2",
+   "title": "Wood and Metal Sound Effects: Volume 2",
+   "author": "Ogrebane",
+   "author_url": "https://opengameart.org/users/ogrebane",
+   "licenses_on_page": [
+    "CC0"
+   ],
+   "license": "CC0 1.0",
+   "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "evidence": "License: CC0.",
+   "retrieved": "2026-11-02",
+   "files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/wood_and_metal_vol.2_0.zip",
+     "name": "wood_and_metal_vol.2_0.zip",
+     "bytes": 1228961
+    }
+   ]
+  },
+  {
+   "id": "saturn_zomby",
+   "page": "https://opengameart.org/content/zomby-sfx-pack",
+   "title": "Zomby sfx pack",
+   "author": "saturn91",
+   "author_url": "https://opengameart.org/users/saturn91",
+   "licenses_on_page": [
+    "CC0"
+   ],
+   "license": "CC0 1.0",
+   "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "evidence": "License: CC0. Notice: \"free to use with out any credits\"",
+   "retrieved": "2026-11-02",
+   "files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/01_zombey.mp3",
+     "name": "01_zombey.mp3",
+     "bytes": 21811
+    },
+    {
+     "url": "https://opengameart.org/sites/default/files/02_zombey.mp3",
+     "name": "02_zombey.mp3",
+     "bytes": 21126
+    },
+    {
+     "url": "https://opengameart.org/sites/default/files/03_zombey.mp3",
+     "name": "03_zombey.mp3",
+     "bytes": 22827
+    },
+    {
+     "url": "https://opengameart.org/sites/default/files/04_zombey_0.mp3",
+     "name": "04_zombey.mp3",
+     "bytes": 21795
+    },
+    {
+     "url": "https://opengameart.org/sites/default/files/06_zombey.mp3",
+     "name": "06_zombey.mp3",
+     "bytes": 39242
+    },
+    {
+     "url": "https://opengameart.org/sites/default/files/07_zombey.mp3",
+     "name": "07_zombey.mp3",
+     "bytes": 30879
+    }
+   ]
+  },
+  {
+   "id": "rd_rpg",
+   "page": "https://opengameart.org/content/80-cc0-rpg-sfx",
+   "title": "80 CC0 RPG SFX",
+   "author": "rubberduck",
+   "author_url": "https://opengameart.org/users/rubberduck",
+   "licenses_on_page": [
+    "CC0"
+   ],
+   "license": "CC0 1.0",
+   "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "evidence": "License: CC0. \"I created 80 sound effects\"",
+   "retrieved": "2026-11-02",
+   "files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/80-CC0-RPG-SFX_0.zip",
+     "name": "80-CC0-RPG-SFX.zip",
+     "bytes": 1845114
+    }
+   ]
+  },
+  {
+   "id": "joth_ui",
+   "page": "https://opengameart.org/content/7-assorted-sound-effects-menu-level-up",
+   "title": "7 Assorted Sound Effects (Menu, Level Up)",
+   "author": "Joth",
+   "author_url": "https://opengameart.org/users/joth",
+   "licenses_on_page": [
+    "CC0"
+   ],
+   "license": "CC0 1.0",
+   "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "evidence": "License: CC0. Notice: \"Appreciated but not required.\"",
+   "retrieved": "2026-11-02",
+   "files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/UISoundEffects.zip",
+     "name": "UISoundEffects.zip",
+     "bytes": 627912
+    }
+   ]
+  },
+  {
+   "id": "ezd_positive",
+   "page": "https://opengameart.org/content/positive-sound",
+   "title": "Positive Sound",
+   "author": "EZduzziteh",
+   "author_url": "https://opengameart.org/users/ezduzziteh",
+   "licenses_on_page": [
+    "CC0"
+   ],
+   "license": "CC0 1.0",
+   "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "evidence": "License: CC0.",
+   "retrieved": "2026-11-02",
+   "files": [
+    {
+     "url": "https://opengameart.org/sites/default/files/positive_0.ogg",
+     "name": "positive.ogg",
+     "bytes": 32540
+    }
+   ]
+  }
+ ]
+}

@@ -1,9 +1,13 @@
-"""Hand-drawn materials for the base: every texture below is typed in by hand, pixel by pixel.
+"""Hand-drawn materials for the base, in the spirit of Pixel Composer's "Rusted Iron", "Stone Wall" and
+"Barbed Wire" showcases: big readable clusters, 3 to 5 tone ramps, hard steps, no noise, no gradients.
 
-Textures are written in TONES ('1' darkest .. '5' lightest, plus a few named letters) so one drawing
-serves the lit left wall and the shaded right wall: a ramp turns tones into palette colours.
-Face-space textures are drawn flat (u across, v down); the canvas shears them onto the 2-1 walls.
-Light comes from the top-left: tops brightest, left walls lit, right walls in shade.
+Wall textures are drawn flat in FACE SPACE (u across, v down) and sheared onto the 2-1 walls by the
+canvas, so every course and seam follows the iso slant. They are written in TONES ('1' darkest ..
+'4' lightest, 'o' crevice, letters for accents) so one drawing serves the lit left wall and the shaded
+right wall: a ramp turns tones into palette indices.
+
+Nothing is random. Where a wall needs variety (bag lengths, which bag has a tie, where rust bleeds)
+the choices are typed below as sequences and placements.
 """
 import numpy as np
 
@@ -15,402 +19,247 @@ def ramp(**kw):
     return {k: N[v] for k, v in kw.items()}
 
 
-def tex(rows, rmp):
+def paint(rows, rmp):
     return grid(rows, rmp)
 
 
-# ============================================================================ ramps
-# grass on the island top
-G = ramp(D='pine', B='leaf', M='mint', L='sprout', T='pale', Y='moss', O='olive', K='abyss',
-         w='cream', p='salmon', f='white', r='rose')
-
-# soil cliff under the island: same drawing, two ramps
-SOIL_LIT = ramp(o='ink', k='grape', **{'1': 'plum', '2': 'rust', '3': 'copper', '4': 'tan'},
-                a='stone', b='lilac', c='mist', g='pine', G='leaf', h='mint', R='olive', x='soil')
-SOIL_DARK = ramp(o='ink', k='ink', **{'1': 'grape', '2': 'plum', '3': 'rust', '4': 'copper'},
-                 a='slate', b='stone', c='lilac', g='abyss', G='pine', h='leaf', R='soil', x='grape')
-
-# burlap sandbags
-BAG_LIT = ramp(o='grape', **{'1': 'mauve', '2': 'rose', '3': 'beige', '4': 'khaki', '5': 'foam'}, t='plum', s='sand')
-BAG_DARK = ramp(o='ink', **{'1': 'grape', '2': 'mauve', '3': 'rose', '4': 'beige', '5': 'khaki'}, t='grape', s='tan')
-BAG_TOP = ramp(o='grape', **{'1': 'mauve', '2': 'rose', '3': 'beige', '4': 'khaki', '5': 'foam'}, t='plum', s='sand')
-
-# wood
-WOOD_TOP = ramp(g='grape', **{'1': 'plum', '2': 'rust', '3': 'copper', '4': 'tan', '5': 'sand'}, n='slate', m='mist')
-WOOD_LIT = ramp(g='grape', **{'1': 'plum', '2': 'rust', '3': 'copper', '4': 'tan', '5': 'sand'}, n='slate', m='mist')
-WOOD_DARK = ramp(g='ink', **{'1': 'grape', '2': 'plum', '3': 'rust', '4': 'copper', '5': 'tan'}, n='ink', m='lilac')
-
-# corrugated iron with rust
-IRON_LIT = ramp(o='ink', **{'1': 'slate', '2': 'stone', '3': 'lilac', '4': 'mist', '5': 'foam'},
-                q='blood', r='rust', s='copper', t='orange', h='grape')
-IRON_DARK = ramp(o='ink', **{'1': 'ink', '2': 'slate', '3': 'stone', '4': 'lilac', '5': 'mist'},
-                 q='grape', r='blood', s='rust', t='copper', h='ink')
-
-# rubble stone
-STONE_LIT = ramp(m='slate', **{'1': 'stone', '2': 'lilac', '3': 'mist', '4': 'foam'}, o='ink', v='fern', V='sage')
-STONE_DARK = ramp(m='ink', **{'1': 'slate', '2': 'stone', '3': 'lilac', '4': 'mist'}, o='ink', v='char', V='fern')
-
-# blue tarp
-TARP = ramp(o='ink', **{'1': 'navy', '2': 'indigo', '3': 'blue', '4': 'sky', '5': 'cyan'}, r='beige', R='rose')
-
-
-# ============================================================================ grass decals
-# B base, D shade, M mid-light, L light tip, T pale tip, Y dry, w/p/f flowers
-TUFTS = [grid(r, G) for r in (
-    ["L.L",
-     "MLD",
-     ".D."],
-    [".L..L",
-     "LMLMD",
-     ".DMD.",
-     "..D.."],
-    ["..L..",
-     ".LML.",
-     "LMDMD",
-     ".D.D."],
-    ["T....",
-     "ML.L.",
-     ".MLMD",
-     "..DD."],
-    [".L.L.L.",
-     "LMLMLMD",
-     ".DMDMD.",
-     "..D.D.."],
-    ["Y.Y",
-     "YOY",
-     ".O."],
-    ["..Y..",
-     "Y.YY.",
-     "OYOYO",
-     ".O.O."],
-)]
-
-FLOWERS = [grid(r, G) for r in (
-    ["w.",
-     "Dw"],
-    [".f.",
-     "fDf",
-     ".D."],
-    ["p..",
-     "D.p",
-     "..D"],
-)]
-
-# darker and lighter grass clusters (2-1 flattened, clean edges)
-PATCH_DARK = [grid(r, G) for r in (
-    ["....DDDD........",
-     "..DDDDDDDDDD....",
-     "DDDDDDDDDDDDDDD.",
-     ".DDDDDDDDDDDDDDD",
-     "...DDDDDDDDDD...",
-     "......DDDD......"],
-    ["...DDD....",
-     ".DDDDDDDD.",
-     "DDDDDDDDDD",
-     "..DDDDDD..",
-     "....DD...."],
-    [".....DDDDDD.........",
-     "..DDDDDDDDDDDDD.....",
-     "DDDDDDDDDDDDDDDDDD..",
-     ".DDDDDDDDDDDDDDDDDDD",
-     "....DDDDDDDDDDDDDD..",
-     "........DDDDDD......"],
-)]
-PATCH_LIGHT = [grid(r, G) for r in (
-    ["...MMMM.....",
-     ".MMMMMMMMM..",
-     "MMMMMMMMMMMM",
-     "..MMMMMMMM..",
-     ".....MM....."],
-    ["....MMMMM.......",
-     ".MMMMMMMMMMMM...",
-     "MMMMMMMMMMMMMMMM",
-     "..MMMMMMMMMMMM..",
-     "......MMMM......"],
-)]
-
-# ============================================================================ island cliff
-# face-space tiles 25 x 18: grass lip with hanging blades, light topsoil, stones, a wavy darker
-# stratum, roots, and a ragged underside closed by an outline (o). '.' is empty (air).
-SKIRT = [
-    ["GGGhGGGGGGGGhGGGGGGGGhGGG",
-     "GgGGGGgGGGGGGGGgGGGGGGgGG",
-     "g3gg3g33g3gg3g3g33gg3g33g",
-     "3333g233333333323g3333233",
-     "2232222222322222222232222",
-     "222222abc2222222222222222",
-     "22222abbcc222222222abc222",
-     "222222aab2221R22222aab222",
-     "2222221111111R11222222211",
-     "1111111x111111111111111x1",
-     "111x1111111111111x1111111",
-     "1111111R1111111111111x111",
-     "k11111kk1111111k111111kk1",
-     "okkk1kook1111kkokk1kkkoko",
-     ".oookko.okkkkko.okkko.oo.",
-     "...oo....okkko...ooo.....",
-     "..........ooo............",
-     "........................."],
-    ["GGhGGGGGGGhGGGGGGGGhGGGGG",
-     "GGGGgGGGGGGGGgGGGGGGGgGGG",
-     "gg3gg3gg3g3gg3gg3gg3gg33g",
-     "3g323333g33233333g3323333",
-     "2222222222222222222222222",
-     "2222222232222222222abb222",
-     "222abc222222222222abbcb22",
-     "22abbcb222R22222222aabb12",
-     "222aab2222R222111111111112"[:25],
-     "1111111111111111111111111",
-     "111x11111111111111111x111",
-     "11111111111x1111111111111",
-     "11kkk1111111kk111111kkk11",
-     "kkoookkk11kkookk11kkooook",
-     "oo...okkkkkko..okkkko....",
-     ".......ookkoo...ookko....",
-     ".........oo.......oo.....",
-     "........................."],
-    ["GGGGhGGGGGGGGGhGGGGGGGhGG",
-     "GgGGGGGGgGGGGGGGGGgGGGGGG",
-     "g3gg3gg3gg3g3gg3gg3gg3gg3",
-     "333g2333g33323333g3333g33",
-     "2222222222222222222222222",
-     "2222222222222222222222222",
-     "2222222abbb22222222222222",
-     "222222abbcbb2222222R22222",
-     "1122222aabbb1222222R11112",
-     "1111111111111111111111111",
-     "11111x11111111111111x1111",
-     "111111111111x111111111111",
-     "kkk1111kk11111111kk1111kk",
-     "ookkk11kkookk11kkkkokkkoo",
-     "..ookkkkoo.okkkkkoo.oooo.",
-     "....okkko...ookkko.......",
-     ".....ooo......ooo........",
-     "........................."],
-]
+# ============================================================================ ramps (lit / shade)
+BAG = {
+    'lit': ramp(o='mauve', **{'1': 'rose', '2': 'beige', '3': 'khaki', '4': 'foam'}, t='mauve', s='sand'),
+    'shade': ramp(o='grape', **{'1': 'mauve', '2': 'rose', '3': 'beige', '4': 'khaki'}, t='grape', s='tan'),
+    'top': ramp(o='mauve', **{'1': 'beige', '2': 'khaki', '3': 'foam', '4': 'white'}, t='rose', s='sand'),
+}
+WOOD = {
+    'lit': ramp(o='grape', **{'1': 'plum', '2': 'rust', '3': 'copper', '4': 'tan'}, n='mist', k='grape'),
+    'shade': ramp(o='ink', **{'1': 'grape', '2': 'plum', '3': 'rust', '4': 'copper'}, n='lilac', k='ink'),
+    'top': ramp(o='plum', **{'1': 'plum', '2': 'rust', '3': 'copper', '4': 'tan'}, n='mist', k='grape'),
+    # weathered grey boards, for variety on roofs and fences
+    'grey_lit': ramp(o='slate', **{'1': 'stone', '2': 'lilac', '3': 'mist', '4': 'foam'}, n='white', k='slate'),
+    'grey_shade': ramp(o='ink', **{'1': 'slate', '2': 'stone', '3': 'lilac', '4': 'mist'}, n='foam', k='ink'),
+    'grey_top': ramp(o='slate', **{'1': 'stone', '2': 'lilac', '3': 'mist', '4': 'foam'}, n='foam', k='slate'),
+}
+IRON = {
+    'lit': ramp(o='slate', **{'1': 'stone', '2': 'lilac', '3': 'mist', '4': 'foam'},
+                q='blood', r='rust', s='copper', t='tan', h='ink', b='slate'),
+    'shade': ramp(o='ink', **{'1': 'slate', '2': 'stone', '3': 'lilac', '4': 'mist'},
+                  q='plum', r='blood', s='rust', t='copper', h='ink', b='ink'),
+    'top': ramp(o='stone', **{'1': 'lilac', '2': 'mist', '3': 'foam', '4': 'white'},
+                q='rust', r='copper', s='tan', t='sand', h='slate', b='stone'),
+}
+STONE = {
+    'lit': ramp(o='slate', **{'1': 'stone', '2': 'lilac', '3': 'mist', '4': 'foam'}, v='leaf', V='pine'),
+    'shade': ramp(o='ink', **{'1': 'slate', '2': 'stone', '3': 'lilac', '4': 'mist'}, v='pine', V='abyss'),
+}
 
 # ============================================================================ sandbags
-# one bag in face space, 12 x 4, course pitch 4; o = crevice, t = tie, s = spilled sand
-BAGS = [
-    ["o44555555443",
-     "433333333332",
-     "333333333322",
-     "o22222222211"],
-    ["o4455554443o",
-     "43333333332t",
-     "33333333322t",
-     "o22222222211"],
-    ["o44455544443",
-     "433323333332",
-     "33333333s322",
-     "o222222s2211"],
-]
-BAG_W = 12
+# A bag seen from the side is 5 rows tall: a lit upper curve, the body, a shaded belly. It is built
+# from a left cap, body columns and a right cap, so a bag can be any length the course plan asks
+# for. The light comes from the left: the top brightens toward the left third, the right end sinks.
+# '.' in a cap is the crevice between bags (o).
+CAP_L = [".3",
+         "34",
+         "33",
+         "22",
+         ".1"]
+CAP_R = ["2.",
+         "21",
+         "21",
+         "11",
+         "1."]
+CAP_R_TIED = ["t.",      # the tied end: a pinched neck with a tuft
+              "2t",
+              "1t",
+              "1t",
+              "t."]
+BODY = ["4443333333333333",
+        "4333333333333333",
+        "3332222222222222",
+        "2222222222222222",
+        "1111111111111111"]
+BAG_H = 5
 
-# the top of a bag course seen from above (a lumpy strip), drawn along the wall, 3 rows deep
-BAG_TOPS = [
-    [".o44445444o.",
-     "o4555555544o",
-     ".o33333333o."],
-    [".o4445544o..",
-     "o455555554o.",
-     ".o3333333o.."],
+
+def bag(length, tied=False, sag=False, leak=False):
+    """one sandbag, `length` px long (>= 6), in tones"""
+    mid = length - 4
+    rows = []
+    for r in range(BAG_H):
+        b = BODY[r][:mid] if mid <= len(BODY[r]) else BODY[r] + BODY[r][-1] * (mid - len(BODY[r]))
+        rows.append(CAP_L[r] + b + (CAP_R_TIED if tied else CAP_R)[r])
+    if sag:      # the middle settles: the lit curve dips
+        k = 2 + mid // 2
+        rows[0] = rows[0][:k] + '2' + rows[0][k + 1:k + 2] + '2' + rows[0][k + 2:]
+        rows[0] = rows[0][:length]
+    if leak:     # a split seam with a trickle of sand
+        k = 2 + mid // 3
+        rows[3] = rows[3][:k] + 's' + rows[3][k + 1:]
+        rows[4] = rows[4][:k] + 's' + rows[4][k + 1:]
+    return [r.replace('.', 'o') for r in rows]
+
+
+# course plans: each course is a list of (length, flags) read left to right; typed by hand so joints
+# never line up, ties face both ways, and a few bags sag or leak. Flags: t tied, s sag, l leak.
+COURSES = [
+    [(13, ''), (11, 't'), (14, 's'), (12, ''), (13, 't'), (11, ''), (14, 'l'), (12, 't'), (13, ''), (11, 's'),
+     (14, 't'), (12, '')],
+    [(7, ''), (13, 't'), (12, ''), (14, 's'), (11, ''), (13, 't'), (12, 'l'), (14, ''), (11, 't'), (13, ''),
+     (12, 's'), (14, 't')],
+    [(11, 's'), (14, ''), (12, 't'), (13, ''), (11, ''), (14, 't'), (12, 's'), (13, ''), (11, 't'), (14, ''),
+     (12, ''), (13, 'l')],
+    [(5, ''), (12, ''), (14, 't'), (11, 's'), (13, ''), (12, 't'), (14, ''), (11, ''), (13, 'l'), (12, 't'),
+     (14, 's'), (11, '')],
+    [(9, 't'), (13, ''), (12, 's'), (14, ''), (11, 't'), (13, ''), (12, ''), (14, 't'), (11, 'l'), (13, ''),
+     (12, 't'), (14, 's')],
+]
+
+
+def bag_wall(width, height, start=0, shift=0):
+    """face texture (rows x width, tones) of a sandbag wall; courses counted from the bottom.
+    `start` picks which course plan sits at the bottom, `shift` slides all plans (so two walls of the
+    same building do not show the same joints)."""
+    out = [['o'] * width for _ in range(height)]
+    ncourse = (height + BAG_H - 1) // BAG_H
+    for k in range(ncourse):
+        plan = COURSES[(start + k) % len(COURSES)]
+        x = -((shift + 6 * k) % 13)
+        i = 0
+        top = height - BAG_H * (k + 1)
+        while x < width:
+            ln, fl = plan[i % len(plan)]
+            b = bag(ln, tied='t' in fl, sag='s' in fl, leak='l' in fl)
+            if 't' in fl and (i + k) % 2:          # this one is tied at its left end instead
+                b = [r[::-1] for r in bag(ln, tied=True)]
+                b = [('o' + r[1:]) if j in (0, 4) else r for j, r in enumerate(b)]
+            for r in range(BAG_H):
+                y = top + r
+                if not 0 <= y < height:
+                    continue
+                for j, ch in enumerate(b[r]):
+                    if 0 <= x + j < width:
+                        out[y][x + j] = ch
+            x += ln
+            i += 1
+    return [''.join(r) for r in out]
+
+
+# the top of a sandbag course seen from above (parapets): lumpy pillows along the wall, 3 rows deep,
+# light from the left. Read along u, like the side.
+BAG_TOP_PIECES = [
+    [".o3443333o.",
+     "o344333332o",
+     ".o2222221o."],
+    [".o34433o.",
+     "o3443332o",
+     ".o22221o."],
+    [".o344333o..",
+     "o34433332o.",
+     ".o222222o.."],
 ]
 
 # ============================================================================ planks
-# a plank strip: 3 wood rows + 1 gap row (g); n nail, 1/2 grain and knots; drawn long, cut to fit
-PLANKS = [
-    ["4433333333133333333333333333333333433333333333333n33",
-     "3332222223322222222122222222222223322222222222222222",
-     "2222222222222221122222222222222222222222212222222222",
-     "gggggggggggggggggggggggggggggggggggggggggggggggggggg"],
-    ["n3333333333334333333333333333133333333333333333333n3",
-     "3222222222222233222222221222222222222222232222222222",
-     "2222222111222222222222222222222222222122222222222222",
-     "gggggggggggggggggggggggggggggggggggggggggggggggggggg"],
-    ["4333333333333333333333413333333333333333333333333334",
-     "3322222222222222222222222222222222222211222222222233",
-     "2222222222222222221122222222222222222222222222222222",
-     "gggggggggggggggggggggggggggggggggggggggggggggggggggg"],
-    ["3333n33333333333334333333333333333333333n33333333333",
-     "2222222222222221222222222233222222222222222222222122",
-     "2222122222222222222222222222222222222212222222222222",
-     "gggggggggggggggggggggggggggggggggggggggggggggggggggg"],
+# a plank seen from the side (2 rows) or its end grain; and the roof boards seen from above are built
+# in bunker.py from these per-board looks: (ramp, knot positions, nail positions).
+PLANK_SIDE = ["3333333333333333333333333333333333333333333333",
+              "2222221222222222222222222122222222222222222222"]
+END_GRAIN = ["43",
+             "32"]
+
+# ============================================================================ corrugated rusted iron
+# ridges every 3 px along u (crest, flank, trough); rust bleeds down from bolts and the top edge.
+RIDGE = "432"
+
+
+def iron_sheet(width, height, rust=(), holes=(), bolts_v=(1,), bolt_every=9, edge=True):
+    """face texture of one corrugated sheet. rust: list of (u, v, stamp index); holes: (u, v)"""
+    out = [[RIDGE[u % 3] for u in range(width)] for _ in range(height)]
+    if edge:
+        for u in range(width):
+            out[0][u] = '3' if u % 3 != 2 else '2'
+            out[height - 1][u] = '1'
+    for u0, v0, k in rust:
+        st = RUST[k]
+        for j, row in enumerate(st):
+            for i, ch in enumerate(row):
+                if ch != '.' and 0 <= v0 + j < height and 0 <= u0 + i < width:
+                    out[v0 + j][u0 + i] = ch
+    for u, v in holes:
+        if 0 <= v < height and 0 <= u < width:
+            out[v][u] = 'h'
+    for v in bolts_v:
+        for u in range(2, width - 1, bolt_every):
+            if 0 <= v < height:
+                out[v][u] = 'b'
+    return [''.join(r) for r in out]
+
+
+# rust blobs (face space): q darkest pit .. t bright edge. Big clusters, streaks run downward.
+RUST = [
+    ["..ts..",
+     ".tsrr.",
+     "tsrqr.",
+     ".srqrs",
+     "..rqr.",
+     "..sr..",
+     "...r..",
+     "...s.."],
+    [".tts...",
+     "tsrrst.",
+     "srqqrs.",
+     ".rqhqr.",
+     ".srqrrs",
+     "..rrr..",
+     "..sr...",
+     "...r...",
+     "...s..."],
+    ["ts.",
+     "sr.",
+     "rr.",
+     ".r.",
+     ".s."],
+    ["..tsst..",
+     ".tsrrst.",
+     "tsrqqrs.",
+     "srqqqqrt",
+     ".rqqhqr.",
+     ".srqqrs.",
+     "..srrs..",
+     "...sr...",
+     "...r....",
+     "...s...."],
 ]
 
-# ============================================================================ rusted corrugated iron
-# 16 x 12 tile; ridges every 4 px (5 crest, 4 flank, 3 face, 2 trough); rust q/r/s/t; h hole; 1 bolt shade
-IRON = [
-    "5432543254325432",
-    "543254325432543r",
-    "5432543r54325rrs",
-    "5432tsrr5432srqr",
-    "543tsrqrr432rqrq",
-    "54tsrqqr543trrq2",
-    "543srqhr5432rq32",
-    "5432srr25432r432",
-    "5432s4325432r432",
-    "54325432543q5432",
-    "5432543254325432",
-    "1111111111111111",
-]
-IRON_B = [
-    "5432543254325432",
-    "5432543254325432",
-    "54325432543t5432",
-    "5432543254tsr432",
-    "5432s43254srqr32",
-    "543tsr325trqhr32",
-    "54tsrqr25srqrq32",
-    "543rqrr254rqr432",
-    "5432rq3254r43432",
-    "54325q3254325432",
-    "5432543254325432",
-    "1111111111111111",
+# ============================================================================ rubble stone (Stone Wall)
+# courses of rounded stones: light top-left rim (4), body (3,2), shade (1), mortar (o); moss (v)
+STONE_COURSES = [
+    "o4332o433332o44332o4332oo433332o44332o",
+    "o3221o322221o32221o3221oo322221o32221o",
+    "o2211o221111o22111o2211o2221111o22111o",
+    "ooooooooooooooooooooooooooooooooooooooo",
+    "433o44332o4332o443332o4332o4433332o43",
+    "322o32221o3221o322221o3221o3222221o32",
+    "2v1o22211o2211o2V2111o2111o2221111o21",
+    "ooooooooooooooooooooooooooooooooooooo",
 ]
 
-# ============================================================================ rubble stone (face space, 24 x 10)
-STONE = [
-    "m4332m433332m4433m4332mm",
-    "m3222m322221m3222m32211m",
-    "m2221m221111m2211m22211m",
-    "m1111mm11111mm111m11111m",
-    "mmmmmmmmmmmmmmmmmmmmmmmm",
-    "433m443332m4332m443332m4",
-    "222m322221m3221m322221m3",
-    "211m22v211m2111m2V2111m2",
-    "111m111111m1111m111111m1",
-    "mmmmmmmmmmmmmmmmmmmmmmmm",
-]
-STONE_B = [
-    "m4433m43332m443332m4332m",
-    "m3222m32221m322221m3221m",
-    "m2211m2211vm222111m2111m",
-    "m1111m1111mm111111mm111m",
-    "mmmmmmmmmmmmmmmmmmmmmmmm",
-    "4332m443332m4332m4433332",
-    "3221m322221m3221m3222221",
-    "2111m22V211m2111m2221111",
-    "1111m111111m1111m1111111",
-    "mmmmmmmmmmmmmmmmmmmmmmmm",
-]
 
-# ============================================================================ grass tiles
-# vocabulary of small tufts (B base is never written; D shade, M mid, L tip, Y/O dry, w/f/p flowers)
-STAMPS = {
-    't1': ["L.L",
-           ".D."],
-    't2': [".L.",
-           "LMD"],
-    't3': ["L..L",
-           ".LMD",
-           "..D."],
-    't4': ["M.L.M",
-           "DMDMD"],
-    't5': ["..L..",
-           "L.ML.",
-           ".MDMD"],
-    'd1': ["D.D",
-           ".D."],
-    'd2': ["D..D.",
-           ".DD.D"],
-    'y1': ["Y.Y",
-           ".O."],
-    'y2': ["Y..Y",
-           ".YOY",
-           "..O."],
-    'w1': ["w.",
-           "Dw"],
-    'f1': [".f.",
-           "fDf"],
-    'p1': ["p.",
-           ".Dp"],
-}
-STAMP = {k: grid(v, G) for k, v in STAMPS.items()}
+def stone_wall(width, height, shift=0):
+    out = []
+    for v in range(height):
+        row = STONE_COURSES[v % len(STONE_COURSES)]
+        sh = shift + 7 * (v // len(STONE_COURSES))
+        out.append(''.join(row[(u + sh) % len(row)] for u in range(width)))
+    return out
 
-# 32 x 16 diamond cells (8 x 8 steps); stamps at hand-picked spots inside each diamond
-GRASS_TILES = {
-    'A': [('t2', 6, 6), ('t1', 19, 4), ('t3', 13, 10), ('d1', 23, 8)],
-    'B': [('t4', 9, 7), ('w1', 21, 9), ('t1', 16, 3)],
-    'C': [('t1', 5, 7), ('d2', 12, 4), ('t2', 21, 7), ('t1', 14, 11)],
-    'D': [('y2', 11, 5), ('t2', 19, 10), ('y1', 22, 5)],
-    'E': [('t5', 7, 5), ('t1', 22, 6), ('f1', 14, 10), ('d1', 17, 3)],
-    'F': [('t1', 15, 8)],
-    'G': [('d2', 6, 7), ('t3', 17, 5), ('p1', 12, 11), ('t1', 24, 9)],
-    'H': [('t2', 10, 9), ('t5', 18, 4)],
-}
-# which tile sits in each of the 8 x 8 cells (row = cell y from the back, column = cell x)
-GRASS_MAP = [
-    "AEGBDCHA",
-    "CFADEGBE",
-    "GBHCAFDC",
-    "EDAGBHCG",
-    "BCEFDAEB",
-    "HAGCEBGD",
-    "DEBHACFE",
-    "AGCDGEHB",
-]
 
-# ============================================================================ landmarks on the grass
-# o outline, D shade, B base, M mid, L light, plus rock and wood tones
-BUSH = grid([
-    "....oooo....",
-    "..ooLLMMoo..",
-    ".oLLMMMMMDo.",
-    "oLMMMLMMMMDo",
-    "oMMMMMMMDDDo",
-    ".oDMMMDDDDo.",
-    "..ooDDDDoo..",
-    "....oooo....",
-], dict(o=N['abyss'], D=N['pine'], B=N['leaf'], M=N['leaf'], L=N['mint']))
+def face_fn(rows, rmp, ox=0, oy=0):
+    """wrap tone rows into a canvas face callback tex(u, v)"""
+    h = len(rows)
 
-BUSH_SMALL = grid([
-    "..ooo..",
-    ".oLMMo.",
-    "oLMMMDo",
-    "oMMDDDo",
-    ".ooooo.",
-], dict(o=N['abyss'], D=N['pine'], M=N['leaf'], L=N['mint']))
-
-ROCK = grid([
-    "..oooo...",
-    ".o4433o..",
-    "o432221o.",
-    "o3222111o",
-    ".o11111o.",
-    "..ooooo..",
-], dict(o=N['slate'], **{'1': N['stone'], '2': N['lilac'], '3': N['mist'], '4': N['foam']}))
-
-ROCK_SMALL = grid([
-    ".ooo.",
-    "o432o",
-    "o221o",
-    ".ooo.",
-], dict(o=N['slate'], **{'1': N['stone'], '2': N['lilac'], '3': N['mist'], '4': N['foam']}))
-
-STUMP = grid([
-    ".oooooo.",
-    "o433332o",
-    "o3o22o2o",
-    ".o3333o.",
-    ".o3221o.",
-    ".o3221o.",
-    "oo3211oo",
-    ".oooooo.",
-], dict(o=N['grape'], **{'1': N['plum'], '2': N['rust'], '3': N['copper'], '4': N['tan']}))
-
-BONES = grid([
-    "f.f...",
-    ".fff..",
-    "f.f.f.",
-    "....ff",
-], dict(f=N['foam']))
-
-TIRE = grid([
-    "..oooooo..",
-    ".o112211o.",
-    "o11oooo11o",
-    "o1o....o1o",
-    ".oo1111oo.",
-    "...oooo...",
-], dict(o=N['ink'], **{'1': N['slate'], '2': N['stone']}))
+    def f(u, v):
+        u -= ox
+        v -= oy
+        if 0 <= v < h and 0 <= u < len(rows[v]):
+            ch = rows[v][u]
+            return CLEAR if ch == '.' else rmp[ch]
+        return CLEAR
+    return f
