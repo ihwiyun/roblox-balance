@@ -135,7 +135,7 @@
 
 | 만든 파일 | 원본 안의 파일 | 가공 |
 |---|---|---|
-| `candidates/music-ground/bgm_ground_level2.ogg` (1:12.8) | Juhani Junkala [Retro Game Music Pack] Level 2.wav | 음량을 -16 LUFS로 맞춤 (이득 -9.1 dB); OGG Vorbis q3로 변환 |
+| `candidates/music-ground/bgm_ground_level2.ogg` (1:12.8) | Juhani Junkala [Retro Game Music Pack] Level 2.wav | 음량 -16 LUFS로 맞춤; OGG Vorbis로 변환 |
 
 ### Boss Battle Music
 
@@ -148,7 +148,7 @@
 
 | 만든 파일 | 원본 안의 파일 | 가공 |
 |---|---|---|
-| `candidates/music-boss/bgm_boss_epic.ogg` (2:03.4) | Juhani Junkala - Epic Boss Battle [Seamlessly Looping].wav | 음량을 -16 LUFS로 맞춤 (이득 -9.2 dB); OGG Vorbis q3로 변환 |
+| `candidates/music-boss/bgm_boss_epic.ogg` (2:03.4) | Juhani Junkala - Epic Boss Battle [Seamlessly Looping].wav | 음량 -16 LUFS로 맞춤; OGG Vorbis로 변환 |
 
 ### Space Battle
 
@@ -161,7 +161,7 @@
 
 | 만든 파일 | 원본 안의 파일 | 가공 |
 |---|---|---|
-| `candidates/music-ground/bgm_ground_spacebattle.ogg` (1:28.6) | space_battle_bpm130.ogg | 음량을 -16 LUFS로 맞춤 (이득 -4.5 dB); OGG Vorbis q3로 변환 |
+| `candidates/music-ground/bgm_ground_spacebattle.ogg` (1:28.6) | space_battle_bpm130.ogg | 음량 -16 LUFS로 맞춤; OGG Vorbis로 변환 |
 
 ### Post-Apocalyptic Morning, Afternoon and Night
 
@@ -176,8 +176,8 @@
 
 | 만든 파일 | 원본 안의 파일 | 가공 |
 |---|---|---|
-| `candidates/music-shelter/bgm_shelter_afternoon.ogg` (2:15.5) | post-apocalyptic_afternoon_bpm85.ogg | 음량을 -16 LUFS로 맞춤 (이득 -3.2 dB); OGG Vorbis q3로 변환 |
-| `candidates/music-shelter/bgm_shelter_morning.ogg` (2:00.0) | post-apocalyptic_morning_bpm80.ogg | 음량을 -16 LUFS로 맞춤 (이득 -4.2 dB); OGG Vorbis q3로 변환 |
+| `candidates/music-shelter/bgm_shelter_afternoon.ogg` (2:15.5) | post-apocalyptic_afternoon_bpm85.ogg | 음량 -16 LUFS로 맞춤; OGG Vorbis로 변환 |
+| `candidates/music-shelter/bgm_shelter_morning.ogg` (2:00.0) | post-apocalyptic_morning_bpm80.ogg | 음량 -16 LUFS로 맞춤; OGG Vorbis로 변환 |
 
 ### Urban Shop
 
@@ -190,7 +190,7 @@
 
 | 만든 파일 | 원본 안의 파일 | 가공 |
 |---|---|---|
-| `candidates/music-shop/bgm_shop_urbanshop.ogg` (1:23.5) | urban_shop_bpm92.ogg | 음량을 -16 LUFS로 맞춤 (이득 -4.1 dB); OGG Vorbis q3로 변환 |
+| `candidates/music-shop/bgm_shop_urbanshop.ogg` (1:23.5) | urban_shop_bpm92.ogg | 음량 -16 LUFS로 맞춤; OGG Vorbis로 변환 |
 
 ### 8bit Action Jingle & Mini Loop
 
@@ -203,8 +203,8 @@
 
 | 만든 파일 | 원본 안의 파일 | 가공 |
 |---|---|---|
-| `candidates/sting-win/jgl_win_stageclear.ogg` (6.26초) | ogg_8bit Action Jingle & Mini Loop/Stage Clear Long (Jingle).ogg | 앞뒤 무음 0.28초 제거; 20Hz 이하 제거(직류 성분 제거); 음량을 -16 LUFS로 맞춤 (이득 -5.2 dB); OGG Vorbis q4로 변환 |
-| `candidates/sting-fail/jgl_fail_gameover.ogg` (4.37초) | ogg_8bit Action Jingle & Mini Loop/GameOver (Jingle).ogg | 앞뒤 무음 0.44초 제거; 20Hz 이하 제거(직류 성분 제거); 음량을 -16 LUFS로 맞춤 (이득 -8.1 dB); OGG Vorbis q4로 변환 |
+| `candidates/sting-win/jgl_win_stageclear.ogg` (6.26초) | ogg_8bit Action Jingle & Mini Loop/Stage Clear Long (Jingle).ogg | 앞뒤 무음 0.28초 제거; 직류 성분 제거; 음량 -16 LUFS로 맞춤; OGG Vorbis로 변환 |
+| `candidates/sting-fail/jgl_fail_gameover.ogg` (4.37초) | ogg_8bit Action Jingle & Mini Loop/GameOver (Jingle).ogg | 앞뒤 무음 0.44초 제거; 직류 성분 제거; 음량 -16 LUFS로 맞춤; OGG Vorbis로 변환 |
 
 ### Glorious victory fanfare NES
 
@@ -217,7 +217,7 @@
 
 | 만든 파일 | 원본 안의 파일 | 가공 |
 |---|---|---|
-| `candidates/sting-win/jgl_win_nes.ogg` (10.67초) | victory2.ogg | 앞뒤 무음 0.31초 제거; 20Hz 이하 제거(직류 성분 제거); 0.3초 페이드아웃; 음량을 -16 LUFS로 맞춤 (이득 +0.0 dB); OGG Vorbis q4로 변환 |
+| `candidates/sting-win/jgl_win_nes.ogg` (10.67초) | victory2.ogg | 앞뒤 무음 0.31초 제거; 직류 성분 제거; 0.3초 페이드아웃; 음량 -16 LUFS로 맞춤; OGG Vorbis로 변환 |
 
 ### And the winner is
 
@@ -230,7 +230,7 @@
 
 | 만든 파일 | 원본 안의 파일 | 가공 |
 |---|---|---|
-| `candidates/sting-win/jgl_win_winner.ogg` (3.86초) | winneris.ogg | 20Hz 이하 제거(직류 성분 제거); 0.2초 페이드아웃; 음량을 -16 LUFS로 맞춤 (이득 +0.7 dB); OGG Vorbis q4로 변환 |
+| `candidates/sting-win/jgl_win_winner.ogg` (3.86초) | winneris.ogg | 직류 성분 제거; 0.2초 페이드아웃; 음량 -16 LUFS로 맞춤; OGG Vorbis로 변환 |
 
 ### Better luck next time
 
@@ -243,7 +243,7 @@
 
 | 만든 파일 | 원본 안의 파일 | 가공 |
 |---|---|---|
-| `candidates/sting-fail/jgl_fail_betterluck.ogg` (2.91초) | betterluck.ogg | 앞뒤 무음 0.04초 제거; 20Hz 이하 제거(직류 성분 제거); 음량을 -16 LUFS로 맞춤 (이득 +3.8 dB); OGG Vorbis q4로 변환 |
+| `candidates/sting-fail/jgl_fail_betterluck.ogg` (2.91초) | betterluck.ogg | 앞뒤 무음 0.04초 제거; 직류 성분 제거; 음량 -16 LUFS로 맞춤; OGG Vorbis로 변환 |
 
 ### New thing get!
 
@@ -256,7 +256,7 @@
 
 | 만든 파일 | 원본 안의 파일 | 가공 |
 |---|---|---|
-| `candidates/sting-reveal/jgl_reveal_newthing.ogg` (5.34초) | newthingget.ogg | 20Hz 이하 제거(직류 성분 제거); 음량을 -16 LUFS로 맞춤 (이득 +1.8 dB); OGG Vorbis q4로 변환 |
+| `candidates/sting-reveal/jgl_reveal_newthing.ogg` (5.34초) | newthingget.ogg | 직류 성분 제거; 음량 -16 LUFS로 맞춤; OGG Vorbis로 변환 |
 
 ### A surprising twist (NES sting)
 
@@ -269,7 +269,7 @@
 
 | 만든 파일 | 원본 안의 파일 | 가공 |
 |---|---|---|
-| `candidates/sting-reveal/jgl_reveal_twist.ogg` (3.35초) | surprise.ogg | 앞뒤 무음 0.38초 제거; 20Hz 이하 제거(직류 성분 제거); 음량을 -16 LUFS로 맞춤 (이득 +0.9 dB); OGG Vorbis q4로 변환 |
+| `candidates/sting-reveal/jgl_reveal_twist.ogg` (3.35초) | surprise.ogg | 앞뒤 무음 0.38초 제거; 직류 성분 제거; 음량 -16 LUFS로 맞춤; OGG Vorbis로 변환 |
 
 ### 8-bit Danger!! Strong Boss
 
@@ -283,7 +283,7 @@
 
 | 만든 파일 | 원본 안의 파일 | 가공 |
 |---|---|---|
-| `candidates/music-boss/bgm_boss_danger.ogg` (2:13.7) | 8-bit_danger_strong_boss.mp3 | 디코더가 붙인 무음(앞 22ms, 뒤 13ms)을 잘라 반복 틈 제거; 음량을 -16 LUFS로 맞춤 (이득 -4.5 dB); OGG Vorbis q3로 변환 |
+| `candidates/music-boss/bgm_boss_danger.ogg` (2:13.7) | 8-bit_danger_strong_boss.mp3 | 디코더가 붙인 무음(앞 28ms, 뒤 21ms)을 잘라 반복 틈 제거; 음량 -16 LUFS로 맞춤; OGG Vorbis로 변환 |
 
 ### Boss Battle #9 [Metal]
 
@@ -296,7 +296,7 @@
 
 | 만든 파일 | 원본 안의 파일 | 가공 |
 |---|---|---|
-| `candidates/music-boss/bgm_boss_metal9.ogg` (42.48초) | boss_battle_9_metal_loop.wav | 음량을 -16 LUFS로 맞춤 (이득 -8.4 dB); OGG Vorbis q3로 변환 |
+| `candidates/music-boss/bgm_boss_metal9.ogg` (42.48초) | boss_battle_9_metal_loop.wav | 음량 -16 LUFS로 맞춤; OGG Vorbis로 변환 |
 
 ### Final Stand
 
@@ -310,7 +310,7 @@
 
 | 만든 파일 | 원본 안의 파일 | 가공 |
 |---|---|---|
-| `candidates/music-ground/bgm_ground_finalstand.ogg` (1:04.0) | final_stand.wav | 반복 이음새의 딸깍 소리를 없애려고 맨 앞뒤 4ms를 페이드; 음량을 -16 LUFS로 맞춤 (이득 -1.5 dB); OGG Vorbis q3로 변환 |
+| `candidates/music-ground/bgm_ground_finalstand.ogg` (1:04.0) | final_stand.wav | 반복 이음새의 딸깍 소리를 없애려고 맨 앞뒤 4ms를 페이드; 음량 -16 LUFS로 맞춤; OGG Vorbis로 변환 |
 
 ### Hush Hamlet
 
@@ -323,7 +323,7 @@
 
 | 만든 파일 | 원본 안의 파일 | 가공 |
 |---|---|---|
-| `candidates/music-shelter/bgm_shelter_hushhamlet.ogg` (1:36.0) | hush_hamlet_loop.wav | 음량을 -16 LUFS로 맞춤 (이득 +1.3 dB, 피크 리미터 사용); OGG Vorbis q3로 변환 |
+| `candidates/music-shelter/bgm_shelter_hushhamlet.ogg` (1:36.0) | hush_hamlet_loop.wav | 음량 -16 LUFS로 맞춤 (피크 리미터); OGG Vorbis로 변환 |
 
 ### Shopping Time!
 
@@ -337,7 +337,7 @@
 
 | 만든 파일 | 원본 안의 파일 | 가공 |
 |---|---|---|
-| `candidates/music-shop/bgm_shop_shoppingtime.ogg` (1:28.7) | shopping_time_loop.ogg | 음량을 -16 LUFS로 맞춤 (이득 -7.7 dB); OGG Vorbis q3로 변환 |
+| `candidates/music-shop/bgm_shop_shoppingtime.ogg` (1:28.7) | shopping_time_loop.ogg | 음량 -16 LUFS로 맞춤; OGG Vorbis로 변환 |
 
 ### Bossa Nova
 
@@ -350,7 +350,7 @@
 
 | 만든 파일 | 원본 안의 파일 | 가공 |
 |---|---|---|
-| `candidates/music-shop/bgm_shop_bossa.ogg` (59.59초) | 8bit Bossa.mp3 | 디코더가 붙인 무음(앞 4ms, 뒤 21ms)을 잘라 반복 틈 제거; 음량을 -16 LUFS로 맞춤 (이득 +1.7 dB, 피크 리미터 사용); OGG Vorbis q3로 변환 |
+| `candidates/music-shop/bgm_shop_bossa.ogg` (59.55초) | 8bit Bossa.mp3 | 디코더가 붙인 무음(앞 11ms, 뒤 52ms)을 잘라 반복 틈 제거; 음량 -16 LUFS로 맞춤 (피크 리미터); OGG Vorbis로 변환 |
 
 ### Sad game over
 
@@ -364,7 +364,7 @@
 
 | 만든 파일 | 원본 안의 파일 | 가공 |
 |---|---|---|
-| `candidates/sting-fail/jgl_fail_sadpiano.ogg` (10.00초) | sad_game_over.wav | 원본 0.00–11.00초 구간만 사용; 앞뒤 무음 1.00초 제거; 20Hz 이하 제거(직류 성분 제거); 2.0초 페이드아웃; 음량을 -16 LUFS로 맞춤 (이득 -0.6 dB); OGG Vorbis q4로 변환 |
+| `candidates/sting-fail/jgl_fail_sadpiano.ogg` (10.00초) | sad_game_over.wav | 원본 0.00–11.00초 구간만 사용; 앞뒤 무음 1.00초 제거; 직류 성분 제거; 2.0초 페이드아웃; 음량 -16 LUFS로 맞춤; OGG Vorbis로 변환 |
 
 ### Hyper-Ultra-Fanfare
 
@@ -377,7 +377,7 @@
 
 | 만든 파일 | 원본 안의 파일 | 가공 |
 |---|---|---|
-| `candidates/sting-reveal/jgl_reveal_hyper.ogg` (5.17초) | sboe.wav | 앞뒤 무음 0.95초 제거; 20Hz 이하 제거(직류 성분 제거); 0.3초 페이드아웃; 음량을 -16 LUFS로 맞춤 (이득 -5.5 dB); OGG Vorbis q4로 변환 |
+| `candidates/sting-reveal/jgl_reveal_hyper.ogg` (5.17초) | sboe.wav | 앞뒤 무음 0.95초 제거; 직류 성분 제거; 0.3초 페이드아웃; 음량 -16 LUFS로 맞춤; OGG Vorbis로 변환 |
 
 ### The Free Firearm Sound Library
 
@@ -390,18 +390,18 @@
 
 | 만든 파일 | 원본 안의 파일 | 가공 |
 |---|---|---|
-| `candidates/sfx-gun/sfx_gun_pistol_a.ogg` (0.90초) | Prepared SFX Library/1911/A_42P.wav | 파일 안의 소리 2개 중 1번째만 사용; 20Hz 이하 제거(직류 성분 제거); 0.2초 페이드아웃; 모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -4.2 dB); OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 -0.50 dB 조정) |
-| `candidates/sfx-gun/sfx_gun_pistol_b.ogg` (0.69초) | Prepared SFX Library/Walther PPQ/X_39P.wav | 파일 안의 소리 3개 중 1번째만 사용; 앞뒤 무음 0.02초 제거; 20Hz 이하 제거(직류 성분 제거); 0.2초 페이드아웃; 모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 +1.0 dB); OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 +0.20 dB 조정) |
-| `candidates/sfx-gun/sfx_gun_smg_a.ogg` (0.83초) | Prepared SFX Library/PPSh/P_30P.wav | 파일 안의 소리 5개 중 1번째만 사용; 20Hz 이하 제거(직류 성분 제거); 0.2초 페이드아웃; 모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 +0.5 dB); OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 -0.20 dB 조정) |
-| `candidates/sfx-gun/sfx_gun_smg_b.ogg` (0.82초) | Prepared SFX Library/Carl Gustav M45/G_31P.wav | 파일 안의 소리 3개 중 1번째만 사용; 20Hz 이하 제거(직류 성분 제거); 0.2초 페이드아웃; 모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -1.8 dB); OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 -0.20 dB 조정) |
-| `candidates/sfx-gun/sfx_gun_rifle_a.ogg` (0.79초) | Prepared SFX Library/AR-15/D_32P.wav | 파일 안의 소리 2개 중 1번째만 사용; 20Hz 이하 제거(직류 성분 제거); 0.2초 페이드아웃; 모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -3.6 dB); OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 -0.10 dB 조정) |
-| `candidates/sfx-gun/sfx_gun_rifle_b.ogg` (0.84초) | Prepared SFX Library/AK-47/C_28P.wav | 파일 안의 소리 4개 중 1번째만 사용; 20Hz 이하 제거(직류 성분 제거); 0.2초 페이드아웃; 모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -1.6 dB); OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 +0.10 dB 조정) |
-| `candidates/sfx-gun/sfx_gun_shotgun_a.ogg` (0.86초) | Prepared SFX Library/Nova/O_21P.wav | 파일 안의 소리 2개 중 1번째만 사용; 20Hz 이하 제거(직류 성분 제거); 0.2초 페이드아웃; 모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -3.7 dB); OGG Vorbis q4로 변환 |
-| `candidates/sfx-gun/sfx_gun_shotgun_b.ogg` (0.90초) | Prepared SFX Library/Model 12/K_22P.wav | 파일 안의 소리 2개 중 1번째만 사용; 20Hz 이하 제거(직류 성분 제거); 0.2초 페이드아웃; 모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -3.5 dB); OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 -0.10 dB 조정) |
-| `candidates/sfx-gun/sfx_gun_sniper_a.ogg` (1.17초) | Prepared SFX Library/Tikka/W_29P.wav | 파일 안의 소리 2개 중 1번째만 사용; 20Hz 이하 제거(직류 성분 제거); 0.3초 페이드아웃; 모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -0.4 dB); OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 -0.20 dB 조정) |
-| `candidates/sfx-gun/sfx_gun_sniper_b.ogg` (0.56초) | Prepared SFX Library/Mosin Nagant/M_21P.wav | 파일 안의 소리 5개 중 1번째만 사용; 20Hz 이하 제거(직류 성분 제거); 0.2초 페이드아웃; 모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 +0.8 dB); OGG Vorbis q4로 변환 |
-| `candidates/sfx-gun/sfx_gun_mg_a.ogg` (1.58초) | Prepared SFX Library/AK-47/C_27P.wav | 파일 안의 소리 2개 중 1번째만 사용; 20Hz 이하 제거(직류 성분 제거); 0.25초 페이드아웃; 모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -0.6 dB); OGG Vorbis q4로 변환 |
-| `candidates/sfx-gun/sfx_gun_mg_b.ogg` (1.85초) | Prepared SFX Library/PPSh/P_34P.wav | 파일 안의 소리 1개 중 1번째만 사용; 20Hz 이하 제거(직류 성분 제거); 0.25초 페이드아웃; 모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -1.0 dB); OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 +0.10 dB 조정) |
+| `candidates/sfx-gun/sfx_gun_pistol_a.ogg` (0.90초) | Prepared SFX Library/1911/A_42P.wav | 파일 안의 소리 2개 중 1번째만 사용; 직류 성분 제거; 0.2초 페이드아웃; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
+| `candidates/sfx-gun/sfx_gun_pistol_b.ogg` (0.69초) | Prepared SFX Library/Walther PPQ/X_39P.wav | 파일 안의 소리 3개 중 1번째만 사용; 앞뒤 무음 0.02초 제거; 직류 성분 제거; 0.2초 페이드아웃; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
+| `candidates/sfx-gun/sfx_gun_smg_a.ogg` (0.83초) | Prepared SFX Library/PPSh/P_30P.wav | 파일 안의 소리 5개 중 1번째만 사용; 직류 성분 제거; 0.2초 페이드아웃; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
+| `candidates/sfx-gun/sfx_gun_smg_b.ogg` (0.82초) | Prepared SFX Library/Carl Gustav M45/G_31P.wav | 파일 안의 소리 3개 중 1번째만 사용; 직류 성분 제거; 0.2초 페이드아웃; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
+| `candidates/sfx-gun/sfx_gun_rifle_a.ogg` (0.79초) | Prepared SFX Library/AR-15/D_32P.wav | 파일 안의 소리 2개 중 1번째만 사용; 직류 성분 제거; 0.2초 페이드아웃; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
+| `candidates/sfx-gun/sfx_gun_rifle_b.ogg` (0.84초) | Prepared SFX Library/AK-47/C_28P.wav | 파일 안의 소리 4개 중 1번째만 사용; 직류 성분 제거; 0.2초 페이드아웃; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
+| `candidates/sfx-gun/sfx_gun_shotgun_a.ogg` (0.86초) | Prepared SFX Library/Nova/O_21P.wav | 파일 안의 소리 2개 중 1번째만 사용; 직류 성분 제거; 0.2초 페이드아웃; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
+| `candidates/sfx-gun/sfx_gun_shotgun_b.ogg` (0.90초) | Prepared SFX Library/Model 12/K_22P.wav | 파일 안의 소리 2개 중 1번째만 사용; 직류 성분 제거; 0.2초 페이드아웃; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
+| `candidates/sfx-gun/sfx_gun_sniper_a.ogg` (1.17초) | Prepared SFX Library/Tikka/W_29P.wav | 파일 안의 소리 2개 중 1번째만 사용; 직류 성분 제거; 0.3초 페이드아웃; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
+| `candidates/sfx-gun/sfx_gun_sniper_b.ogg` (0.56초) | Prepared SFX Library/Mosin Nagant/M_21P.wav | 파일 안의 소리 5개 중 1번째만 사용; 직류 성분 제거; 0.2초 페이드아웃; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
+| `candidates/sfx-gun/sfx_gun_mg_a.ogg` (1.58초) | Prepared SFX Library/AK-47/C_27P.wav | 파일 안의 소리 2개 중 1번째만 사용; 직류 성분 제거; 0.25초 페이드아웃; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
+| `candidates/sfx-gun/sfx_gun_mg_b.ogg` (1.85초) | Prepared SFX Library/PPSh/P_34P.wav | 파일 안의 소리 1개 중 1번째만 사용; 직류 성분 제거; 0.25초 페이드아웃; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
 
 ### Fire Staff Sound Effects
 
@@ -414,7 +414,7 @@
 
 | 만든 파일 | 원본 안의 파일 | 가공 |
 |---|---|---|
-| `candidates/sfx-gun/sfx_gun_flame_a.ogg` (1.80초) | LEGIT Audio_FIRE STAFF - FREE/Wavs/LEGIT_FIR_Fire_Staff 17-Audio.wav | 원본 0.00–1.80초 구간만 사용; 20Hz 이하 제거(직류 성분 제거); 0.3초 페이드아웃; 모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -4.0 dB); OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 +0.50 dB 조정) |
+| `candidates/sfx-gun/sfx_gun_flame_a.ogg` (1.80초) | LEGIT Audio_FIRE STAFF - FREE/Wavs/LEGIT_FIR_Fire_Staff 17-Audio.wav | 원본 0.00–1.80초 구간만 사용; 직류 성분 제거; 0.3초 페이드아웃; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
 
 ### Electricity Game Sound Pack
 
@@ -427,7 +427,7 @@
 
 | 만든 파일 | 원본 안의 파일 | 가공 |
 |---|---|---|
-| `candidates/sfx-gun/sfx_gun_electric_b.ogg` (1.20초) | hit.wav | 원본 0.00–1.20초 구간만 사용; 20Hz 이하 제거(직류 성분 제거); 0.3초 페이드아웃; 모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -1.8 dB); OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 +0.30 dB 조정) |
+| `candidates/sfx-gun/sfx_gun_electric_b.ogg` (1.20초) | hit.wav | 원본 0.00–1.20초 구간만 사용; 직류 성분 제거; 0.3초 페이드아웃; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
 
 ### Electricity Sound Effects
 
@@ -441,7 +441,7 @@
 
 | 만든 파일 | 원본 안의 파일 | 가공 |
 |---|---|---|
-| `candidates/sfx-gun/sfx_gun_electric_a.ogg` (0.20초) | spark.wav | 앞뒤 무음 0.14초 제거; 20Hz 이하 제거(직류 성분 제거); 모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 +2.0 dB); OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 +0.20 dB 조정) |
+| `candidates/sfx-gun/sfx_gun_electric_a.ogg` (0.20초) | spark.wav | 앞뒤 무음 0.14초 제거; 직류 성분 제거; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
 
 ### Metal Impact Sounds
 
@@ -457,8 +457,8 @@
 
 | 만든 파일 | 원본 안의 파일 | 가공 |
 |---|---|---|
-| `candidates/sfx-reload/sfx_casing_b.ogg` (0.31초) | clink1.wav | 20Hz 이하 제거(직류 성분 제거); 모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 +1.4 dB); OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 -0.20 dB 조정) |
-| `candidates/sfx-impact/sfx_hit_armor_b.ogg` (0.71초) | bing1.wav | 20Hz 이하 제거(직류 성분 제거); 모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -0.9 dB); OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 -0.40 dB 조정) |
+| `candidates/sfx-reload/sfx_casing_b.ogg` (0.31초) | clink1.wav | 직류 성분 제거; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
+| `candidates/sfx-impact/sfx_hit_armor_b.ogg` (0.71초) | bing1.wav | 직류 성분 제거; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
 
 ### Handgun Reload Sound Effect
 
@@ -472,7 +472,7 @@
 
 | 만든 파일 | 원본 안의 파일 | 가공 |
 |---|---|---|
-| `candidates/sfx-reload/sfx_reload_pistol_a.ogg` (1.35초) | reload.wav | 앞뒤 무음 0.24초 제거; 20Hz 이하 제거(직류 성분 제거); 모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -9.4 dB); OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 +0.30 dB 조정) |
+| `candidates/sfx-reload/sfx_reload_pistol_a.ogg` (1.35초) | reload.wav | 앞뒤 무음 0.24초 제거; 직류 성분 제거; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
 
 ### Shotgun Reload Sound effects
 
@@ -485,7 +485,7 @@
 
 | 만든 파일 | 원본 안의 파일 | 가공 |
 |---|---|---|
-| `candidates/sfx-reload/sfx_reload_shotgun_a.ogg` (0.51초) | ShotgunSounds/Rack.mp3 | 앞뒤 무음 0.61초 제거; 20Hz 이하 제거(직류 성분 제거); 모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -7.4 dB); OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 -1.50 dB 조정) |
+| `candidates/sfx-reload/sfx_reload_shotgun_a.ogg` (0.51초) | ShotgunSounds/Rack.mp3 | 앞뒤 무음 0.61초 제거; 직류 성분 제거; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
 
 ### Gun reload sounds
 
@@ -503,9 +503,9 @@
 
 | 만든 파일 | 원본 안의 파일 | 가공 |
 |---|---|---|
-| `candidates/sfx-reload/sfx_reload_pistol_b.ogg` (1.51초) | gunreload1.wav | 앞뒤 무음 0.07초 제거; 20Hz 이하 제거(직류 성분 제거); 모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -7.6 dB); OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 -0.30 dB 조정) |
-| `candidates/sfx-reload/sfx_reload_rifle_a.ogg` (1.41초) | assaultriflereload1.wav | 앞뒤 무음 0.15초 제거; 20Hz 이하 제거(직류 성분 제거); 모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -5.7 dB); OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 -0.80 dB 조정) |
-| `candidates/sfx-reload/sfx_reload_shotgun_b.ogg` (0.43초) | shotguncock.wav | 앞뒤 무음 0.04초 제거; 20Hz 이하 제거(직류 성분 제거); 모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -8.3 dB); OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 -0.40 dB 조정) |
+| `candidates/sfx-reload/sfx_reload_pistol_b.ogg` (1.51초) | gunreload1.wav | 앞뒤 무음 0.07초 제거; 직류 성분 제거; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
+| `candidates/sfx-reload/sfx_reload_rifle_a.ogg` (1.41초) | assaultriflereload1.wav | 앞뒤 무음 0.15초 제거; 직류 성분 제거; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
+| `candidates/sfx-reload/sfx_reload_shotgun_b.ogg` (0.43초) | shotguncock.wav | 앞뒤 무음 0.04초 제거; 직류 성분 제거; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
 
 ### Fleshy Bone Break/Snap SFX
 
@@ -518,7 +518,7 @@
 
 | 만든 파일 | 원본 안의 파일 | 가공 |
 |---|---|---|
-| `candidates/sfx-impact/sfx_hit_flesh_b.ogg` (0.48초) | Wet Break 9.wav | 앞뒤 무음 0.07초 제거; 20Hz 이하 제거(직류 성분 제거); 모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -4.5 dB); OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 +0.20 dB 조정) |
+| `candidates/sfx-impact/sfx_hit_flesh_b.ogg` (0.48초) | Wet Break 9.wav | 앞뒤 무음 0.07초 제거; 직류 성분 제거; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
 
 ### 8 wet squish, slurp impacts
 
@@ -531,7 +531,7 @@
 
 | 만든 파일 | 원본 안의 파일 | 가공 |
 |---|---|---|
-| `candidates/sfx-impact/sfx_hit_flesh_a.ogg` (0.48초) | impsplat/impactsplat07.mp3.flac | 앞뒤 무음 0.04초 제거; 20Hz 이하 제거(직류 성분 제거); 모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -2.8 dB); OGG Vorbis q4로 변환 |
+| `candidates/sfx-impact/sfx_hit_flesh_a.ogg` (0.48초) | impsplat/impactsplat07.mp3.flac | 앞뒤 무음 0.04초 제거; 직류 성분 제거; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
 
 ### 35 wooden cracks/hits/destructions
 
@@ -544,7 +544,7 @@
 
 | 만든 파일 | 원본 안의 파일 | 가공 |
 |---|---|---|
-| `candidates/sfx-base/sfx_fence_break_b.ogg` (1.65초) | wood_impact/crack01.mp3.flac | 원본 0.00–1.90초 구간만 사용; 앞뒤 무음 0.25초 제거; 20Hz 이하 제거(직류 성분 제거); 0.3초 페이드아웃; 모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -3.6 dB); OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 -0.60 dB 조정) |
+| `candidates/sfx-base/sfx_fence_break_b.ogg` (1.65초) | wood_impact/crack01.mp3.flac | 원본 0.00–1.90초 구간만 사용; 앞뒤 무음 0.25초 제거; 직류 성분 제거; 0.3초 페이드아웃; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
 
 ### 75 CC0 breaking / falling / hit sfx
 
@@ -557,9 +557,9 @@
 
 | 만든 파일 | 원본 안의 파일 | 가공 |
 |---|---|---|
-| `candidates/sfx-impact/sfx_hit_wall_a.ogg` (0.12초) | bfh1_hit_05.ogg | 앞뒤 무음 0.16초 제거; 20Hz 이하 제거(직류 성분 제거); 모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -1.9 dB); OGG Vorbis q4로 변환 |
-| `candidates/sfx-impact/sfx_hit_wall_b.ogg` (0.23초) | bfh1_hit_10.ogg | 앞뒤 무음 0.07초 제거; 20Hz 이하 제거(직류 성분 제거); 모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -2.6 dB); OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 -0.10 dB 조정) |
-| `candidates/sfx-base/sfx_fence_break_a.ogg` (1.01초) | bfh1_breaking_01.ogg | 앞뒤 무음 0.05초 제거; 20Hz 이하 제거(직류 성분 제거); 모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -1.8 dB); OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 +0.40 dB 조정) |
+| `candidates/sfx-impact/sfx_hit_wall_a.ogg` (0.12초) | bfh1_hit_05.ogg | 앞뒤 무음 0.16초 제거; 직류 성분 제거; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
+| `candidates/sfx-impact/sfx_hit_wall_b.ogg` (0.23초) | bfh1_hit_10.ogg | 앞뒤 무음 0.07초 제거; 직류 성분 제거; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
+| `candidates/sfx-base/sfx_fence_break_a.ogg` (1.01초) | bfh1_breaking_01.ogg | 앞뒤 무음 0.05초 제거; 직류 성분 제거; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
 
 ### 100 CC0 metal and wood SFX
 
@@ -572,10 +572,10 @@
 
 | 만든 파일 | 원본 안의 파일 | 가공 |
 |---|---|---|
-| `candidates/sfx-impact/sfx_hit_armor_a.ogg` (0.35초) | metal_hit_02.ogg | 앞뒤 무음 0.08초 제거; 20Hz 이하 제거(직류 성분 제거); 모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -4.1 dB); OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 -0.50 dB 조정) |
-| `candidates/sfx-base/sfx_fence_hit_a.ogg` (0.43초) | wood_slam_02.ogg | 앞뒤 무음 0.05초 제거; 20Hz 이하 제거(직류 성분 제거); 모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -2.8 dB); OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 +0.20 dB 조정) |
-| `candidates/sfx-base/sfx_fence_hit_b.ogg` (0.43초) | metal_slam_01.ogg | 앞뒤 무음 0.14초 제거; 20Hz 이하 제거(직류 성분 제거); 모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -4.1 dB); OGG Vorbis q4로 변환 |
-| `candidates/sfx-base/sfx_repair_c.ogg` (0.30초) | hammer_01.ogg | 앞뒤 무음 0.20초 제거; 20Hz 이하 제거(직류 성분 제거); 모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -4.1 dB); OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 -0.10 dB 조정) |
+| `candidates/sfx-impact/sfx_hit_armor_a.ogg` (0.35초) | metal_hit_02.ogg | 앞뒤 무음 0.08초 제거; 직류 성분 제거; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
+| `candidates/sfx-base/sfx_fence_hit_a.ogg` (0.43초) | wood_slam_02.ogg | 앞뒤 무음 0.05초 제거; 직류 성분 제거; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
+| `candidates/sfx-base/sfx_fence_hit_b.ogg` (0.43초) | metal_slam_01.ogg | 앞뒤 무음 0.14초 제거; 직류 성분 제거; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
+| `candidates/sfx-base/sfx_repair_c.ogg` (0.30초) | hammer_01.ogg | 앞뒤 무음 0.20초 제거; 직류 성분 제거; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
 
 ### 80 CC0 creture SFX #2
 
@@ -588,7 +588,7 @@
 
 | 만든 파일 | 원본 안의 파일 | 가공 |
 |---|---|---|
-| `candidates/sfx-boss/sfx_boss_stomp_b.ogg` (0.45초) | stomp_01.ogg | 앞뒤 무음 0.01초 제거; 20Hz 이하 제거(직류 성분 제거); 모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -2.7 dB); OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 -0.10 dB 조정) |
+| `candidates/sfx-boss/sfx_boss_stomp_b.ogg` (0.45초) | stomp_01.ogg | 앞뒤 무음 0.01초 제거; 직류 성분 제거; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
 
 ### Zombies Sound Pack
 
@@ -601,7 +601,7 @@
 
 | 만든 파일 | 원본 안의 파일 | 가공 |
 |---|---|---|
-| `candidates/sfx-zombie/sfx_zombie_groan_2.ogg` (1.54초) | zombies/zombie-17.wav | 앞뒤 무음 0.04초 제거; 20Hz 이하 제거(직류 성분 제거); 0.25초 페이드아웃; 모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -3.7 dB); OGG Vorbis q4로 변환 |
+| `candidates/sfx-zombie/sfx_zombie_groan_2.ogg` (1.54초) | zombies/zombie-17.wav | 앞뒤 무음 0.04초 제거; 직류 성분 제거; 0.25초 페이드아웃; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
 
 ### Zombie moans
 
@@ -615,8 +615,8 @@
 
 | 만든 파일 | 원본 안의 파일 | 가공 |
 |---|---|---|
-| `candidates/sfx-zombie/sfx_zombie_groan_3.ogg` (3.14초) | darsycho__zombie-moans.ogg | 파일 안의 소리 5개 중 1번째만 사용; 20Hz 이하 제거(직류 성분 제거); 0.3초 페이드아웃; 모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -2.5 dB); OGG Vorbis q4로 변환 |
-| `candidates/sfx-zombie/sfx_zombie_groan_6.ogg` (2.71초) | darsycho__zombie-moans.ogg | 원본 6.50–9.22초 구간만 사용; 20Hz 이하 제거(직류 성분 제거); 0.3초 페이드아웃; 모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 +2.9 dB); OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 +0.10 dB 조정) |
+| `candidates/sfx-zombie/sfx_zombie_groan_3.ogg` (3.14초) | darsycho__zombie-moans.ogg | 파일 안의 소리 5개 중 1번째만 사용; 직류 성분 제거; 0.3초 페이드아웃; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
+| `candidates/sfx-zombie/sfx_zombie_groan_6.ogg` (2.71초) | darsycho__zombie-moans.ogg | 원본 6.50–9.22초 구간만 사용; 직류 성분 제거; 0.3초 페이드아웃; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
 
 ### Big scary troll sounds
 
@@ -630,7 +630,7 @@
 
 | 만든 파일 | 원본 안의 파일 | 가공 |
 |---|---|---|
-| `candidates/sfx-boss/sfx_boss_roar_a.ogg` (1.76초) | troll-roars.ogg | 파일 안의 소리 6개 중 5번째만 사용; 20Hz 이하 제거(직류 성분 제거); 0.2초 페이드아웃; 모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 +0.2 dB); OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 -0.30 dB 조정) |
+| `candidates/sfx-boss/sfx_boss_roar_a.ogg` (1.76초) | troll-roars.ogg | 파일 안의 소리 6개 중 5번째만 사용; 직류 성분 제거; 0.2초 페이드아웃; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
 
 ### Zombie Moans 01 - By EmoPreben
 
@@ -643,7 +643,7 @@
 
 | 만든 파일 | 원본 안의 파일 | 가공 |
 |---|---|---|
-| `candidates/sfx-zombie/sfx_zombie_groan_1.ogg` (2.13초) | ZombieMoans - Track 5 - ZombieMoan1.wav | 20Hz 이하 제거(직류 성분 제거); 0.25초 페이드아웃; 모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 +3.2 dB); OGG Vorbis q4로 변환 |
+| `candidates/sfx-zombie/sfx_zombie_groan_1.ogg` (2.13초) | ZombieMoans - Track 5 - ZombieMoan1.wav | 직류 성분 제거; 0.25초 페이드아웃; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
 
 ### Zombie noises and moans
 
@@ -656,7 +656,7 @@
 
 | 만든 파일 | 원본 안의 파일 | 가공 |
 |---|---|---|
-| `candidates/sfx-zombie/sfx_zombie_groan_5.ogg` (2.12초) | zombienoise1.ogg | 20Hz 이하 제거(직류 성분 제거); 0.3초 페이드아웃; 모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 +16.8 dB); OGG Vorbis q4로 변환 |
+| `candidates/sfx-zombie/sfx_zombie_groan_5.ogg` (2.12초) | zombienoise1.ogg | 직류 성분 제거; 0.3초 페이드아웃; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
 
 ### Undead Moans
 
@@ -669,7 +669,7 @@
 
 | 만든 파일 | 원본 안의 파일 | 가공 |
 |---|---|---|
-| `candidates/sfx-zombie/sfx_zombie_groan_4.ogg` (1.84초) | undead-2.ogg | 원본 0.00–1.84초 구간만 사용; 20Hz 이하 제거(직류 성분 제거); 0.25초 페이드아웃; 모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 +9.2 dB); OGG Vorbis q4로 변환 |
+| `candidates/sfx-zombie/sfx_zombie_groan_4.ogg` (1.84초) | undead-2.ogg | 원본 0.00–1.84초 구간만 사용; 직류 성분 제거; 0.25초 페이드아웃; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
 
 ### Zombie / Skeleton / Monster Voice Effects
 
@@ -682,10 +682,10 @@
 
 | 만든 파일 | 원본 안의 파일 | 가공 |
 |---|---|---|
-| `candidates/sfx-zombie/sfx_zombie_death_1.ogg` (0.64초) | Voice Effects Zombie-Skeleton-Monster Human Male/zombieDeath1.wav | 20Hz 이하 제거(직류 성분 제거); 0.08초 페이드아웃; 모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 +6.4 dB); OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 +0.20 dB 조정) |
-| `candidates/sfx-zombie/sfx_zombie_death_2.ogg` (0.62초) | Voice Effects Zombie-Skeleton-Monster Human Male/zombieDeath2.wav | 20Hz 이하 제거(직류 성분 제거); 0.08초 페이드아웃; 모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 +1.5 dB); OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 +0.10 dB 조정) |
-| `candidates/sfx-zombie/sfx_zombie_death_3.ogg` (0.81초) | Voice Effects Zombie-Skeleton-Monster Human Male/zombieDeath3.wav | 20Hz 이하 제거(직류 성분 제거); 0.08초 페이드아웃; 모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 +4.5 dB); OGG Vorbis q4로 변환 |
-| `candidates/sfx-zombie/sfx_zombie_death_4.ogg` (0.76초) | Voice Effects Zombie-Skeleton-Monster Human Male/zombieDeath4.wav | 앞뒤 무음 0.01초 제거; 20Hz 이하 제거(직류 성분 제거); 0.08초 페이드아웃; 모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 +2.0 dB); OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 +0.60 dB 조정) |
+| `candidates/sfx-zombie/sfx_zombie_death_1.ogg` (0.64초) | Voice Effects Zombie-Skeleton-Monster Human Male/zombieDeath1.wav | 직류 성분 제거; 0.08초 페이드아웃; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
+| `candidates/sfx-zombie/sfx_zombie_death_2.ogg` (0.62초) | Voice Effects Zombie-Skeleton-Monster Human Male/zombieDeath2.wav | 직류 성분 제거; 0.08초 페이드아웃; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
+| `candidates/sfx-zombie/sfx_zombie_death_3.ogg` (0.81초) | Voice Effects Zombie-Skeleton-Monster Human Male/zombieDeath3.wav | 직류 성분 제거; 0.08초 페이드아웃; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
+| `candidates/sfx-zombie/sfx_zombie_death_4.ogg` (0.76초) | Voice Effects Zombie-Skeleton-Monster Human Male/zombieDeath4.wav | 앞뒤 무음 0.01초 제거; 직류 성분 제거; 0.08초 페이드아웃; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
 
 ### Monster Sound Pack, Volume 1
 
@@ -698,7 +698,7 @@
 
 | 만든 파일 | 원본 안의 파일 | 가공 |
 |---|---|---|
-| `candidates/sfx-boss/sfx_boss_roar_b.ogg` (1.11초) | Monster-Sounds-Volume-2/Monster-2.wav | ffmpeg 필터 적용: asetrate=33075,aresample=44100; 앞뒤 무음 0.06초 제거; 20Hz 이하 제거(직류 성분 제거); 0.2초 페이드아웃; 모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -2.8 dB); OGG Vorbis q4로 변환 |
+| `candidates/sfx-boss/sfx_boss_roar_b.ogg` (1.11초) | Monster-Sounds-Volume-2/Monster-2.wav | ffmpeg 필터 적용: asetrate=33075,aresample=44100; 앞뒤 무음 0.06초 제거; 직류 성분 제거; 0.2초 페이드아웃; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
 
 ### CC0 Deep Monster Roar
 
@@ -711,7 +711,7 @@
 
 | 만든 파일 | 원본 안의 파일 | 가공 |
 |---|---|---|
-| `candidates/sfx-boss/sfx_boss_roar_c.ogg` (3.89초) | monster_roar.wav | 원본 0.00–4.00초 구간만 사용; 앞뒤 무음 0.11초 제거; 20Hz 이하 제거(직류 성분 제거); 1.2초 페이드아웃; 모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -2.6 dB); OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 +0.20 dB 조정) |
+| `candidates/sfx-boss/sfx_boss_roar_c.ogg` (3.89초) | monster_roar.wav | 원본 0.00–4.00초 구간만 사용; 앞뒤 무음 0.11초 제거; 직류 성분 제거; 1.2초 페이드아웃; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
 
 ### Their Coming (generic horn sound)
 
@@ -725,7 +725,7 @@
 
 | 만든 파일 | 원본 안의 파일 | 가공 |
 |---|---|---|
-| `candidates/sfx-misc/sfx_raid_b.ogg` (4.95초) | theircoming3.ogg | 원본 0.00–4.95초 구간만 사용; 20Hz 이하 제거(직류 성분 제거); 0.5초 페이드아웃; 모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 +1.3 dB); OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 -0.45 dB 조정) |
+| `candidates/sfx-misc/sfx_raid_b.ogg` (4.95초) | theircoming3.ogg | 원본 0.00–4.95초 구간만 사용; 직류 성분 제거; 0.5초 페이드아웃; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
 
 ### Sirens and Alarm Noise
 
@@ -738,7 +738,7 @@
 
 | 만든 파일 | 원본 안의 파일 | 가공 |
 |---|---|---|
-| `candidates/sfx-misc/sfx_raid_c.ogg` (2.46초) | siren.mp3 | 원본 0.00–2.60초 구간만 사용; 앞뒤 무음 0.14초 제거; 20Hz 이하 제거(직류 성분 제거); 0.4초 페이드아웃; 모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 +3.3 dB); OGG Vorbis q4로 변환 |
+| `candidates/sfx-misc/sfx_raid_c.ogg` (2.46초) | siren.mp3 | 원본 0.00–2.60초 구간만 사용; 앞뒤 무음 0.14초 제거; 직류 성분 제거; 0.4초 페이드아웃; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
 
 ### Short alarm
 
@@ -751,7 +751,7 @@
 
 | 만든 파일 | 원본 안의 파일 | 가공 |
 |---|---|---|
-| `candidates/sfx-ui/sfx_ui_warning_b.ogg` (1.46초) | alarm.ogg | 앞뒤 무음 0.25초 제거; 20Hz 이하 제거(직류 성분 제거); 모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -1.9 dB); OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 -0.10 dB 조정) |
+| `candidates/sfx-ui/sfx_ui_warning_b.ogg` (1.46초) | alarm.ogg | 앞뒤 무음 0.25초 제거; 직류 성분 제거; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
 
 ### 68 Workshop Sounds
 
@@ -764,12 +764,12 @@
 
 | 만든 파일 | 원본 안의 파일 | 가공 |
 |---|---|---|
-| `candidates/sfx-boss/sfx_boss_stomp_a.ogg` (0.61초) | workshop/workshop - wood on wood thuds.wav | 파일 안의 소리 13개 중 1번째만 사용; 20Hz 이하 제거(직류 성분 제거); 0.15초 페이드아웃; 모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 +2.6 dB); OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 -0.10 dB 조정) |
-| `candidates/sfx-base/sfx_repair_a.ogg` (1.59초) | workshop/workshop - metal hammering 3.wav | 원본 0.00–1.70초 구간만 사용; 앞뒤 무음 0.11초 제거; 20Hz 이하 제거(직류 성분 제거); 0.06초 페이드아웃; 모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 +7.5 dB); OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 +0.10 dB 조정) |
-| `candidates/sfx-base/sfx_repair_b.ogg` (1.24초) | workshop/workshop - wood hammering.wav | 원본 0.00–1.45초 구간만 사용; 앞뒤 무음 0.21초 제거; 20Hz 이하 제거(직류 성분 제거); 0.06초 페이드아웃; 모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -3.6 dB); OGG Vorbis q4로 변환 |
-| `candidates/sfx-base/sfx_build_a.ogg` (1.90초) | workshop/workshop - drill short 1.wav | 20Hz 이하 제거(직류 성분 제거); 모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 +18.3 dB); OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 -0.10 dB 조정) |
-| `candidates/sfx-base/sfx_build_b.ogg` (2.39초) | workshop/workshop - drill2.wav | 원본 0.00–2.60초 구간만 사용; 앞뒤 무음 0.21초 제거; 20Hz 이하 제거(직류 성분 제거); 0.3초 페이드아웃; 모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 +0.8 dB); OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 +0.30 dB 조정) |
-| `candidates/sfx-gacha/sfx_gacha_roll_b.ogg` (1.82초) | workshop/workshop - ratchet2.wav | 원본 0.00–1.90초 구간만 사용; 앞뒤 무음 0.08초 제거; 20Hz 이하 제거(직류 성분 제거); 0.2초 페이드아웃; 모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 +8.3 dB); OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 +0.15 dB 조정) |
+| `candidates/sfx-boss/sfx_boss_stomp_a.ogg` (0.53초) | workshop/workshop - wood on wood thuds.wav | 파일 안의 소리 13개 중 2번째만 사용; 직류 성분 제거; 0.15초 페이드아웃; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
+| `candidates/sfx-base/sfx_repair_a.ogg` (1.59초) | workshop/workshop - metal hammering 3.wav | 원본 0.00–1.70초 구간만 사용; 앞뒤 무음 0.11초 제거; 직류 성분 제거; 0.06초 페이드아웃; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
+| `candidates/sfx-base/sfx_repair_b.ogg` (1.24초) | workshop/workshop - wood hammering.wav | 원본 0.00–1.45초 구간만 사용; 앞뒤 무음 0.21초 제거; 직류 성분 제거; 0.06초 페이드아웃; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
+| `candidates/sfx-base/sfx_build_a.ogg` (1.90초) | workshop/workshop - drill short 1.wav | 직류 성분 제거; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
+| `candidates/sfx-base/sfx_build_b.ogg` (2.39초) | workshop/workshop - drill2.wav | 원본 0.00–2.60초 구간만 사용; 앞뒤 무음 0.21초 제거; 직류 성분 제거; 0.3초 페이드아웃; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
+| `candidates/sfx-gacha/sfx_gacha_roll_b.ogg` (1.82초) | workshop/workshop - ratchet2.wav | 원본 0.00–1.90초 구간만 사용; 앞뒤 무음 0.08초 제거; 직류 성분 제거; 0.2초 페이드아웃; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
 
 ### Chimey UI Sounds
 
@@ -783,7 +783,7 @@
 
 | 만든 파일 | 원본 안의 파일 | 가공 |
 |---|---|---|
-| `candidates/sfx-ui/sfx_ui_levelup_b.ogg` (1.62초) | Chime_LevelUp.mp3 | 앞뒤 무음 0.16초 제거; 20Hz 이하 제거(직류 성분 제거); 모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 +0.5 dB); OGG Vorbis q4로 변환 |
+| `candidates/sfx-ui/sfx_ui_levelup_b.ogg` (1.62초) | Chime_LevelUp.mp3 | 앞뒤 무음 0.16초 제거; 직류 성분 제거; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
 
 ### UI Sound Effects (Button Clicks, User Feedback, Notifications)
 
@@ -797,9 +797,9 @@
 
 | 만든 파일 | 원본 안의 파일 | 가공 |
 |---|---|---|
-| `candidates/sfx-ui/sfx_ui_button_b.ogg` (0.20초) | ui_wav/click_3.wav | 앞뒤 무음 0.01초 제거; 20Hz 이하 제거(직류 성분 제거); 모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -0.4 dB); OGG Vorbis q4로 변환 |
-| `candidates/sfx-ui/sfx_ui_tab_b.ogg` (0.22초) | ui_wav/click_2.wav | 20Hz 이하 제거(직류 성분 제거); 모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 +3.3 dB); OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 +0.10 dB 조정) |
-| `candidates/sfx-ui/sfx_ui_notify_b.ogg` (0.65초) | ui_wav/Ding.wav | 앞뒤 무음 0.35초 제거; 20Hz 이하 제거(직류 성분 제거); 모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -0.9 dB); OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 -0.50 dB 조정) |
+| `candidates/sfx-ui/sfx_ui_button_b.ogg` (0.20초) | ui_wav/click_3.wav | 앞뒤 무음 0.01초 제거; 직류 성분 제거; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
+| `candidates/sfx-ui/sfx_ui_tab_b.ogg` (0.22초) | ui_wav/click_2.wav | 직류 성분 제거; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
+| `candidates/sfx-ui/sfx_ui_notify_b.ogg` (0.65초) | ui_wav/Ding.wav | 앞뒤 무음 0.35초 제거; 직류 성분 제거; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
 
 ### Level up, power up, Coin get (13 Sounds)
 
@@ -813,7 +813,7 @@
 
 | 만든 파일 | 원본 안의 파일 | 가공 |
 |---|---|---|
-| `candidates/sfx-base/sfx_breakthrough_b.ogg` (2.32초) | Rise05.aif | 원본 0.00–3.00초 구간만 사용; 앞뒤 무음 0.68초 제거; 20Hz 이하 제거(직류 성분 제거); 0.5초 페이드아웃; 모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 +9.8 dB); OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 -0.20 dB 조정) |
+| `candidates/sfx-base/sfx_breakthrough_b.ogg` (2.32초) | Rise05.aif | 원본 0.00–3.00초 구간만 사용; 앞뒤 무음 0.68초 제거; 직류 성분 제거; 0.5초 페이드아웃; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
 
 ### Gem collect SFX
 
@@ -826,7 +826,7 @@
 
 | 만든 파일 | 원본 안의 파일 | 가공 |
 |---|---|---|
-| `candidates/sfx-misc/sfx_relic_b.ogg` (1.00초) | gem-gather-stereo-reverb.wav | 앞뒤 무음 0.50초 제거; 20Hz 이하 제거(직류 성분 제거); 모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 +10.5 dB); OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 -0.70 dB 조정) |
+| `candidates/sfx-misc/sfx_relic_b.ogg` (1.00초) | gem-gather-stereo-reverb.wav | 앞뒤 무음 0.50초 제거; 직류 성분 제거; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
 
 ### 80 CC0 RPG SFX
 
@@ -839,7 +839,7 @@
 
 | 만든 파일 | 원본 안의 파일 | 가공 |
 |---|---|---|
-| `candidates/sfx-ui/sfx_ui_purchase_b.ogg` (0.60초) | item_coins_02.ogg | 앞뒤 무음 0.04초 제거; 20Hz 이하 제거(직류 성분 제거); 모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -3.1 dB); OGG Vorbis q4로 변환 |
+| `candidates/sfx-ui/sfx_ui_purchase_b.ogg` (0.60초) | item_coins_02.ogg | 앞뒤 무음 0.04초 제거; 직류 성분 제거; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
 
 ### 7 Assorted Sound Effects (Menu, Level Up)
 
@@ -853,7 +853,7 @@
 
 | 만든 파일 | 원본 안의 파일 | 가공 |
 |---|---|---|
-| `candidates/sfx-ui/sfx_ui_clear_b.ogg` (3.18초) | Level Up.mp3 | 원본 0.00–3.20초 구간만 사용; 앞뒤 무음 0.02초 제거; 20Hz 이하 제거(직류 성분 제거); 0.6초 페이드아웃; 모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -2.4 dB); OGG Vorbis q4로 변환 |
+| `candidates/sfx-ui/sfx_ui_clear_b.ogg` (3.18초) | Level Up.mp3 | 원본 0.00–3.20초 구간만 사용; 앞뒤 무음 0.02초 제거; 직류 성분 제거; 0.6초 페이드아웃; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
 
 ## 생성 (자체 합성)
 
@@ -863,26 +863,26 @@
 
 | 만든 파일 | 합성 내용 | 가공 |
 |---|---|---|
-| `candidates/sfx-gun/sfx_gun_flame_b.ogg` (1.61초) | Flamethrower: ignition whump, 1.4 s roaring noise with slow flutter and crackle, soft cut-off | 20Hz 이하 제거(직류 성분 제거); 모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 +0.0 dB); OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 +0.50 dB 조정) |
-| `candidates/sfx-gun/sfx_gun_electric_c.ogg` (0.66초) | Electric zap: fast falling saw sweep, gated noise crackle and a low thump | 앞뒤 무음 0.15초 제거; 20Hz 이하 제거(직류 성분 제거); 모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -0.4 dB); OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 +0.10 dB 조정) |
-| `candidates/sfx-reload/sfx_casing_a.ogg` (0.52초) | Brass casing hitting the floor: modal "tink" with three shrinking bounces | 20Hz 이하 제거(직류 성분 제거); 모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -0.2 dB); OGG Vorbis q4로 변환 |
-| `candidates/sfx-boss/sfx_boss_stomp_c.ogg` (1.01초) | Heavy stomp: mid thump (220 → 70 Hz), sub drop, a short low crack and a dust rumble | 20Hz 이하 제거(직류 성분 제거); 모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 +1.5 dB); OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 -0.10 dB 조정) |
-| `candidates/sfx-base/sfx_breakthrough_a.ogg` (1.96초) | Brass fanfare: G-G-G pick-up into a C-major chord with snare and cymbal | 앞뒤 무음 0.14초 제거; 20Hz 이하 제거(직류 성분 제거); 모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 +0.0 dB); OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 -0.80 dB 조정) |
-| `candidates/sfx-ui/sfx_ui_button_a.ogg` (0.07초) | Short soft select blip (square, 1.05 → 1.4 kHz) | 20Hz 이하 제거(직류 성분 제거); 모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 +0.3 dB); OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 -0.20 dB 조정) |
-| `candidates/sfx-ui/sfx_ui_tab_a.ogg` (0.10초) | Two-step soft tick for switching tabs | 20Hz 이하 제거(직류 성분 제거); 모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 +0.8 dB); OGG Vorbis q4로 변환 |
-| `candidates/sfx-ui/sfx_ui_purchase_a.ogg` (0.60초) | Coin "ka-ching": two square notes B5 → E6 with a small sparkle | 20Hz 이하 제거(직류 성분 제거); 모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -0.3 dB); OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 -0.40 dB 조정) |
-| `candidates/sfx-ui/sfx_ui_levelup_a.ogg` (1.22초) | Rising C-major arpeggio with a held top note | 앞뒤 무음 0.18초 제거; 20Hz 이하 제거(직류 성분 제거); 모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -0.1 dB); OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 -0.10 dB 조정) |
-| `candidates/sfx-ui/sfx_ui_clear_a.ogg` (1.60초) | Short clear jingle: G-C-E-G run into a C-major chord with a light drum hit | 앞뒤 무음 0.19초 제거; 20Hz 이하 제거(직류 성분 제거); 모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -0.1 dB); OGG Vorbis q4로 변환 |
-| `candidates/sfx-ui/sfx_ui_warning_a.ogg` (0.70초) | Two-tone alarm pulse (880/660 Hz) played twice | 20Hz 이하 제거(직류 성분 제거); 모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 +0.0 dB); OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 -0.60 dB 조정) |
-| `candidates/sfx-ui/sfx_ui_notify_a.ogg` (1.22초) | Soft two-note bell chime (E6 → B6) | 앞뒤 무음 0.16초 제거; 20Hz 이하 제거(직류 성분 제거); 모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -0.1 dB); OGG Vorbis q4로 변환 |
-| `candidates/sfx-gacha/sfx_gacha_roll_a.ogg` (1.71초) | Gacha roll: ticking wheel that speeds up over a rising drum roll, ends on an upbeat (reveal follows) | 20Hz 이하 제거(직류 성분 제거); 모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 +0.0 dB); OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 -0.45 dB 조정) |
-| `candidates/sfx-gacha/sfx_reveal_1.ogg` (0.17초) | 일반: neutral soft pop (triangle glide) | 20Hz 이하 제거(직류 성분 제거); 모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -0.2 dB); OGG Vorbis q4로 변환 |
-| `candidates/sfx-gacha/sfx_reveal_2.ogg` (0.75초) | 고급: bright two-note step up (E5 → A5) | 20Hz 이하 제거(직류 성분 제거); 모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 +0.0 dB); OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 -0.15 dB 조정) |
-| `candidates/sfx-gacha/sfx_reveal_3.ogg` (1.34초) | 희귀: C-major arpeggio with a few sparkles | 20Hz 이하 제거(직류 성분 제거); 모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 +0.0 dB); OGG Vorbis q4로 변환 |
-| `candidates/sfx-gacha/sfx_reveal_4.ogg` (1.80초) | 영웅: whoosh, D-major run to a held chord with sparkles | 앞뒤 무음 0.11초 제거; 20Hz 이하 제거(직류 성분 제거); 모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -0.9 dB); OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 +0.30 dB 조정) |
-| `candidates/sfx-gacha/sfx_reveal_5.ogg` (1.94초) | 전설: riser, impact, brass E-major chord, sparkle run | 앞뒤 무음 0.27초 제거; 20Hz 이하 제거(직류 성분 제거); 모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -0.7 dB); OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 +0.30 dB 조정) |
-| `candidates/sfx-gacha/sfx_reveal_6.ogg` (2.77초) | 불멸: double impact, low octave and big F#-major chord with choir pad | 앞뒤 무음 0.21초 제거; 20Hz 이하 제거(직류 성분 제거); 모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 +0.1 dB); OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 -0.15 dB 조정) |
-| `candidates/sfx-gacha/sfx_reveal_7.ogg` (3.19초) | 신화: long riser, impact, golden bell cascade over two octaves, brass A-major chord | 앞뒤 무음 0.26초 제거; 20Hz 이하 제거(직류 성분 제거); 모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -0.4 dB); OGG Vorbis q4로 변환 (true peak 목표를 지키려고 이득 +0.30 dB 조정) |
-| `candidates/sfx-gacha/sfx_reveal_8.ogg` (4.13초) | 영원: longest riser with accelerating ticks, huge impact, three-octave rainbow run, full chord, choir and bells | 앞뒤 무음 0.21초 제거; 20Hz 이하 제거(직류 성분 제거); 모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -0.5 dB); OGG Vorbis q4로 변환 |
-| `candidates/sfx-misc/sfx_relic_a.ogg` (1.44초) | Magic pickup: fast pentatonic bell run upward with a soft pad | 앞뒤 무음 0.11초 제거; 20Hz 이하 제거(직류 성분 제거); 모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 -0.1 dB); OGG Vorbis q4로 변환 |
-| `candidates/sfx-misc/sfx_raid_a.ogg` (2.35초) | Raid start: low war-horn glide over two drum hits and a rising alarm sweep | 앞뒤 무음 0.23초 제거; 20Hz 이하 제거(직류 성분 제거); 모노로 변환, 최대 음량(true peak)을 -1 dBTP로 맞춤 (이득 +0.2 dB); OGG Vorbis q4로 변환 |
+| `candidates/sfx-gun/sfx_gun_flame_b.ogg` (1.61초) | Flamethrower: ignition whump, 1.4 s roaring noise with slow flutter and crackle, soft cut-off | 직류 성분 제거; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
+| `candidates/sfx-gun/sfx_gun_electric_c.ogg` (0.66초) | Electric zap: fast falling saw sweep, gated noise crackle and a low thump | 앞뒤 무음 0.15초 제거; 직류 성분 제거; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
+| `candidates/sfx-reload/sfx_casing_a.ogg` (0.52초) | Brass casing hitting the floor: modal "tink" with three shrinking bounces | 직류 성분 제거; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
+| `candidates/sfx-boss/sfx_boss_stomp_c.ogg` (1.01초) | Heavy stomp: mid thump (220 → 70 Hz), sub drop, a short low crack and a dust rumble | 직류 성분 제거; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
+| `candidates/sfx-base/sfx_breakthrough_a.ogg` (1.96초) | Brass fanfare: G-G-G pick-up into a C-major chord with snare and cymbal | 앞뒤 무음 0.14초 제거; 직류 성분 제거; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
+| `candidates/sfx-ui/sfx_ui_button_a.ogg` (0.07초) | Short soft select blip (square, 1.05 → 1.4 kHz) | 직류 성분 제거; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
+| `candidates/sfx-ui/sfx_ui_tab_a.ogg` (0.10초) | Two-step soft tick for switching tabs | 직류 성분 제거; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
+| `candidates/sfx-ui/sfx_ui_purchase_a.ogg` (0.60초) | Coin "ka-ching": two square notes B5 → E6 with a small sparkle | 직류 성분 제거; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
+| `candidates/sfx-ui/sfx_ui_levelup_a.ogg` (1.22초) | Rising C-major arpeggio with a held top note | 앞뒤 무음 0.18초 제거; 직류 성분 제거; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
+| `candidates/sfx-ui/sfx_ui_clear_a.ogg` (1.60초) | Short clear jingle: G-C-E-G run into a C-major chord with a light drum hit | 앞뒤 무음 0.19초 제거; 직류 성분 제거; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
+| `candidates/sfx-ui/sfx_ui_warning_a.ogg` (0.70초) | Two-tone alarm pulse (880/660 Hz) played twice | 직류 성분 제거; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
+| `candidates/sfx-ui/sfx_ui_notify_a.ogg` (1.22초) | Soft two-note bell chime (E6 → B6) | 앞뒤 무음 0.16초 제거; 직류 성분 제거; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
+| `candidates/sfx-gacha/sfx_gacha_roll_a.ogg` (1.71초) | Gacha roll: ticking wheel that speeds up over a rising drum roll, ends on an upbeat (reveal follows) | 직류 성분 제거; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
+| `candidates/sfx-gacha/sfx_reveal_1.ogg` (0.17초) | 일반: neutral soft pop (triangle glide) | 직류 성분 제거; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
+| `candidates/sfx-gacha/sfx_reveal_2.ogg` (0.75초) | 고급: bright two-note step up (E5 → A5) | 직류 성분 제거; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
+| `candidates/sfx-gacha/sfx_reveal_3.ogg` (1.34초) | 희귀: C-major arpeggio with a few sparkles | 직류 성분 제거; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
+| `candidates/sfx-gacha/sfx_reveal_4.ogg` (1.80초) | 영웅: whoosh, D-major run to a held chord with sparkles | 앞뒤 무음 0.11초 제거; 직류 성분 제거; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
+| `candidates/sfx-gacha/sfx_reveal_5.ogg` (1.94초) | 전설: riser, impact, brass E-major chord, sparkle run | 앞뒤 무음 0.27초 제거; 직류 성분 제거; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
+| `candidates/sfx-gacha/sfx_reveal_6.ogg` (2.77초) | 불멸: double impact, low octave and big F#-major chord with choir pad | 앞뒤 무음 0.21초 제거; 직류 성분 제거; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
+| `candidates/sfx-gacha/sfx_reveal_7.ogg` (3.19초) | 신화: long riser, impact, golden bell cascade over two octaves, brass A-major chord | 앞뒤 무음 0.26초 제거; 직류 성분 제거; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
+| `candidates/sfx-gacha/sfx_reveal_8.ogg` (4.13초) | 영원: longest riser with accelerating ticks, huge impact, three-octave rainbow run, full chord, choir and bells | 앞뒤 무음 0.21초 제거; 직류 성분 제거; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
+| `candidates/sfx-misc/sfx_relic_a.ogg` (1.44초) | Magic pickup: fast pentatonic bell run upward with a soft pad | 앞뒤 무음 0.11초 제거; 직류 성분 제거; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
+| `candidates/sfx-misc/sfx_raid_a.ogg` (2.35초) | Raid start: low war-horn glide over two drum hits and a rising alarm sweep | 앞뒤 무음 0.23초 제거; 직류 성분 제거; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |

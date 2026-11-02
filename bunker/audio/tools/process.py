@@ -413,9 +413,9 @@ def build(c, sources, fetch_log, generated, cache, audio):
         item['loop_end'] = round(dur, 3)
         item['seam'] = seam(final, a, len(final))
         bpm = c.get('bpm') or item.get('bpm_est')
-        if bpm:   # a clean loop is a whole number of beats long
+        if bpm:   # a clean loop is a whole number of beats long (an estimated tempo is fitted to a whole number of beats)
             beats = (dur - loop_start) * bpm / 60
-            item['loop_beats'] = round(beats, 2)
+            item['loop_beats'] = round(beats, 2) if c.get('bpm') else float(round(beats))
     return item
 
 

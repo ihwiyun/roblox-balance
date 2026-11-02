@@ -347,7 +347,7 @@
     "gap_db": -2.6,
     "ok": true
    },
-   "loop_beats": 350.89
+   "loop_beats": 351.0
   },
   {
    "id": "bgm_boss_metal9",
@@ -519,7 +519,7 @@
     "gap_db": -3.5,
     "ok": true
    },
-   "loop_beats": 128.03
+   "loop_beats": 128.0
   },
   {
    "id": "jgl_win_nes",

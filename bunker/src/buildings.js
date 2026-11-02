@@ -47,7 +47,7 @@ const BUNKER_LOOK = {
   // by era: the footprint (half), the dust of a hit, the roof height at each walls stage, the deck at each roof stage
   half: [1.7, 1.95, 2.1, 2.25, 2.4],
   material: [[190, 166, 116], [176, 172, 160], [164, 154, 138], [120, 132, 150], [70, 66, 74]],
-  top: [[.2, .85, 1.3, 1.8], [2.1, 2.1, 2.1, 2.1, 2.6], [2.6], [2.8], [3.0]],
+  top: [[.2, 1.16, 1.6, 2.0], [2.1, 2.1, 2.1, 2.1, 2.6], [2.6], [2.8], [3.0]],
   deck: [[1.4, 1.6, 1.6], [1.62], [1.75], [1.85], [1.95]],
   turns: ['walls', 'lights', 'post', 'storage', 'armour', 'flags', 'workshop', 'comms', 'roof', 'mounts', 'walls', 'lights',
     'post', 'armour', 'storage', 'comms', 'flags', 'roof', 'workshop', 'mounts', 'walls', 'lights', 'post', 'armour'],
