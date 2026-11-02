@@ -256,3 +256,184 @@ BONES = spr([
     "....ff",
 ])
 BONES_ANCHOR = (3, 3)
+
+
+# ---------------------------------------------------------------------------- roof post (Lv11+):
+# a lashed timber mast with a rag flag and a lantern on an arm. anchor = foot of the mast
+ROOF_POST = spr([
+    "....oo..........",
+    "....Xw..........",
+    "....XwEeeeo.....",
+    "....XwEEeeeeo...",
+    "....XweEEeeeeeo.",
+    "....XwEeeeeeo.o.",
+    "....Xweeee.eeo..",
+    "....Xwoeo...o...",
+    "....Xw.o........",
+    "....Xw..........",
+    "....Xw..........",
+    "....xw..........",
+    "....Ow..........",
+    "....xw..........",
+    "....Xw..........",
+    "ooooXw..........",
+    "o...Xw..........",
+    "o...Xw..........",
+    "s...Xw..........",
+    "MSo.Xw..........",
+    "AaS.Xw..........",
+    "caS.Xw..........",
+    "AaS.Xw..........",
+    "sso.Xw..........",
+    "....Xw..........",
+    "....Xw..........",
+    "....xw..........",
+    "....Ow..........",
+    "....xw..........",
+    "....Xw..........",
+    "....Xw..........",
+    "...oXwo.........",
+    "..okkKbo........",
+    "..okKkBo........",
+    "...obbo.........",
+], {'O': N['slate']})
+ROOF_POST_ANCHOR = (5, 33)
+
+# radio mast variant (Lv21): adds a thin antenna with a red tip and a junction box
+ANTENNA = spr([
+    "e.",
+    "M.",
+    "m.",
+    "M.",
+    "m.",
+    "M.",
+    "m.",
+    "M.",
+    "m.",
+    "M.",
+    "m.",
+    "Mo",
+    "SS",
+    "so",
+])
+ANTENNA_ANCHOR = (0, 13)
+
+# ---------------------------------------------------------------------------- turret slot (Lv21):
+# a ring of sandbags on the roof corner, an iron floor plate and a scrap machine gun on a tripod
+# with a rusty shield, pointing out to the lower left. anchor = centre of the ring on the roof
+TURRET = spr([
+    "...............oo...........",
+    "...........ooooSSoo.........",
+    "..........oSMMSsso..........",
+    "..........oMMmmSso..........",
+    "......oo..osSmmSsoo.........",
+    "....ooRRo.oossssoxRo........",
+    "..ooRtRro.oSsmsSoRxo........",
+    ".oRttRrro.oossSsoRro........",
+    "oRtRRrrqoooDsSSDoroo........",
+    "oRRrrqqooMmDDsDDo...........",
+    ".orrqqoMmSoDsoDo............",
+    "..oooSMSooDDoDDo............",
+    "...oSMSo..Do.oDo............",
+    "..oSmSo..oD...Do............",
+    "..ooo...oD.....D............",
+], {'D': N['char']})
+TURRET_ANCHOR = (12, 14)
+
+RING_BACK = spr([
+    "........bbbbbbbbbbbb........",
+    "....bbbkKKkbkKKkbkKKkbbb....",
+    "..bbkKKKkkbKKKkkbKKKkkBbbb..",
+    ".bkKKkkBbb.bbbbbbbbbb.bkKkb.",
+    "bkKkkBb..............bkKkBb.",
+    "bKkkBb................bkKBb.",
+])
+RING_FRONT = spr([
+    "bKkBb..................bkBBb",
+    "bkKkBbb..............bbkKBbb",
+    ".bkKKkBbbbbbbbbbbbbbbkKkBbb.",
+    "..bbkKKkkBbKKkkBbKKkkBbbb...",
+    "....bbbkkBBbkkBBbkkBbbb.....",
+    "........bbbbbbbbbbbb........",
+])
+RING_ANCHOR = (14, 6)
+
+# ---------------------------------------------------------------------------- workshop (Lv21)
+WORKBENCH = spr([
+    "........ooo.........",
+    "......ooXXXoo.......",
+    "....ooXyXXXXXoo.....",
+    "..ooXXXXXXXXXXXXoo..",
+    "ooXXXXXXXXXXXXXXXXWo",
+    "oxxXXXXXXXXXXXXXXWWo",
+    "oxxxxXXXXXXXXXXWWWwo",
+    "ooxxxxxXXXXXXWWWWwoo",
+    "oxooxxxxxXXWWWWwoowo",
+    "ox..ooxxxxWWwwoo..wo",
+    "ox....ooxxWwoo....wo",
+    "ox......oxWo......wo",
+    "oo......oxWo......oo",
+    "........oxWo........",
+    "........oooo........",
+])
+WORKBENCH_ANCHOR = (10, 13)
+
+VISE = spr([
+    ".oo..",
+    "oMSo.",
+    "omsSo",
+    "oSsso",
+    ".ooo.",
+])
+TOOLBOX = spr([
+    "..ooo...",
+    ".o...o..",
+    "oEEEEeo.",
+    "oEeeeeqo",
+    "oeeeeqqo",
+    ".oooooo.",
+])
+CYLINDERS = spr([
+    ".oo.oo.",
+    "oSsoSso",
+    "oeEojIo",
+    "oEeoIio",
+    "oEeoIio",
+    "oeeoIio",
+    "oEeoIio",
+    "oeeoiio",
+    "oEeoIio",
+    "oeqoiio",
+    ".oo.oo.",
+])
+CYLINDERS_ANCHOR = (3, 10)
+
+PIPES = spr([
+    "....ooooo.",
+    "..ooMmmSoo",
+    "ooMmmSSsoo",
+    "oMmSSssoo.",
+    "osSssooo..",
+    ".ooooo....",
+])
+
+WRENCH = spr([
+    "o.o",
+    "omo",
+    ".m.",
+    ".m.",
+    ".M.",
+])
+SAW = spr([
+    "ooooooo",
+    "oMMMMmo",
+    "omsmsmx",
+    ".ooooox",
+])
+HAMMER = spr([
+    "ooo",
+    "MSo",
+    ".x.",
+    ".x.",
+    ".w.",
+])

@@ -23,62 +23,69 @@ def T(text, h1, h2=None, name='', extra=None):
 
 # ---------------------------------------------------------------- pickaxe (F): handle ~10px
 PICK_F = {
-    # held ready across the body: head up by the far shoulder, handle down-left to the hands
-    'ready': T("""
-.....oo.
-....oIGo
-...oGnyo
-..oWwoo.
-.oWwo...
-oWwo....
-oWo.....
-oo......
-""", (2, 4), (1, 6), 'pick_ready', dict(tip=(6, 1))),
-    # wind-up: raised behind the head, head up-left, hands by the back of the head
+    # wind-up: raised over the right shoulder; head up-left behind the hair, handle down-right to the hands
     'raise': T("""
-.oo......
-oIGo.....
-oGnyoo...
-.oyowWo..
-..o.oWwo.
-.....oWwo
-......oWo
-.......oo
-""", (6, 5), (7, 6), 'pick_raise', dict(tip=(1, 1))),
-    # overhead, coming down: head at the top right (the frame before the smear lands)
+...oo.......
+..oGIo......
+.oyGo.......
+.oGnooo.....
+oInoWWwo....
+oGo..oWwo...
+.o....oWwo..
+.......oWwo.
+........oWwo
+.........ooo
+""", (9, 7), (10, 8), 'pick_raise', dict(tip=(3, 0))),
+    # top of the swing: handle up from the hands in front of the chin, head over the crown
     'over': T("""
-.....ooo.
-....oIGGo
-..oooynyo
-.oWwoooo.
-oWwo.....
-oWo......
-oo.......
-""", (1, 5), (1, 6), 'pick_over', dict(tip=(7, 1))),
-    # impact: head down-right in the rock, handle from the hands
+.....oooo..
+...ooGIIGo.
+..oyGnnnyo.
+...oooWoo..
+.....oWwo..
+.....oWwo..
+......oWo..
+......ooo..
+""", (6, 6), (6, 7), 'pick_over', dict(tip=(8, 1))),
+    # impact: hands low in front, handle nearly level, front tip down into the rock
     'hit': T("""
-oo......
-oWo.....
-oWwo....
-.oWwo.o.
-..oWwoGo
-...oyGno
-..oIGnyo
-..oGooo.
-...o....
-""", (1, 1), (0, 1), 'pick_hit', dict(tip=(3, 7))),
+oo.........
+oWwoo......
+.ooWwwoo.o.
+...ooWwwoGo
+.....oonGIo
+.......oGno
+.......oGyo
+........oIo
+........oo.
+""", (2, 1), (0, 1), 'pick_hit', dict(tip=(8, 7))),
+    # recovery: pulled free, head lifted a little, handle rising
+    'lift': T("""
+oo........
+oWwo...oo.
+.oWwo.oIGo
+..oWwooGno
+...oWwnyo.
+....ooGyo.
+.....oIo..
+.....oo...
+""", (2, 2), (1, 1), 'pick_lift', dict(tip=(6, 6))),
 }
-# smear: the pick on the downswing, its head dragged into a 3px arc (light steel, no outline at the tail)
+# smear: the downswing. Hands at the chest, the head already out in front of the right shoulder;
+# a light-steel arc (no outline) traces where the head came from, over the crown.
 PICK_F['smear'] = T("""
-......IIIo.
-....IIGGGno
-.....oooyyo
-...oWwo.oo.
-..oWwo.....
-.oWwo......
-.oWo.......
-.oo........
-""", (2, 6), (1, 7), 'pick_smear', dict(tip=(9, 1)))
+..IIII.......
+.I....II.....
+I.......I....
+.........IoIo
+.........oIGo
+.......ooGnyo
+......oWwooo.
+.....oWwo....
+....oWwo.....
+...oWwo......
+...ooo.......
+""", (4, 9), (3, 10), 'pick_smear', dict(tip=(11, 3)))
 
 # ---------------------------------------------------------------- hoe (F): handle ~11px, flat blade
 HOE_F = {
