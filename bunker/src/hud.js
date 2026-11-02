@@ -136,22 +136,22 @@ function cards() {
         desc += `<br>Lv ${nxt}: ${weaponLookName(nxt)} 외형`;
       } else if (k === 'spd') desc = `초당 ${now.toFixed(2)}발 → ${next.toFixed(2)}발 · 총구 화염 ${1 + Math.min(2, Math.floor(L / 10))}단계`;
       else desc = `${now}발 → ${next}발 · 장전 ${reloadTime().toFixed(1)}초${L + 1 === 20 ? '<br>다음: 드럼 탄창' : ''}`;
-      return { id: 'gun:' + k, ico: { atk: 'bullet', spd: 'rate', mag: 'mag' }[k], name: k === 'atk' ? '공격력 · ' + weaponLookName(L) : g.name, lv: 'Lv ' + L, desc: max ? '최대 레벨' : desc, cost: priceOf('gun:' + k), max };
+      return { id: 'gun:' + k, ico: { atk: 'bullet', spd: 'rate', mag: 'mag' }[k], name: k === 'atk' ? '공격력 · ' + weaponLookName(L) : g.name, lv: 'Lv ' + L + '/' + g.max, desc: max ? '최대 레벨' : desc, cost: priceOf('gun:' + k), max, prog: L / g.max };
     });
   }
   if (tab === 'def') {
     const B = G.bunker, F = G.fence, bmax = B >= MAX_BUNKER, fmax = F >= MAX_FENCE;
     return [
-      { id: 'bunker', ico: 'bunker', name: '벙커 · ' + bunkerInfo(B).name, lv: 'Lv ' + B, desc: bmax ? '최대 레벨' : `체력 ${fmt(bunkerHp(B))} → ${fmt(bunkerHp(B + 1))}<br>다음: ${bunkerAddName(B + 1)}`, cost: priceOf('bunker'), max: bmax },
-      { id: 'fence', ico: 'fence', name: '울타리' + (F ? ' · ' + fenceInfo(F).name : ''), lv: 'Lv ' + F, desc: fmax ? '최대 레벨' : `체력 ${fmt(fenceHp(F))} → ${fmt(fenceHp(F + 1))}<br>다음: ${fenceAddName(F + 1)}${fenceInfo(F + 1).electric && !(F && fenceInfo(F).electric) ? ' (공격한 좀비 감전)' : ''}`, cost: priceOf('fence'), max: fmax },
+      { id: 'bunker', ico: 'bunker', name: '벙커 · ' + bunkerInfo(B).name, lv: 'Lv ' + B + '/' + MAX_BUNKER, desc: bmax ? '최대 레벨' : `체력 ${fmt(bunkerHp(B))} → ${fmt(bunkerHp(B + 1))}<br>다음: ${bunkerAddName(B + 1)}`, cost: priceOf('bunker'), max: bmax, prog: B / MAX_BUNKER },
+      { id: 'fence', ico: 'fence', name: '울타리' + (F ? ' · ' + fenceInfo(F).name : ''), lv: 'Lv ' + F + '/' + MAX_FENCE, desc: fmax ? '최대 레벨' : `체력 ${fmt(fenceHp(F))} → ${fmt(fenceHp(F + 1))}<br>다음: ${fenceAddName(F + 1)}${fenceInfo(F + 1).electric && !(F && fenceInfo(F).electric) ? ' (공격한 좀비 감전)' : ''}`, cost: priceOf('fence'), max: fmax, prog: F / MAX_FENCE },
     ];
   }
   if (tab === 'under') {
     const Lv = G.live, Fm = G.farm, Mn = G.mine;
     return [
-      { id: 'live', ico: 'bed', name: '지하 1층 · 생활층', lv: 'Lv ' + Lv, desc: Lv >= LIVE.max ? '최대 레벨' : `침대 ${bedsOf(Lv)}/5 · 휴식 속도 +${Lv * 5}%<br>다음: ${LIVE_ITEMS[Lv]}${LIVE.beds.includes(Lv + 1) ? ' (고용 자리 +1)' : ''}`, cost: priceOf('live'), max: Lv >= LIVE.max },
-      { id: 'farm', ico: 'farm', name: '지하 2층 · 식량층' + (Fm ? ' · ' + FARM_TIERS[facTier(Fm)] : ''), lv: Fm ? 'Lv ' + Fm : '미개척', desc: Fm >= FARM.max ? '최대 레벨' : `식량 초당 ${fmt(FARM.rate(Fm))} → ${fmt(FARM.rate(Fm + 1))} (농부 1명당 +100%)<br>다음: ${FARM_ITEMS[Fm]}`, cost: priceOf('farm'), max: Fm >= FARM.max },
-      { id: 'mine', ico: 'pick', name: '지하 3층 · 채굴층' + (Mn ? ' · ' + MINE_TIERS[facTier(Mn)] : ''), lv: Mn ? 'Lv ' + Mn : '미개척', desc: Mn >= MINE.max ? '최대 레벨' : `광물 초당 ${fmt(MINE.rate(Mn))} → ${fmt(MINE.rate(Mn + 1))} (광부 1명당 +100%)<br>다음: ${MINE_ITEMS[Mn]}`, cost: priceOf('mine'), max: Mn >= MINE.max },
+      { id: 'live', ico: 'bed', name: '지하 1층 · 생활층', lv: 'Lv ' + Lv + '/' + LIVE.max, desc: Lv >= LIVE.max ? '최대 레벨' : `침대 ${bedsOf(Lv)}/5 · 휴식 속도 +${Lv * 5}%<br>다음: ${LIVE_ITEMS[Lv]}${LIVE.beds.includes(Lv + 1) ? ' (고용 자리 +1)' : ''}`, cost: priceOf('live'), max: Lv >= LIVE.max, prog: Lv / LIVE.max },
+      { id: 'farm', ico: 'farm', name: '지하 2층 · 식량층' + (Fm ? ' · ' + FARM_TIERS[facTier(Fm)] : ''), lv: Fm ? 'Lv ' + Fm + '/' + FARM.max : '미개척', desc: Fm >= FARM.max ? '최대 레벨' : `식량 초당 ${fmt(FARM.rate(Fm))} → ${fmt(FARM.rate(Fm + 1))} (농부 1명당 +100%)<br>다음: ${FARM_ITEMS[Fm]}`, cost: priceOf('farm'), max: Fm >= FARM.max, prog: Fm / FARM.max },
+      { id: 'mine', ico: 'pick', name: '지하 3층 · 채굴층' + (Mn ? ' · ' + MINE_TIERS[facTier(Mn)] : ''), lv: Mn ? 'Lv ' + Mn + '/' + MINE.max : '미개척', desc: Mn >= MINE.max ? '최대 레벨' : `광물 초당 ${fmt(MINE.rate(Mn))} → ${fmt(MINE.rate(Mn + 1))} (광부 1명당 +100%)<br>다음: ${MINE_ITEMS[Mn]}`, cost: priceOf('mine'), max: Mn >= MINE.max, prog: Mn / MINE.max },
     ];
   }
   const beds = bedsOf(G.live);
@@ -182,7 +182,7 @@ function renderPanel(force) {
     const ic = document.createElement('div');
     ic.className = 'icon'; ic.append(c.person ? portrait(c.person) : iconCanvas(c.ico, 2));
     el.append(ic);
-    el.insertAdjacentHTML('beforeend', `<div class="body"><div class="head"><span class="name">${c.name}</span><span class="lv">${c.lv}</span></div><div class="desc">${c.desc}</div>${c.fatigue != null ? `<div class="tired"><span style="width:${clamp(c.fatigue, 0, 100)}%"></span></div>` : ''}</div>`);
+    el.insertAdjacentHTML('beforeend', `<div class="body"><div class="head"><span class="name">${c.name}</span><span class="lv">${c.lv}</span></div>${c.prog != null ? `<div class="prog" title="${Math.round(c.prog * 100)}%"><i style="width:${c.prog * 100}%"></i></div>` : ''}<div class="desc">${c.desc}</div>${c.fatigue != null ? `<div class="tired"><span style="width:${clamp(c.fatigue, 0, 100)}%"></span></div>` : ''}</div>`);
     if (c.jobs) {
       const row = document.createElement('div');
       row.className = 'row';

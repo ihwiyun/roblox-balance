@@ -186,9 +186,9 @@ function drawAmmo(s) {
 function drawSleeper(c) {
   const { x, y, z: fz } = sleepSpot(c.i), p = project(x, y, fz + .5), gear = gearOf({ ...c, job: '' }), pal = palFor(c, gear);
   if (window.ART_HUMANS && SPR.human.anims.sleep) {
-    const info = drawSprite('human', 'sleep', 'F', Math.floor(G.time * SPR.human.anims.sleep.fps), false, x, y, fz, pal, { shadow: false });
+    const info = drawSprite('human', 'sleep', 'F', Math.floor(G.time * SPR.human.anims.sleep.fps), false, x, y, fz, pal, { shadow: false, dz: .6 });
     const head = ART_HUMANS.heads[c.look.key] || ART_HUMANS.heads.hero;
-    if (info.fr.head && head.sleep) { const [hx, hy] = frameSpot(info, info.fr.head); stampAnchored(head, head.sleep, hx, hy, false, pal, info.p.d + .5); }
+    if (info.fr.head && head.sleep) { const [hx, hy] = frameSpot(info, info.fr.head); stampAnchored(head, head.sleep, hx, hy, false, pal, info.p.d + 1.2); }
   } else drawHead(c.look, 'sleep', 'F', Math.round(p.sx), Math.round(p.sy) - 3, false, pal, p.d + .2);
   const zt = (G.time * .8 + c.i * .37) % 1;
   if (G.view === 'under') pixelText(zt < .5 ? 'z' : 'Z', p.sx + 6 + zt * 4, p.sy - 10 - zt * 6, rgb(236, 236, 255));

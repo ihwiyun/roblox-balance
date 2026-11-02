@@ -115,14 +115,14 @@ let shadowN = 0;
 function drawSprite(type, anim, view, idx, mirror, x, y, z, pal, opt = {}) {
   const set = SPR[type], frames = set.anims[anim][view], fr = frames[((idx % frames.length) + frames.length) % frames.length];
   const p = project(x, y, z), bx = Math.round(p.sx), by = Math.round(p.sy), ax = set.ax, ay = set.ay;
-  const fade = opt.fade == null ? 1 : opt.fade, hit = opt.hit, cells = fr.cells, perPx = SIN / (S * COS);
+  const fade = opt.fade == null ? 1 : opt.fade, hit = opt.hit, cells = fr.cells, perPx = SIN / (S * COS), dz = opt.dz || 0;
   const shadow = opt.shadow !== false;
   for (let n = 0; n < cells.length; n += 3) {
     const cx = cells[n], cy = cells[n + 1], key = cells[n + 2];
     const sx = bx + (mirror ? ax - cx : cx - ax), sy = by + cy - ay;
     if (sx < 0 || sy < 0 || sx >= W || sy >= H) continue;
     if (fade < 1 && bayerAt(sx, sy) >= fade) continue;
-    const hpx = ay - cy, i = sy * W + sx, d = p.d + hpx * perPx + .02;
+    const hpx = ay - cy, i = sy * W + sx, d = p.d + hpx * perPx + .02 + dz;
     if (d <= zb[i]) continue;
     zb[i] = d;
     pix[i] = hit && key !== 111 ? WHITE : pal[key];
