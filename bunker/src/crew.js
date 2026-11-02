@@ -19,18 +19,25 @@ function workSpot(c) {
   const n = Math.max(0, jobIndex(c));
   return c.job === '농부' ? farmSpot(n) : mineSpot(n);
 }
-// a path is a list of steps: walk on a floor (or the roof), climb the shaft, or pass through the roof hatch
+// a path is a list of steps: walk on a floor (or the roof), climb the shaft, or pass through the roof hatch.
+// A post below ground can name points to walk through on the way in (via: down the corridor, then along an aisle
+// between the plots); whoever leaves walks back out through the ones they have passed (c.post is the post they
+// were sent to, c.viaDone how many of its points are behind them), so nobody cuts across the planters
+const walkAt = (floor, p, extra) => ({ where: 'ug', floor, x: p.x, y: p.y, z: LEVEL_Z[floor], mode: 'walk', ...extra });
 function route(c, dest) {
-  const pts = [], shaftAt = k => ({ where: 'ug', floor: k, x: SHAFT.x, y: LADDER_Y, z: LEVEL_Z[k], mode: 'walk' });
-  if (c.where === 'yard' && dest.where === 'yard') pts.push({ ...dest, mode: 'walk' });
+  const pts = [], shaftAt = k => walkAt(k, { x: SHAFT.x, y: LADDER_Y });
+  const out = c.where === 'ug' && c.post && c.post.floor === c.floor ? c.post.via.slice(0, c.viaDone || 0).reverse().map(p => walkAt(c.floor, p)) : [];
+  const into = dest.where === 'ug' && dest.via ? dest.via.map((p, i) => walkAt(dest.floor, p, { via: i + 1 })) : [];
+  const end = dest.via ? { ...dest, mode: 'walk', via: dest.via.length } : { ...dest, mode: 'walk' };
+  if (c.where === 'yard' && dest.where === 'yard') pts.push(end);
   else if (c.where === 'yard') {
     const h = SITES.hatch;
-    pts.push({ where: 'yard', x: h[0], y: h[1], z: h[2], mode: 'walk' }, { mode: 'hatch', to: 'ug' }, { where: 'ug', floor: dest.floor, x: SHAFT.x, y: LADDER_Y, z: LEVEL_Z[dest.floor], mode: 'climb' }, { ...dest, mode: 'walk' });
+    pts.push({ where: 'yard', x: h[0], y: h[1], z: h[2], mode: 'walk' }, { mode: 'hatch', to: 'ug' }, { ...shaftAt(dest.floor), mode: 'climb' }, ...into, end);
   } else if (dest.where === 'yard') {
-    pts.push(shaftAt(c.floor), { where: 'ug', floor: 0, x: SHAFT.x, y: LADDER_Y, z: HATCH_TOP(), mode: 'climb' }, { mode: 'hatch', to: 'yard' }, { ...dest, mode: 'walk' });
+    pts.push(...out, shaftAt(c.floor), { where: 'ug', floor: 0, x: SHAFT.x, y: LADDER_Y, z: HATCH_TOP(), mode: 'climb' }, { mode: 'hatch', to: 'yard' }, end);
   } else if (c.floor !== dest.floor) {
-    pts.push(shaftAt(c.floor), { ...shaftAt(dest.floor), mode: 'climb' }, { ...dest, mode: 'walk' });
-  } else pts.push({ ...dest, mode: 'walk' });
+    pts.push(...out, shaftAt(c.floor), { ...shaftAt(dest.floor), mode: 'climb' }, ...into, end);
+  } else pts.push(...out, ...into, end);
   return pts;
 }
 function sendTo(c, dest, state) {
@@ -43,6 +50,8 @@ function sendTo(c, dest, state) {
     c.path = rest.length && rest[0].mode === 'climb' ? rest : [{ ...cur, floor: k, z: LEVEL_Z[k] }, ...rest];
   } else c.path = route(c, dest);
   c.state = state;
+  // the post's way in, which way to face there and where a pick strikes
+  c.post = dest.via ? dest : null; c.viaDone = 0; c.face = dest.yaw; c.hit = dest.hit;
 }
 function stepPerson(c, dt) {
   const wp = c.path[0];
@@ -63,7 +72,7 @@ function stepPerson(c, dt) {
   }
   const dx = wp.x - c.x, dy = wp.y - c.y, d = Math.hypot(dx, dy), step = 1.05 * dt;
   c.z = wp.z; c.anim = 'walk';
-  if (d <= step) { c.x = wp.x; c.y = wp.y; c.path.shift(); if (wp.floor != null) c.floor = wp.floor; }
+  if (d <= step) { c.x = wp.x; c.y = wp.y; c.path.shift(); if (wp.floor != null) c.floor = wp.floor; if (wp.via) c.viaDone = wp.via; }
   else { c.x += dx / d * step; c.y += dy / d * step; c.yaw = Math.atan2(dy, dx); c.walk += step; }
   return false;
 }
@@ -73,7 +82,7 @@ function updatePeople(dt) {
     if (!c) continue;
     const arrived = stepPerson(c, dt);
     if (!arrived) continue;
-    if (c.state === 'toWork') { c.state = 'work'; if (c.job !== '사수') c.yaw = -Math.PI / 2; }
+    if (c.state === 'toWork') { c.state = 'work'; if (c.job !== '사수') c.yaw = c.face ?? -Math.PI / 2; }
     else if (c.state === 'toBed') c.state = 'sleep';
     if (c.state === 'work') {
       c.fatigue += FATIGUE_WORK * (G.hungry ? 2 : 1) * dt;
@@ -97,8 +106,12 @@ function resyncPosts() {
   // new bunker or a changed job: everyone working heads to the right post
   if (G.hero) { const s = SITES[0]; G.hero.x = s[0]; G.hero.y = s[1]; G.hero.z = s[2]; }
   for (const c of G.crew) if (c && (c.state === 'work' || c.state === 'toWork')) {
-    if (c.where === 'yard' && c.job === '사수') { const w = workSpot(c); c.x = w.x; c.y = w.y; c.z = w.z; c.path = []; c.state = 'work'; }
-    else sendTo(c, workSpot(c), 'toWork');
+    const w = workSpot(c);
+    if (c.where === 'yard' && c.job === '사수') { c.x = w.x; c.y = w.y; c.z = w.z; c.path = []; c.state = 'work'; continue; }
+    // already at, or on the way to, the same post below ground: carry on (re-sending would walk them out and back in)
+    const at = c.path.length ? c.path[c.path.length - 1] : { where: c.where, floor: c.floor, x: c.x, y: c.y };
+    if (w.where === 'ug' && at.where === 'ug' && at.floor === w.floor && Math.abs(at.x - w.x) < .01 && Math.abs(at.y - w.y) < .01) continue;
+    sendTo(c, w, 'toWork');
   }
 }
 

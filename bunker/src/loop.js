@@ -64,7 +64,7 @@ function update(dt) {
     if (G.mine && G.floorView === 2) inDugout(2, () => { if (Math.random() < dt * 8) part(PIT.x, PIT.y, FLOOR_Z[2] + .05, (Math.random() - .5) * 2.4, (Math.random() - .5) * 2.4, 2.2, .45, rgb(255, 204, 96), null); });
     for (const c of G.crew) {
       if (!atWork(c) || c.where !== 'ug') continue;
-      if (c.job === '광부') { const ph = (c.act * 2.6) % 3, prev = ((c.act - dt) * 2.6) % 3; if (prev < 2 && ph >= 2 && G.floorView === 2) inDugout(2, () => spray(c.x + .05, UG.y0 + .1, toFloorZ(c.z, 2) + .9, 6, 1.5, 2.2, .7, [rgb(110, 150, 214), rgb(150, 146, 140), rgb(255, 214, 120)])); }
+      if (c.job === '광부') { const ph = (c.act * 2.6) % 3, prev = ((c.act - dt) * 2.6) % 3; if (prev < 2 && ph >= 2 && G.floorView === 2) inDugout(2, () => { const h = c.hit || { x: c.x + .05, y: UG.y0 + .1, z: .9 }; spray(h.x, h.y, toFloorZ(c.z, 2) + h.z, 6, 1.5, 2.2, .7, [rgb(110, 150, 214), rgb(150, 146, 140), rgb(255, 214, 120)]); }); }
       if (c.job === '농부' && G.floorView === 1 && Math.random() < dt * 1.2) inDugout(1, () => part(c.x + (Math.random() - .5) * .6, c.y - .7, toFloorZ(c.z, 1) + 1 + Math.random() * .4, 0, 0, -.2, .8, rgb(140, 210, 110), null));
     }
   }
