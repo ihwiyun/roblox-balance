@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>화면 설계도</title>
+<style>
+  :root { --ink: #1c1b19; --muted: #8b877f; --paper: #fff; --line: #e4e0d8; --soft: #f6f4ef; --bad: #c0392b; }
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 16px; background: #ece9e2; color: var(--ink); font: 12px/1.35 ui-monospace, "Cascadia Mono", Consolas, Menlo, monospace; word-break: keep-all; }
+  h1 { font-size: 15px; margin: 0 0 4px; }
+  .wrap { display: flex; flex-wrap: wrap; gap: 18px; }
+  .scr { width: 360px; }
+  .scr > b { display: block; margin: 0 0 6px; font-size: 13px; }
+  .frame { position: relative; width: 360px; height: 800px; background: var(--paper); border: 1px solid var(--ink); overflow: hidden; }
+  img.ico { image-rendering: pixelated; display: inline-block; vertical-align: middle; }
+  .nav img.ico, .sb img.ico, .card > img.ico { display: block; }
+  /* 메인 화면 */
+  .game { position: absolute; left: 0; right: 0; top: 0; bottom: 74px; background: #fff url(game.png) center 46% / 360px auto no-repeat; image-rendering: pixelated; }
+  .res { position: absolute; left: 8px; top: 30px; display: grid; gap: 4px; }
+  .res div { display: grid; grid-template-columns: 16px auto; column-gap: 4px; align-items: center; font-weight: 700; }
+  .res small { grid-column: 2; color: var(--muted); font-weight: 400; font-size: 10px; margin-top: -2px; }
+  .status { position: absolute; left: 0; right: 0; top: 0; height: 24px; background: #00000010; font-size: 10px; color: var(--muted); padding: 5px 10px; }
+  .stage { position: absolute; left: 50%; top: 32px; transform: translateX(-50%); display: grid; justify-items: center; gap: 3px; }
+  .pill { display: flex; align-items: center; gap: 10px; border: 1px solid var(--ink); background: #ffffffe8; padding: 4px 10px; font-weight: 700; }
+  .bar { height: 4px; width: 140px; background: var(--line); } .bar i { display: block; height: 100%; width: 40%; background: var(--ink); }
+  .gear { position: absolute; right: 8px; top: 30px; width: 36px; height: 36px; border: 1px solid var(--ink); background: #ffffffe8; display: grid; place-items: center; font-size: 16px; }
+  .side { position: absolute; right: 8px; top: 92px; display: grid; gap: 8px; }
+  .sb { width: 52px; border: 1px solid var(--ink); background: #ffffffe8; display: grid; justify-items: center; padding: 4px 0; font-size: 10px; font-weight: 700; }
+  .hp { position: absolute; left: 8px; bottom: 84px; border: 1px solid var(--ink); background: #ffffffe8; padding: 4px 6px; font-size: 10px; display: grid; grid-template-columns: auto 60px; gap: 3px 6px; align-items: center; }
+  .hp i { display: block; height: 6px; border: 1px solid var(--ink); background: #6aa64a; }
+  .hp i.f { background: #a0784a; }
+  .ammo { position: absolute; right: 8px; bottom: 84px; border: 1px solid var(--ink); background: #ffffffe8; padding: 4px 8px; font-weight: 700; display: flex; gap: 4px; align-items: center; }
+  .spd { position: absolute; right: 8px; bottom: 124px; border: 1px solid var(--ink); background: #ffffffe8; padding: 4px 10px; font-weight: 700; }
+  .note { position: absolute; left: 0; right: 0; top: 150px; height: 40px; background: linear-gradient(90deg, transparent, #1c1b19b8 18%, #1c1b19b8 82%, transparent); color: #fff; display: grid; place-items: center; font-weight: 700; border-top: 1px solid #ffffff50; border-bottom: 1px solid #ffffff50; }
+  .nav { position: absolute; left: 0; right: 0; bottom: 0; height: 74px; border-top: 1px solid var(--ink); background: var(--paper); display: grid; grid-template-columns: repeat(6, 1fr); }
+  .nav div { display: grid; justify-items: center; align-content: center; gap: 2px; color: var(--muted); font-size: 11px; }
+  .nav div.on { color: var(--ink); font-weight: 700; box-shadow: inset 0 3px 0 var(--ink); }
+  /* 전체 화면 메뉴 (UI 안의 UI) */
+  .head { height: 44px; border-bottom: 1px solid var(--ink); display: flex; align-items: center; justify-content: space-between; padding: 0 10px; font-weight: 700; font-size: 14px; margin-top: 24px; }
+  .head span:last-child { font-size: 18px; }
+  .tabs { display: flex; border-bottom: 1px solid var(--line); }
+  .tabs div { flex: 1; text-align: center; padding: 8px 0; color: var(--muted); }
+  .tabs div.on { color: var(--ink); font-weight: 700; box-shadow: inset 0 -2px 0 var(--ink); }
+  .body { padding: 8px 10px; }
+  .sec { font-weight: 700; margin: 8px 0 4px; display: flex; justify-content: space-between; }
+  .img { background: repeating-linear-gradient(45deg, #f2efe8, #f2efe8 4px, #e7e3da 4px, #e7e3da 8px); border: 1px dashed #c9c3b6; display: grid; place-items: center; color: #a9a294; font-size: 9px; }
+  .grid { display: grid; gap: 5px; }
+  .g5 { grid-template-columns: repeat(5, 1fr); } .g4 { grid-template-columns: repeat(4, 1fr); } .g3 { grid-template-columns: repeat(3, 1fr); } .g2 { grid-template-columns: repeat(2, 1fr); } .g6 { grid-template-columns: repeat(6, 1fr); }
+  .it { border: 2px solid var(--g, var(--line)); position: relative; aspect-ratio: 1; }
+  .it .img { position: absolute; inset: 2px; border: 0; }
+  .it em { position: absolute; left: 2px; bottom: 1px; font-style: normal; font-size: 9px; font-weight: 700; }
+  .it u { position: absolute; right: 2px; top: 1px; text-decoration: none; font-size: 9px; color: var(--muted); }
+  .g0 { --g: #9a9a9a; } .g1 { --g: #4caf50; } .g2 { --g: #3d7be0; } .g3 { --g: #9b4fd1; } .g4 { --g: #f08a24; } .g5 { --g: #d63a3a; } .g6 { --g: #c99a10; } .g7 { --g: #e0459b; }
+  .gr { color: var(--g); font-weight: 700; }
+  .btn { border: 1px solid var(--ink); background: var(--paper); padding: 6px 8px; font-weight: 700; text-align: center; }
+  .btn.dark { background: var(--ink); color: #fff; }
+  .row, .card.row { display: flex; gap: 6px; align-items: center; }
+  .card { border: 1px solid var(--line); padding: 6px; display: grid; gap: 4px; }
+  .chips { display: flex; gap: 4px; flex-wrap: wrap; margin: 4px 0; }
+  .chips span { border: 1px solid var(--line); padding: 2px 6px; font-size: 10px; }
+  .chips span.on { border-color: var(--ink); font-weight: 700; }
+  .line { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid var(--line); }
+  .foot { position: absolute; left: 0; right: 0; bottom: 0; border-top: 1px solid var(--ink); background: var(--paper); padding: 8px 10px; display: flex; gap: 6px; }
+  .foot .btn { flex: 1; }
+</style>
+</head>
+<body>
+<h1>화면 설계도 — 배치만 (그림 칸은 빗금, 색감·글꼴은 지금 게임 그대로)</h1>
+<div class="wrap" id="wrap"></div>
+<script src="../../art.js"></script>
+<script>
+// small pixel icons from the game's own art (art.js)
+function ico(name, s = 2) {
+  const rows = ART.icons[name], c = document.createElement('canvas');
+  c.width = 16; c.height = 16; c.className = 'ico'; c.style.width = c.style.height = 16 * s + 'px';
+  const g = c.getContext('2d');
+  rows.forEach((r, y) => [...r].forEach((ch, x) => { if (ch !== '.') { const [R, G, B] = ART.iconPal[ch]; g.fillStyle = `rgb(${R},${G},${B})`; g.fillRect(x, y, 1, 1); } }));
+  return `<img class="ico" src="${c.toDataURL()}" style="width:${16 * s}px;height:${16 * s}px" alt="">`;
+}
+const img = (w, h, t = '그림') => `<div class="img" style="width:${w};height:${h}">${t}</div>`;
+const GR = ['일반', '고급', '희귀', '영웅', '전설', '불멸', '신화', '영원'];
+const W = [['녹슨 리볼버', '사제 기관단총', '쇠파이프 산탄총', '사냥용 볼트액션', '고물 못총'], ['경찰 권총', '민간 기관단총', '펌프 산탄총', '사냥 소총', '소방 화염기'], ['군용 권총', '돌격소총', '전투 산탄총', '저격소총', '경기관총']];
+const nav = on => `<div class="nav">${[['bullet', '강화'], ['mag', '장비'], ['person', '캐릭터'], ['relic', '유물'], ['bunker', '기지'], ['coin', '상점']].map(([i, n]) => `<div class="${n === on ? 'on' : ''}">${ico(i, 1.75)}${n}</div>`).join('')}</div>`;
+const head = (t, tabs, on) => `<div class="status">상태바</div><div class="head"><span>${t}</span><span>✕</span></div>${tabs ? `<div class="tabs">${tabs.map(x => `<div class="${x === on ? 'on' : ''}">${x}</div>`).join('')}</div>` : ''}`;
+const it = (g, l, n) => `<div class="it g${g}">${img('', '', '')}${l ? `<em>${l}</em>` : ''}${n ? `<u>${n}</u>` : ''}</div>`;
+const screens = [
+  ['1. 메인 화면', `<div class="game"></div><div class="status">상태바</div>
+    <div class="res"><div>${ico('coin', 1)}50.1K<small>+120/초</small></div><div>${ico('food', 1)}8.1K<small>+9.7/초</small></div><div>${ico('mineral', 1)}3.1K<small>+12/초</small></div><div>${ico('mineral', 1)}120<small>보석</small></div></div>
+    <div class="stage"><div class="pill"><span>◀</span>스테이지 64<span>▶</span></div><div class="bar"><i></i></div></div>
+    <div class="gear">⚙</div>
+    <div class="side"><div class="sb">${img('28px', '28px', '')}환생</div><div class="sb">${img('28px', '28px', '')}랭킹</div></div>
+    <div class="note">보스 출현 · 스테이지 70</div>
+    <div class="spd">x2</div><div class="ammo">${ico('bullet', 1)}12<small>/17</small></div>
+    <div class="hp"><span>벙커</span><i></i><span>울타리</span><i class="f"></i></div>${nav('')}`],
+  ['2. 강화 (아래에서 올라오는 판)', `<div class="game" style="bottom:400px"></div><div class="status">상태바</div>
+    <div style="position:absolute;left:0;right:0;bottom:74px;height:326px;border-top:1px solid var(--ink);background:#fff">
+      <div class="tabs"><div class="on">화력</div><div>지휘관</div></div>
+      <div class="body">${[['bullet', '공격력', 'Lv 22', '1.2K'], ['rate', '연사', 'Lv 12', '420'], ['mag', '탄창', 'Lv 12', '233']].map(([i, n, l, c]) => `<div class="card row" style="margin-bottom:6px">${ico(i, 2.25)}<div style="flex:1"><b>${n}</b> <span style="color:var(--muted)">${l}</span><div class="bar" style="width:120px"><i></i></div></div><div class="btn">${ico('coin', 1)}${c}</div></div>`).join('')}
+      <div class="card row">${ico('bullet', 2.25)}<div style="flex:1"><b>돌파</b> <span style="color:var(--muted)">Lv 30 → 31</span></div><div class="btn">${ico('mineral', 1)}900</div></div></div></div>${nav('강화')}`],
+  ['3. 장비 (전체 화면)', `${head('장비', ['무기', '터렛'], '무기')}<div class="body">
+    <div class="sec"><span>장착</span><span style="color:var(--muted)">보유 효과 +18%</span></div>
+    <div class="grid g3">${['나', '민준', '도윤'].map((n, k) => `<div class="card" style="justify-items:center">${img('44px', '44px', '초상화')}<span>${n}</span><div style="width:44px">${it(2 - k % 2, 'Lv 5', '')}</div></div>`).join('')}</div>
+    <div class="chips"><span class="on">전체</span>${GR.map((g, n) => `<span class="gr g${n}">${g}</span>`).join('')}</div>
+    ${W.map((r, g) => `<div class="sec"><span class="gr g${g}">${GR[g]}</span><span>${2 + g}/5</span></div><div class="grid g5">${r.map((w, k) => it(g, k < 3 - g ? 'Lv ' + (8 - k) : '', k < 3 - g ? (k + 1) + '/4' : '')).join('')}</div>`).join('')}
+    <div style="color:var(--muted);text-align:center;margin-top:4px">영웅 · 전설 · 불멸 · 신화 · 영원 ↓</div></div>
+    <div class="foot"><div class="btn">도감</div><div class="btn">일괄 강화</div><div class="btn dark">일괄 합성</div></div>`],
+  ['4. 캐릭터 (전체 화면)', `${head('캐릭터', ['동료', '지휘관'], '동료')}<div class="body">
+    <div class="card" style="grid-template-columns:96px 1fr;align-items:start">${img('96px', '96px', '초상화')}<div><b style="font-size:14px">민준</b> <span class="gr g1">고급</span><div>사수 · Lv 24 ★★</div><div class="bar" style="width:150px;margin:4px 0"><i></i></div>
+      <div class="line"><span>사격</span><b>1.8K</b></div><div class="line"><span>체력</span><b>920</b></div><div class="line"><span>능력</span><b>피해 +10%</b></div></div></div>
+    <div class="row" style="margin:6px 0"><div class="btn dark" style="flex:1">레벨업 ${ico('coin', 1)}3.2K</div><div class="btn" style="flex:1">배치</div><div class="btn" style="flex:1">대표</div></div>
+    <div class="sec"><span>보유 동료</span><span>6/24</span></div>
+    <div class="grid g4">${['나', '민준', '서연', '도윤', '하은', '지호', '', '', '', '', '', ''].map((n, k) => `<div class="card" style="justify-items:center;padding:4px;${n ? '' : 'opacity:.45'}">${img('100%', '58px', n ? '초상화' : '')}<span style="font-size:10px">${n || '???'}</span></div>`).join('')}</div></div>`],
+  ['5. 유물 (전체 화면)', `${head('유물', ['장착', '보유', '세트'], '장착')}<div class="body">
+    <div class="sec"><span>장착 칸</span><span>3/8</span></div><div class="grid g4">${[4, 2, 1, -1, -1, -1, -1, -1].map(g => g < 0 ? `<div class="it" style="opacity:.4">${img('', '', '잠김')}</div>` : it(g, 'Lv 3', '')).join('')}</div>
+    <div class="sec"><span>세트</span><span></span></div>${[['검은 연기', '2/3'], ['폭풍', '1/3'], ['사냥꾼', '0/3']].map(([n, v]) => `<div class="line"><span>${n}</span><span>${v}</span></div>`).join('')}
+    <div class="sec"><span>보유</span><span>11/48</span></div><div class="grid g6">${Array.from({ length: 24 }, (_, k) => it(Math.min(7, k >> 2), k % 3 ? '' : 'Lv 1', '')).join('')}</div></div>`],
+  ['6. 기지 (전체 화면)', `${head('기지', ['방어', '지하', '배치'], '방어')}<div class="body">
+    ${[['벙커', '간이 참호 · Lv 45'], ['울타리', '말뚝 · Lv 48']].map(([n, l]) => `<div class="card" style="grid-template-columns:72px 1fr auto;align-items:center">${img('72px', '56px')}<div><b>${n}</b><div style="color:var(--muted)">${l}</div><div class="bar" style="width:120px"><i></i></div></div><div class="btn">${ico('coin', 1)}1.9K</div></div>`).join('')}
+    <div class="sec"><span>터렛 칸</span><span>1/6</span></div><div class="grid g6">${[2, -1, -1, -1, -1, -1].map(g => g < 0 ? `<div class="it" style="opacity:.4">${img('', '', '잠김')}</div>` : it(g, 'Lv 2', '')).join('')}</div>
+    <div class="sec"><span>지하</span><span></span></div>${['1층 침실 · Lv 14', '2층 식량 · Lv 14', '3층 채굴 · Lv 13'].map(n => `<div class="card" style="grid-template-columns:72px 1fr auto;align-items:center;margin-bottom:4px">${img('72px', '44px')}<span>${n}</span><span>›</span></div>`).join('')}</div>`],
+  ['7. 상점 (전체 화면)', `${head('상점', ['뽑기', '패키지', '다이아', '편의·패스'], '뽑기')}<div class="body">
+    ${['무기', '터렛', '동료', '유물'].map((n, k) => `<div class="card" style="margin-bottom:6px">${img('100%', '70px', n + ' 뽑기 그림')}<div class="row"><b style="flex:1">${n} · 소환 Lv ${7 - k}</b><span style="color:var(--muted)">확률</span></div><div class="bar" style="width:100%"><i></i></div><div class="row"><div class="btn" style="flex:1">1회 ${ico('mineral', 1)}${[100, 150, 200, 300][k]}</div><div class="btn dark" style="flex:1">10회 ${ico('mineral', 1)}${[1000, 1500, 2000, 3000][k]}</div></div></div>`).join('')}</div>`],
+  ['8. 상점 · 패키지', `${head('상점', ['뽑기', '패키지', '다이아', '편의·패스'], '패키지')}<div class="body">
+    <div class="sec"><span>성장 패키지</span><span>1/6</span></div>
+    <div class="card" style="grid-template-columns:90px 1fr;align-items:center">${img('90px', '60px', '희귀 5번')}<div><b>1단계</b><div>희귀 5번 무기 + 보석 300</div><div class="btn dark" style="margin-top:4px">1,200원</div></div></div>
+    ${['2단계 · 영웅 3번 무기 + 희귀 동료', '3단계 · 전설 1번 무기 + 유물 상자 5'].map(t => `<div class="card" style="grid-template-columns:90px 1fr;align-items:center;opacity:.5;margin-top:6px">${img('90px', '60px', '')}<div>${t}<div class="btn" style="margin-top:4px">잠김</div></div></div>`).join('')}
+    <div class="sec"><span>다이아</span><span></span></div><div class="grid g3">${['1,200', '5,900', '12,000', '33,000', '69,000', '119,000'].map(p => `<div class="card" style="justify-items:center">${img('100%', '40px', '')}<b>${p}원</b><span style="font-size:9px">첫 구매 2배</span></div>`).join('')}</div></div>`],
+  ['9. 환생 (전체 화면)', `${head('환생', null)}<div class="body">
+    <div class="card" style="justify-items:center">${img('80px', '80px', '훈장')}<b style="font-size:16px">받을 훈장 +240</b><span style="color:var(--muted)">보유 1,820</span><div class="btn dark" style="width:100%">환생</div></div>
+    <div class="sec"><span>훈장 강화</span><span></span></div><div class="grid g4">${['화력', '군자금', '오프라인', '보스', '치명', '발견', '유지비', '설계도'].map(n => `<div class="card" style="justify-items:center">${img('100%', '36px', '')}<span style="font-size:10px">${n}</span><span style="font-size:10px;color:var(--muted)">Lv 0</span></div>`).join('')}</div>
+    <div class="sec"><span>자동화</span><span>환생 3회</span></div><div class="row" style="justify-content:space-between">${[1, 3, 5, 8, 12, 20].map((n, k) => `<div class="card" style="justify-items:center;padding:4px;${k > 1 ? 'opacity:.45' : ''}">${img('30px', '30px', '')}<span style="font-size:9px">${n}회</span></div>`).join('')}</div></div>`],
+  ['10. 랭킹 (전체 화면)', `${head('랭킹', ['최고 기록', '기지 털기'], '최고 기록')}<div class="body">
+    ${[1, 2, 3, 4, 5, 6, 7].map(k => `<div class="line" style="align-items:center"><span class="row"><b style="width:22px">${k}</b>${img('32px', '32px', '')}<span>생존자${k}</span></span><b>스테이지 ${2400 - k * 210}</b></div>`).join('')}</div>
+    <div class="foot" style="justify-content:space-between;align-items:center"><span class="row"><b>128</b>${img('32px', '32px', '')}나</span><b>스테이지 64</b></div>`],
+];
+document.getElementById('wrap').innerHTML = screens.map(([t, h]) => `<div class="scr"><b>${t}</b><div class="frame">${h}</div></div>`).join('');
+</script>
+</body>
+</html>
