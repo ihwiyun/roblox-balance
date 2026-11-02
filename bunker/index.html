@@ -410,5 +410,10 @@
 <script src="src/sound.js"></script>
 <script src="src/hud.js"></script>
 <script src="src/main.js"></script>
+<!-- the pure logic (ES modules, src/logic) for the scripts above: window.LOGIC, then main.js starts the game -->
+<script type="module" data-logic>
+import('./src/logic/index.mjs').then(L => { window.LOGIC = L; }, e => { window.LOGIC = null; console.warn('logic not loaded:', e.message); })
+  .then(() => dispatchEvent(new Event('logic-ready')));
+</script>
 </body>
 </html>

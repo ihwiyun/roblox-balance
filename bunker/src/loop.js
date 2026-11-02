@@ -14,36 +14,39 @@ function warmFence() {
 function update(dt) {
   if (G.over) return;
   G.time += dt;
-  // food and minerals from the floors below, up to what their stores hold; then mouths to feed
-  const fc = foodCap(), mc = mineralCap();
-  if (G.food < fc) G.food = Math.min(fc, G.food + rateOf('food') * dt);
-  if (G.mineral < mc) G.mineral = Math.min(mc, G.mineral + rateOf('mineral') * dt);
-  const eat = hired().length * UPKEEP;
+  // food and minerals from the floors below and parts from the workshop, up to what their stores hold (what does not
+  // fit becomes commander XP, systems.js); then mouths to feed
+  const keep = (k, cap, add) => { const kept = Math.min(Math.max(0, cap - G[k]), add); G[k] += kept; if (add > kept) SYS.hook.spill(add - kept); return kept; };
+  keep('food', foodCap(), rateOf('food') * dt);
+  SYS.hook.ore(keep('mineral', mineralCap(), rateOf('mineral') * dt));
+  keep('comps', partsCap(), rateOf('parts') * dt);
+  const eat = hired().length * UPKEEP * SYS.hook.upkeep();
   G.food -= eat * dt;
   const wasHungry = G.hungry;
   G.hungry = G.food <= 0 && hired().length > 0;
   if (G.food < 0) G.food = 0;
-  if (G.hungry && !wasHungry) notify('식량 바닥', '배고픈 사수는 쏘지 않는다 · 오래 굶으면 동료가 떠난다', 'danger');
+  if (G.hungry && !wasHungry) notify('식량 바닥', '', 'danger');
   // running low: a warning while there is still time to act
   const net = rateOf('food') - eat;
-  if (!G.hungry && net < 0 && G.food < -net * 45) notify('식량 부족', '약 ' + Math.ceil(G.food / -net) + '초 뒤 바닥난다 · 식량층을 키우자', 'danger', 60);
+  if (!G.hungry && net < 0 && G.food < -net * 45) notify('식량 부족', Math.ceil(G.food / -net) + '초 뒤 바닥', 'danger', 60);
   // a long hunger drives the newest hand away
   if (G.hungry) {
     G.starve = (G.starve || 0) + dt;
     if (G.starve >= STARVE_LEAVE) {
       G.starve = STARVE_LEAVE / 2;
       const i = G.crew.map((c, k) => c ? k : -1).filter(k => k >= 0).pop();
-      if (i != null) { notify('굶주림 · ' + G.crew[i].name + ' 떠남', '식량이 없어 기지를 떠났다', 'danger', 0); G.crew[i] = null; resyncPosts(); markUnder(0); renderPanel(true); }
+      if (i != null) { notify('굶주림', G.crew[i].name + ' 떠남', 'danger', 0); G.crew[i] = null; resyncPosts(); markUnder(0); renderPanel(true); }
     }
   } else G.starve = Math.max(0, (G.starve || 0) - dt * 2);
-  // repairs: a slow free patch-up, and a fast one that eats food (bunker) or money (fence)
-  const maxHp = bunkerHp(G.bunker);
-  G.hp = Math.min(maxHp, G.hp + maxHp * .005 * dt);
-  const paid = Math.min(maxHp - G.hp, maxHp * .015 * dt, G.food / REPAIR_FOOD);
+  // repairs: a slow free patch-up, and a fast one that eats food (bunker) or money (fence). The workshop's hands mend
+  // 0.4% a second each, the fence first, then the bunker; relics and cards speed it all up (systems.js)
+  const maxHp = bunkerHp(G.bunker), rep = SYS.hook.repair(), hands = SYS.hook.repairShare(activeOn('정비공')), fenceHurt = G.fence && G.fenceHp < fenceHp(G.fence);
+  G.hp = Math.min(maxHp, G.hp + maxHp * (.005 * rep + (fenceHurt ? 0 : hands)) * dt);
+  const paid = Math.min(maxHp - G.hp, maxHp * .015 * rep * dt, G.food / REPAIR_FOOD);
   if (paid > 0) { G.hp += paid; G.food -= paid * REPAIR_FOOD; }
   if (G.fence) {
-    const max = fenceHp(G.fence), free = Math.max(0, Math.min(max - G.fenceHp, max * .005 * dt));
-    const fix = Math.max(0, Math.min(max - G.fenceHp - free, max * .02 * dt, G.money / REPAIR_MONEY));
+    const max = fenceHp(G.fence), free = Math.max(0, Math.min(max - G.fenceHp, max * (.005 * rep + hands) * dt));
+    const fix = Math.max(0, Math.min(max - G.fenceHp - free, max * .02 * rep * dt, G.money / REPAIR_MONEY));
     G.money -= fix * REPAIR_MONEY;
     const heal = free + fix;
     G.fenceHp += heal;
@@ -51,14 +54,17 @@ function update(dt) {
     if (G.fenceDown && G.fenceHp >= max * .4) { G.fenceDown = false; G.sideDmg = [0, 0, 0, 0]; G.sideStage = [0, 0, 0, 0]; composeYard(); sound('hammer'); }
     else if (!G.fenceDown) fenceStages();
   }
-  // a boss wave starts with its boss
+  // a boss stage starts with its boss, on its clock
   if (isBossWave(G.wave) && G.bossFor !== G.wave) { G.bossFor = G.wave; spawnBoss(); }
+  if (G.bossLeft > 0 && bossAlive() && (G.bossLeft -= dt) <= 0) bossTimeout();
   if ((G.spawnIn -= dt) <= 0) { if (G.zombies.reduce((n, z) => n + (z.state !== 'dying'), 0) < MAX_ZOMBIES) spawn(); G.spawnIn = spawnEvery(G.wave) * (.6 + Math.random() * .8); }
   updateZombies(dt);
   if (G.hp <= 0) fall();
   updatePeople(dt);
   assignTargets(dt);
   for (const s of shooters()) updateShooter(s, dt);
+  // the systems' clock: the turrets fire, gems for play, the daily gift, automation (systems.js)
+  SYS.hook.tick(dt);
   // the floors below at work: sparks off the drill and the picks, leaves from the farm
   if (!G.hungry) {
     if (G.mine && G.floorView === 2) inDugout(2, () => { if (Math.random() < dt * 8) part(PIT.x, PIT.y, FLOOR_Z[2] + .05, (Math.random() - .5) * 2.4, (Math.random() - .5) * 2.4, 2.2, .45, rgb(255, 204, 96), null); });
@@ -66,6 +72,11 @@ function update(dt) {
       if (!atWork(c) || c.where !== 'ug') continue;
       if (c.job === '광부') { const ph = (c.act * 2.6) % 3, prev = ((c.act - dt) * 2.6) % 3; if (prev < 2 && ph >= 2 && G.floorView === 2) inDugout(2, () => { const h = c.hit || { x: c.x + .05, y: UG.y0 + .1, z: .9 }; spray(h.x, h.y, toFloorZ(c.z, 2) + h.z, 6, 1.5, 2.2, .7, [rgb(110, 150, 214), rgb(150, 146, 140), rgb(255, 214, 120)]); }); }
       if (c.job === '농부' && G.floorView === 1 && Math.random() < dt * 1.2) inDugout(1, () => part(c.x + (Math.random() - .5) * .6, c.y - .7, toFloorZ(c.z, 1) + 1 + Math.random() * .4, 0, 0, -.2, .8, rgb(140, 210, 110), null));
+    }
+    // the workshop's hands at the bench: sparks off the hammer
+    for (const c of G.crew) {
+      if (!atWork(c) || c.job !== '정비공' || c.where !== 'yard' || Math.random() >= dt * 2.5) continue;
+      spray(c.x + Math.cos(c.yaw) * .35, c.y + Math.sin(c.yaw) * .35, .45, 3, 1.2, 1.4, .3, [rgb(255, 214, 120), rgb(255, 160, 60)]);
     }
   }
   G.hurt = Math.max(0, G.hurt - dt);
@@ -103,7 +114,8 @@ function drawYard() {
   applyFlash('yard');
   for (const z of G.zombies) drawZombie(z);
   if (G.hero) drawPerson(G.hero);
-  for (const c of G.crew) if (c && c.where === 'yard') drawPerson(c);
+  for (const c of G.crew) if (c && c.where === 'yard') drawHand(c);
+  SYS.hook.drawYard(); // the turrets on the bunker's mounts
   castSpriteShadows(SHX, SHY);
   for (const t of G.tracers) pxLine(Math.round(t.ax), Math.round(t.ay), Math.round(t.bx), Math.round(t.by), SIGNAL, 99);
   // acid globs: an arc from the spitter's mouth to where they land, with a short dripping trail
@@ -135,6 +147,12 @@ function drawYard() {
   drawBars();
   if (G.hero) drawAmmo(G.hero);
   for (const f of G.floats) { const p = project(f.x, f.y, f.z); if (f.life > .25 || Math.floor(f.life * 20) % 2) pixelText(f.text, p.sx, p.sy - 6, f.color); }
+}
+// a workshop hand at the bench swings its hammer (the miner's swing, hard hat and all)
+function drawHand(c) {
+  if (c.job !== '정비공' || !atWork(c)) return drawPerson(c);
+  c.job = '광부';
+  try { drawPerson(c); } finally { c.job = '정비공'; }
 }
 function drawUnder() {
   pix.set(bakedPix); zb.set(bakedZ);

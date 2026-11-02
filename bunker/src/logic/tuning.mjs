@@ -3,8 +3,9 @@
 // Values marked "doc" come from docs/기획서.md; the rest were set by tests/sim (see tests/sim/report.md).
 const DEFAULTS = {
   stage: {
-    e: 0.035,                // early term of H(s); doc draft 0.012, raised so stage 60 takes 2-3 h of real play
-    eUntil: 100,             // doc: e * min(s, 100)
+    // early term e * min(s, eUntil) of H(s) (doc: e * min(s, 100), draft e 0.012). The client wants stage 60 at 2-3 h AND
+    // stage 100 within day 2; a term still growing to 100 made 60-100 as slow as 0-60, so it stops at 60
+    e: 0.075, eUntil: 60,
     cap: 30000,              // doc: stages stop near 30,000
     spawnEvery: 0.9,         // s between zombies: 30-60 kills (doc) clear in 27-54 s at full pace, 30-60 s with the gap (was 1.0: 62 s)
     walk: 8,                 // s from the island edge to the fence
@@ -12,7 +13,9 @@ const DEFAULTS = {
     tRef: 45,                // s: the pace "requirement" (auto-skip, payer checks) is measured at
     normalLimit: 180,        // s: a normal stage that drags past this is overrun
     bossHp: 400, bossTime: 45,                       // doc
-    titanHp: 1000, titanTime: 75, titanPhases: [0.35, 0.35, 0.30], phaseGap: 2, // doc: 1,000x, 3 phases
+    // doc: 1,000x, 3 phases. 110 s (was 75): a titan needed ~3.3x the power of the boss ten stages earlier and held the
+    // bot for 5-7 runs at every x00 (40% of late runs)
+    titanHp: 1000, titanTime: 110, titanPhases: [0.35, 0.35, 0.30], phaseGap: 2,
     bossGold: 30, titanGold: 100,                     // kill-gold multiples
     bossParts: 20, killParts: 0.1,                    // doc
     skipMult: 10, skipMultAuto: 5, skipMax: 50, skipStepTime: 0.06, // doc: 10x (5x after 12 evacuations), 50 stages; a 50-stage jump plays in 3 s
@@ -72,9 +75,10 @@ const DEFAULTS = {
     // the price growth sets how much one doubling of the medals buys
     ups: {
       // was 1.22-1.35: one doubling bought ~3.5 levels of each line (x3 power), so quick re-climbs doubled the medals
-      // every few minutes (3.6e16 by day 20). At x2.2-2.5 a doubling is worth ~x1.3 and a run has to push the record
-      fire: { cost0: 2, grow: 2.2 }, funds: { cost0: 2, grow: 2.2 }, command: { cost0: 4, grow: 2.5 },
-      supply: { cost0: 5, grow: 2.5 }, drill: { cost0: 8, grow: 2.5 }, watch: { cost0: 25, grow: 2.5 }, sentry: { cost0: 25, grow: 2.5 },
+      // every few minutes (3.6e16 by day 20). At x2.3-2.6 a doubling is worth ~x1.3 and a run has to push the record.
+      // grow2 (optional) bends the growth per level: cost0 * grow^L * grow2^(L(L-1)/2)
+      fire: { cost0: 2, grow: 2.3 }, funds: { cost0: 2, grow: 2.3 }, command: { cost0: 4, grow: 2.6 },
+      supply: { cost0: 5, grow: 2.6 }, drill: { cost0: 8, grow: 2.6 }, watch: { cost0: 25, grow: 2.5 }, sentry: { cost0: 25, grow: 2.5 },
     },
   },
   gear: {

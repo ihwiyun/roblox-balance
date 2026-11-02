@@ -77,13 +77,15 @@ function startAttempt(st) {
   const res = resolveStage(s, S, { ...st.pool, fenceMax: S.fenceMax, bunkerMax: S.bunkerMax });
   st.cur = { s, el: 0, dur: res.time + skipTime + 2, skipTime, res, rw: stageRewards(s) };
 }
-function earnGold(st, g) { st.gold += g; st.goldEarned = (st.goldEarned || 0) + g; }
+// income and spending are reported by source/sink to a listener (st.ev) only: the simulation's weekly flows
+const earn = (st, res, amount, src) => { if (st.ev && amount > 0) st.ev('earn', { res, amount, src }); };
+function earnGold(st, g, src = 'kills') { st.gold += g; st.goldEarned = (st.goldEarned || 0) + g; earn(st, 'gold', g, src); }
 function finishAttempt(st) {
   const c = st.cur, S = stats(st), boost = st.t < st.boostUntil ? 2 : 1;
   st.cur = null; st.last = c;
   const parts = c.res.repaired / (0.01 * (S.fenceMax + S.bunkerMax)) * S.repairPartsMul;
   st.parts = Math.max(0, st.parts - parts); st.ore += parts * S.repairOre;
-  emit(st, 'spend', { parts });
+  emit(st, 'spend', { parts, sink: 'repair' }); earn(st, 'ore', parts * S.repairOre, 'repair');
   if (!c.res.ok) {
     st.mode = 'repeat'; st.stage = Math.max(1, c.s - 1); st.failStage = c.s; st.failDps = S.dps;
     refill(st);
@@ -93,12 +95,13 @@ function finishAttempt(st) {
   }
   const rw = c.rw;
   if (rw.kind !== 'normal') {
-    earnGold(st, rw.gold * S.goldMul * boost + st.goldRate * (S.bossIncomeSec + S.bossClock * Math.max(0, T.stage.bossTime - c.res.time)));
+    earnGold(st, rw.gold * S.goldMul * boost + st.goldRate * (S.bossIncomeSec + S.bossClock * Math.max(0, T.stage.bossTime - c.res.time)), rw.kind);
     st.counts.bossKills++; if (rw.kind === 'titan') st.counts.titanKills++;
   }
   st.counts.kills += rw.kills; st.counts.killsForRelic += rw.kills;
   addXp(st.cmd, rw.xp * S.xpMul, st.record >= T.player.unlockStage);
-  st.parts += rw.parts + (S.partsPerKill - T.stage.killParts) * rw.kills;
+  const kp = rw.parts + (S.partsPerKill - T.stage.killParts) * rw.kills;
+  st.parts += kp; earn(st, 'parts', kp, rw.kind === 'normal' ? 'kills' : rw.kind);
   let drops = Math.floor(st.counts.killsForRelic / T.relics.killsPerDrop);
   st.counts.killsForRelic -= drops * T.relics.killsPerDrop;
   if (rw.relic && st.rng.chance(rw.relic * (1 + S.relicFind))) drops++;
@@ -112,12 +115,12 @@ function finishAttempt(st) {
 function newRecord(st, s, kind) {
   const was = st.record;
   st.record = s;
-  if (kind === 'boss') st.gems += T.economy.bossFirstGems;
-  if (kind === 'titan') st.gems += T.economy.titanFirstGems;
+  if (kind === 'boss') { st.gems += T.economy.bossFirstGems; earn(st, 'gems', T.economy.bossFirstGems, 'first boss'); }
+  if (kind === 'titan') { st.gems += T.economy.titanFirstGems; earn(st, 'gems', T.economy.titanFirstGems, 'first titan'); }
   const tiers = every => Math.floor(s / every) - Math.floor(was / every);
-  st.gems += tiers(SEASON_FREE.everyStages) * SEASON_FREE.gems;
+  st.gems += tiers(SEASON_FREE.everyStages) * SEASON_FREE.gems; earn(st, 'gems', tiers(SEASON_FREE.everyStages) * SEASON_FREE.gems, 'season (free)');
   if (st.t < st.shop.seasonUntil) {
-    st.gems += tiers(PASSES.season.everyStages) * PASSES.season.gems;
+    st.gems += tiers(PASSES.season.everyStages) * PASSES.season.gems; earn(st, 'gems', tiers(PASSES.season.everyStages) * PASSES.season.gems, 'season pass');
     for (let k = tiers(PASSES.season.chestEvery); k > 0; k--) openChest(st);
   }
   recruitStory(st, s);
@@ -129,13 +132,17 @@ function store(st, S, res, add) {
   const o = overflow(st[res], add, S.caps[res]);
   st[res] += o.kept;
   if (o.spill > 0) {
-    if (S.alchemy) earnGold(st, o.spill / T.sections.overflowToXp * S.alchemy * st.goldRate);
+    if (S.alchemy) earnGold(st, o.spill / T.sections.overflowToXp * S.alchemy * st.goldRate, 'alchemy');
     else addXp(st.cmd, o.xp, st.record >= T.player.unlockStage);
     emit(st, 'spill', { res, amount: o.spill });
   }
 }
-function produce(st, S, dt, eff = 1, upkeep = true) {
+function produce(st, S, dt, eff = 1, upkeep = true, src = 'production') {
   const lowFood = st.food < 0.1 * S.caps.food ? 1 - S.lowFoodUpkeepCut : 1;
+  if (st.ev) {
+    for (const r of ['food', 'ore', 'parts']) earn(st, r, S.prod[r] * dt * eff, src);
+    if (upkeep) st.ev('spend', { food: S.upkeep * lowFood * dt * eff, sink: 'upkeep' });
+  }
   store(st, S, 'food', (S.prod.food - (upkeep ? S.upkeep * lowFood : 0)) * dt * eff);
   store(st, S, 'ore', S.prod.ore * dt * eff);
   store(st, S, 'parts', S.prod.parts * dt * eff);
@@ -143,7 +150,7 @@ function produce(st, S, dt, eff = 1, upkeep = true) {
     const day = Math.floor(st.t / 86400);
     if (st.oreGemDay !== day) { st.oreGemDay = day; st.oreGems = 0; }
     const g = Math.min(S.gemsPerOre * S.prod.ore * dt * eff, T.relics.oreGemsPerDay - st.oreGems);
-    if (g > 0) { st.gems += g; st.oreGems += g; }
+    if (g > 0) { st.gems += g; st.oreGems += g; earn(st, 'gems', g, 'relic (ore)'); }
   }
 }
 function research(st, S, dt, active) {
@@ -172,7 +179,7 @@ export function advance(st, dt) {
     st.goldMark = st.goldEarned || 0;
     st.t += step; st.active += step; c.el += step; left -= step;
     st.activityT += step;
-    while (st.activityT >= 600) { st.activityT -= 600; st.gems += T.economy.activityGemsPer10Min; }
+    while (st.activityT >= 600) { st.activityT -= 600; st.gems += T.economy.activityGemsPer10Min; earn(st, 'gems', T.economy.activityGemsPer10Min, 'activity'); }
     if (c.el >= c.dur - 1e-9) finishAttempt(st);
   }
 }
@@ -182,9 +189,9 @@ export function offline(st, seconds, adDouble = false) {
   const S = stats(st), extra = (st.t < st.shop.monthlyUntil ? PASSES.monthly.offlineH : 0) + (st.shop.owned.offline12 ? 12 : 0);
   const h = Math.min(seconds, (S.offlineH + extra) * 3600), eff = S.offlineEff * (adDouble ? 2 : 1);
   const before = { gold: st.gold, food: st.food, ore: st.ore, parts: st.parts };
-  earnGold(st, st.goldRate * h * eff * T.economy.offlineGold);
+  earnGold(st, st.goldRate * h * eff * T.economy.offlineGold, 'offline');
   st.goldMark = st.goldEarned;
-  produce(st, S, h, eff, !S.offlineNoUpkeep);
+  produce(st, S, h, eff, !S.offlineNoUpkeep, 'offline');
   research(st, S, seconds, false);
   st.t += seconds;
   return Object.fromEntries(Object.keys(before).map(k => [k, st[k] - before[k]]));
@@ -195,7 +202,7 @@ export function raid(st) {
   const S = stats(st), cost = Math.min(S.prod.food * 60 * T.economy.raidFoodMinutes, 0.8 * S.caps.food);
   if (st.food < cost || cost <= 0) return false;
   st.food -= cost; st.fame += 100; st.parts += S.prod.parts * 300;
-  emit(st, 'spend', { food: cost });
+  emit(st, 'spend', { food: cost, sink: 'raid' }); earn(st, 'parts', S.prod.parts * 300, 'raid');
   if (st.fame >= 500) { st.fame -= 500; openChest(st); }
   return true;
 }
@@ -210,7 +217,8 @@ export function evacuate(st, forced = false) {
   const gain = medalsIfEvacuated(st, forced);
   if (!gain && !forced) return 0;
   st.medals += gain; st.medalsLife += gain; st.evacs++; st.evacAt.push(st.t);
-  st.gems += Math.floor(T.economy.evacGems0 + T.economy.evacGemsPerStage * st.runBest);
+  const eg = Math.floor(T.economy.evacGems0 + T.economy.evacGemsPerStage * st.runBest);
+  st.gems += eg; earn(st, 'medals', gain, 'prestige'); earn(st, 'gems', eg, 'prestige');
   if (forced && st.runBest < T.medals.firstAt) { st.stage = Math.max(1, st.stage - 1); return 0; } // before 50: one stage back
   Object.assign(st, { stage: 1, runBest: 0, mode: 'progress', gold: 0, food: 0, ore: 0, cur: null });
   st.ws = { atk: 0, rate: 0, mag: 0, reload: 0 };
@@ -221,7 +229,7 @@ export function evacuate(st, forced = false) {
 
 /* ---------- prices: one key per track ---------- */
 export const canPay = (st, c) => !!c && Object.entries(c).every(([k, v]) => st[k] >= v);
-function payCost(st, c) { for (const [k, v] of Object.entries(c)) st[k] -= v; emit(st, 'spend', c); }
+function payCost(st, c, sink) { for (const [k, v] of Object.entries(c)) st[k] -= v; emit(st, 'spend', { ...c, sink }); }
 const bt = (st, c) => { const S = stats(st), o = {}; for (const [k, v] of Object.entries(c)) o[k] = Math.ceil(v * S.btMul); return o; };
 // ws:atk  bunker  fence  sec:food:lv|tier|cap  crew:<id>  enh:w:<i>  enh:t:<i>  medal:<key>  research:<key>
 export function price(st, key) {
@@ -257,11 +265,21 @@ export function price(st, key) {
   }
   return null;
 }
+// is the next purchase on this track a breakthrough (materials, every 50 or 10 levels) rather than a level?
+export function needsBreakthroughKey(st, key) {
+  const [a, b, c] = key.split(':');
+  if (a === 'bunker') return needsBreakthrough(st.bunker, st.bunkerBt);
+  if (a === 'fence') return needsBreakthrough(st.fence, st.fenceBt);
+  if (a === 'sec') return c === 'lv' && needsBreakthrough(st.sec[b].lv, st.sec[b].bt);
+  if (a === 'crew') return !!st.crew.cards[b] && needsBt(st.crew.cards[b]);
+  if (a === 'enh') return enhNeedsBt(b === 'w' ? st.weapons : st.turrets, +c);
+  return false;
+}
 const rawUpkeep = st => { let u = 0; for (const id of Object.values(st.crew.assign).flat()) if (id !== 'me') u += T.crew.upkeep0 * (1 + T.crew.upkeepPerLevel * st.crew.cards[id].level); return u; };
 export function buy(st, key) {
   const c = price(st, key);
   if (!canPay(st, c)) return false;
-  payCost(st, c);
+  payCost(st, c, key.split(':').slice(0, 2).join(':') + (needsBreakthroughKey(st, key) ? ':bt' : ''));
   const [a, b, d] = key.split(':'), S = stats(st);
   if (a === 'ws') st.ws[b]++;
   else if (a === 'bunker' || a === 'fence') {
@@ -292,16 +310,16 @@ export function buy(st, key) {
 
 /* ---------- gems, diamonds, summons, merging ---------- */
 // pays from gems, then (if allowed) diamonds
-function payGems(st, n, useDiamonds) {
-  if (st.gems >= n) { st.gems -= n; emit(st, 'spend', { gems: n }); return true; }
-  if (useDiamonds && st.gems + st.diamonds >= n) { const d = n - st.gems; emit(st, 'spend', { gems: st.gems, diamonds: d }); st.gems = 0; st.diamonds -= d; return true; }
+function payGems(st, n, useDiamonds, sink) {
+  if (st.gems >= n) { st.gems -= n; emit(st, 'spend', { gems: n, sink }); return true; }
+  if (useDiamonds && st.gems + st.diamonds >= n) { const d = n - st.gems; emit(st, 'spend', { gems: st.gems, diamonds: d, sink }); st.gems = 0; st.diamonds -= d; return true; }
   return false;
 }
 export function openChest(st) { const r = rollRelic(st.rng, st.relics, st.rSum); emit(st, 'relic', r); return r; }
 export function summon(st, kind, n = 1, useDiamonds = false) {
   const each = PRICES[{ weapon: 'weaponPull', turret: 'turretPull', relic: 'relicChest', recruit: 'recruit' }[kind]];
   const out = [];
-  for (let k = 0; k < n && payGems(st, each, useDiamonds); k++) {
+  for (let k = 0; k < n && payGems(st, each, useDiamonds, 'summon:' + kind); k++) {
     if (kind === 'weapon') out.push(summonWeapon(st.rng, st.weapons, st.wSum));
     else if (kind === 'turret') out.push(summonTurret(st.rng, st.turrets, st.tSum));
     else if (kind === 'relic') out.push(openChest(st));
@@ -315,9 +333,14 @@ export const freeSummon = st => { const i = summonWeapon(st.rng, st.weapons, st.
 export const mergeParts = (grade, cut = 0) => Math.ceil(3 * (grade + 1) ** 2 * (1 - cut));
 export function merge(st) {
   const S = stats(st);
-  const pay = list => i => { const c = mergeParts(list[i].grade, S.mergeCut); if (st.parts < c) return false; st.parts -= c; emit(st, 'spend', { parts: c }); return true; };
+  const pay = list => i => { const c = mergeParts(list[i].grade, S.mergeCut); if (st.parts < c) return false; st.parts -= c; emit(st, 'spend', { parts: c, sink: 'merge' }); return true; };
   const made = mergeAll(st.weapons, T.gear.mergeN, pay(WEAPONS)) + mergeAll(st.turrets, T.gear.mergeN, pay(TURRETS));
   if (made) dirty(st);
   return made;
 }
-export function buyStep(st, line, step, krw) { st.shop.steps[line]++; st.shop.spent += krw; grant(st, step.items, st.rng, () => openChest(st)); dirty(st); }
+export function buyStep(st, line, step, krw) {
+  st.shop.steps[line]++; st.shop.spent += krw;
+  grant(st, step.items, st.rng, () => openChest(st));
+  earn(st, 'gems', step.items.gems || 0, 'package'); earn(st, 'food', step.items.food || 0, 'package');
+  dirty(st);
+}

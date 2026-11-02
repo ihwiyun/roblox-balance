@@ -761,6 +761,7 @@ var SYS = window.SYS || (() => {
     bossName: s => (on ? (Lg.bossInfo(s) || {}).name : null),
     titan: s => s % 100 === 0,
     band: s => (on ? Lg.bandOf(s).zombies : null),
+    zombieName: k => (on && Lg.ZOMBIES[k] ? Lg.ZOMBIES[k].name : null),
     // every kill: XP, parts, and a relic every 2,000 kills
     killed(z, s) {
       if (!on) return;
@@ -791,8 +792,8 @@ var SYS = window.SYS || (() => {
         storyCards(s);
         if (gems) notify('첫 클리어', '보석 +' + num(gems), 'good');
       }
-      G.runBest = Math.max(G.runBest, s);
-      autoEquip(); changed();
+      // a stage played again changes nothing the screens show
+      if (s > G.runBest || s === G.record) { G.runBest = Math.max(G.runBest, s); autoEquip(); changed(); }
     },
     // a breach while starving: the forced evacuation (half the medals; before stage 50 only one stage back)
     starved() { return on ? evacuate(true) : null; },

@@ -18,7 +18,21 @@ function jobIndex(c) { return G.crew.filter(p => p && p.job === c.job).indexOf(c
 function workSpot(c) {
   if (c.job === '사수') { const s = SITES[Math.min(SITES.length - 1, gunnerIndex(c))] || [0, 0, STAGE_Z()]; return { where: 'yard', x: s[0], y: s[1], z: s[2] }; }
   const n = Math.max(0, jobIndex(c));
-  return c.job === '농부' ? farmSpot(n) : mineSpot(n);
+  return c.job === '정비공' ? shopSpot(n) : c.job === '농부' ? farmSpot(n) : mineSpot(n);
+}
+// the workshop is above ground (doc 8): its hands work on the ground in the front-left strip of the yard, between the
+// bunker and the workbench that stands there later (yard.js), facing it
+const SHOP_AT = [1.05, .45, 1.65, -.15];
+const shopSpot = n => ({ where: 'yard', x: SHOP_AT[n % SHOP_AT.length], y: 2.3, z: 0, yaw: Math.PI / 2 });
+// a hand bought for a floor (systems.js): a free bed, nameless (the job is its name), and off to work
+function hireWorker(job) {
+  const i = G.crew.findIndex((c, k) => !c && k < bedsOf(G.live));
+  if (i < 0) return null;
+  const p = makePerson(i);
+  p.job = job; if (job !== '사수') p.name = job;
+  G.crew[i] = p; p.state = 'toWork'; p.path = route(p, workSpot(p));
+  resyncPosts(); markUnder(0);
+  return p;
 }
 // a path is a list of steps: walk on a floor (or the roof), climb the shaft, or pass through the roof hatch.
 // A post below ground can name points to walk through on the way in (via: down the corridor, then along an aisle
@@ -32,8 +46,9 @@ function route(c, dest) {
   const end = dest.via ? { ...dest, mode: 'walk', via: dest.via.length } : { ...dest, mode: 'walk' };
   if (c.where === 'yard' && dest.where === 'yard') pts.push(end);
   else if (c.where === 'yard') {
-    const h = SITES.hatch;
-    pts.push({ where: 'yard', x: h[0], y: h[1], z: h[2], mode: 'walk' }, { mode: 'hatch', to: 'ug' }, { ...shaftAt(dest.floor), mode: 'climb' }, ...into, end);
+    // someone on the ground (the workshop's hands) walks into the bunker at ground level and goes down from there
+    const h = SITES.hatch, low = c.z < h[2] - .3;
+    pts.push({ where: 'yard', x: h[0], y: h[1], z: low ? c.z : h[2], mode: 'walk' }, { mode: 'hatch', to: 'ug' }, { ...shaftAt(dest.floor), mode: 'climb' }, ...into, end);
   } else if (dest.where === 'yard') {
     pts.push(...out, shaftAt(c.floor), { where: 'ug', floor: 0, x: SHAFT.x, y: LADDER_Y, z: HATCH_TOP(), mode: 'climb' }, { mode: 'hatch', to: 'yard' }, end);
   } else if (c.floor !== dest.floor) {
@@ -60,7 +75,7 @@ function stepPerson(c, dt) {
   if (wp.mode === 'hatch') {
     c.where = wp.to;
     if (wp.to === 'ug') { c.x = SHAFT.x; c.y = LADDER_Y; c.z = HATCH_TOP(); c.floor = 0; }
-    else { const h = SITES.hatch; c.x = h[0]; c.y = h[1]; c.z = h[2]; c.floor = -1; }
+    else { const h = SITES.hatch, next = c.path[1]; c.x = h[0]; c.y = h[1]; c.z = next && next.z < h[2] - .3 ? next.z : h[2]; c.floor = -1; }
     c.path.shift();
     return false;
   }
@@ -99,9 +114,12 @@ function updatePeople(dt) {
 const atWork = c => c && c.state === 'work' && !c.path.length;
 const activeOn = job => G.crew.filter(c => c && c.job === job && atWork(c)).length;
 function rateOf(res) {
-  if (G.hungry && res !== 'food') return outputOf(res, 0); // the farm keeps going, or hunger could never end
-  return outputOf(res, activeOn(res === 'food' ? '농부' : '광부'));
+  if (res === 'parts') return G.hungry ? 0 : SYS.hook.partsRate(activeOn('정비공'));
+  if (G.hungry && res !== 'food') return outputOf(res, 0) * SYS.hook.prod(res); // the farm keeps going, or hunger could never end
+  return outputOf(res, activeOn(res === 'food' ? '농부' : '광부')) * SYS.hook.prod(res);
 }
+// the parts box: an hour of the workshop's output, never below 600 (the logic's store rule)
+const partsCap = () => Math.round(Math.max(600, 3600 * SYS.hook.partsRate(G.crew.filter(c => c && c.job === '정비공').length)));
 function resyncPosts() {
   // new bunker or a changed job: everyone working heads to the right post
   if (G.hero) { const s = SITES[0]; G.hero.x = s[0]; G.hero.y = s[1]; G.hero.z = s[2]; }
@@ -117,10 +135,13 @@ function resyncPosts() {
 /* ================= shooting: targets are shared out, nobody wastes a turn on a zombie already being killed ================= */
 const damageOf = () => gunStat('atk');
 const rateOfFire = () => gunStat('spd');
-function startReload(s) { s.reloadLen = reloadTime(); s.reload = s.reloadLen; s.magOut = false; s.magIn = false; }
+// what a shooter's shot does: the workshop's gun times the weapon this shooter holds and every multiplier of the
+// systems (systems.js): damage, crits, fire rate, splash, piercing, fire and cold
+const shotOf = s => SYS.hook.shooter(s);
+function startReload(s) { s.reloadLen = reloadTime() * shotOf(s).reload; s.reload = s.reloadLen; s.magOut = false; s.magIn = false; }
 const shooters = () => [G.hero, ...(G.hungry ? [] : G.crew.filter(c => c && c.job === '사수' && atWork(c) && c.where === 'yard'))].filter(Boolean);
 // the damage a shooter will land on its target in the next second or so
-const commitOf = s => s.reload > 0 ? 0 : Math.min(s.ammo, Math.ceil(rateOfFire() * 1.1)) * damageOf();
+const commitOf = s => { const w = shotOf(s); return s.reload > 0 ? 0 : Math.min(s.ammo, Math.ceil(rateOfFire() * w.rate * 1.1)) * damageOf() * w.mul; };
 // lower is more urgent: whoever is hitting us, then the dangerous kinds (a screamer drives the others wild,
 // a spitter works from a distance, a bloater must not reach the wall)
 const THREAT = { bloater: 1.5, brute: .8, giant: 1, spitter: 2.2, screamer: 3, boss: 1.2, leaper: .6, burrower: .8, regenerator: .5 };
@@ -167,13 +188,30 @@ function assignTargets(dt) {
 }
 function fire(s, z) {
   if (s.reload > 0 || s.ammo <= 0) return false;
-  s.ammo--; s.recoil = .12; s.flash = .06;
+  const w = shotOf(s);
+  if (!w.noReload) s.ammo--;
+  s.recoil = .12; s.flash = .06;
   const fx = Math.cos(s.yaw), fy = Math.sin(s.yaw);
   part(s.x + fx * .3, s.y + fy * .3, s.z + 1.2, -fy * 1.4 + (Math.random() - .5) * .5, fx * 1.4 + (Math.random() - .5) * .5, 2.2 + Math.random(), 1.4, rgb(232, 184, 74), rgb(150, 104, 40));
   const c = project(z.x, z.y, .8);
   G.tracers.push({ ax: s.muzzle ? s.muzzle[0] : project(s.x, s.y, s.z + 1.3).sx, ay: s.muzzle ? s.muzzle[1] : project(s.x, s.y, s.z + 1.3).sy, bx: c.sx, by: c.sy, life: .06 });
   sound('shot');
-  hurt(z, damageOf());
+  let dmg = damageOf() * w.mul * (z.type === 'boss' ? w.boss : 1);
+  const crit = Math.random() < w.crit;
+  if (crit) dmg *= w.critMul;
+  if (w.burn && Math.random() < w.burn) ignite(z, dmg * .3);
+  if (w.slow) chill(z, w.slow);
+  // shotguns and heavy guns splash the zombies around the target; a chain jumps to the next; a sniper's round goes on
+  // through to the ones behind it along the line of fire
+  const others = G.zombies.filter(o => o !== z && o.state !== 'dying' && !o.gone && o.visible);
+  if (w.crowd > 0) for (const o of others) if (Math.hypot(o.x - z.x, o.y - z.y) < .9) hurt(o, dmg * Math.min(1, w.crowd * .5), true, true);
+  if (w.chain) { const o = others.filter(o => Math.hypot(o.x - z.x, o.y - z.y) < 1.6).sort((a, b) => Math.hypot(a.x - z.x, a.y - z.y) - Math.hypot(b.x - z.x, b.y - z.y))[0]; if (o) hurt(o, dmg * .6, true, true); }
+  if (w.pierce > 0) {
+    const dx = z.x - s.x, dy = z.y - s.y, L = Math.hypot(dx, dy) || 1, ux = dx / L, uy = dy / L;
+    others.filter(o => { const a = (o.x - s.x) * ux + (o.y - s.y) * uy; return a > L && Math.abs((o.x - s.x) * uy - (o.y - s.y) * ux) < .4; })
+      .sort((a, b) => Math.hypot(a.x - s.x, a.y - s.y) - Math.hypot(b.x - s.x, b.y - s.y)).slice(0, w.pierce).forEach(o => hurt(o, dmg * .7, true, true));
+  }
+  hurt(z, dmg, false, false, crit);
   if (s.ammo === 0) startReload(s);
   return true;
 }
@@ -199,6 +237,6 @@ function updateShooter(s, dt) {
   let d = Math.atan2(Math.sin(want - s.yaw), Math.cos(want - s.yaw));
   s.yaw += clamp(d, -8 * dt, 8 * dt);
   d = Math.atan2(Math.sin(want - s.yaw), Math.cos(want - s.yaw));
-  if (s.cool <= 0 && Math.abs(d) < .2 && fire(s, z)) s.cool = 1 / rateOfFire();
+  if (s.cool <= 0 && Math.abs(d) < .2 && fire(s, z)) s.cool = 1 / (rateOfFire() * shotOf(s).rate);
   if (s.cool < 0) s.cool = 0;
 }

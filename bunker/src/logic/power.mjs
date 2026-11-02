@@ -124,6 +124,8 @@ export function computeStats(st) {
       workshop: atk / T.workshop.atk.base,
       rateUptime: baseFire / fire0(),
       weapon: (roof.length ? eqSum / roof.length : 1) * (1 + ownedW) * (1 + codexW),
+      weaponEquip: roof.length ? eqSum / roof.length : 1, weaponOwned: 1 + ownedW, weaponCodex: 1 + codexW,
+      turrets: total ? total / Math.max(1e-300, dpsGunners) : 1,
       shooters: roof.length + tIdx.length,
       crew: roof.length ? lvlSum / roof.length / (cm.crew * md.crew) * (1 + g('dmgPct') + g('roofPct')) : 1,
       roof: roofM, commander: cm.dmg * cm.crew, medals: md.dmg * md.crew, relics: (1 + r('dmgPct')) * (rm.dmgMul ?? 1), research: rs.dmg,
