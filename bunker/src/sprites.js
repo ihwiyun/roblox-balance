@@ -71,9 +71,6 @@ function loadSprites() {
 }
 const animOf = (set, name) => set.anims[name] ? name : 'walk';
 // stamp rows so that their anchor (ax, ay) lands on (px, py); mirrored stamps flip around the anchor
-// rows of the screen above CLIP_Y are not drawn: someone on the ladder disappears into the top of the shaft
-// instead of floating above the room (drawUnder sets it while drawing a climber, then puts it back to 0)
-let CLIP_Y = 0;
 function stampAnchored(st, rows, px, py, mirror, pal, d) {
   const x0 = px - (mirror ? st.w - 1 - st.ax : st.ax), y0 = py - st.ay;
   for (let y = 0; y < rows.length; y++) {
@@ -82,7 +79,7 @@ function stampAnchored(st, rows, px, py, mirror, pal, d) {
       const ch = row[mirror ? row.length - 1 - x : x];
       if (ch === '.') continue;
       const sx = x0 + x + (mirror ? st.w - row.length : 0), sy = y0 + y;
-      if (sx < 0 || sy < CLIP_Y || sx >= W || sy >= H) continue;
+      if (sx < 0 || sy < 0 || sx >= W || sy >= H) continue;
       const i = sy * W + sx;
       if (d <= zb[i]) continue;
       zb[i] = d; pix[i] = pal[ch.charCodeAt(0)];
@@ -123,7 +120,7 @@ function drawSprite(type, anim, view, idx, mirror, x, y, z, pal, opt = {}) {
   for (let n = 0; n < cells.length; n += 3) {
     const cx = cells[n], cy = cells[n + 1], key = cells[n + 2];
     const sx = bx + (mirror ? ax - cx : cx - ax), sy = by + cy - ay;
-    if (sx < 0 || sy < CLIP_Y || sx >= W || sy >= H) continue;
+    if (sx < 0 || sy < 0 || sx >= W || sy >= H) continue;
     if (fade < 1 && bayerAt(sx, sy) >= fade) continue;
     const hpx = ay - cy, i = sy * W + sx, d = p.d + hpx * perPx + .02 + dz;
     if (d <= zb[i]) continue;
