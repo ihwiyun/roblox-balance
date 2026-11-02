@@ -110,7 +110,7 @@
   #menuTabs button { flex: 1; min-width: 0; min-height: 48px; padding: 0 2px; border: 0; background: none; color: var(--muted); cursor: pointer; white-space: nowrap; }
   #menuTabs button[aria-selected="true"] { color: var(--ink); font-weight: 700; box-shadow: inset 0 -2px 0 var(--ink); }
   #panel { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 8px 12px; }
-  #menuFoot { flex: none; display: flex; gap: 6px; align-items: center; padding: 8px 10px; border-top: 1px solid var(--ink); background: var(--paper); }
+  #menuFoot { flex: none; display: flex; gap: 8px; align-items: center; padding: 8px 12px; border-top: 1px solid var(--ink); background: var(--paper); }
   #menuFoot:empty { display: none; }
   #menuFoot .btn { flex: 1; }
 
@@ -118,7 +118,7 @@
   .sec { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin: 12px 0 8px; font-weight: 700; }
   .sec > span:last-child { font-size: 11px; color: var(--muted); }
   #panel > .sec:first-child { margin-top: 2px; }
-  .grid { display: grid; gap: 5px; }
+  .grid { display: grid; gap: 8px; }
   .c2 { grid-template-columns: repeat(2, minmax(0, 1fr)); } .c3 { grid-template-columns: repeat(3, minmax(0, 1fr)); } .c4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .c5 { grid-template-columns: repeat(5, minmax(0, 1fr)); } .c6 { grid-template-columns: repeat(6, minmax(0, 1fr)); }
   .muted { color: var(--muted); font-weight: 400; }
@@ -168,6 +168,31 @@
   .btn { min-height: 44px; display: inline-flex; align-items: center; justify-content: center; gap: 4px; padding: 6px 8px; border: 1px solid var(--ink); background: var(--paper); font-weight: 700; text-align: center; cursor: pointer; }
   .btn.dark { background: var(--ink); color: #fff; }
   .btn[disabled] { cursor: default; }
+  /* the button scale: primary filled ink (one a screen) > secondary outline > chips and icons. 48 is only for pressing */
+  .b { display: inline-flex; align-items: center; justify-content: center; gap: 4px; border: 1px solid var(--ink); background: var(--paper); color: var(--ink); font-weight: 700; font-size: 13px; white-space: nowrap; flex: none; cursor: pointer; }
+  .b.pri { height: 44px; padding: 0 16px; background: var(--ink); color: #fff; }
+  .b.sub { height: 36px; padding: 0 12px; }
+  .b.sm { height: 32px; padding: 0 10px; }
+  .b.grow { flex: 1; }
+  .b:active:not([disabled]) { transform: translateY(1px); } .b.sub:active:not([disabled]) { background: var(--soft); } .b.pri:active:not([disabled]) { opacity: .8; }
+  .b[disabled] { border-color: var(--line); color: #b3afa7; cursor: default; } .b.pri[disabled] { background: var(--line); color: var(--muted); }
+  .b[disabled] i.ic { opacity: .45; }
+  .num { font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .aux { font-size: 11px; line-height: 14px; font-weight: 700; color: var(--muted); }
+  /* the summon strip on top of a 장비 tab: level and odds, then one pull and ten */
+  .strip { display: flex; align-items: center; gap: 8px; margin: -8px -12px 0; padding: 8px 12px; background: var(--soft); }
+  .strip .lv { flex: 1; min-width: 0; display: grid; gap: 4px; }
+  .strip .lv b { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .strip .lv > span { display: flex; align-items: center; gap: 8px; }
+  .prog2 { flex: 1; height: 4px; background: var(--line); } .prog2 i { display: block; height: 100%; background: var(--ink); }
+  .link { font-size: 11px; line-height: 14px; font-weight: 700; color: var(--muted); text-decoration: underline; text-underline-offset: 2px; white-space: nowrap; }
+  /* grade chips: one row that slides sideways, its cut end faded until it is slid to the end */
+  .chiprow { display: flex; gap: 8px; margin: 0 -12px; padding: 12px 12px 8px; overflow-x: auto; scrollbar-width: none; -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 48px), transparent); mask-image: linear-gradient(90deg, #000 calc(100% - 48px), transparent); }
+  .chiprow::-webkit-scrollbar { display: none; }
+  .chiprow.end { -webkit-mask-image: none; mask-image: none; }
+  .gq { font-weight: 700; }
+  .slot img.gun { filter: brightness(0); opacity: .35; }
+  .slot.lock { border-color: var(--line); background: var(--paper); align-content: center; gap: 2px; }
   .rowline { display: flex; justify-content: space-between; align-items: center; gap: 8px; min-height: 32px; padding: 5px 0; border-bottom: 1px solid var(--line); }
   .rowline > span:last-child { display: flex; align-items: center; gap: 6px; }
   .go { width: 100%; display: flex; align-items: center; gap: 8px; margin-bottom: 4px; padding: 6px; border: 1px solid var(--line); background: var(--paper); text-align: left; cursor: pointer; }

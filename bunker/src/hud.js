@@ -109,9 +109,8 @@ function perMinute() {
 // over the whole screen
 const MENUS = {
   up: { title: '강화', tabs: [['fire', '화력'], ['cmd', '지휘관']] },
-  gear: { title: '장비', tabs: [['gun', '무기'], ['turret', '터렛']] },
+  gear: { title: '장비', tabs: [['gun', '무기'], ['turret', '터렛'], ['relic', '유물']] },
   crew: { title: '캐릭터', tabs: [['crew', '동료'], ['cmd', '지휘관']] },
-  relic: { title: '유물', tabs: [['equip', '장착'], ['own', '보유'], ['set', '세트']] },
   base: { title: '기지', tabs: [['def', '방어'], ['under', '지하'], ['zones', '배치']] },
   shop: { title: '상점', tabs: [['pull', '뽑기'], ['pack', '패키지'], ['gem', '다이아'], ['pass', '편의·패스']] },
   rebirth: { title: '환생' },
@@ -119,7 +118,7 @@ const MENUS = {
   codex: { title: '도감' },
 };
 // what is open, the page of each menu, levels bought per tap (0: MAX), the grade shown, the person picked
-const ui = { open: null, sub: { up: 'fire', gear: 'gun', crew: 'crew', relic: 'equip', base: 'def', shop: 'pull', rank: 'best' }, bulk: 1, grade: -1, sel: -1, jobs: false };
+const ui = { open: null, sub: { up: 'fire', gear: 'gun', crew: 'crew', base: 'def', shop: 'pull', rank: 'best' }, bulk: 1, grade: -1, sel: -1, jobs: false };
 const sheetOf = m => m === 'up' ? 'up' : m === 'base' && ui.sub.base === 'under' ? 'ug' : null;
 const menuCovers = () => !!ui.open && !sheetOf(ui.open);
 function layout() {
@@ -311,19 +310,42 @@ function crewHtml() {
   const cells = [pick(-1, G.hero), ...G.crew.map((c, i) => c ? pick(i, c) : i < beds ? hireCell(i, 60) : shutCell(60, '???', true)), ...Array.from({ length: 6 }, () => shutCell(60, '???'))];
   return info + btns + jobs + sec('보유 동료', 1 + hired().length + '/24') + grid(4, cells);
 }
-function gearHtml() {
-  const turret = ui.sub.gear === 'turret', per = turret ? 4 : 5;
-  const equip = turret ? sec('장착', '0/6') + grid(6, TURRET_AT.map(L => G.bunker >= L ? slot('') : slot('off', '잠김')))
-    : sec('장착', '<span class="muted">보유 효과 +0%</span>') + grid(3, [G.hero, ...hired()].map(p => `<div class="cell">${ph('44px', '44px', face(p, 40))}<span>${p.name}</span><span style="width:44px">${slot('')}</span></div>`));
-  const chips = `<div class="chips c5" style="margin-top:6px">${[-1, 0, 1, 2, 3, 4, 5, 6, 7].map(n => `<button class="chip${n < 0 ? '' : ' gr g' + n}" type="button" data-grade="${n}" aria-pressed="${ui.grade === n}">${n < 0 ? '전체' : GRADES[n]}</button>`).join('')}</div>`;
-  return equip + chips + GRADES.map((g, n) => ui.grade >= 0 && ui.grade !== n ? '' : sec(`<span class="gr g${n}">${g}</span>`, '0/' + per) + grid(5, Array.from({ length: per }, () => slot('g' + n + ' off')))).join('');
+// buttons: the primary filled (one a screen), the secondary an outline; small icons and labels go inside
+const B = (cls, inner, attrs = '') => `<button class="b ${cls} tap" type="button"${attrs ? ' ' + attrs : ''}>${inner}</button>`;
+const gemCost = n => `${ic('ruby')}<span class="num">${n.toLocaleString('en')}</span>`;
+// the summon strip at the top of each 장비 tab (and 동료 모집): its level, the odds, one pull and ten. Pulls are not in
+// the game yet: the buttons are there, switched off
+const strip = (label, price) => `<div class="strip"><div class="lv tap" aria-label="소환 확률"><b>${label}</b><span><span class="prog2"><i style="width:0"></i></span><span class="link">확률</span></span></div>`
+  + B('sub sm', '1회 ' + gemCost(price), 'disabled') + B('sub sm', '10회 ' + gemCost(price * 10), 'disabled') + '</div>';
+// the rifles as the game draws them in the hands (actors.js drawGun), one a family, as small pictures for the weapon
+// slots until the 40 weapons are drawn: drawGun paints through putPx, pointed at a small buffer for a moment
+const gunPics = [];
+function gunPic(fam) {
+  if (gunPics[fam]) return gunPics[fam];
+  const w = 40, h = 16, buf = new Uint32Array(w * h), z = new Float32Array(w * h).fill(-1e9), keep = putPx, lv = { ...G.lv };
+  putPx = (x, y, c, d) => { if (x < 0 || y < 0 || x >= w || y >= h) return; const i = y * w + x; if (d <= z[i]) return; z[i] = d; buf[i] = c; };
+  try { G.lv.atk = fam * 8; G.lv.mag = 0; G.lv.spd = 0; drawGun([6, 6], [16, 6], 0, { flash: 0, target: null }); } finally { putPx = keep; Object.assign(G.lv, lv); }
+  let x0 = w, y0 = h, x1 = -1, y1 = -1;
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) if (buf[y * w + x]) { x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y); }
+  const cw = x1 - x0 + 1, ch = y1 - y0 + 1, c = document.createElement('canvas'), crop = new Uint32Array(cw * ch);
+  for (let y = 0; y < ch; y++) for (let x = 0; x < cw; x++) crop[y * cw + x] = buf[(y + y0) * w + x + x0];
+  c.width = cw; c.height = ch; c.getContext('2d').putImageData(new ImageData(new Uint8ClampedArray(crop.buffer), cw, ch), 0, 0);
+  return (gunPics[fam] = { url: c.toDataURL(), w: cw, h: ch });
 }
-function relicHtml() {
-  const p = ui.sub.relic, all = n => GRADES.flatMap((g, k) => Array.from({ length: 6 }, () => slot('g' + k + ' off'))).slice(0, n);
-  if (p === 'own') return GRADES.map((g, n) => sec(`<span class="gr g${n}">${g}</span>`, '0/6') + grid(6, Array.from({ length: 6 }, () => slot('g' + n + ' off')))).join('');
-  if (p === 'set') return RELIC_SETS.map(name => sec(name, '0/3') + grid(5, [slot('off'), slot('off'), slot('off')])).join('');
-  return sec('장착 칸', '0/8') + grid(4, RELIC_AT.map(r => G.best >= r ? slot('') : slot('off', '잠김')))
-    + sec('세트') + RELIC_SETS.map(n => line(n, '0/3')).join('') + sec('보유', '0/48') + grid(6, all(48));
+const gunImg = (fam, s = 2) => { const g = gunPic(fam); return `<img class="gun" src="${g.url}" alt="" style="width:${g.w * s}px;height:${g.h * s}px">`; };
+const PULL_PRICE = { gun: 100, turret: 150, relic: 300 };
+function gearHtml() {
+  const tab = ui.sub.gear, top = strip('소환 Lv 1', PULL_PRICE[tab]);
+  if (tab === 'relic') {
+    const all = GRADES.flatMap((g, k) => Array.from({ length: 6 }, () => slot('g' + k + ' off'))).slice(0, 48);
+    return top + sec('장착 칸', '0/' + RELIC_AT.length)
+      + grid(4, RELIC_AT.map(r => G.best >= r ? slot('') : `<div class="slot lock">${ic('lock')}<span class="aux">스테이지<br>${r.toLocaleString('en')}</span></div>`))
+      + sec('세트') + RELIC_SETS.map(n => line(n, '<b class="num">0/3</b>')).join('') + sec('보유', '0/48') + grid(6, all);
+  }
+  const per = tab === 'turret' ? 4 : 5;
+  const chips = `<div class="chiprow">${[-1, 0, 1, 2, 3, 4, 5, 6, 7].map(n => `<button class="fchip tap${n < 0 ? '' : ' gq g' + n}" type="button" data-grade="${n}" aria-pressed="${ui.grade === n}">${n < 0 ? '전체' : GRADES[n]}</button>`).join('')}</div>`;
+  return top + chips + GRADES.map((g, n) => ui.grade >= 0 && ui.grade !== n ? '' : sec(`<span class="gr g${n}">${g}</span>`, '0/' + per)
+    + grid(5, Array.from({ length: per }, (_, k) => `<div class="slot g${n} off">${tab === 'gun' ? gunImg(k) : ''}</div>`))).join('');
 }
 const PULLS = [['무기', 100], ['터렛', 150], ['동료', 200], ['유물', 300]];
 const PACKS = [['희귀 5번 무기 + 보석 300', '1,200원'], ['영웅 3번 무기 + 희귀 동료', '3,300원'], ['전설 1번 무기 + 유물 상자 5', '5,900원'], ['전설 5번 무기 + 영웅 터렛', '12,000원'], ['불멸 1번 무기 + 전설 동료', '33,000원'], ['신화 1번 무기 + 유물 상자 30', '69,000원']];
@@ -351,7 +373,6 @@ function pageHtml() {
   if (m === 'up') return p === 'cmd' ? cmdHtml() : fireHtml();
   if (m === 'crew') return p === 'cmd' ? cmdHtml() : crewHtml();
   if (m === 'gear') return gearHtml();
-  if (m === 'relic') return relicHtml();
   if (m === 'base') return p === 'under' ? underHtml() : p === 'zones' ? zonesHtml() : defHtml();
   if (m === 'shop') return shopHtml();
   if (m === 'rebirth') return rebirthHtml();
@@ -360,7 +381,7 @@ function pageHtml() {
   return '';
 }
 function footHtml() {
-  if (ui.open === 'gear') return '<button class="btn" type="button" disabled>일괄 강화</button><button class="btn dark" type="button" disabled>일괄 합성</button>';
+  if (ui.open === 'gear' && ui.sub.gear !== 'relic') return B('sub', '도감', 'data-codex') + B('sub', '일괄 강화', 'disabled') + B('pri grow', '일괄 합성', 'disabled');
   if (ui.open === 'rank' && ui.sub.rank === 'best') return `<div class="rowline" style="flex:1;border:0;padding:0"><span><b style="width:30px">—</b>${face(G.hero, 32)}<span>나</span></span><b>웨이브 ${G.best}</b></div>`;
   return '';
 }
@@ -368,12 +389,22 @@ function footHtml() {
 let panelKey = '', footKey = '', pressing = false;
 nodes.panel.addEventListener('pointerdown', () => { pressing = true; });
 addEventListener('pointerup', () => { pressing = false; }); addEventListener('pointercancel', () => { pressing = false; });
+// the grade chips slide in one row; its cut end fades until the row is slid to its end
+let chipPage = '';
+const chipEnd = row => row.classList.toggle('end', row.scrollLeft + row.clientWidth >= row.scrollWidth - 2);
+nodes.panel.addEventListener('scroll', e => { if (e.target.classList && e.target.classList.contains('chiprow')) chipEnd(e.target); }, true);
 function renderPanel(force) {
   if (!ui.open) return;
   renderTabs();
   if (force || !pressing) {
     const html = pageHtml(), foot = footHtml();
-    if (force || html !== panelKey) { const top = nodes.panel.scrollTop; nodes.panel.innerHTML = html; nodes.panel.scrollTop = top; panelKey = html; }
+    if (force || html !== panelKey) {
+      // the grade chips stay slid where they were, on the same page
+      const top = nodes.panel.scrollTop, row = nodes.panel.querySelector('.chiprow'), page = ui.open + ':' + ui.sub[ui.open], left = row && page === chipPage ? row.scrollLeft : 0;
+      nodes.panel.innerHTML = html; nodes.panel.scrollTop = top; panelKey = html; chipPage = page;
+      const row2 = nodes.panel.querySelector('.chiprow');
+      if (row2) { row2.scrollLeft = left; chipEnd(row2); }
+    }
     if (foot !== footKey) { nodes.menuFoot.innerHTML = foot; footKey = foot; }
   }
   // tiredness moves all the time: its bar is set in place, the menu is not rebuilt for it
@@ -418,7 +449,7 @@ function act(id, want = ui.bulk) {
     pay(plan.cost); G.bunker += n; G.hp = bunkerHp(G.bunker);
     if (crossed(isNewBunkerForm, from, G.bunker)) notify('새 건물 · ' + bunkerInfo().name, '벙커 Lv ' + G.bunker + ' · 체력 ' + fmt(bunkerHp(G.bunker)), 'good');
     { const before = yardPix.slice(); bakeYard(); flashDiff(before, yardPix, 'yard'); }
-    resyncPosts(); palCache.clear(); if (G.view !== 'yard') setView('yard'); else fitStage(); // a new era pulls the camera back
+    resyncPosts(); palCache.clear(); if (G.view !== 'yard') setView('yard'); else fitStage(); // a bigger building may pull the camera back
   } else if (kind === 'fence') {
     const from = G.fence;
     pay(plan.cost); G.fence += n; G.fenceHp = fenceHp(G.fence); G.fenceDown = false; G.sideDmg = [0, 0, 0, 0]; G.sideStage = [0, 0, 0, 0];
@@ -475,15 +506,26 @@ function refreshTop() {
   if (stageDlg.open) paintStage(pm);
 }
 // the picture keeps the scale of the main screen's stage (a sheet only moves it up). The camera sits one whole step
-// closer than the stage fits, so the ground fills the width and its tips crop; every era the base has grown into
-// (a bigger building and map, buildings.js; read from the building's own look, the one the drawing uses) pulls it
-// back a step. Below ground one step closer than the stage fits
-const erasPassed = () => { const lk = bunkerInfo().look; return (lk.era || 0) + (lk.eraGrade || 0); };
+// closer than the stage fits, so the ground fills the width and its tips crop; it steps back only while the base
+// itself would not fit: the fence (or the building, if it ever reaches past it) with a margin for the zombies at it,
+// from the ground up to the people on the roof. A base that grows (a wider building or map) pulls the camera back
+// by itself. Below ground one step closer than the stage fits
+function baseBox() {
+  const B = bunkerInfo(), r = Math.max(FENCE_R, B.half) + 1, h = B.half, xs = [], ys = [];
+  for (const a of [-1, 1]) for (const b of [-1, 1]) for (const p of [project(a * r, b * r, 0), project(a * h, b * h, B.roof + 2.2)]) { xs.push(p.sx); ys.push(p.sy); }
+  return { x0: Math.min(...xs), x1: Math.max(...xs), y0: Math.min(...ys), y1: Math.max(...ys) };
+}
 function fitStage() {
-  const dpr = window.devicePixelRatio || 1, f = Math.min(nodes.app.clientWidth / W, (nodes.app.clientHeight - nodes.tabs.offsetHeight) / H);
+  const dpr = window.devicePixelRatio || 1, sw = nodes.app.clientWidth, sh = nodes.app.clientHeight - nodes.tabs.offsetHeight, f = Math.min(sw / W, sh / H);
   // whole device pixels per game pixel
   let k = f * dpr >= 1 ? Math.floor(f * dpr) : 0;
-  if (k) k = G.view === 'under' ? k + 1 : Math.max(1, k + 1 - erasPassed());
+  if (k && G.view === 'under') k += 1;
+  else if (k) {
+    // what the stage shows at k device pixels a game pixel, around the middle of the picture
+    const b = baseBox(), fits = kc => { const vw = sw * dpr / kc / 2, vh = sh * dpr / kc / 2; return b.x0 >= W / 2 - vw && b.x1 <= W / 2 + vw && b.y0 >= H / 2 - vh && b.y1 <= H / 2 + vh; };
+    k += 1;
+    while (k > 1 && !fits(k)) k--;
+  }
   const scale = k ? k / dpr : f;
   canvas.style.width = W * scale + 'px'; canvas.style.height = H * scale + 'px';
 }
@@ -519,6 +561,7 @@ vol.addEventListener('input', () => { settings.volume = vol.value / 100; saveSet
 music.addEventListener('input', () => { settings.music = music.value / 100; saveSettings(); });
 document.getElementById('saverToggle').addEventListener('click', () => { dlg.close(); powerSave(true); });
 document.getElementById('codexBtn').addEventListener('click', () => { dlg.close(); openMenu('codex'); });
+nodes.menuFoot.addEventListener('click', e => { const b = e.target.closest('button'); if (b && !b.disabled && 'codex' in b.dataset) openMenu('codex'); });
 let skipSave = false;
 resetBtn.addEventListener('click', () => {
   if (resetBtn.textContent !== '한 번 더 누르면 삭제') { resetBtn.textContent = '한 번 더 누르면 삭제'; return; }

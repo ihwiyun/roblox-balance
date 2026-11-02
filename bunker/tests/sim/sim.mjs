@@ -45,7 +45,6 @@ function trial(st, key) {
   return p;
 }
 const goldOf = c => (c && c.gold) || 0;
-const isBt = c => !!c && Object.keys(c).some(k => k !== 'gold');
 // combat purchases the bot weighs by power gained per second of income (gold-only steps; breakthroughs go to invest)
 function combatKeys(st) {
   const keys = ['ws:atk', 'ws:rate', 'ws:mag', 'ws:reload', 'sec:roof:lv'];
@@ -66,6 +65,16 @@ export function run(opts = {}) {
   const { bot = 'human', profile = 'f2p', seed = 1, days = 60, untilStage = 1000, sessionMin = 26, maxActiveH = 400, sample = 600 } = opts;
   const prof = PROFILES[profile], human = bot === 'human';
   const st = L.newGame(seed), rng = L.makeRng(seed * 7919 + 13);
+  // is the next purchase on this track a breakthrough (materials) rather than a level?
+  const btKey = key => {
+    const [a, b, c] = key.split(':');
+    if (a === 'bunker') return L.needsBreakthrough(st.bunker, st.bunkerBt);
+    if (a === 'fence') return L.needsBreakthrough(st.fence, st.fenceBt);
+    if (a === 'sec') return c === 'lv' && L.needsBreakthrough(st.sec[b].lv, st.sec[b].bt);
+    if (a === 'crew') return !!st.crew.cards[b] && L.needsBt(st.crew.cards[b]);
+    if (a === 'enh') return L.enhNeedsBt(b === 'w' ? st.weapons : st.turrets, +c);
+    return false;
+  };
   const M = {
     bot, profile, seed, samples: [], firsts: {}, ws: [], stepUps: [], teamUps: [], clears: [], fails: 0, evacs: [], packages: [],
     full: { food: 0, ore: 0, parts: 0 }, fullT: 0, fullOff: { food: 0, ore: 0, parts: 0 }, fullOffT: 0, fullAct: { food: 0, ore: 0, parts: 0 }, fullActT: 0,
@@ -223,7 +232,7 @@ export function run(opts = {}) {
     const addC = c => { if (c) for (const k of Object.keys(need)) need[k] += c[k] || 0; };
     // breakthroughs block levels: they come first
     for (const key of ['bunker', 'fence', ...['roof', 'food', 'mine', 'shop', 'bed'].map(k => `sec:${k}:lv`), ...Object.keys(st.crew.cards).map(id => 'crew:' + id),
-      ...st.equipW.filter(i => i >= 0).map(i => 'enh:w:' + i)]) { const c = L.price(st, key); if (isBt(c)) addC(c); }
+      ...st.equipW.filter(i => i >= 0).map(i => 'enh:w:' + i), ...st.equipT.filter(i => i >= 0).map(i => 'enh:t:' + i)]) if (btKey(key)) addC(L.price(st, key));
     const short0 = Object.fromEntries(Object.keys(need).map(r => [r, need[r] - st[r] > S.prod[r] * 900]));
     const tiers = wantedTiers(S, short0);
     for (const k of tiers) addC(L.price(st, `sec:${k}:tier`));
@@ -234,24 +243,25 @@ export function run(opts = {}) {
       if (credit > 0.9 * S.caps[res] || biggest > 0.9 * S.caps[res] || (st[res] >= 0.9 * S.caps[res] && need[res] > st[res])) buy(`sec:${sec}:cap`);
       // output: the floor's level (doc 8: base x tier x level) when the wants are more than 15 min of output away
       const lack = need[res] - st[res];
-      if (lack > S.prod[res] * 900 || S.prod[res] <= 0) { const k = `sec:${sec}:lv`, c = L.price(st, k); if (c && !isBt(c) && goldOf(c) < 0.4 * st.gold) buy(k); }
+      if (lack > S.prod[res] * 900 || S.prod[res] <= 0) { const k = `sec:${sec}:lv`, c = L.price(st, k); if (c && !btKey(k) && goldOf(c) < 0.4 * st.gold) buy(k); }
     }
     // the growth lock (doc 8): food output must cover 1.15x the upkeep after a level-up
-    if (S.prod.food < S.upkeep * 1.3) { const c = L.price(st, 'sec:food:lv'); if (c && !isBt(c) && goldOf(c) < 0.6 * st.gold) buy('sec:food:lv'); }
-    for (const sec of ['food', 'mine', 'shop', 'bed', 'roof']) { const c = L.price(st, `sec:${sec}:lv`); if (isBt(c)) buy(`sec:${sec}:lv`); }
-    for (const id of Object.keys(st.crew.cards)) { const c = L.price(st, 'crew:' + id); if (isBt(c)) buy('crew:' + id); }
+    if (S.prod.food < S.upkeep * 1.3) { const c = L.price(st, 'sec:food:lv'); if (c && !btKey('sec:food:lv') && goldOf(c) < 0.6 * st.gold) buy('sec:food:lv'); }
+    for (const sec of ['food', 'mine', 'shop', 'bed', 'roof']) if (btKey(`sec:${sec}:lv`)) buy(`sec:${sec}:lv`);
+    for (const id of Object.keys(st.crew.cards)) if (btKey('crew:' + id)) buy('crew:' + id);
     for (const sec of tiers) {
       const c = L.price(st, `sec:${sec}:tier`);
       if (c && Object.entries(c).every(([k, v]) => st[k] - v >= (k === 'food' ? S.upkeep * 300 : 0))) buy(`sec:${sec}:tier`);
     }
     // the kitchen trims upkeep: a small steady share
-    const kc = L.price(st, 'sec:bed:lv'); if (kc && !isBt(kc) && goldOf(kc) < 0.05 * st.gold) buy('sec:bed:lv');
-    for (const i of st.equipW) if (i >= 0) { const c = L.price(st, 'enh:w:' + i); if (isBt(c)) buy('enh:w:' + i); }
+    const kc = L.price(st, 'sec:bed:lv'); if (kc && !btKey('sec:bed:lv') && goldOf(kc) < 0.05 * st.gold) buy('sec:bed:lv');
+    for (const k of [...st.equipW.map(i => 'enh:w:' + i), ...st.equipT.map(i => 'enh:t:' + i)]) if (!k.endsWith(':-1') && btKey(k)) buy(k);
     // a full parts box: enhance the rest of the collection (the owned effect), best weapons first
-    if (st.parts > 0.5 * S.caps.parts) for (let i = st.weapons.owned.length - 1; i >= 0 && st.parts > 0.35 * S.caps.parts; i--) {
-      if (!st.weapons.owned[i] || st.equipW.includes(i)) continue;
-      for (let n = 0; n < 20; n++) { const c = L.price(st, 'enh:w:' + i); if (!c || goldOf(c) > 0.05 * st.gold || !buy('enh:w:' + i)) break; }
-    }
+    if (st.parts > 0.5 * S.caps.parts) for (const [w, inv] of [['w', st.weapons], ['t', st.turrets]])
+      for (let i = inv.owned.length - 1; i >= 0 && st.parts > 0.35 * S.caps.parts; i--) {
+        if (!inv.owned[i]) continue;
+        for (let n = 0; n < 20; n++) { const c = L.price(st, `enh:${w}:${i}`); if (!c || goldOf(c) > 0.05 * st.gold || !buy(`enh:${w}:${i}`)) break; }
+      }
   }
 
   /* ---- defense: the fence and the bunker, each on its own, when the last stage bit or they are cheap ---- */
@@ -263,7 +273,7 @@ export function run(opts = {}) {
       for (let k = 0; k < 60; k++) {
         const p = L.price(st, key);
         if (!p || !L.canPay(st, p)) break;
-        if (isBt(p)) { if (!buy(key)) break; continue; }
+        if (btKey(key)) { if (!buy(key)) break; continue; }
         const share = goldOf(p) / Math.max(1e-9, st.gold);
         if (!(share < 0.03 || ((hurt > 0.35 || breached) && share < 0.5))) break;
         if (!buy(key)) break;
@@ -282,7 +292,7 @@ export function run(opts = {}) {
       const scored = [];
       for (const key of combatKeys(st)) {
         const c = L.price(st, key);
-        if (!c || isBt(c)) continue;
+        if (!c || btKey(key)) continue;
         const gain = Math.log(trial(st, key) / base);
         if (!(gain > 0)) continue;
         // a person reads the numbers roughly: the value is seen through a factor of about 1.5 either way
@@ -290,7 +300,7 @@ export function run(opts = {}) {
         scored.push({ key, c, v: noise * gain / (goldOf(c) / rate + 5), ok: L.canPay(st, c) });
       }
       const bc = L.price(st, 'bunker'), slot = bunkerSlotGain(st);
-      if (bc && !isBt(bc) && slot > 0) scored.push({ key: 'bunker', c: bc, v: slot / (goldOf(bc) / rate + 5), ok: L.canPay(st, bc) });
+      if (bc && !btKey('bunker') && slot > 0) scored.push({ key: 'bunker', c: bc, v: slot / (goldOf(bc) / rate + 5), ok: L.canPay(st, bc) });
       if (!scored.length) return;
       scored.sort((a, b) => b.v - a.v);
       let pick = scored[0].ok ? scored[0] : scored.find(x => x.ok && x.v >= 0.6 * scored[0].v);

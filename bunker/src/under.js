@@ -1294,7 +1294,7 @@ const MINE_POSTS = [2.3, 3.72, 5.17, 6.62, 8.07, 9.52, 10.97];
 // way of every walk from the ladder and of the workers seen behind them
 const MINE_PILLARS = () => [[.45, RL() - 3.0], [RL() * .86, RL() * .28]];
 const R_ROCK = rampOf([112, 106, 102]), R_ROCKD = rampOf([86, 80, 80]), R_ORE = rampOf([84, 136, 210]), R_CRYS = rampOf([120, 220, 255]), R_SHOT = rampOf([150, 150, 146]), R_GRATE = rampOf([110, 116, 122]);
-const RUST = [128, 72, 50], YELLOW = [226, 178, 40], STEEL_B = [104, 112, 122];
+const RUST = [128, 72, 50], YELLOW = [226, 178, 40], STEEL_B = [104, 112, 122], OD = [94, 106, 70], OD_D = [72, 82, 56];
 function rockFace(a, z, ix, iy, L) {
   const crack = nz(a * 2.2 + 5, z * 2.6);
   if (Math.abs(crack - .5) < .012) return R_ROCKD[0];
@@ -1580,12 +1580,12 @@ function oreBins(fz, g) {
   }
 }
 
-// military era: supply crates stacked in the second bay, stencilled
+// military era: supply crates stacked in the front-left corner, stencilled
 function supplyCrates(fz, g) {
   const c = mat(OD, g);
-  for (const [a, b, z, n] of [[.08, 3.68, 0, '12'], [.08, 4.32, 0, '07'], [.7, 3.72, 0, '31'], [.08, 3.7, .5, '05'], [.7, 4.4, 0, '18']]) {
-    const x = XA(a), y = yb(b), w = .56, d = .58, h = .48, num = stencil(n, x + .15, fz + z + .14);
-    sbox(x, y, fz + z, x + w, y + d, fz + z + h, c, 1430 + a * 9 + b);
+  for (const [a, fb, z, n] of [[.08, 1.06, 0, '12'], [.66, 1.0, 0, '07'], [.08, 1.04, .5, '05']]) {
+    const x = XA(a), y = yb(RL() - fb), w = .56, d = .58, h = .48, num = stencil(n, x + .15, fz + z + .14);
+    sbox(x, y, fz + z, x + w, y + d, fz + z + h, c, 1430 + a * 9 + fb);
     onY(y + d, x + .03, x + w - .03, fz + z + .03, fz + z + h - .03, (xx, zz) => Math.abs(zz - fz - z - h + .07) < .02 ? rgb(...OD_D) : num(xx, zz) ? rgb(226, 222, 200) : 0);
     onX(x + w, y + .15, y + d - .15, fz + z + .3, fz + z + .36, rgb(150, 126, 84));
     footShadow(x, y, x + w, y + d, h);
@@ -1619,14 +1619,14 @@ function bunkBeds(fz, g) {
 }
 
 // military era: a row of steel lockers along the left wall by the ladder, doors to the room, each stencilled
-function steelLockers(fz, g) {
+function steelLockers(fz, g, n = 6) {
   const x0 = UG.x0 + .02, x1 = x0 + .5, y0 = yb(1.45), w = .58, c = mat([124, 134, 116], g);
-  for (let k = 0; k < 6; k++) {
+  for (let k = 0; k < n; k++) {
     const y = y0 + k * w, num = stencil("0" + (k + 1), y + .2, fz + 1.42);
     sbox(x0, y, fz, x1, y + w - .02, fz + 1.85, c, 1600 + k);
     onX(x1, y + .02, y + w - .04, fz + .04, fz + 1.81, (yy, z) => { const zz = z - fz, u = yy - y; if (u < .03 || u > w - .07) return rgb(70, 80, 66); if (zz > 1.62 && zz < 1.74 && (Math.floor(zz * 50) & 1)) return rgb(70, 80, 66); if (Math.abs(u - (w - .14)) < .025 && Math.abs(zz - .95) < .1) return rgb(214, 218, 210); return num(yy, z) ? rgb(236, 232, 214) : 0; });
   }
-  footShadow(x0, y0, x1, y0 + 6 * w, 1.85);
+  footShadow(x0, y0, x1, y0 + n * w, 1.85);
 }
 
 // military era: a field kitchen along the back wall: a steel counter, a two-burner stove with a stock pot and its
@@ -1665,12 +1665,6 @@ function messTable(fz, g) {
   onY(ry + .48, rx + .1, rx + .4, fz + .46, fz + .68, (xx, z) => Math.abs(xx - rx - .17) < .06 && Math.abs(z - fz - .6) < .04 ? lit(rgb(255, 196, 90)) : Math.hypot(xx - rx - .32, z - fz - .56) < .05 ? rgb(30, 30, 34) : (Math.floor((z - fz) * 40) & 1) && xx < rx + .26 && z - fz < .52 ? rgb(52, 58, 42) : 0);
   ln([rx + .4, ry + .14, fz + .72], [rx + .46, ry + .1, fz + 1.5], rgb(40, 40, 44));
   footShadow(rx, ry, rx + .5, ry + .6, .72);
-  // a bench along the left wall under the notice board, ammo crates beside it
-  const wy = yb(6.6);
-  for (const y of [wy + .1, wy + 1.3]) fbox(UG.x0 + .12, y, fz, UG.x0 + .5, y + .08, fz + .42, leg, 1594);
-  sbox(UG.x0 + .06, wy, fz + .42, UG.x0 + .56, wy + 1.48, fz + .48, top, 1595);
-  footShadow(UG.x0 + .06, wy, UG.x0 + .56, wy + 1.48, .48);
-  for (const [a, b, z] of [[.15, 8.25, 0], [.15, 8.25, .36], [.75, 8.3, 0]]) { const x = XA(a), y = yb(b); sbox(x, y, fz + z, x + .5, y + .34, fz + z + .34, OD_D, 1596); onY(y + .34, x + .04, x + .46, fz + z + .04, fz + z + .3, (xx, zz) => Math.abs(zz - fz - z - .17) < .03 ? rgb(214, 180, 60) : 0); footShadow(x, y, x + .5, y + .34, z + .34); }
 }
 
 // military era: a steel shower stall in the left front corner: panel walls, a duckboard, the head on its pipe
@@ -1685,53 +1679,11 @@ function showerStall(fz, g) {
   fbox(x0, y0 + .5, fz + 1.86, x0 + .32, y0 + .56, fz + 1.9, METAL, 1623); fbox(x0 + .26, y0 + .44, fz + 1.74, x0 + .38, y0 + .62, fz + 1.86, METAL, 1624);
   for (let k = 0; k < 5; k++) pt(x0 + .32, y0 + .5 + k * .025, fz + 1.6 - k * .12, rgb(200, 226, 240));
   fbox(x0 + .02, y1 - .4, fz + 1.2, x0 + .08, y1 - .1, fz + 1.55, [96, 108, 76], 1625);
-  // a steel basin on its pipe beside the stall, a mirror over it
-  const sy = y0 - .62;
-  fbox(x0 + .1, sy - .03, fz, x0 + .16, sy + .03, fz + .72, METAL, 1626);
-  sbox(x0 + .02, sy - .24, fz + .72, x0 + .44, sy + .24, fz + .86, steel, 1627);
-  onZ(fz + .86, x0 + .06, sy - .2, x0 + .4, sy + .2, (xx, yy) => Math.hypot(xx - x0 - .23, yy - sy) < .14 ? rgb(90, 96, 104) : 0);
-  fbox(x0 + .02, sy - .02, fz + .86, x0 + .1, sy + .02, fz + 1.02, METAL, 1628);
-  onX(x0 + .006, sy - .22, sy + .22, fz + 1.12, fz + 1.62, (yy, z) => Math.abs(yy - sy) > .19 || z - fz < 1.15 || z - fz > 1.59 ? rgb(90, 96, 104) : (yy - sy + (z - fz) * .5) % .3 < .05 ? rgb(236, 244, 248) : rgb(170, 196, 210));
-  footShadow(x0 + .02, sy - .24, x0 + .44, sy + .24, .86);
 }
 
-// military era: the floor number stencilled big on the left wall
-// military era: the floor's number stencilled big on the left wall, the unit flag over the kitchen, a notice board
-function wallNumber(fz, g) {
-  const y0 = yb(5.0), num = stencil('01', y0 + .1, fz + 1.22, .17, .14), c = mat([236, 232, 214], g);
-  onX(UG.x0 + .005, y0, y0 + 1.15, fz + 1.12, fz + 2.0, (y, z) => num(y, z) ? rgb(...c) : Math.abs(z - fz - 1.15) < .025 || Math.abs(z - fz - 1.97) < .025 ? rgb(...c) : 0);
-  const fx = UG.x1 - 1.15, fy = UG.y0;
-  fbox(fx - .04, fy, fz + 2.2, fx + .9, fy + .06, fz + 2.25, [60, 58, 62], 1640);
-  onY(fy + .01, fx, fx + .86, fz + 1.4, fz + 2.2, (x, z) => { const u = (x - fx) / .86, v = (z - fz - 1.4) / .8; if (v < .12 && Math.abs(u - .5) > .12 - v) return 0; return Math.abs(u - .5) < .1 && Math.abs(v - .58) < .14 ? rgb(236, 210, 90) : Math.abs(u - .5) < .2 && Math.abs(v - .58) < .22 ? rgb(46, 52, 36) : rgb(...mat([150, 44, 40], g)); });
-  const by = yb(6.75);
-  fbox(UG.x0, by - .04, fz + 1.08, UG.x0 + .05, by + 1.14, fz + 1.82, [96, 70, 48], 1641);
-  onX(UG.x0 + .05, by, by + 1.1, fz + 1.12, fz + 1.78, (y, z) => { const u = (y - by) / 1.1, v = (z - fz - 1.12) / .66, h = hash(Math.floor(u * 5), Math.floor(v * 3)); if (h > .35 && (u * 5 % 1) > .12 && (u * 5 % 1) < .88 && (v * 3 % 1) > .14 && (v * 3 % 1) < .86) return h > .8 ? rgb(236, 220, 150) : rgb(236, 232, 222); return rgb(170, 128, 84); });
-  for (const [u, v] of [[.15, .8], [.55, .45], [.8, .8]]) pt(UG.x0 + .06, by + u * 1.1, fz + 1.12 + v * .66, rgb(200, 40, 40));
-}
 
-// caged work lights on the back and the left wall, wired along the top (the military era, every floor)
-function cagedLamps(k, fz, g, back, left, amb) {
-  const base = mat([70, 74, 80], g), wire = rgb(30, 30, 34);
-  AMB[k] = amb;
-  ln([XA(2.0), UG.y0 + .03, fz + 2.32], [UG.x1 - .2, UG.y0 + .03, fz + 2.32], wire); ln([UG.x0 + .03, yb(1.2), fz + 2.32], [UG.x0 + .03, UG.y1 - .3, fz + 2.32], wire);
-  for (const a of back) {
-    const x = XA(a), y = UG.y0, z = fz + 1.9;
-    fbox(x - .1, y, z + .14, x + .1, y + .1, z + .26, base, 1180);
-    EM = 1; fbox(x - .07, y + .1, z, x + .07, y + .24, z + .14, [255, 236, 190], 1181); EM = 0;
-    for (const o of [-.08, 0, .08]) ln([x + o, y + .25, z - .01], [x + o, y + .25, z + .15], rgb(40, 40, 44));
-    halo(x, y, z + .06, .55, .45); lamp(k, x, yb(1.6), fz, 4.4, 2.9, WARM_T);
-  }
-  for (const b of left) {
-    const x = UG.x0, y = yb(b), z = fz + 1.5;
-    fbox(x, y - .1, z + .14, x + .1, y + .1, z + .26, base, 1182);
-    EM = 1; fbox(x + .1, y - .07, z, x + .24, y + .07, z + .14, [255, 236, 190], 1183); EM = 0;
-    for (const o of [-.08, 0, .08]) ln([x + .25, y + o, z - .01], [x + .25, y + o, z + .15], rgb(40, 40, 44));
-    haloX(x, y, z + .06, .55, .45); lamp(k, XA(1.6), y, fz, 4.4, 2.9, WARM_T);
-  }
-  lamp(k, XA(RL() * .55), yb(RL() * .55), fz, 5, 3.2, WARM_T);
-}
 
-// a round drum (barrel, tank, bucket): three boxes make its eight sides; inDrum tells a point on its top
+// a round drum (barrel, tank, pot): three boxes make its eight sides
 function drum(x, y, z0, z1, r, c, seed, grain = .7) {
   const k = r * .414, m = r * .7;
   for (const [a, b] of [[r, k], [k, r], [m, m]]) fbox(x - a, y - b, z0, x + a, y + b, z1, c, seed, grain);
@@ -1785,24 +1737,12 @@ function barrow(x, y, fz, ore, seed, g) {
   footShadow(x - .5, y - .38, x + .55, y + .38, .8);
 }
 
-function drawPart(art, k, look, fz) {
-  const eras = art[k];
-  let e = look.era, s = look.step[k], g = look.grade[k];
-  for (;;) {
-    const f = eras[e] && eras[e][s];
-    if (f) return f(fz, g, look);
-    if (!e && !s) return;
-    g++;
-    if (s > 0) s--; else { e--; s = Math.max(0, (eras[e] || []).length - 1); }
-  }
-}
 
 // white stencil digits (3x5 cells of cu along a face by cz up), e.g. a machine's number: stencil('07', u0, z0)(u, z)
 const DIGIT = ['111101101101111', '010110010010111', '111001111100111', '111001111001111', '101101111001001', '111100111001111', '111100111101111', '111001010010010', '111101111101111', '111101111001111'];
 
 const stencil = (n, u0, z0, cu = .09, cz = .075) => (u, z) => { const i = Math.floor((u - u0) / cu), r = 4 - Math.floor((z - z0) / cz), d = Math.floor(i / 4), c = i % 4; return r >= 0 && r <= 4 && i >= 0 && d < n.length && c < 3 && DIGIT[+n[d]][r * 3 + c] === '1'; };
 
-const inDrum = (dx, dy, r) => Math.abs(dx) <= r && Math.abs(dy) <= r && Math.abs(dx) + Math.abs(dy) <= r * 1.414;
 
 // facLook (facilities.js) gives a floor's era and each part's stage and material grade; each floor lists its parts'
 // drawings by era and stage (LIVE_ART, FARM_ART, MINE_ART) and drawPart draws one part. A stage not drawn yet, or
@@ -1849,6 +1789,19 @@ const LIVE_ERA = {
   lounge: [[null, { draw: messTable, skip: ['table'] }]],
   shower: [[null, { draw: showerStall, skip: ['shower'] }]],
 };
+// military era: an olive water tank on a stand, a sight glass up its side, a hose to the nearest row
+function waterTank(fz, g) {
+  const x = XA(.62), y = yb(RL() - 3.1), r = .46, body = mat(OD, g);
+  for (const [dx, dy] of [[-.4, -.4], [.34, -.4], [-.4, .34], [.34, .34]]) fbox(x + dx, y + dy, fz, x + dx + .06, y + dy + .06, fz + .42, STEEL_B, 1420);
+  fbox(x - .47, y - .47, fz + .42, x + .47, y + .47, fz + .48, [80, 86, 92], 1421);
+  drum(x, y, fz + .48, fz + 1.7, r, body, 1422, .5);
+  for (const z of [.7, 1.45]) drum(x, y, fz + z, fz + z + .04, r + .015, OD_D, 1423, .3);
+  onY(y + r, x - .05, x + .05, fz + .62, fz + 1.58, (xx, z) => Math.abs(xx - x) > .03 ? rgb(220, 224, 214) : z - fz < 1.3 ? lit(rgb(90, 150, 210)) : rgb(40, 44, 40));
+  onX(x + r, y - .2, y + .2, fz + 1.0, fz + 1.2, (yy, z) => Math.abs(z - fz - 1.1) < .07 ? rgb(226, 222, 200) : 0);
+  fbox(x + .3, y + .3, fz + .3, x + .4, y + .4, fz + .5, [176, 50, 40], 1424);
+  floorHose([x + .4, y + .36, fz + .32], [XA(2.3), y + .3, fz + .62], rgb(40, 40, 44));
+  footShadow(x - .47, y - .47, x + .47, y + .47, 1.7);
+}
 // the farm: a push cart of crates, stacked supply crates and a water tank in the free corners
 const FARM_ERA = { robots: [[pushCart]], storage: [[supplyCrates]], irrigation: [[waterTank]] };
 // the mine: the core drill on its tracks over the pit in place of the derrick, steel ore bins along the right wall
