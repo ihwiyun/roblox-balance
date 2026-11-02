@@ -4,7 +4,7 @@ import { T } from './tuning.mjs';
 
 export const STAGE_CAP = () => T.stage.cap;
 // difficulty index: stays readable past 10,000 (H(30,000) ~ 227, so every number fits in a double)
-export const H = s => 20 * (Math.sqrt(1 + s / 200) - 1) + T.stage.e * Math.min(s, 100);
+export const H = s => 20 * (Math.sqrt(1 + s / 200) - 1) + T.stage.e * Math.min(s, T.stage.eUntil);
 export const zone = s => Math.floor((s - 1) / 100);            // 0 for 1..100, 1 for 101..200 ...
 export const band = s => Math.floor(((s - 1) % 100) / 10);     // 0..9, the same themes every zone
 // 101+: elites with a trait, 10% of a stage at 101 rising to 40% by 1,101

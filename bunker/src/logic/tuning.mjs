@@ -4,6 +4,7 @@
 const DEFAULTS = {
   stage: {
     e: 0.035,                // early term of H(s); doc draft 0.012, raised so stage 60 takes 2-3 h of real play
+    eUntil: 100,             // doc: e * min(s, 100)
     cap: 30000,              // doc: stages stop near 30,000
     spawnEvery: 0.9,         // s between zombies: 30-60 kills (doc) clear in 27-54 s at full pace, 30-60 s with the gap (was 1.0: 62 s)
     walk: 8,                 // s from the island edge to the fence
