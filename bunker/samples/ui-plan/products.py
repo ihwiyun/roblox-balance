@@ -360,12 +360,14 @@ def relic_box():
 
 
 def turret(trim):
+    # a mounted gun: tripod, a body with an ammo box, a long barrel, a shield plate in front
     def t(p):
-        p.line(11, 12, 3, 19, 'k'); p.line(11, 12, 19, 19, 'k'); p.vl(11, 12, 19, 'g')   # tripod
-        p.rect(5, 5, 16, 10, 'g'); p.hl(5, 16, 5, 'G'); p.hl(5, 16, 10, trim)               # body
-        p.rect(16, 6, 23, 7, 'k')                                                            # barrel
-        p.rect(7, 2, 12, 4, 'G'); p.hl(7, 12, 2, 'W')                                        # shield
-    return layer(25, 21, t)
+        p.line(9, 13, 2, 21, 'k'); p.line(10, 13, 17, 21, 'k'); p.vl(9, 13, 21, 'g')        # tripod
+        p.rect(3, 7, 13, 12, 'g'); p.hl(3, 13, 7, 'G')                                      # body
+        p.rect(4, 10, 8, 13, trim)                                                          # ammo box, in its grade colour
+        p.rect(13, 8, 27, 9, 'k'); p.px(27, 7, 'k')                                         # long barrel, front sight
+        p.rect(15, 3, 17, 13, 'G'); p.vl(15, 3, 13, 'W')                                     # shield plate
+    return layer(29, 23, t)
 
 
 def package(trim, extra):
@@ -390,7 +392,7 @@ def step3():
 
 
 def step4():
-    return package('4', lambda a: a.paste(turret('3'), 38, 41))                          # 전설 무기 + 영웅 터렛
+    return package('4', lambda a: a.paste(turret('3'), 34, 39))                          # 전설 무기 + 영웅 터렛
 
 
 def step5():
@@ -401,9 +403,186 @@ def step6():
     return package('6', lambda a: [a.paste(relic_box(), x, y) for x, y in ((44, 30), (50, 40), (40, 42), (46, 51))])  # 신화 무기 + 유물 상자 30
 
 
+# ---------- passes ----------
+DIGITS = {'3': ['WWW', '..W', 'WWW', '..W', 'WWW'], '0': ['WWW', 'W.W', 'W.W', 'W.W', 'WWW']}
+
+
+def monthly():
+    # 월정액: a month on a calendar, the days ticked off, and the gems that come every day
+    a = Art(64, 64)
+    def cal(p):
+        p.rect(6, 10, 47, 55, 'C')
+        p.rect(6, 10, 47, 21, 'R'); p.hl(6, 47, 10, 'E')        # header
+        for col in range(5):                                    # days
+            for row in range(4):
+                x, y = 9 + col * 8, 24 + row * 8
+                p.rect(x, y, x + 5, y + 5, 'c')
+                p.rect(x + 1, y + 1, x + 4, y + 4, 'W')
+                if row * 5 + col < 12:                          # the days already collected
+                    p.line(x + 1, y + 3, x + 2, y + 4, 'v'); p.line(x + 2, y + 4, x + 4, y + 1, 'v')
+        p.where(lambda x, y, c: c == 'C' and x > 44, 'c')
+    a.paste(layer(64, 64, cal))
+    for x in (14, 37):                                          # the rings it hangs from
+        a.rect(x, 6, x + 1, 13, 'G'); a.vl(x + 2, 6, 13, 'g')
+        a.hl(x - 1, x + 3, 5, 'o'); a.vl(x - 1, 6, 13, 'o'); a.vl(x + 3, 6, 13, 'o')
+    for i, ch in enumerate('30'):                              # "30" on the header, twice size
+        for y, row in enumerate(DIGITS[ch]):
+            for x, v in enumerate(row):
+                if v != '.':
+                    a.rect(20 + i * 8 + x * 2, 11 + y * 2, 21 + i * 8 + x * 2, 12 + y * 2, 'W')
+    heap(a, 51, 63, 3, MINI_RUBY)
+    return a
+
+
+def season():
+    # 시즌 패스: a ticket with stars, its stub torn along the dotted line
+    a = Art(64, 64)
+    def t(p):
+        p.rect(3, 17, 60, 46, 'C')
+        p.ell(3, 31.5, 4, 4.5, '.'); p.ell(60.5, 31.5, 4, 4.5, '.')    # the notches
+        p.rect(45, 17, 60, 46, 'R'); p.ell(60.5, 31.5, 4, 4.5, '.')
+        for y in range(18, 46, 3):
+            p.px(44, y, 'c')                                            # the perforation
+        p.where(lambda x, y, c: c == 'C' and y > 42, 'c'); p.where(lambda x, y, c: c == 'R' and y > 42, 'r')
+        p.hl(5, 43, 18, 'W'); p.hl(45, 58, 18, 'E')
+    a.paste(layer(64, 64, t))
+    for x in (6, 17, 28):
+        a.stamp(ICON['star'], x, 24)
+    a.stamp(ICON['star'], 45, 24, {'Y': 'W', 'y': 'C', 'W': 'W'})       # the stub's own star, white on red
+    return a
+
+
+# ---------- convenience items (48x48) ----------
+def mini_rifle(flip=False):
+    def r(p):
+        p.rect(0, 1, 5, 4, 'D'); p.hl(0, 5, 1, 'T')        # stock
+        p.rect(6, 1, 13, 3, 'g'); p.hl(6, 13, 1, 'G')      # body
+        p.rect(14, 2, 19, 2, 'k')                         # barrel
+        p.rect(9, 4, 10, 6, 'k'); p.px(7, 4, 'k')          # magazine, grip
+    a = layer(21, 8, r)
+    if flip:
+        for row in a.g:
+            row.reverse()
+    return a
+
+
+def big_gear(r_out=10.5, r_in=8, hole=3, teeth=8):
+    import math
+    n = int(r_out * 2 + 3)
+    def g(p):
+        c = n / 2
+        for y in range(n):
+            for x in range(n):
+                dx, dy = x + .5 - c, y + .5 - c
+                d, ang = math.hypot(dx, dy), math.atan2(dy, dx)
+                if hole < d <= (r_out if math.cos(teeth * ang) > .3 else r_in):
+                    p.px(x, y, 'W' if dx + dy < -9 else 'G' if dx + dy < 4 else 'g')
+    return layer(n, n, g)
+
+
+def noads():
+    a = Art(48, 48)
+    def tv(p):
+        p.rect(5, 9, 42, 35, 'g'); p.hl(5, 42, 9, 'G')
+        p.rect(8, 12, 39, 31, 'B')
+        p.where(lambda x, y, c: c == 'B' and (x - 8) + (y - 12) < 9, 'L')
+        p.poly([(19, 16), (19, 28), (30, 22)], 'W')        # an ad playing
+        p.rect(20, 36, 27, 38, 'g'); p.rect(14, 39, 33, 41, 'g')
+    a.paste(layer(48, 48, tv))
+    def ban(p):
+        p.ell(24, 24, 18, 18, 'E'); p.ell(24, 24, 14, 14, '.')
+        for k in (-1, 0, 1):
+            p.line(14 + k, 13, 35 + k, 35, 'E'); p.line(13, 14 + k, 34, 35 + k, 'E')
+        p.where(lambda x, y, c: (x - 24) ** 2 + (y - 24) ** 2 > 17.5 ** 2, '.')
+    a.paste(layer(48, 48, ban))
+    return a
+
+
+def automerge():
+    # two guns driven into one gear, a second gear turning with it: the merging runs by itself
+    a = Art(48, 48)
+    a.paste(mini_rifle(), 0, 25)
+    a.paste(mini_rifle(flip=True), 27, 25)
+    small = big_gear(r_out=7, r_in=5.5, hole=2, teeth=6)
+    a.paste(small, 31, 2)
+    g = big_gear(r_out=11.5, r_in=9, hole=3.5)
+    a.paste(g, 24 - g.w // 2, 28 - g.h // 2)
+    return a
+
+
+def offline():
+    a = Art(48, 48)
+    def moon(p):
+        p.ell(16, 16, 12, 12, 'Y'); p.ell(22, 12, 10, 10, '.')
+        p.where(lambda x, y, c: c == 'Y' and x + y > 30, 'y')
+    a.paste(layer(48, 48, moon))
+    def clock(p):
+        p.ell(31, 31, 14, 14, 'g'); p.ell(31, 31, 11.5, 11.5, 'W')
+        p.rect(30, 20, 31, 31, 'k'); p.rect(31, 30, 39, 31, 'k')     # hands at twelve and three
+        for x, y in ((30, 18), (43, 30), (30, 43), (18, 30)):
+            p.rect(x, y, x + 1, y + 1, 'k')
+        p.rect(20, 16, 23, 18, 'g'); p.rect(38, 16, 41, 18, 'g')     # bells
+    a.paste(layer(48, 48, clock))
+    sparkle(a, 36, 6); sparkle(a, 43, 13)
+    return a
+
+
+def presets():
+    a = Art(48, 48)
+    def board(p):
+        p.rect(3, 6, 44, 41, 'D'); p.hl(3, 44, 6, 'T')
+        for y in range(10, 40, 5):
+            for x in range(7, 42, 5):
+                p.px(x, y, 'd')                      # peg holes
+        for x0, y0, x1, y1 in ((7, 11, 40, 20), (7, 25, 21, 37), (26, 25, 40, 37)):   # the outlined places
+            p.hl(x0, x1, y0, 'Y'); p.hl(x0, x1, y1, 'Y'); p.vl(x0, y0, y1, 'Y'); p.vl(x1, y0, y1, 'Y')
+    a.paste(layer(48, 48, board))
+    a.paste(mini_rifle(), 13, 12)
+    a.stamp(ICON['relic'], 25, 23)
+    def pistol(p):
+        p.rect(0, 0, 8, 2, 'g'); p.hl(0, 8, 0, 'G'); p.rect(1, 3, 3, 6, 'k')
+    a.paste(layer(10, 8, pistol), 9, 27)
+    return a
+
+
+def research():
+    a = Art(48, 48)
+    def flasks(p):
+        p.rect(11, 6, 16, 17, 'L')                                    # a conical flask
+        p.poly([(11, 17), (17, 17), (24, 41), (3, 41)], 'L')
+        p.where(lambda x, y, c: c == 'L' and y > 29, 'V')
+        p.where(lambda x, y, c: c == 'V' and y == 30, 'Z')
+        p.rect(31, 8, 35, 20, 'L')                                    # a round flask
+        p.ell(33.5, 31, 11, 11, 'L')
+        p.where(lambda x, y, c: c == 'L' and y > 30 and x > 22, 'P')
+        p.rect(10, 4, 17, 6, 'D'); p.rect(30, 6, 36, 8, 'D')          # corks
+        for x, y in ((12, 9), (12, 10), (32, 11), (32, 12), (26, 26)):
+            p.px(x, y, 'W')
+    a.paste(layer(48, 48, flasks))
+    for x, y in ((9, 34), (15, 36), (30, 36), (36, 34), (33, 39)):     # bubbles
+        a.px(x, y, 'W')
+    return a
+
+
+def speed():
+    a = Art(48, 48)
+    def ff(p):
+        for x0 in (8, 23):
+            p.poly([(x0, 10), (x0, 38), (x0 + 17, 24)], 'Y')
+        p.where(lambda x, y, c: c == 'Y' and y > 26, 'y')
+        for x0 in (9, 24):
+            p.vl(x0, 13, 20, 'W')
+    a.paste(layer(48, 48, ff))
+    for y in (15, 24, 33):                                            # speed lines
+        a.hl(1, 5, y, 'g')
+    return a
+
+
 PRODUCTS = {
     'dia-1': pack1, 'dia-2': pack2, 'dia-3': pack3, 'dia-4': pack4, 'dia-5': pack5, 'dia-6': pack6,
     'step-1': step1, 'step-2': step2, 'step-3': step3, 'step-4': step4, 'step-5': step5, 'step-6': step6,
+    'monthly': monthly, 'season': season,
+    'noads': noads, 'automerge': automerge, 'offline': offline, 'presets': presets, 'research': research, 'speed': speed,
 }
 
 
