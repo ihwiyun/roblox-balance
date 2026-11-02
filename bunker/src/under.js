@@ -499,7 +499,7 @@ function livingPaint(L, fz, look) {
       if (a > st && b > st) return a < st + .14 || b < st + .14 ? hazard(a, b) : plateAt(a, b, ix, iy);
       if (floorMat === 0) return dirtAt(a, b, ix, iy);
       if (floorMat === 1) return planksAt(a, b, ix, iy);
-      return (a % 1.8) < .025 || (b % 1.8) < .025 ? R_CONC[1] : pick(R_CONC, 2.3 + nz(a * 1.5, b * 1.5) * .6, ix, iy, .5);
+      return (a % 1.8) < .025 || (b % 1.8) < .025 ? R_CONCW[1] : pick(R_CONCW, 2.3 + nz(a * 1.5, b * 1.5) * .6, ix, iy, .5);
     },
     back(x, z, ix, iy) { return wall(x - x0, z - fz, ix, iy); },
     left(y, z, ix, iy) { return wall(y - y0, z - fz, ix, iy); },
@@ -531,6 +531,7 @@ function bed(i, fz, st = BED_STYLE[i], top = false) {
   fbox(bx + .1, y0 + .14, fz + .4, bx + .44, y1 - .14, fz + .5, PILLOW, 65 + i);
   if (st.head) {
     fbox(bx - .04, y0, fz, bx + .04, y1, fz + st.head, st.frame, 70 + i);
+    if (st.posts) for (const y of [y0, y1 - .09]) { fbox(bx - .06, y, fz, bx + .06, y + .09, fz + st.head + .08, st.frame, 76 + i); fbox(bx - .045, y + .015, fz + st.head + .08, bx + .045, y + .075, fz + st.head + .14, [150, 108, 70], 78 + i); }
     if (st.bars) onX(bx + .04, y0 + .06, y1 - .06, fz + .3, fz + st.head - .08, y => ((y - y0) % .14) < .05 ? rgb(90, 96, 104) : 0);
     if (st.carved) { fbox(bx - .05, y0 - .02, fz + st.head, bx + .05, y1 + .02, fz + st.head + .06, [140, 98, 64], 75); onX(bx + .04, y0 + .1, y1 - .1, fz + .55, fz + .95, (y, z) => Math.abs((y - (y0 + y1) / 2) * 2) + Math.abs(z - fz - .75) * 2.6 < .32 ? rgb(150, 108, 70) : 0); }
   }
@@ -985,7 +986,26 @@ function washtub(fz) {
 }
 // the beds: cots at first (one for every place a hand can be hired, LIVE.beds), then wooden beds
 const cots = fz => { for (let i = 0; i < bedsOf(G.live); i++) bed(i, fz, BED_STYLE[0]); };
-const woodBeds = (fz, g) => { const st = { ...BED_STYLE[2], frame: mat(WOOD, g) }; for (let i = 0; i < bedsOf(G.live); i++) bed(i, fz, st); };
+// wooden beds have a tall headboard with posts, and a shelf over the head (a crate by it in the second row) with a
+// candle and a few belongings
+function woodBeds(fz, g) {
+  const st = { ...BED_STYLE[2], frame: mat(WOOD, g), head: .95, posts: true }, photo = [[120, 170, 210], [214, 180, 120], [110, 150, 90]];
+  for (let i = 0; i < bedsOf(G.live); i++) {
+    bed(i, fz, st);
+    const bx = BED_X(i), [y0] = bedY(i), back = i < 3, x = back ? bx + .12 : bx - .4, y = back ? UG.y0 : y0 + .12, z = fz + (back ? 1.14 : .4);
+    if (back) { fbox(x, y, z - .05, x + .8, y + .22, z, WOOD_D, 1650); for (const xx of [x + .08, x + .68]) fbox(xx, y, z - .2, xx + .04, y + .16, z - .05, DARK, 1651); }
+    else supplyCrate(x, y, fz, .34, .4, PLK, 1656 + i);
+    fbox(x + .08, y + .07, z, x + .14, y + .13, z + .14, [236, 230, 210], 1652);
+    EM = 1; fbox(x + .095, y + .085, z + .14, x + .125, y + .115, z + .2, [255, 214, 110], 1653); EM = 0;
+    lamp(0, x + .11, y + .5, fz, 1.1, .8, FIRE_T);
+    if (!back) continue;
+    halo(x + .11, y, z + .17, .32, .28);
+    sbox(x + .24, y + .07, z, x + .34, y + .17, z + .11, [150, 156, 164], 1654);
+    fbox(x + .44, y + .01, z, x + .64, y + .05, z + .24, [96, 70, 48], 1655);
+    onY(y + .05, x + .46, x + .62, z + .03, z + .21, (xx, zz) => zz - z > .14 ? rgb(...photo[i]) : rgb(...photo[(i + 1) % 3]));
+    fbox(x + .68, y + .04, z, x + .76, y + .2, z + .2, [[150, 50, 44], [52, 92, 140], [70, 120, 70]][i], 1657);
+  }
+}
 // military era: steel bunks along the back wall, beds 3 and 4 up on top of 0 and 1, a ladder at each foot
 function bunkBeds(fz, g) {
   const n = bedsOf(G.live), steel = mat([92, 104, 84], g), st = { frame: steel, legs: steel, head: 0, foot: 0 };
@@ -1062,15 +1082,15 @@ function messTable(fz, g) {
   for (let k = 0; k < 4; k++) { const x = x0 + .25 + k * .52, y = k & 1 ? y0 + .1 : y1 - .34; sbox(x, y, fz + .78, x + .32, y + .24, fz + .8, [176, 182, 190], 1584 + k); drum(x + .42, y + .12, fz + .78, fz + .9, .045, [96, 108, 76], 1588 + k, .3); }
   footShadow(x0, y0, x1, y1, .78);
 }
-// military era: a row of steel lockers in front of the bunks, doors to the room, each stencilled
+// military era: a row of steel lockers along the left wall by the ladder, doors to the room, each stencilled
 function steelLockers(fz, g) {
-  const x0 = XA(2.0), y0 = yb(2.6), y1 = yb(3.1), w = .58, c = mat(OD, g);
+  const x0 = UG.x0 + .02, x1 = x0 + .5, y0 = yb(1.45), w = .58, c = mat([124, 134, 116], g);
   for (let k = 0; k < 6; k++) {
-    const x = x0 + k * w, num = stencil('0' + (k + 1), x + .2, fz + 1.42);
-    sbox(x, y0, fz, x + w - .02, y1, fz + 1.85, c, 1600 + k);
-    onY(y1, x + .02, x + w - .04, fz + .04, fz + 1.81, (xx, z) => { const zz = z - fz, u = xx - x; if (u < .03 || u > w - .07) return rgb(60, 70, 48); if (zz > 1.62 && zz < 1.74 && (Math.floor(zz * 50) & 1)) return rgb(60, 70, 48); if (Math.abs(u - (w - .14)) < .025 && Math.abs(zz - .95) < .1) return rgb(200, 204, 196); return num(xx, z) ? rgb(226, 222, 200) : 0; });
+    const y = y0 + k * w, num = stencil("0" + (k + 1), y + .2, fz + 1.42);
+    sbox(x0, y, fz, x1, y + w - .02, fz + 1.85, c, 1600 + k);
+    onX(x1, y + .02, y + w - .04, fz + .04, fz + 1.81, (yy, z) => { const zz = z - fz, u = yy - y; if (u < .03 || u > w - .07) return rgb(70, 80, 66); if (zz > 1.62 && zz < 1.74 && (Math.floor(zz * 50) & 1)) return rgb(70, 80, 66); if (Math.abs(u - (w - .14)) < .025 && Math.abs(zz - .95) < .1) return rgb(214, 218, 210); return num(yy, z) ? rgb(236, 232, 214) : 0; });
   }
-  footShadow(x0, y0, x0 + 6 * w, y1, 1.85);
+  footShadow(x0, y0, x1, y0 + 6 * w, 1.85);
 }
 // military era: a steel shower stall in the left front corner: panel walls, a duckboard, the head on its pipe
 function showerStall(fz, g) {
@@ -1088,7 +1108,7 @@ function showerStall(fz, g) {
 // military era: the floor number stencilled big on the left wall
 function wallNumber(fz, g) { const num = stencil('01', yb(3.3), fz + 1.25, .17, .14); onX(UG.x0 + .005, yb(3.3), yb(4.4), fz + 1.25, fz + 2.0, (y, z) => num(y, z) ? rgb(...mat([236, 232, 214], g)) : 0); }
 const LIVE_ART = {
-  lighting: [[liveLantern, brassLamps], [(fz, g) => cagedLamps(0, fz, g, [3.0, 5.0, 7.0, RL() - 1.6], [4.6, RL() - 2.4], .7)]],
+  lighting: [[liveLantern, brassLamps], [(fz, g) => cagedLamps(0, fz, g, [3.0, 5.0, 7.0, RL() - 1.6], [6.2, RL() - 2.6], .7)]],
   lounge: [[movedInLounge, crateTable], [messTable]],
   kitchen: [[waterAndCrate, stoveCorner], [fieldKitchen]],
   decor: [[lumber], [wallNumber]],
@@ -1116,7 +1136,7 @@ function farmRows() {
 }
 const LEAF_D = [52, 104, 52], LEAF = [78, 140, 62], LEAF_L = [118, 178, 82], LETTUCE = [150, 204, 100];
 const R_FSOIL = rampOf([96, 70, 50]), R_CONC = rampOf([150, 150, 142]), R_PALLET = rampOf([176, 140, 96]);
-const R_ODW = rampOf([98, 110, 78]), R_PALEW = rampOf([204, 206, 190]);
+const R_ODW = rampOf([98, 110, 78]), R_PALEW = rampOf([206, 200, 180]), R_CONCW = rampOf([140, 134, 122]);
 // earth walls and a dirt floor at first; from the military era painted concrete (an olive dado, pale above, the
 // formwork seams) and a concrete floor with the corridor marked in yellow
 function farmPaint(L, fz, look) {
@@ -1133,7 +1153,7 @@ function farmPaint(L, fz, look) {
       if (a > st && b > st) return a < st + .12 || b < st + .12 ? hazard(a, b) : (((b / .3) % 1) < .1 ? R_WOOD[1] : pick(R_PALLET, 2.6, ix, iy, .3));
       if (!e) return dirtAt(a, b, ix, iy, L ? R_FSOIL : R_SOIL);
       if ((Math.abs(a - 1.36) < .04 || Math.abs(a - 2.14) < .04) && b > 1.9) return rgb(226, 186, 50);
-      return (a % 1.8) < .025 || (b % 1.8) < .025 ? R_CONC[1] : pick(R_CONC, 2.2 + nz(a * 1.5, b * 1.5) * .7, ix, iy, .5);
+      return (a % 1.8) < .025 || (b % 1.8) < .025 ? R_CONCW[1] : pick(R_CONCW, 2.2 + nz(a * 1.5, b * 1.5) * .7, ix, iy, .5);
     },
     back(x, z, ix, iy) { return wall(x - x0, z - fz, ix, iy); },
     left(y, z, ix, iy) { return wall(y - y0 + 3, z - fz, ix, iy); },

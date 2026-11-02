@@ -863,26 +863,26 @@
 
 | 만든 파일 | 합성 내용 | 가공 |
 |---|---|---|
-| `candidates/sfx-gun/sfx_gun_flame_b.ogg` (1.61초) | Flamethrower: ignition whump, 1.4 s roaring noise with slow flutter and crackle, soft cut-off | 직류 성분 제거; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
-| `candidates/sfx-gun/sfx_gun_electric_c.ogg` (0.66초) | Electric zap: fast falling saw sweep, gated noise crackle and a low thump | 앞뒤 무음 0.15초 제거; 직류 성분 제거; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
-| `candidates/sfx-reload/sfx_casing_a.ogg` (0.52초) | Brass casing hitting the floor: modal "tink" with three shrinking bounces | 직류 성분 제거; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
-| `candidates/sfx-boss/sfx_boss_stomp_c.ogg` (1.01초) | Heavy stomp: mid thump (220 → 70 Hz), sub drop, a short low crack and a dust rumble | 직류 성분 제거; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
-| `candidates/sfx-base/sfx_breakthrough_a.ogg` (1.96초) | Brass fanfare: G-G-G pick-up into a C-major chord with snare and cymbal | 앞뒤 무음 0.14초 제거; 직류 성분 제거; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
-| `candidates/sfx-ui/sfx_ui_button_a.ogg` (0.07초) | Short soft select blip (square, 1.05 → 1.4 kHz) | 직류 성분 제거; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
-| `candidates/sfx-ui/sfx_ui_tab_a.ogg` (0.10초) | Two-step soft tick for switching tabs | 직류 성분 제거; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
-| `candidates/sfx-ui/sfx_ui_purchase_a.ogg` (0.60초) | Coin "ka-ching": two square notes B5 → E6 with a small sparkle | 직류 성분 제거; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
-| `candidates/sfx-ui/sfx_ui_levelup_a.ogg` (1.22초) | Rising C-major arpeggio with a held top note | 앞뒤 무음 0.18초 제거; 직류 성분 제거; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
-| `candidates/sfx-ui/sfx_ui_clear_a.ogg` (1.60초) | Short clear jingle: G-C-E-G run into a C-major chord with a light drum hit | 앞뒤 무음 0.19초 제거; 직류 성분 제거; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
-| `candidates/sfx-ui/sfx_ui_warning_a.ogg` (0.70초) | Two-tone alarm pulse (880/660 Hz) played twice | 직류 성분 제거; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
-| `candidates/sfx-ui/sfx_ui_notify_a.ogg` (1.22초) | Soft two-note bell chime (E6 → B6) | 앞뒤 무음 0.16초 제거; 직류 성분 제거; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
-| `candidates/sfx-gacha/sfx_gacha_roll_a.ogg` (1.71초) | Gacha roll: ticking wheel that speeds up over a rising drum roll, ends on an upbeat (reveal follows) | 직류 성분 제거; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
-| `candidates/sfx-gacha/sfx_reveal_1.ogg` (0.17초) | 일반: neutral soft pop (triangle glide) | 직류 성분 제거; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
-| `candidates/sfx-gacha/sfx_reveal_2.ogg` (0.75초) | 고급: bright two-note step up (E5 → A5) | 직류 성분 제거; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
-| `candidates/sfx-gacha/sfx_reveal_3.ogg` (1.34초) | 희귀: C-major arpeggio with a few sparkles | 직류 성분 제거; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
-| `candidates/sfx-gacha/sfx_reveal_4.ogg` (1.80초) | 영웅: whoosh, D-major run to a held chord with sparkles | 앞뒤 무음 0.11초 제거; 직류 성분 제거; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
-| `candidates/sfx-gacha/sfx_reveal_5.ogg` (1.94초) | 전설: riser, impact, brass E-major chord, sparkle run | 앞뒤 무음 0.27초 제거; 직류 성분 제거; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
-| `candidates/sfx-gacha/sfx_reveal_6.ogg` (2.77초) | 불멸: double impact, low octave and big F#-major chord with choir pad | 앞뒤 무음 0.21초 제거; 직류 성분 제거; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
-| `candidates/sfx-gacha/sfx_reveal_7.ogg` (3.19초) | 신화: long riser, impact, golden bell cascade over two octaves, brass A-major chord | 앞뒤 무음 0.26초 제거; 직류 성분 제거; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
-| `candidates/sfx-gacha/sfx_reveal_8.ogg` (4.13초) | 영원: longest riser with accelerating ticks, huge impact, three-octave rainbow run, full chord, choir and bells | 앞뒤 무음 0.21초 제거; 직류 성분 제거; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
-| `candidates/sfx-misc/sfx_relic_a.ogg` (1.44초) | Magic pickup: fast pentatonic bell run upward with a soft pad | 앞뒤 무음 0.11초 제거; 직류 성분 제거; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
-| `candidates/sfx-misc/sfx_raid_a.ogg` (2.35초) | Raid start: low war-horn glide over two drum hits and a rising alarm sweep | 앞뒤 무음 0.23초 제거; 직류 성분 제거; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
+| `candidates/sfx-gun/sfx_gun_flame_b.ogg` (1.61초) | 점화 후 으르렁대는 불길, 지직거리는 불꽃. | 직류 성분 제거; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
+| `candidates/sfx-gun/sfx_gun_electric_c.ogg` (0.66초) | 빠르게 떨어지는 소리와 지직거림, 낮은 쿵. | 앞뒤 무음 0.15초 제거; 직류 성분 제거; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
+| `candidates/sfx-reload/sfx_casing_a.ogg` (0.52초) | 황동 탄피가 바닥에 세 번 튕김. | 직류 성분 제거; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
+| `candidates/sfx-boss/sfx_boss_stomp_c.ogg` (1.01초) | 중음 쿵과 저음 낙하, 짧은 먼지 소리. | 직류 성분 제거; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
+| `candidates/sfx-base/sfx_breakthrough_a.ogg` (1.96초) | 짧은 도입 후 큰 화음, 스네어와 심벌. | 앞뒤 무음 0.14초 제거; 직류 성분 제거; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
+| `candidates/sfx-ui/sfx_ui_button_a.ogg` (0.07초) | 짧고 부드러운 사각파. | 직류 성분 제거; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
+| `candidates/sfx-ui/sfx_ui_tab_a.ogg` (0.10초) | 두 음의 가벼운 틱. | 직류 성분 제거; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
+| `candidates/sfx-ui/sfx_ui_purchase_a.ogg` (0.60초) | 동전 "챙", 두 음과 반짝임. | 직류 성분 제거; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
+| `candidates/sfx-ui/sfx_ui_levelup_a.ogg` (1.22초) | 올라가는 아르페지오와 길게 끄는 높은 음. | 앞뒤 무음 0.18초 제거; 직류 성분 제거; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
+| `candidates/sfx-ui/sfx_ui_clear_a.ogg` (1.60초) | 상승 음 뒤 C장조 화음, 가벼운 드럼. | 앞뒤 무음 0.19초 제거; 직류 성분 제거; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
+| `candidates/sfx-ui/sfx_ui_warning_a.ogg` (0.70초) | 두 음 경보를 두 번. | 직류 성분 제거; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
+| `candidates/sfx-ui/sfx_ui_notify_a.ogg` (1.22초) | 두 음의 부드러운 종소리. | 앞뒤 무음 0.16초 제거; 직류 성분 제거; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
+| `candidates/sfx-gacha/sfx_gacha_roll_a.ogg` (1.71초) | 점점 빨라지는 딸깍과 북소리, 마지막에 상승. | 직류 성분 제거; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
+| `candidates/sfx-gacha/sfx_reveal_1.ogg` (0.17초) | 중립적인 작은 "퐁". | 직류 성분 제거; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
+| `candidates/sfx-gacha/sfx_reveal_2.ogg` (0.75초) | 밝은 두 음이 올라감. | 직류 성분 제거; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
+| `candidates/sfx-gacha/sfx_reveal_3.ogg` (1.34초) | 아르페지오와 반짝임 몇 개. | 직류 성분 제거; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
+| `candidates/sfx-gacha/sfx_reveal_4.ogg` (1.80초) | 휙 하는 소리 뒤 D장조 아르페지오와 화음. | 앞뒤 무음 0.11초 제거; 직류 성분 제거; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
+| `candidates/sfx-gacha/sfx_reveal_5.ogg` (1.94초) | 상승음, 충격, 금관 화음, 반짝이는 소리. | 앞뒤 무음 0.27초 제거; 직류 성분 제거; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
+| `candidates/sfx-gacha/sfx_reveal_6.ogg` (2.77초) | 이중 충격, 저음과 큰 화음, 합창 패드. | 앞뒤 무음 0.21초 제거; 직류 성분 제거; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
+| `candidates/sfx-gacha/sfx_reveal_7.ogg` (3.19초) | 긴 상승음, 충격, 종소리 폭포, 금관 화음. | 앞뒤 무음 0.26초 제거; 직류 성분 제거; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
+| `candidates/sfx-gacha/sfx_reveal_8.ogg` (4.13초) | 가장 긴 상승, 거대한 충격, 무지개 음계, 합창과 종. | 앞뒤 무음 0.21초 제거; 직류 성분 제거; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
+| `candidates/sfx-misc/sfx_relic_a.ogg` (1.44초) | 오음계 종소리가 빠르게 올라가고 부드러운 패드. | 앞뒤 무음 0.11초 제거; 직류 성분 제거; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |
+| `candidates/sfx-misc/sfx_raid_a.ogg` (2.35초) | 낮은 뿔피리와 북 두 번, 상승하는 경보. | 앞뒤 무음 0.23초 제거; 직류 성분 제거; 모노, 최대 음량 -1 dBTP로 맞춤; OGG Vorbis로 변환 |

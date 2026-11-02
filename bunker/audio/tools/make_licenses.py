@@ -107,7 +107,7 @@ if gen:
     w('| 만든 파일 | 합성 내용 | 가공 |')
     w('|---|---|---|')
     for it in gen:
-        w(f"| `{it['file']}` ({length(it)}) | {cell(it.get('generated_desc', it['mood']))} | {cell(short(it['changes']))} |")
+        w(f"| `{it['file']}` ({length(it)}) | {cell(it['mood'])} | {cell(short(it['changes']))} |")
     w('')
 
 open(os.path.join(audio, 'LICENSES.md'), 'w', encoding='utf-8').write('\n'.join(out))

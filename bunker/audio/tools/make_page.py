@@ -52,10 +52,11 @@ def card(it, letter=None):
     if it['kind'] == 'sfx' and not letter:                  # only candidate of its slot: the slot label is the heading
         name = f"{it['slot_label']} · {name}" if name else it['slot_label']
     label = f"{it['slot_label']} {letter} · {name}" if letter else name
+    chip = f'<b class="chip">{letter}</b>' if letter else ''
     return (
         f'<article class="cand{" rec" if it.get("star") else ""}" data-id="{esc(it["id"])}" data-slot="{esc(it.get("slot", it["group"]))}" '
         f'data-label="{esc(label)}">'
-        f'<div class="head">{f"<b class=chip>{letter}</b>" if letter else ""}<h4>{esc(name)}</h4>{STAR if it.get("star") else ""}'
+        f'<div class="head">{chip}<h4>{esc(name)}</h4>{STAR if it.get("star") else ""}'
         f'<label class="pick"><input type="checkbox"><span>선택</span></label></div>'
         f'<audio controls preload="none"{" loop" if music else ""}{vol} aria-label="{esc(label)}" src="{esc(it["file"])}"></audio>'
         f'<p class="meta">{"".join(f"<span>{esc(m)}</span>" for m in meta)}</p>'
