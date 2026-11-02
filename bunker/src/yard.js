@@ -188,8 +188,10 @@ const YARD_ART = (() => {
     SITES.hatch = [x, y, z];
   }
   // the roof deck the gunners stand on (call before drawing anything on it); block() notes a thing drawn with lines
-  function deck(x0, y0, x1, y1, z, hatchColor = STEEL) { REC = { x0, y0, x1, y1, z, list: [], hatchColor }; }
+  function deck(x0, y0, x1, y1, z, hatchColor = STEEL) { REC = { x0, y0, x1, y1, z, list: [], keep: [], hatchColor }; }
   const block = (x0, y0, x1, y1, z1 = 1e9) => { if (REC) REC.list.push([x0, y0, x1, y1, z1]); };
+  // a box on screen [x0, y0, x1, y1] that no gunner's figure may overlap (a turret turning on its mount)
+  const keepOut = box => { if (REC) REC.keep.push(box); };
   // Six gunner spots where every face stays in sight. A survivor is drawn 32 px tall with the head a 15 px square
   // 17..31 px above the feet (actors.js), so two of them keep their heads clear of each other when they stand a
   // head's width apart side by side or a head's height apart one above the other. The six are packed as far apart
@@ -199,7 +201,7 @@ const YARD_ART = (() => {
   function placeCrew() {
     const D = REC; REC = null;
     if (!D) return;
-    const { x0, y0, x1, y1, z, list } = D, perPx = SIN / (S * COS);
+    const { x0, y0, x1, y1, z, list, keep } = D, perPx = SIN / (S * COS);
     // feet on open deck, e in from its edge: a step from low things (parapets, sandbags: they can only hide legs),
     // further from taller ones
     const open = (x, y, e, low, tall) => x > x0 + e && x < x1 - e && y > y0 + e && y < y1 - e &&
@@ -219,9 +221,12 @@ const YARD_ART = (() => {
       const q = project(x + dx, y + dy, z + h), ix = Math.round(q.sx), iy = Math.round(q.sy);
       return ix >= 0 && iy >= 0 && ix < W && iy < H && zb[iy * W + ix] <= q.d + .02;
     });
+    // and the whole figure (32 px tall, 22 wide with its rifle) clear of the turrets' boxes: nobody hides a turret,
+    // no turret hides a face
+    const clear = (x, y) => { const p = project(x, y, z), bx = Math.round(p.sx), by = Math.round(p.sy); return keep.every(([a, b, c, d]) => bx + 10 < a || bx - 11 > c || by < b || by - 32 > d); };
     const cx = [], cy = [], hx = [], hy = [];
     for (let x = x0; x <= x1 + 1e-6; x += .1) for (let y = y0; y <= y1 + 1e-6; y += .1) {
-      if (open(x, y, .1, .1, .2) && seen(x, y)) { cx.push(x); cy.push(y); }
+      if (open(x, y, .1, .1, .2) && seen(x, y) && clear(x, y)) { cx.push(x); cy.push(y); }
       if (open(x, y, .32, .32, .32) && floorSeen(x, y)) { hx.push(x); hy.push(y); }
     }
     for (let i = cx.length; i < 6; i++) { cx.push((x0 + x1) / 2); cy.push((y0 + y1) / 2); }
@@ -304,11 +309,11 @@ const YARD_ART = (() => {
   const tone = (c, f, d = 0) => { const r = rampOf(c), i = (f === 0 ? 3 : f === 1 ? 2 : 1) + d; return r[i < 0 ? 0 : i > 4 ? 4 : i]; };
   // several patterns over one face: the first that paints something wins
   const pats = (...list) => (f, a, b) => { let shade = 0; for (const p of list) { if (!p) continue; const r = p(f, a, b); if (r > 255) return r; shade += r || 0; } return shade; };
-  return { deck, block, placeCrew, tone, outline, PXA, PXZ, rep, col, pbox, shade, solid, post, bar, wire, lamp, bulb, ladder, railing, bagLine, crateAt, drum, hatch, flag, textAt, pats, FONT };
+  return { deck, block, keepOut, placeCrew, tone, outline, PXA, PXZ, rep, col, pbox, shade, solid, post, bar, wire, lamp, bulb, ladder, railing, bagLine, crateAt, drum, hatch, flag, textAt, pats, FONT };
 })();
 /* ================= the bunker: ten buildings, each with nine features it gains (has(n): feature n shows) ================= */
 const BUNKER_ART = (() => {
-  const { deck, block, placeCrew, tone, outline, PXA, PXZ, rep, col, pbox, shade, solid, post, bar, wire, lamp, bulb, ladder, railing, bagLine, crateAt, drum, hatch, flag, textAt, pats } = YARD_ART;
+  const { deck, block, keepOut, placeCrew, tone, outline, PXA, PXZ, rep, col, pbox, shade, solid, post, bar, wire, lamp, bulb, ladder, railing, bagLine, crateAt, drum, hatch, flag, textAt, pats } = YARD_ART;
   const RED = [190, 58, 46], YEL = [226, 184, 52], WHITE = [226, 224, 214], BLACK = [40, 38, 44], RUST = [150, 86, 54];
   // planks running along y, seams every .3 along x, a few dark knots
   const plankTop = (w = .3) => (f, a, b) => f === 0 ? (rep(a, w) < PXA * 1.1 ? -1.3 : hash(Math.floor(a / w), Math.floor(b * 2)) > .9 ? -.5 : 0) : 0;
@@ -917,30 +922,37 @@ const BUNKER_ART = (() => {
     });
   }
 
-  /* ---- the turret mounts (MOUNT_AT), in the order they open: the left, right and back corners of the roof, the middles
-     of its two back edges, then the front corner (last: it stands in front of the gunners). Log cribs on the wooden
-     buildings, concrete pads after them, a steel turntable on each; SITES.mounts keeps where a turret sits ---- */
-  const MOUNT_DIRS = [[-1, 1], [1, -1], [-1, -1], [-1, 0], [0, -1], [1, 1]];
-  // how far out from the middle each building keeps them, clear of its own corner pieces (the foxhole's sit on its sandbags)
-  const MOUNT_Q = [0, 1.3, .95, 1.17, .9, .95, .9, 1.25, .9, 1.2];
+  /* ---- the turret mounts (MOUNT_AT) stand on the ground round the foot of the building, below and beside the roof, so
+     nobody on the roof ever hides a turret and no turret hides a face: placeCrew keeps every gunner clear of each
+     turret's whole turning box. In the order they open: the left and right corners, then two along each front wall
+     (the back walls are hidden behind the building; the two side corners close them off). The foxhole is low, so its
+     mounts stand further out in its still empty yard. A log crib on the wooden buildings, a concrete pad after them,
+     a steel turntable on each; SITES.mounts keeps where a turret sits ---- */
+  const MOUNT_DIRS = [[-1, 1], [1, -1], [-.15, 1], [1, -.15], [.55, 1], [1, .55]];
+  // each building's ring, just clear of its walls and what stands at their foot (the compound's things begin at 2.35)
+  const MOUNT_RING = [0, 2.1, 2.15, 2.1, 2.15, 2.15, 2.15, 2.15, 2.2, 2.2];
+  const FOX_MOUNTS = [[-2.8, 2.8], [2.8, -2.8], [2.9, 2.9], [-1.3, 3.3], [3.3, -1.3], [-3.3, -3.3]];
+  // the turret's frames round the foot of its ring (art/turrets.js, every facing): what no gunner may overlap
+  const TURRET_BOX = [-24, -27, 23, 3];
   const turntable = (x, y, z, s) => pbox(x - s, y - s, z, x + s, y + s, z + .04, METAL, 26, (f, a, b) => {
     if (f) return -.6;
     const r = Math.max(Math.abs(a - x), Math.abs(b - y));
     return r > s - .045 ? -1.6 : r < .04 ? -2 : .5;
   }, .2);
-  function mounts(form, has, I) {
-    const n = MOUNT_AT.filter(at => G.bunker >= at).length, q = form ? MOUNT_Q[form] : I.half - .15;
-    const z = form ? I.roof : (has(2) ? .31 : .155) + (has(3) ? .07 : 0) + (has(9) ? .11 : 0);
+  function mounts(form) {
+    const n = MOUNT_AT.filter(at => G.bunker >= at).length;
     for (let i = 0; i < n; i++) {
-      const x = MOUNT_DIRS[i][0] * q, y = MOUNT_DIRS[i][1] * q;
-      let t = z + .33;
+      const [x, y] = form ? MOUNT_DIRS[i].map(d => d * MOUNT_RING[form]) : FOX_MOUNTS[i];
+      let t = .33;
       if (form < 4) for (let l = 0; l < 3; l++) { // logs laid crosswise, three layers
-        const zz = z + l * .11, c = l & 1 ? [176, 132, 84] : WOOD, pat = (f, a, b) => f && rep(b - zz, .11) < PXZ ? -1.3 : 0;
+        const zz = l * .11, c = l & 1 ? [176, 132, 84] : WOOD, pat = (f, a, b) => f && rep(b - zz, .11) < PXZ ? -1.3 : 0;
         for (const o of [-.15, .15]) l & 1 ? pbox(x + o - .055, y - .25, zz, x + o + .055, y + .25, zz + .11, c, 20 + l, pat) : pbox(x - .25, y + o - .055, zz, x + .25, y + o + .055, zz + .11, c, 20 + l, pat);
       }
-      else { t = z + .12; pbox(x - .22, y - .22, z, x + .22, y + .22, t, [182, 178, 166], 30, (f, a, b) => f ? (b > t - .04 ? .8 : 0) : Math.max(Math.abs(a - x), Math.abs(b - y)) > .18 ? .6 : 0, .2); }
+      else { t = .12; pbox(x - .22, y - .22, 0, x + .22, y + .22, t, [182, 178, 166], 30, (f, a, b) => f ? (b > t - .04 ? .8 : 0) : Math.max(Math.abs(a - x), Math.abs(b - y)) > .18 ? .6 : 0, .2); }
       turntable(x, y, t, form < 4 ? .16 : .17);
-      shade(x - .25, y - .25, x + .25, y + .25, z, t + .04);
+      shade(x - .25, y - .25, x + .25, y + .25, 0, t + .04);
+      const p = project(x, y, t + .04), bx = Math.round(p.sx), by = Math.round(p.sy);
+      keepOut([bx + TURRET_BOX[0], by + TURRET_BOX[1], bx + TURRET_BOX[2], by + TURRET_BOX[3]]);
       SITES.mounts.push([x, y, t + .04]);
     }
   }
@@ -949,7 +961,7 @@ const BUNKER_ART = (() => {
   return { build() {
     const I = bunkerInfo(), lk = I.look, has = n => lk.feats.has(n);
     SITES.length = 0; SITES.mounts = [];
-    FORMS[lk.form](has, I); mounts(lk.form, has, I);
+    FORMS[lk.form](has, I); mounts(lk.form);
     placeCrew(); outline();
   } };
 })();

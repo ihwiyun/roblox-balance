@@ -74,18 +74,39 @@ def base_name(g, r):
 
 # per grade: the ring, the accent and the default body, metal and third material
 GRADE_MATS = [
+    # scrap: weathered plate, pipe steel, rust; grey primer
     dict(ring=(150, 86, 54), acc=(154, 154, 154), body=(150, 138, 122), metal=(104, 106, 114), mat3=(150, 86, 54)),
+    # civilian: blued steel and walnut; green
+    dict(ring=(112, 124, 150), acc=(76, 175, 80), body=(124, 136, 164), metal=(84, 90, 112), mat3=(174, 108, 62)),
+    # military issue: olive drab and matte black; blue
+    dict(ring=(108, 118, 78), acc=(61, 123, 224), body=(122, 134, 88), metal=(78, 78, 88), mat3=(150, 140, 100)),
+    # special forces: black and coyote tan; purple
+    dict(ring=(74, 74, 84), acc=(155, 79, 209), body=(92, 92, 104), metal=(64, 64, 74), mat3=(186, 156, 108)),
+    # experimental: lab white and graphite; orange glow
+    dict(ring=(214, 212, 206), acc=(240, 138, 36), body=(232, 230, 222), metal=(96, 98, 112), mat3=(88, 90, 102)),
+    # unknown tech: alien obsidian and alien silver; red glow
+    dict(ring=(84, 70, 106), acc=(214, 58, 58), body=(112, 96, 136), metal=(186, 182, 204), mat3=(64, 54, 84)),
+    # mythic: gold, ebony and ivory; gold
+    dict(ring=(214, 166, 48), acc=(242, 206, 90), body=(230, 186, 70), metal=(150, 110, 52), mat3=(236, 228, 206)),
+    # eternal: cosmic indigo and pearl; the rainbow
+    dict(ring=(66, 58, 132), acc=(224, 69, 155), body=(88, 80, 164), metal=(214, 210, 244), mat3=(44, 38, 92)),
 ]
+# glow per grade (core, bright, dim): the experimental, unknown, mythic and eternal grades glow
+GLOW = [None, None, None, None,
+        ([255, 244, 196], [255, 176, 64], [214, 104, 30]),
+        ([255, 214, 204], [255, 84, 72], [168, 34, 52]),
+        ([255, 252, 220], [255, 222, 110], [214, 162, 32]),
+        ([255, 255, 255], [190, 236, 255], [190, 150, 255])]
 
 
-def palette(g, mats, glow=None):
-    m = dict(GRADE_MATS[min(g, len(GRADE_MATS) - 1)])
+def palette(g, mats, glow=None, fixed=None):
+    m = dict(GRADE_MATS[g])
     m.update(mats or {})
     pal = dict(FIXED)
     for key, letters in MATS.items():
         pal.update(zip(letters, ramp(m[key])))
-    if glow:
-        pal.update(zip('GHJ', glow))
+    pal.update(zip('GHJ', glow or GLOW[g] or GLOW[4]))
+    pal.update(fixed or {})
     return pal
 
 
@@ -109,7 +130,7 @@ def stamp(cv, rs, x, y, name='?'):
             if ch == '.':
                 continue
             if not (0 <= y + j < len(cv) and 0 <= x + i < len(cv[0])):
-                raise ValueError(f'{name}: pixel outside the frame at {x + i},{y + j}')
+                raise ValueError(f'{name}: pixel outside the frame at {x + i},{y + j}')  # noqa
             cv[y + j][x + i] = ch
 
 
@@ -128,8 +149,8 @@ def under(top, bottom):
 
 # ---------------------------------------------------------------- the rings (one per grade, never turned)
 RINGS = [
-    # 0 scrap: a rusted ring, a grey primer band
-    rows('''
+    # 0 scrap: rusted, a grey primer band
+    rows("""
 ....oooooo....
 ..ooyyyyyyoo..
 .oyyyyyyyyyyo.
@@ -141,7 +162,105 @@ oxmmxxwxwwllwo
 .oxxmmmlllwwo.
 ..ooxxxwwvoo..
 ....oooooo....
-'''),
+"""),
+    # 1 civilian: blued steel, a green painted band, bolts
+    rows("""
+....oooooo....
+..ooyyyyyyoo..
+.oyyyyyyyyyyo.
+oyyyyyyyyyyyyo
+ozyyyyyyyyyywo
+oxzzyyyyyyyywo
+omxxzzzzyywwlo
+oxmmxzxxwzllwo
+.oxxmmmlllwwo.
+..ooxzxwzwoo..
+....oooooo....
+"""),
+    # 2 military: olive, a blue band with white stencil dashes
+    rows("""
+....oooooo....
+..ooyyyyyyoo..
+.oyyyyyyyyyyo.
+oyyyyyyyyyyyyo
+ozyyyyyyyyyywo
+oxzzyyyyyyyywo
+omxxzzzzyywwlo
+oxmWxxwxwwlWwo
+.oxxmWmlWlwwo.
+..ooxxxwwvoo..
+....oooooo....
+"""),
+    # 3 special forces: black, purple lights set in the band
+    rows("""
+....oooooo....
+..ooyyyyyyoo..
+.oyyyyyyyyyyo.
+oyyyyyyyyyyyyo
+ozyyyyyyyyyywo
+oxzzyyyyyyyywo
+olxxzzzzyywwko
+oxlpxxwxwwplwo
+.oxxllpklkwwo.
+..ooxxxwwvoo..
+....oooooo....
+"""),
+    # 4 experimental: white, a glowing band
+    rows("""
+....oooooo....
+..ooyyyyyyoo..
+.oyyyyyyyyyyo.
+oyyyyyyyyyyyyo
+ozyyyyyyyyyywo
+oxzzyyyyyyyywo
+oHxxzzzzyywwJo
+oxHGxxwxwwJJwo
+.oxxHGGHJJwwo.
+..ooxxxwwvoo..
+....oooooo....
+"""),
+    # 5 unknown: obsidian, a red glowing seam
+    rows("""
+....oooooo....
+..ooyyyyyyoo..
+.oyyyyyyyyyyo.
+oyyyyyyyyyyyyo
+ozyyyyyyyyyywo
+oxzzyyyyyyyywo
+oHxxzzzzyywwJo
+oxHGxxwxwwJJwo
+.oxxHGGHJJwwo.
+..ooxvxwvvoo..
+....oooooo....
+"""),
+    # 6 mythic: gold, studs and a ruby at the front
+    rows("""
+....oooooo....
+..ooyyyyyyoo..
+.oyyyyyyyyyyo.
+oyyyyyyyyyyyyo
+ozyyyyyyyyyywo
+oxzzyyyyyyyywo
+opxxzzzzyywwmo
+oxpnxxRxwwmmwo
+.oxxnpRDmnwwo.
+..ooxxxwwvoo..
+....oooooo....
+"""),
+    # 7 eternal: indigo, the rainbow round it, a star
+    rows("""
+....oooooo....
+..ooyyyyyyoo..
+.oyyyyyyyyyyo.
+oyyyyyyyyyyyyo
+ozyyyyyyyyyywo
+oxzzyyyyyyyywo
+o1xxzzzzyywX6o
+oxX2xxwxww56wo
+.oxx233455wwo.
+..ooxxxwwvoo..
+....oooooo....
+"""),
 ]
 RING_AT = (9, 21)
 
@@ -422,11 +541,851 @@ T[0, 3] = dict(
     fx='blast', pal={'metal': (92, 94, 104), 'mat3': (190, 166, 116)})
 
 
+# ================================================================ the machine cannons of grades 1-7
+# the same build as the scrap one (a receiver, two long barrels along its top edges, something hung on each side,
+# something on top), every part redrawn for its grade
+_recv1_se = rows("""
+....oo....
+..ooddoo..
+oedddddddo
+oceeddddbo
+occceebbbo
+ommmmbbbbo
+occccbbbbo
+occccbbebo
+oacccbbbao
+..oocboo..
+....oo....
+""")
+_recv1_nw = rows("""
+....oo....
+..ooddoo..
+oedddddddo
+oceeddddbo
+occceebbbo
+ommmmbaaao
+occccbaeao
+occccbaaao
+oacccbbbao
+..oocboo..
+....oo....
+""")
+_box1 = rows("""
+..oo.....
+oottoo...
+osuuttoo.
+osssuutto
+osssssuro
+ommmmmmro
+ossssssro
+oqsssssro
+..oosssro
+....oosro
+......oo.
+""")
+_lamp1_se = rows("""
+..ooo...
+.ojjio..
+ojiihoo.
+oiihhGGo
+ohhggGHo
+.ogffHo.
+..oooo..
+""")
+_lamp1_nw = rows("""
+..ooo...
+.ojjio..
+ojiihoo.
+oiihhggo
+ohhgggfo
+.ogfffo.
+..oooo..
+""")
+T[1, 0] = dict(
+    se=[['head', _recv1_se, 11, 16], ['gun', _bar0_se, 14, 13], ['head', _lamp1_se, 12, 11], ['head', _box1, 7, 19], ['gun', _bar0_se, 9, 15]],
+    nw=[['head', _recv1_nw, 11, 16], ['head', _box1, 7, 19], ['gun', _bar0_nw, 6, 10], ['head', _lamp1_nw, 14, 11], ['gun', _bar0_nw, 2, 13]],
+    muzzle={'se': (28, 23), 'nw': (3, 12)}, axis={'se': (2, 1), 'nw': (-2, -1)}, recoil={'se': (-2, -1), 'nw': (2, 1)},
+    fx='flash2')
+
+# military: olive with rivets and a blue band, ammo cans, flash hiders, a ring sight on a post
+_recv2_se = rows("""
+....oo....
+..ooddoo..
+oeddeddddo
+oceeddddbo
+occceebbbo
+ocecebbebo
+ommmmlllbo
+occccbbbbo
+oacccbbbao
+..oocboo..
+....oo....
+""")
+_recv2_nw = rows("""
+....oo....
+..ooddoo..
+oedddddedo
+oceeddddbo
+occceebbbo
+ocecebaaao
+ommmmlaKao
+occccbaaao
+oacccbbbao
+..oocboo..
+....oo....
+""")
+_can2 = rows("""
+..oo.....
+ooffoo...
+osttffoo.
+osssttffo
+osssssttro
+osnnnnsro
+osssssrro
+oqsssssro
+..oosssro
+....oosro
+......oo.
+""")
+_bar2_se = rows("""
+.oo...............
+ojjoo.............
+ohhiijjoo.........
+.oohhiijjoo.......
+...oohhiijjoo.....
+.....oohhiijjoo...
+.......oohhiijjooo
+.........oohhijfjo
+...........oohfKfo
+.............oooo.
+""")
+_bar2_nw = rows("""
+ooo.............
+ojfjoo..........
+ofKfiijoo.......
+.oohhiijjoo.....
+...oohhiijjoo...
+.....oohhiijjoo.
+.......oohhiijjo
+.........oohhiio
+...........oooo.
+""")
+_sight2 = rows("""
+..ooo..
+.o...o.
+o..h..o
+o.hhh.o
+o..h..o
+.o...o.
+..ooo..
+...h...
+...h...
+""")
+T[2, 0] = dict(
+    se=[['head', _recv2_se, 11, 16], ['gun', _bar2_se, 14, 13], ['head', _sight2, 13, 8], ['head', _can2, 7, 19], ['gun', _bar2_se, 9, 15]],
+    nw=[['head', _recv2_nw, 11, 16], ['head', _can2, 7, 19], ['gun', _bar2_nw, 6, 10], ['head', _sight2, 13, 8], ['gun', _bar2_nw, 2, 13]],
+    muzzle={'se': (28, 23), 'nw': (3, 12)}, axis={'se': (2, 1), 'nw': (-2, -1)}, recoil={'se': (-2, -1), 'nw': (2, 1)},
+    fx='flash2')
+
+# special forces: black, purple lights, a tan pouch, barrels in perforated shrouds, an optic with a purple lens
+_recv3_se = rows("""
+....oo....
+..ooddoo..
+oedddddddo
+oceeddddbo
+occceebbbo
+occccbbbbo
+ocpccbbpbo
+occccbbbbo
+oacccbbbao
+..oocboo..
+....oo....
+""")
+_recv3_nw = rows("""
+....oo....
+..ooddoo..
+oedddddddo
+oceeddddbo
+occceebbbo
+occccbaaao
+ocpccbapao
+occccbaaao
+oacccbbbao
+..oocboo..
+....oo....
+""")
+_pouch3 = rows("""
+..oo.....
+oottoo...
+osuuttoo.
+osssuutto
+oslsssuro
+osmsssrro
+oslsssrro
+oqmsssrro
+..olssrro
+....oosro
+......oo.
+""")
+_bar3_se = rows("""
+.ooo..............
+ojjjoo............
+ohKhiijoo.........
+ohhiKiijjoo.......
+.oohhiKiijjoo.....
+...oohhiiKijjoo...
+.....oohhiiijjoo..
+.......oohhhiijjo.
+.........oohhiijjo
+...........oohgKo.
+.............ooo..
+""")
+_bar3_nw = rows("""
+.oo.............
+ojjoo...........
+ohKjjjoo........
+.oohKiijjoo.....
+...oohhKiijjoo..
+.....oohhiKijjoo
+.......oohhiiijj
+.........oohhiii
+...........oohhh
+""")
+_optic3_se = rows("""
+..oooo..
+.oddddo.
+oddddboo
+occccbpo
+occccbno
+.oooooo.
+""")
+_optic3_nw = rows("""
+..oooo..
+.oddddo.
+oodddddo
+ocbbbbbo
+ocbbbbbo
+.oooooo.
+""")
+T[3, 0] = dict(
+    se=[['head', _recv3_se, 11, 16], ['gun', _bar3_se, 14, 12], ['head', _optic3_se, 12, 11], ['head', _pouch3, 7, 19], ['gun', _bar3_se, 9, 14]],
+    nw=[['head', _recv3_nw, 11, 16], ['head', _pouch3, 7, 19], ['gun', _bar3_nw, 6, 10], ['head', _optic3_nw, 13, 11], ['gun', _bar3_nw, 2, 13]],
+    muzzle={'se': (28, 23), 'nw': (3, 12)}, axis={'se': (2, 1), 'nw': (-2, -1)}, recoil={'se': (-2, -1), 'nw': (2, 1)},
+    fx='flash2')
+
+# experimental: a rounded lab-white body with glowing vents, a glass cell of glowing fuel, coil rings round the barrels
+_recv4_se = rows("""
+....oo....
+..oeddeo..
+.oedddddo.
+oeddddddbo
+oceeddddbo
+occceebbbo
+ocHJcbJHbo
+occccbbbbo
+.occcbbbo.
+..oocboo..
+....oo....
+""")
+_recv4_nw = rows("""
+....oo....
+..oeddeo..
+.oedddddo.
+oeddddddbo
+oceeddddbo
+occceebbbo
+ocHJcbJHbo
+occccbbbbo
+.occcbbbo.
+..oocboo..
+....oo....
+""")
+_cell4 = rows("""
+..oooo..
+.ohhhgo.
+offffffo
+oGHHHJfo
+oGHHJJfo
+oHGHJJfo
+oGHHJJfo
+oHHJJJfo
+offffffo
+.ohhhgo.
+..oooo..
+""")
+_bar4_se = rows("""
+.oo...............
+oddoo.............
+occddoo...........
+.ooccddoo.........
+...oGcHddoo.......
+....oHcHddjoo.....
+.....ooccddiijoo..
+.......oocGcHijjo.
+.........oHcHhgKo.
+..........ooooooo.
+""")
+_bar4_nw = rows("""
+.oo.............
+oddoo...........
+occGHoo.........
+.oHcHddoo.......
+...ooccddoo.....
+.....oGcHddoo...
+......oHcHddddo.
+.......ooccddcc.
+.........oooocc.
+""")
+_dome4 = rows("""
+..ooo..
+.oGGHo.
+oGGHHJo
+oHHHJJo
+.ooooo.
+""")
+T[4, 0] = dict(
+    se=[['head', _recv4_se, 11, 16], ['gun', _bar4_se, 14, 13], ['head', _dome4, 13, 12], ['head', _cell4, 8, 18], ['gun', _bar4_se, 9, 15]],
+    nw=[['head', _recv4_nw, 11, 16], ['head', _cell4, 8, 18], ['gun', _bar4_nw, 6, 10], ['head', _dome4, 14, 12], ['gun', _bar4_nw, 2, 13]],
+    muzzle={'se': (28, 23), 'nw': (3, 12)}, axis={'se': (2, 1), 'nw': (-2, -1)}, recoil={'se': (-2, -1), 'nw': (2, 1)},
+    fx='flash2', fixed={'F': [255, 250, 220], 'Y': [255, 206, 120], 'O': [255, 150, 50]})
+
+# unknown tech: an obsidian body hovering over the ring on a red glow, red seams, twin rails, a red crystal and orb
+_recv5_se = rows("""
+....oo....
+..ooddoo..
+oeddHdddbo
+oceeddHdbo
+occHeebbbo
+occcHbbbbo
+occccHbbbo
+occccbHbbo
+oacccbbHao
+..oocboo..
+....oo....
+""")
+_recv5_nw = rows("""
+....oo....
+..ooddoo..
+obdddHddeo
+obdHddddbo
+occceeHbbo
+occccbbHbo
+occccbbbHo
+occcHbbbbo
+oaccHbbbao
+..oocboo..
+....oo....
+""")
+_hover5 = rows("""
+..JHHHHJ..
+....JJ....
+""")
+_crys5 = rows("""
+...o...
+..oHo..
+.oHGJo.
+oHGHJJo
+.oHJJo.
+..oJo..
+...o...
+""")
+_bar5_se = rows("""
+.oo...............
+oiioo.............
+ohHHiioo..........
+.oohhHHiioo.......
+...oohhHHiioo.....
+.....oohhHHiioo...
+.......oohhHHiioo.
+.........oohhHHiio
+...........oohhGJo
+.............oooo.
+""")
+_bar5_nw = rows("""
+.oo.............
+oiioo...........
+oGHHiioo........
+.oohhHHiioo.....
+...oohhHHiioo...
+.....oohhHHiioo.
+.......oohhHHiio
+.........oohhHHo
+...........oooo.
+""")
+_orb5 = rows("""
+.ooo.
+oHGHo
+oJHHo
+.ooo.
+""")
+T[5, 0] = dict(
+    se=[['head', _hover5, 11, 26], ['head', _recv5_se, 11, 14], ['gun', _bar5_se, 14, 11], ['head', _orb5, 14, 6], ['head', _crys5, 5, 16], ['gun', _bar5_se, 9, 13]],
+    nw=[['head', _hover5, 11, 26], ['head', _recv5_nw, 11, 14], ['head', _crys5, 5, 16], ['gun', _bar5_nw, 6, 8], ['head', _orb5, 15, 6], ['gun', _bar5_nw, 2, 11]],
+    muzzle={'se': (28, 21), 'nw': (3, 10)}, axis={'se': (2, 1), 'nw': (-2, -1)}, recoil={'se': (-2, -1), 'nw': (2, 1)},
+    fx='flash2', fixed={'F': [255, 230, 220], 'Y': [255, 140, 120], 'O': [230, 60, 60]})
+
+# mythic: gold engraved with a ruby, an ivory chest with gold bands, gold barrels with flared bell mouths, a crest
+_recv6_se = rows("""
+....oo....
+..ooddoo..
+oeddeddddo
+oceeddeebo
+occceebbbo
+ocpcpbbbbo
+occccbRbbo
+ocpcpbrbbo
+oacccbbbao
+..oocboo..
+....oo....
+""")
+_recv6_nw = rows("""
+....oo....
+..ooddoo..
+oeddeddddo
+oceeddeebo
+occceebbbo
+ocpcpbbbbo
+occccbRbbo
+ocpcpbrbbo
+oacccbbbao
+..oocboo..
+....oo....
+""")
+_chest6 = rows("""
+..oo.....
+oottoo...
+osuuttoo.
+onnnnuuto
+osssnnnro
+osssssnro
+oRsssssro
+oqsssssro
+..oosssro
+....oosro
+......oo.
+""")
+_bar6_se = rows("""
+.oo................
+ojjoo..............
+ohhiijjoo..........
+.oohhiijjoo........
+...oohhiijjoo......
+.....oohhnnjjoo....
+.......oohhiijjooo.
+.........oohhiijjjo
+..........ohhiigKKo
+...........oohgKKoo
+.............oooo..
+""")
+_bar6_nw = rows("""
+.ooo............
+ojjjoo..........
+ojiijjjoo.......
+ohhiijjjjoo.....
+.oohhiinnjjoo...
+...oohhiijjjjoo.
+.....oohhiijjjjo
+.......oohhiiiio
+.........oooooo.
+""")
+_crest6 = rows("""
+.o.o.o.
+onpnpno
+.onnno.
+..opo..
+""")
+T[6, 0] = dict(
+    se=[['head', _recv6_se, 11, 16], ['gun', _bar6_se, 14, 13], ['head', _crest6, 13, 12], ['head', _chest6, 7, 19], ['gun', _bar6_se, 9, 15]],
+    nw=[['head', _recv6_nw, 11, 16], ['head', _chest6, 7, 19], ['gun', _bar6_nw, 6, 10], ['head', _crest6, 14, 12], ['gun', _bar6_nw, 2, 13]],
+    muzzle={'se': (29, 23), 'nw': (3, 12)}, axis={'se': (2, 1), 'nw': (-2, -1)}, recoil={'se': (-2, -1), 'nw': (2, 1)},
+    fx='flash2', pal={'metal': (238, 196, 84)})
+
+# eternal: cosmic indigo with stars, pearl crystal barrels with rainbow glints, a floating shard and a star
+_recv7_se = rows("""
+....oo....
+..ooddoo..
+oedXddddbo
+oceeddXdbo
+occceebbbo
+ocXccbbbbo
+occccbbXbo
+occXcbbbbo
+oacccbbbao
+..oocboo..
+....oo....
+""")
+_recv7_nw = rows("""
+....oo....
+..ooddoo..
+oeddddXdbo
+oceXddddbo
+occceebbbo
+occccbXbbo
+ocXccbbbbo
+occccbbbXo
+oacccbbbao
+..oocboo..
+....oo....
+""")
+_shard7 = rows("""
+...o...
+..ojo..
+.oij3o.
+oiij45o
+.oh56o.
+..o6o..
+...o...
+""")
+_bar7_se = rows("""
+.oo...............
+ojjoo.............
+ohhiijjoo.........
+.oohh2ijjoo.......
+...oohhiij3oo.....
+.....oohh4ijjoo...
+.......oohhiij5oo.
+.........oohhiijjo
+...........oohh6Ko
+.............oooo.
+""")
+_bar7_nw = rows("""
+.oo.............
+oj1oo...........
+ohhiijjoo.......
+.oohh2ijjoo.....
+...oohhiij3oo...
+.....oohh4ijjoo.
+.......oohhiij5o
+.........oohhiio
+...........oooo.
+""")
+_star7 = rows("""
+...X...
+...G...
+.XGGGX.
+XGGGGGX
+.XGGGX.
+...G...
+...X...
+""")
+T[7, 0] = dict(
+    se=[['head', _recv7_se, 11, 16], ['gun', _bar7_se, 14, 13], ['head', _star7, 13, 6], ['head', _shard7, 5, 16], ['gun', _bar7_se, 9, 15]],
+    nw=[['head', _recv7_nw, 11, 16], ['head', _shard7, 5, 16], ['gun', _bar7_nw, 6, 10], ['head', _star7, 14, 6], ['gun', _bar7_nw, 2, 13]],
+    muzzle={'se': (28, 23), 'nw': (3, 12)}, axis={'se': (2, 1), 'nw': (-2, -1)}, recoil={'se': (-2, -1), 'nw': (2, 1)},
+    fx='flash2', fixed={'F': [255, 255, 255], 'Y': [200, 236, 255], 'O': [230, 150, 255]})
+
+
+# ================================================================ the sprayers of grades 1-7 (fire on even grades, frost on odd)
+# a platform, a tank standing at the back, a hose, a nozzle reaching forward
+_cyl = rows("""
+..oooo..
+.ouutto.
+otuuttso
+otuttsro
+otuttsro
+omnmmllo
+otuttsro
+otuttsro
+otuttsro
+otuttsro
+otuttsro
+otuttsro
+oqtttsrq
+.orrrro.
+..oooo..
+""")
+_valve = rows("""
+.oo.
+ohgo
+.oo.
+""")
+_horn1_se = rows("""
+oo..........
+ihoo........
+hhiioo......
+oohhiioo....
+..oohhiioo..
+....oohhiiooo
+......oohhiio
+.......ohhgKKo
+.......ohgKKKo
+........oogKKo
+..........oooo
+""")
+_horn1_nw = rows("""
+oooo..........
+oKKgoo........
+oKKKghoo......
+oKKghhiioo....
+.oiihhiiiioo..
+..oooohhiioo..
+......oohhiioo
+........oohhii
+..........oohh
+""")
+T[1, 1] = dict(
+    se=[['head', _plat0, 9, 18], ['head', _cyl, 10, 7], ['head', _valve, 12, 5], ['head', _hose0_se, 16, 20], ['gun', _horn1_se, 15, 17]],
+    nw=[['gun', _horn1_nw, 2, 11], ['head', _plat0, 9, 18], ['head', _cyl, 14, 9], ['head', _valve, 16, 7]],
+    muzzle={'se': (29, 25), 'nw': (2, 12)}, axis={'se': (2, 1), 'nw': (-2, -1)}, recoil={'se': (0, 0), 'nw': (0, 0)},
+    fx='frost', pal={'mat3': (220, 230, 238)})
+
+# military flamethrower: two olive fuel tanks, a long nozzle in a perforated heat shield, a blue band
+_noz2_se = rows("""
+oo............
+ihoo..........
+hhiioo........
+oohhiioo......
+..oohhiooo....
+....oohiKiooo.
+......ohKiKiio
+.......ooiKiKio
+.........ooiijo
+..........ohgKo
+...........ooo.
+""")
+_noz2_nw = rows("""
+.oo...........
+ojjoo.........
+oigKiooo......
+.oKiKiKioo....
+..ooiKiKiioo..
+....ooiiiiioo.
+......oohhiioo
+........oohhii
+..........oohh
+""")
+T[2, 1] = dict(
+    se=[['head', _plat0, 9, 18], ['head', _cyl, 13, 5], ['head', _cyl, 9, 7], ['head', _hose0_se, 16, 20], ['gun', _noz2_se, 15, 16]],
+    nw=[['gun', _noz2_nw, 2, 12], ['head', _plat0, 9, 18], ['head', _cyl, 16, 7], ['head', _cyl, 12, 9]],
+    muzzle={'se': (28, 26), 'nw': (2, 13)}, axis={'se': (2, 1), 'nw': (-2, -1)}, recoil={'se': (0, 0), 'nw': (0, 0)},
+    fx='flame', pal={'mat3': (118, 130, 84)})
+
+# special forces cryo sprayer: a black canister with a window of blue coolant behind a purple frame, an angular nozzle
+_cryo3 = rows("""
+..oooooo..
+.offffffo.
+offffffffo
+oiihhhhggo
+oinnnnnngo
+oinBBLBngo
+oinBBBBngo
+oinBNBBngo
+oinNNBBngo
+oinnnnnngo
+oiihhhhggo
+oiihhhhggo
+.offffffo.
+..oooooo..
+""")
+_noz3_se = rows("""
+oo..........
+ihoo........
+hhiioo......
+oohhiioo....
+..oohhiioo..
+....oohhiiLo
+......oohhLCo
+........ooCBo
+..........oo.
+""")
+_noz3_nw = rows("""
+.oo.........
+oLLoo.......
+oCLiiioo....
+.ooBhiiioo..
+...oohhiiioo
+.....oohhiio
+.......oohhi
+""")
+T[3, 1] = dict(
+    se=[['head', _plat0, 9, 18], ['head', _cryo3, 9, 7], ['head', _hose0_se, 16, 20], ['gun', _noz3_se, 17, 19]],
+    nw=[['gun', _noz3_nw, 3, 13], ['head', _plat0, 9, 18], ['head', _cryo3, 13, 9]],
+    muzzle={'se': (28, 26), 'nw': (3, 14)}, axis={'se': (2, 1), 'nw': (-2, -1)}, recoil={'se': (0, 0), 'nw': (0, 0)},
+    fx='frost')
+
+# experimental plasma flamer: a glass tank of glowing fuel in a white frame, a finned nozzle with glowing rings
+_glass4 = rows("""
+..oooooo..
+.oddddddo.
+occcccbbbo
+ohGHHHJJfo
+ohGGHHJJfo
+ohHGHHJJfo
+ohGHHHJJfo
+ohHHHJJJfo
+ohGHHJJJfo
+ohHHJJJJfo
+occcccbbbo
+occcccbbbo
+.oaaaaaao.
+..oooooo..
+""")
+_noz4_se = rows("""
+oo...........
+dcoo.........
+ccddoo.......
+oocHddoo.....
+..oHccddoo...
+...ooccdHdoo.
+.....oocHccdoo
+.......ooccGHo
+.........oHcKo
+..........ooo.
+""")
+_noz4_nw = rows("""
+.oo..........
+oHGoo........
+oHccddoo.....
+.oocHddddoo..
+...oHcHddddoo
+....ooccddddo
+......oocccdd
+........oocc.
+""")
+T[4, 1] = dict(
+    se=[['head', _plat0, 9, 18], ['head', _glass4, 9, 7], ['head', _hose0_se, 16, 20], ['gun', _noz4_se, 17, 18]],
+    nw=[['gun', _noz4_nw, 3, 12], ['head', _plat0, 9, 18], ['head', _glass4, 13, 9]],
+    muzzle={'se': (29, 26), 'nw': (3, 13)}, axis={'se': (2, 1), 'nw': (-2, -1)}, recoil={'se': (0, 0), 'nw': (0, 0)},
+    fx='flame', fixed={'F': [255, 255, 236], 'Y': [255, 236, 170], 'O': [255, 168, 64], 'R': [240, 104, 40], 'D': [176, 70, 40]})
+
+# unknown frost: a cyan crystal held floating in a red ring of light over the platform, a silver nozzle glowing cold
+_ring5 = rows("""
+..oHHo..
+.oJ..Jo.
+oH....Ho
+oJ....Jo
+.oH..Ho.
+..oJJo..
+""")
+_icecrys5 = rows("""
+...oo...
+..oLLo..
+.oLLCBo.
+oLLCCBNo
+oLCCBBNo
+.oCBBNo.
+..oBNo..
+...oo...
+""")
+_noz5_se = rows("""
+oo..........
+iioo........
+hhjjoo......
+oohhiioo....
+..oohhiioo..
+....oohhiiCo
+......oohhLCo
+........ooCBo
+..........oo.
+""")
+_noz5_nw = rows("""
+.oo.........
+oLCoo.......
+oCLiioo.....
+.ooBhiiioo..
+...oohhiiioo
+.....oohhiio
+.......oohhi
+""")
+T[5, 1] = dict(
+    se=[['head', _plat0, 9, 18], ['head', _icecrys5, 11, 8], ['head', _ring5, 11, 9], ['head', _hose0_se, 16, 20], ['gun', _noz5_se, 17, 19]],
+    nw=[['gun', _noz5_nw, 3, 13], ['head', _plat0, 9, 18], ['head', _icecrys5, 14, 10], ['head', _ring5, 14, 11]],
+    muzzle={'se': (28, 26), 'nw': (3, 14)}, axis={'se': (2, 1), 'nw': (-2, -1)}, recoil={'se': (0, 0), 'nw': (0, 0)},
+    fx='frost')
+
+# mythic flamethrower: an ivory urn with gold bands and a ruby, the nozzle ends in a golden dragon's head
+_urn6 = rows("""
+..oooooo..
+.onnppnno.
+..oommoo..
+.ottuutso.
+otuuuttsro
+onnnnnmmlo
+otuRRttsro
+otuttttsro
+otuttttsro
+onnnnnmmlo
+.otutttso.
+..ottsso..
+.onnnmmlo.
+..oooooo..
+""")
+_drag6_se = rows("""
+oo.............
+ijoo...........
+hhiioo.........
+oohhiioo.......
+..oohhiiooo....
+....oohhinnoo..
+......oohnnpnoo
+.......onnRnnmo
+.......omnnoKKo
+........omlKKo.
+.........oooo..
+""")
+_drag6_nw = rows("""
+...ooo........
+.oonnno.......
+onnRnnmoo.....
+omnnnmmiioo...
+.oommhhiiiioo.
+....oohhiiiioo
+......oohhiiio
+........oohhii
+..........oohh
+""")
+T[6, 1] = dict(
+    se=[['head', _plat0, 9, 18], ['head', _urn6, 9, 7], ['head', _hose0_se, 16, 20], ['gun', _drag6_se, 14, 17]],
+    nw=[['gun', _drag6_nw, 2, 12], ['head', _plat0, 9, 18], ['head', _urn6, 13, 9]],
+    muzzle={'se': (28, 25), 'nw': (2, 13)}, axis={'se': (2, 1), 'nw': (-2, -1)}, recoil={'se': (0, 0), 'nw': (0, 0)},
+    fx='flame', fixed={'F': [255, 252, 220], 'Y': [255, 230, 110], 'O': [255, 190, 50], 'R': [230, 120, 30], 'D': [170, 80, 30]},
+    pal={'metal': (238, 196, 84)})
+
+# eternal frost: a pearl crystal tank with rainbow light, a crystal nozzle ending in a star
+_prism7 = rows("""
+....oo....
+...ojjo...
+..ojj1io..
+.ojji2iho.
+ojjii3ihho
+ojii4iihho
+ojii5ihhgo
+.oi6iihho.
+..oiihho..
+...ohho...
+....oo....
+""")
+_noz7_se = rows("""
+oo...........
+jioo.........
+hhiioo.......
+oohhiioo.....
+..oohhiioo...
+....oohhiiXo.
+......oohhXXX
+........ooXo.
+""")
+_noz7_nw = rows("""
+.X...........
+XXXoo........
+.Xhiiioo.....
+.oohhiiioo...
+...oohhiiioo.
+.....oohhiioo
+.......oohhii
+""")
+T[7, 1] = dict(
+    se=[['head', _plat0, 9, 18], ['head', _prism7, 9, 6], ['head', _hose0_se, 16, 20], ['gun', _noz7_se, 17, 19]],
+    nw=[['gun', _noz7_nw, 3, 13], ['head', _plat0, 9, 18], ['head', _prism7, 13, 8]],
+    muzzle={'se': (28, 26), 'nw': (3, 14)}, axis={'se': (2, 1), 'nw': (-2, -1)}, recoil={'se': (0, 0), 'nw': (0, 0)},
+    fx='frost', fixed={'L': [255, 255, 255], 'C': [214, 236, 255], 'B': [200, 160, 255], 'N': [150, 110, 230]})
+
+
 def frames_of(g, r):
     """the 8 frames of a turret: {facing: [idle rows, fire rows]}, and the muzzle per facing and frame"""
     spec = T[g, r]
     ring = canvas()
-    stamp(ring, RINGS[min(g, len(RINGS) - 1)], RING_AT[0] + DX, RING_AT[1] + DY, name='ring')
+    stamp(ring, RINGS[g], RING_AT[0] + DX, RING_AT[1] + DY, name='ring')
     ring = flat(ring)
     out, muz = {}, {}
     for view in ('se', 'nw'):
@@ -439,12 +1398,12 @@ def frames_of(g, r):
             mx, my = spec['muzzle'][view]
             mx, my = mx + dx + DX, my + dy + DY
             if fxl and behind:
-                stamp(cv, fxl[0], mx - fxl[1], my - fxl[2], name='fx')
+                stamp(cv, fxl[0], mx - fxl[1], my - fxl[2], name=f'fx {g},{r},{view}')
             for kind, rs, x, y in spec[view]:
                 ox, oy = (dx, dy) if kind == 'gun' else (0, 0)
                 stamp(cv, rs, x + ox + DX, y + oy + DY, name=f'{g},{r},{view}')
             if fxl and not behind:
-                stamp(cv, fxl[0], mx - fxl[1], my - fxl[2], name='fx')
+                stamp(cv, fxl[0], mx - fxl[1], my - fxl[2], name=f'fx {g},{r},{view}')
             pair.append(flat(cv))
             mp.append((mx, my))
         out[view] = pair
@@ -487,25 +1446,48 @@ OFWFY......
     # a tongue of flame out of the nozzle, white-hot at the nozzle, red and ember at the end
     'flame': {
         'se': [rows("""
-.YO.........
-FFYYO.......
-.FFFYYOO....
-..YFFFYOOR..
-...OYYFYOORD
-....ROOYOORD
-......RROOD.
-........RD..
+.YO........
+FFYYO......
+.FFFYYOO...
+..YFFFYOOR.
+...OYYFYOOR
+....ROOYOOD
+......RROD.
+........D..
 """), 0, 1],
         'nw': [rows("""
-..DR........
-.DROOR......
-DROOYOOR....
-.RROYFYYOR..
-...OOYFFFYO.
-.....OOYFFFY
-.......OOYFF
-.........OY.
-"""), 11, 6],
+.DR........
+DROOR......
+ROOYOOR....
+RROYFYYOR..
+..OOYFFFYO.
+....OOYFFFY
+......OOYFF
+........OY.
+"""), 10, 6],
+    },
+    # a cone of freezing mist, sparkling
+    'frost': {
+        'se': [rows("""
+.LC........
+LLCCB......
+.LLLCCBB...
+..CLLLCCBBN
+...BCCLCCBN
+....NBBCBN.
+......NNB.X
+.........X.
+"""), 0, 1],
+        'nw': [rows("""
+.X.........
+..BNN......
+NBBCBBN....
+BBCCLCCB...
+NBBCCLLLC..
+...BBCCLLL.
+.....BCCLLL
+........CL.
+"""), 10, 6],
     },
     # crackling arcs: hub to the emitter ball, round the hub's rim, a spark on the ball
     'arc': {
@@ -572,7 +1554,7 @@ def trim(f):
 def turret_set(g, r):
     """one turret as a sprite set in the game's format (src/sprites.js decodeSet + paletteOf)"""
     spec = T[g, r]
-    pal = palette(g, spec.get('pal'), spec.get('glow'))
+    pal = palette(g, spec.get('pal'), spec.get('glow'), spec.get('fixed'))
     fr, muz = frames_of(g, r)
     used = set()
     anims = {}
@@ -608,7 +1590,7 @@ _floor = rows("""
 
 def card_of(g, r):
     spec = T[g, r]
-    pal = palette(g, spec.get('pal'), spec.get('glow'))
+    pal = palette(g, spec.get('pal'), spec.get('glow'), spec.get('fixed'))
     f = frames_of(g, r)[0]['se'][0]
     xs = [x for row in f for x, ch in enumerate(row) if ch != '.']
     x0, x1 = min(xs), max(xs)
@@ -739,7 +1721,7 @@ def check(dirname):
     items = sorted(T)
     im = Image.new('RGB', (8 * (W * s + pad) + pad, len(items) * (H * s + pad) + pad), (246, 244, 239))
     for n, (g, r) in enumerate(items):
-        pal = palette(g, T[g, r].get('pal'), T[g, r].get('glow'))
+        pal = palette(g, T[g, r].get('pal'), T[g, r].get('glow'), T[g, r].get('fixed'))
         fr, _ = frames_of(g, r)
         for c, (k, i) in enumerate([(k, i) for k in ('se', 'sw', 'nw', 'ne') for i in (0, 1)]):
             ox, oy = pad + c * (W * s + pad), pad + n * (H * s + pad)

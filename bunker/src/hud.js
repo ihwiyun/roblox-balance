@@ -49,10 +49,9 @@ const nodes = {};
 for (const id of ['app', 'stage', 'tabs', 'menu', 'menuTitle', 'menuTabs', 'panel', 'menuFoot', 'bunkerFill', 'bunkerText', 'bunkerTrack', 'fenceFill', 'fenceText', 'speed', 'notes', 'ammo', 'ammoNum', 'ammoBar', 'waveBtn', 'wavePrev', 'waveNext', 'waveBar', 'saver', 'svWave', 'svGold', 'svTime']) nodes[id] = document.getElementById(id);
 /* ================= the systems (src/systems.js: inventories, summons, the shop, prestige, records) ================= */
 // The screens read SYS once it says it is ready; until then they show what the game itself has
-let sysOk = typeof SYS !== 'undefined';
-const sys = () => (sysOk && typeof SYS !== 'undefined' ? SYS : null);
+const sys = () => (typeof SYS !== 'undefined' && SYS.ok && SYS.ready ? SYS : null);
 const sysCall = (fn, ...a) => { const S = sys(); return S && typeof S[fn] === 'function' ? S[fn](...a) : null; };
-addEventListener('sys-ready', () => { sysOk = true; refreshTop(); renderPanel(true); });
+addEventListener('sys-ready', () => { refreshTop(); renderPanel(true); });
 addEventListener('sys-change', () => { refreshTop(); renderPanel(true); if (sheet.render && !sheet.el.hidden) sheet.body.innerHTML = sheet.render(); });
 // prices from the systems: a number is gold, or an object of currencies; red when short
 const CUR_ICON = { gold: 'coin', money: 'coin', food: 'food', ore: 'mineral', mineral: 'mineral', gems: 'ruby', diamonds: 'diamond', parts: 'drill', medals: 'medal' };
@@ -297,9 +296,9 @@ function zoneHtml(title, job) {
 }
 // 기지's turret places: opened by the bunker level; a tap picks the turret that stands there
 function turretPlaces(B) {
-  const list = sysCall('turrets'), open = TURRET_AT.filter(L => B >= L).length, box = artBox('turret');
-  const cells = TURRET_AT.map((L, k) => {
-    if (B < L) return `<div class="slot lock" style="height:${box.h + 32}px">${ic('lock')}<span class="aux">Lv ${L}</span></div>`;
+  const list = sysCall('turrets'), sl = sysCall('slots'), at = sl ? sl.turretAt : TURRET_AT, open = sl ? sl.turrets : TURRET_AT.filter(L => B >= L).length, box = artBox('turret');
+  const cells = at.map((L, k) => {
+    if (k >= open) return `<div class="slot lock" style="height:${box.h + 32}px">${ic('lock')}<span class="aux">Lv ${L}</span></div>`;
     const on = list && list.find(t => t.slot === k);
     return on ? itemCard('turret', on, `data-turretslot="${k}"`) : `<button class="icard slot" type="button" data-turretslot="${k}" style="height:${box.h + 32}px"${list ? '' : ' disabled'}></button>`;
   });
@@ -324,14 +323,14 @@ function underHtml() {
   return chips + bulkHtml() + card + workers;
 }
 // the roof's gunners are placed by name (for now); the floors' workers are bought per floor (기지 > 지하)
-const zonesHtml = () => zoneHtml('지붕 초소', '사수') + sec('작업장', '잠김') + grid(5, Array.from({ length: 5 }, () => shutCell(40, '')));
+const zonesHtml = () => zoneHtml('지붕 초소', '사수') + (sys() ? `<div class="sec"><span>작업장</span>${workerBuy('workshop', '')}</div>` : sec('작업장', '잠김'));
 // a floor's workers: how many of how many, and +1 with its price
 const FLOOR_SECTION = [null, 'food', 'mine'];
 function workerBuy(section, cls = 'sm') {
   const w = sysCall('workers', section);
   if (!w) return '';
-  const full = w.count >= w.max;
-  return `<span class="wbuy"><span class="num">${w.count}/${w.max}</span>${B('sub ' + cls, full ? '최대' : '+1 ' + priceHtml(w.price), full || !canAfford(w.price) ? 'disabled' : `data-worker="${section}"`)}</span>`;
+  const why = w.reason || (w.count >= w.max ? '최대' : null), ok = w.canBuy ?? (!why && canAfford(w.price));
+  return `<span class="wbuy"><span class="num">${w.count}/${w.max}</span>${B('sub ' + cls, why || '+1 ' + priceHtml(w.price), ok ? `data-worker="${section}"` : 'disabled')}</span>`;
 }
 // the one picked, standing as the game draws them: the idle frames side by side (body, then face and headgear by
 // the depth rule of drawPerson), shown four times as large as a CSS strip that steps through them
@@ -396,10 +395,12 @@ const gemCost = n => `${ic('ruby')}<span class="num">${n.toLocaleString('en')}</
 function strip(kind, label, price, cls = '') {
   const I = sysCall('summonInfo', kind), cur = I && I.currency === 'diamonds' ? 'diamond' : 'ruby';
   const lv = I ? I.level : 1, fill = I && I.nextAt ? Math.min(1, (I.pulls - (I.prevAt || 0)) / Math.max(1, I.nextAt - (I.prevAt || 0))) : 0;
-  const one = I ? I.price : price, ten = I ? I.price10 : price * 10, have = I ? (curOf()[I.currency] ?? 0) : 0;
-  const cost = n => `${ic(cur)}<span class="num">${n.toLocaleString('en')}</span>`;
+  const one = I ? I.price : price, ten = I ? I.price10 : price * 10, c = curOf(), gems = c.gems || 0, all = gems + (I && I.diamondsToo ? c.diamonds || 0 : 0);
+  // which it spends: gems while they last, then diamonds
+  const cost = n => `${gems >= n ? ic(cur) : gems > 0 ? ic(cur) + ic('diamond') : ic('diamond')}<span class="num">${n.toLocaleString('en')}</span>`;
+  const can = (n, flag) => !!I && (flag ?? all >= n);
   return `<div class="strip ${cls}"><button class="lv tap" type="button" data-rates="${kind}"${I ? '' : ' disabled'}><b>${label} Lv ${lv}</b><span><span class="prog2"><i style="width:${fill * 100}%"></i></span><span class="link">확률</span></span></button>`
-    + B('sub sm', '1회 ' + cost(one), I && have >= one ? `data-summon="${kind}:1"` : 'disabled') + B('sub sm', '10회 ' + cost(ten), I && have >= ten ? `data-summon="${kind}:10"` : 'disabled') + '</div>';
+    + B('sub sm', '1회 ' + cost(one), can(one, I && I.canPay) ? `data-summon="${kind}:1"` : 'disabled') + B('sub sm', '10회 ' + cost(ten), can(ten, I && I.canPay10) ? `data-summon="${kind}:10"` : 'disabled') + '</div>';
 }
 // the rifles as the game draws them in the hands (actors.js drawGun), one a family, as small pictures for the weapon
 // slots until the 40 weapons are drawn: drawGun paints through putPx, pointed at a small buffer for a moment
@@ -428,7 +429,7 @@ const artSet = kind => kind === 'weapon' ? (typeof ART_WEAPONS !== 'undefined' ?
 function artPic(kind, i) {
   const key = kind + ':' + i;
   if (artPics.has(key)) return artPics.get(key);
-  const set = artSet(kind), e = set && (Array.isArray(set) ? set[i] : set[i] ?? (set.items && set.items[i]));
+  const set = artSet(kind), e = set && ((set.cards && set.cards[kind + i]) || (Array.isArray(set) ? set[i] : set[i] ?? (set.items && set.items[i])));
   let pic = null;
   if (e && e.rows && e.rows.length) {
     const pal = e.pal || set.pal || ART.iconPal, h = e.rows.length, w = e.rows[0].length, c = document.createElement('canvas'), g = c.getContext('2d');
@@ -440,7 +441,11 @@ function artPic(kind, i) {
   return pic;
 }
 // the size a kind's pictures take at 2x (slots and cards are sized from it): the art agents' size, or the stand-ins'
-const artBox = kind => { const p = artPic(kind, 0); return p ? { w: p.w * 2, h: p.h * 2 } : kind === 'weapon' ? { w: 96, h: 48 } : { w: 64, h: 64 }; };
+const ART_N = { weapon: 40, turret: 32, relic: 48 };
+function artBox(kind) {
+  for (let i = 0; i < (ART_N[kind] || 0); i++) { const p = artPic(kind, i); if (p) return { w: p.w * 2, h: p.h * 2 }; }
+  return kind === 'weapon' ? { w: 96, h: 48 } : { w: 64, h: 64 };
+}
 function itemArt(kind, i, owned) {
   const p = i >= 0 ? artPic(kind, i) : null, sil = owned ? '' : ' sil';
   if (p) return `<img class="art${sil}" src="${p.url}" alt="" style="width:${p.w * 2}px;height:${p.h * 2}px">`;
@@ -473,15 +478,16 @@ function gearHtml() {
 }
 // 유물: the places that carry relics (opened by the best stage; a tap picks one), the sets, and the collection
 function relicPage(list) {
-  const box = artBox('relic'), worn = list ? list.filter(r => r.slot >= 0) : [];
-  const places = RELIC_AT.map((r, k) => {
-    if (G.best < r) return `<div class="slot lock" style="height:${box.h + 32}px">${ic('lock')}<span class="aux">스테이지<br>${r.toLocaleString('en')}</span></div>`;
+  const box = artBox('relic'), worn = list ? list.filter(r => r.slot >= 0) : [], sl = sysCall('slots'), at = sl ? sl.relicAt : RELIC_AT, open = sl ? sl.relics : RELIC_AT.filter(r => G.best >= r).length;
+  const places = at.slice(0, sl ? sl.relicsMax : at.length).map((r, k) => {
+    if (k >= open) return `<div class="slot lock" style="height:${box.h + 32}px">${ic('lock')}<span class="aux">스테이지<br>${r.toLocaleString('en')}</span></div>`;
     const on = worn.find(x => x.slot === k);
     return on ? itemCard('relic', on, `data-relicslot="${k}"`) : `<button class="icard slot" type="button" data-relicslot="${k}" style="height:${box.h + 32}px"${list ? '' : ' disabled'}></button>`;
   });
   const owned = list ? list.filter(r => r.owned).length : 0;
-  return sec('장착 칸', worn.length + '/' + RELIC_AT.filter(r => G.best >= r).length) + gridOf(box.w + 16, places, 4)
-    + sec('세트') + RELIC_SETS.map(n => line(n, '<b class="num">0/3</b>')).join('')
+  const sets = sysCall('relicSets');
+  return sec('장착 칸', worn.length + '/' + open) + gridOf(box.w + 16, places, 4)
+    + sec('세트') + (sets && sets.length ? sets.map(t => line(t.name, `<b class="num${t.active ? '' : ' muted'}">${t.have}/${t.need}</b>`)) : RELIC_SETS.map(n => line(n, '<b class="num">0/3</b>'))).join('')
     + sec('보유', owned + '/' + (list ? list.length : 48)) + gridOf(box.w + 16, (list || Array.from({ length: 48 }, (_, i) => ({ id: i, grade: Math.floor(i / 6), owned: false }))).map(r => itemCard('relic', r)), 5);
 }
 // an item up close: its picture, grade, what it does, its level and the next merge; owned weapons and turrets enhance
@@ -493,8 +499,8 @@ function itemSheet(kind, i) {
     const x = find(), price = x.owned && kind !== 'relic' ? sysCall('enhancePrice', kind, i) : null, n = x.mergeN || MERGE_N;
     return `<div class="ihero slot g${x.grade}">${itemArt(kind, i, x.owned)}</div><div class="sec"><span class="gr g${x.grade}">${GRADES[x.grade]}</span><span>${x.owned ? 'Lv ' + x.level : ''}</span></div>`
       + (x.desc ? `<p class="aux">${x.desc}</p>` : '') + (x.owned && kind !== 'relic' ? line('합성까지', `<b class="num">${x.toNextMerge ?? Math.max(0, n - x.copies)}</b>`) : '')
-      + (price ? `<div class="tool">${B('pri grow', '강화 ' + priceHtml(price), canAfford(price) ? 'data-enh' : 'disabled')}</div>` : '');
-  }, d => { if ('enh' in d && sysCall('enhance', kind, i, 1) !== false) sound('buy'); });
+      + (price ? `<div class="tool">${B('pri grow', (price.bt ? '돌파 ' : '강화 ') + priceHtml(price), canAfford(price) ? 'data-enh' : 'disabled')}</div>` : '');
+  }, d => { if ('enh' in d && sysCall('enhance', kind, i, 1)) sound('buy'); });
 }
 // a place to fill (a relic place, a turret place, a weapon slot): the owned ones to pick from, the one in it outlined
 function pickSheet(title, kind, on, choose) {
@@ -512,7 +518,7 @@ function mergeAllNow() { const n = sysCall('mergeAll'); if (n) sound('buy'); ope
 function enhanceAllNow() {
   const kind = PULL_KIND[ui.sub.gear];
   let n = 0;
-  for (const it of (listOf(kind) || []).filter(x => x.owned)) { const p = sysCall('enhancePrice', kind, idOf(it)); if (p && canAfford(p) && sysCall('enhance', kind, idOf(it), 1) !== false) n++; }
+  for (const it of (listOf(kind) || []).filter(x => x.owned)) { const p = sysCall('enhancePrice', kind, idOf(it)); if (p && canAfford(p) && sysCall('enhance', kind, idOf(it), 1)) n++; }
   if (n) sound('buy');
   openSheet('일괄 강화', () => `<div class="sec"><span>강화</span><span class="num">${n}</span></div><div class="tool">${B('pri', '확인', 'data-close')}</div>`);
 }
@@ -543,12 +549,12 @@ function shopHtml() {
   if (tab === 'pack') {
     const steps = of('pack'), next = steps.find(x => !x.locked);
     return sec('성장 패키지', steps.filter(x => x.bought).length + '/' + steps.length) + steps.map(it => `<button class="pk2" type="button" data-product="${it.id}">${prodImg(it.id)}<span class="bd"><b>${it.name}</b><span>${it.contents.join(' + ')}</span>`
-      + (it.locked && it.lockReason ? `<span class="aux">${it.lockReason}에 열림</span>` : '') + priceTag(it, it === next) + '</span></button>').join('');
+      + (it.bought ? '' : it.locked && it.lockReason ? `<span class="aux">${it.lockReason}에 열림</span>` : '') + (it.bought ? '<span class="b sub off">구매 완료</span>' : priceTag(it, it === next)) + '</span></button>').join('');
   }
-  if (tab === 'gem') return `<div class="grid c2 top">${of('dia').map(it => `<button class="cv2" type="button" data-product="${it.id}">${prodImg(it.id)}<span class="amt">${ic('diamond')}<b class="num">${(it.dia || 0).toLocaleString('en')}</b></span><span>${krw(it.price)}</span><span class="aux">첫 구매 2배</span></button>`).join('')}</div>`;
+  if (tab === 'gem') return `<div class="grid c2 top">${of('dia').map(it => `<button class="cv2" type="button" data-product="${it.id}">${prodImg(it.id)}<span class="amt">${ic('diamond')}<b class="num">${(it.dia || 0).toLocaleString('en')}</b></span><span>${krw(it.price)}</span>${it.first ? '<span class="aux">첫 구매 2배</span>' : ''}</button>`).join('')}</div>`;
   const passes = of('pass');
-  return sec('패스') + passes.map((it, k) => `<button class="pk2" type="button" data-product="${it.id}">${prodImg(it.id)}<span class="bd"><b>${it.name}</b><span class="aux">${it.contents.join(' + ')}</span>${priceTag(it, k === 0)}</span></button>`).join('')
-    + sec('편의') + `<div class="grid c2">${of('conv').map(it => `<button class="cv2" type="button" data-product="${it.id}">${prodImg(it.id)}<b>${it.name}</b><span class="aux">${it.contents.join(' + ')}</span>${priceTag(it, false)}</button>`).join('')}</div>`;
+  return sec('패스') + passes.map((it, k) => `<button class="pk2" type="button" data-product="${it.id}">${prodImg(it.id)}<span class="bd"><b>${it.name}</b><span class="aux">${it.contents.join(' + ')}</span>${it.active ? '<span class="aux">사용 중</span>' : ''}${priceTag(it, k === 0)}</span></button>`).join('')
+    + sec('편의') + `<div class="grid c2">${of('conv').map(it => `<button class="cv2" type="button" data-product="${it.id}">${prodImg(it.id)}<b>${it.name}</b><span class="aux">${it.contents.join(' + ')}</span>${it.owned ? '<span class="b sub off">구매 완료</span>' : priceTag(it, false)}</button>`).join('')}</div>`;
 }
 // a product up close: its picture, what is in it, the price and 구매 (a test payment for now); then what came
 function productSheet(id) {
@@ -557,7 +563,7 @@ function productSheet(id) {
   openSheet(it.name, () => {
     const x = find();
     return `<div class="phero">${prodImg(id, 3)}</div><ul class="contents">${x.contents.map(c => `<li>${c}</li>`).join('')}</ul>`
-      + (x.locked ? (x.lockReason ? `<p class="aux">${x.lockReason}에 열림</p>` : '') + `<div class="tool">${B('pri grow', ic('lock') + `<span class="num">${krw(x.price)}</span>`, 'disabled')}</div>`
+      + (x.bought || x.owned ? `<div class="tool">${B('sub grow', '구매 완료', 'disabled')}</div>` : x.locked ? (x.lockReason ? `<p class="aux">${x.lockReason}에 열림</p>` : '') + `<div class="tool">${B('pri grow', ic('lock') + `<span class="num">${krw(x.price)}</span>`, 'disabled')}</div>`
         : `<div class="tool">${B('pri grow', `구매 · <span class="num">${krw(x.price)}</span>`, 'data-buy')}</div>`);
   }, d => {
     if (!('buy' in d)) return;
@@ -573,9 +579,9 @@ function rebirthHtml() {
   if (!P) return '';
   return `<div class="rb">${ic('medal', 2)}<span><span class="aux">받을 훈장</span><b class="num">+${fmt(P.gainNow)}</b></span><span><span class="aux">보유</span><b class="num">${fmt(P.medals)}</b></span></div>`
     + `<div class="tool">${B('pri grow', '환생', P.gainNow > 0 ? 'data-rebirth' : 'disabled')}</div>`
-    + sec('훈장 강화') + grid(4, P.ups.map(u => `<button class="cell up" type="button" data-medal="${u.key}"${u.maxed || P.medals < u.price ? ' disabled' : ''}><b>${u.name}</b><span class="aux">Lv ${u.level}</span>`
+    + sec('훈장 강화') + grid(4, P.ups.map(u => `<button class="cell up" type="button" data-medal="${u.key}"${(u.canBuy ?? (!u.maxed && P.medals >= u.price)) ? '' : ' disabled'}><b>${u.name}</b><span class="aux">Lv ${u.level}</span>`
       + (u.maxed ? '<span class="aux">최대</span>' : `<span class="cost${P.medals < u.price ? ' short' : ''}">${ic('medal')}<span class="num">${fmt(u.price)}</span></span>`) + '</button>'))
-    + sec('자동화', '환생 ' + P.evacs + '회') + P.auto.map(a => line(a.name, a.on ? '<b>켜짐</b>' : `<span class="aux">${ic('lock')} 환생 ${a.at}회</span>`)).join('');
+    + sec('자동화', '환생 ' + P.evacs + '회') + P.auto.map(a => line(a.name, (a.unlocked ?? a.on) ? `<button class="fchip tap" type="button" data-auto="${a.key}" aria-pressed="${!!a.on}">${a.on ? '켜짐' : '꺼짐'}</button>` : `<span class="aux">${ic('lock')} 환생 ${a.at}회</span>`)).join('');
 }
 function rebirthConfirm() {
   const P = sysCall('prestigeInfo');
@@ -609,7 +615,7 @@ function pageHtml() {
   return '';
 }
 function footHtml() {
-  if (ui.open === 'gear' && ui.sub.gear !== 'relic') { const on = !!sys(); return B('sub', '도감', 'data-codex') + B('sub', '일괄 강화', on ? 'data-enhall' : 'disabled') + B('pri grow', '일괄 합성', on ? 'data-mergeall' : 'disabled'); }
+  if (ui.open === 'gear' && ui.sub.gear !== 'relic') { const on = !!sys(), m = sysCall('mergeable'); return B('sub', '도감', 'data-codex') + B('sub', '일괄 강화', on ? 'data-enhall' : 'disabled') + B('pri grow', '일괄 합성', m && m.count ? 'data-mergeall' : 'disabled'); }
   return '';
 }
 // a menu is rebuilt only when what it shows changed (and not under a finger: a rebuilt button loses the tap)
@@ -663,6 +669,7 @@ nodes.panel.addEventListener('click', e => {
   else if (d.product) productSheet(d.product);
   else if ('rebirth' in d) rebirthConfirm();
   else if (d.medal) { if (sysCall('buyMedalUp', d.medal)) sound('buy'); }
+  else if (d.auto) { const a = ((sysCall('prestigeInfo') || {}).auto || []).find(x => x.key === d.auto); if (a) sysCall('setAutomation', a.key, !a.on); }
   else if (d.summon) { const [kind, n] = d.summon.split(':'); summonNow(kind, +n); }
   else if ('pick' in d) { ui.pick = true; renderPanel(true); }
   else if ('unpick' in d) { ui.pick = false; renderPanel(true); }
@@ -733,7 +740,7 @@ function refreshTop() {
     rate.classList.toggle('neg', net < 0 && !full);
   }
   { const c = sysCall('currencies'); setText(gemNode, fmt(c ? c.gems || 0 : 0)); setText(diaNode, fmt(c ? c.diamonds || 0 : 0)); }
-  { const cm = sysCall('commander'); cmdNode.hidden = !cm; if (cm) { setText(cmdLv, 'Lv ' + cm.level); setWidth(cmdBar, cm.need ? cm.xp / cm.need : 0); } }
+  { const cm = sysCall('commander'); cmdNode.hidden = !cm || cm.unlocked === false; if (cm) { setText(cmdLv, 'Lv ' + cm.level); setWidth(cmdBar, cm.need ? cm.xp / cm.need : 0); } }
   setText(nodes.waveBtn, '스테이지 ' + G.wave);
   setWidth(nodes.waveBar, G.waveKills / killsNeeded(G.wave));
   setOff(nodes.wavePrev, G.wave <= 1); setOff(nodes.waveNext, G.wave >= G.best);
@@ -820,12 +827,8 @@ function summonNow(kind, n) {
   const got = sysCall('summon', kind, n);
   if (!got || !got.length) return;
   sound('buy');
-  const list = kind === 'weapon' ? sysCall('weapons') : kind === 'turret' ? sysCall('turrets') : kind === 'relic' ? sysCall('relics') : null;
-  const cells = got.map(g => {
-    const it = list && list.find(x => (x.i ?? x.id) === g.i), grade = it ? it.grade : kind === 'crew' ? g.i : 0;
-    return `<div class="rc"><span class="slot g${grade}${g.isNew ? ' new' : ''}">${itemArt(kind, it ? (it.i ?? it.id) : -1, true)}${g.isNew ? ic('star') : ''}</span>`
-      + (g.toNextMerge != null ? `<span class="aux">합성까지 ${g.toNextMerge}</span>` : '') + '</div>';
-  }).join('');
+  const cells = got.map(g => `<div class="rc"><span class="slot g${g.grade}">${itemArt(kind, kind === 'crew' ? -1 : g.i, true)}${g.isNew ? ic('star') : ''}</span><b>${g.name || ''}</b>`
+    + (g.toNextMerge != null ? `<span class="aux">${kind === 'crew' ? '다음 별까지' : kind === 'relic' ? '다음 레벨까지' : '합성까지'} ${g.toNextMerge}</span>` : '') + '</div>').join('');
   openSheet(n > 1 ? n + '회 소환' : '소환', () => `<div class="rgrid">${cells}</div><div class="tool">${B('pri', '확인', 'data-close')}</div>`);
 }
 const sheet = { el: document.getElementById('sheet'), title: document.getElementById('shTitle'), body: document.getElementById('shBody'), render: null, act: null };
