@@ -133,6 +133,17 @@ const screens = [
   ['10. 랭킹 (전체 화면)', `${head('랭킹', ['최고 기록', '기지 털기'], '최고 기록')}<div class="body">
     ${[1, 2, 3, 4, 5, 6, 7].map(k => `<div class="line" style="align-items:center"><span class="row"><b style="width:22px">${k}</b>${img('32px', '32px', '')}<span>생존자${k}</span></span><b>스테이지 ${2400 - k * 210}</b></div>`).join('')}</div>
     <div class="foot" style="justify-content:space-between;align-items:center"><span class="row"><b>128</b>${img('32px', '32px', '')}나</span><b>스테이지 64</b></div>`],
+  ...[['1층 침실', '침대', '방', '주방', 'under0.png', ['나', '민준', '서연', '도윤', '하은']], ['2층 식량', '씨앗', '저장고', '생장등', 'under1.png', ['서연', '하은']], ['3층 채굴', '곡괭이', '광차', '드릴', 'under2.png', ['지호', '민준']]].map(([fl, a, b, c, pic, who], k) => [`${11 + k}. 기지 › 지하 ${fl}`, `<div class="status">상태바</div>
+    <div style="position:absolute;left:0;right:0;top:24px;height:330px;background:#fff url(${pic}) center 55% / 340px auto no-repeat;image-rendering:pixelated"></div>
+    <div class="res" style="top:30px"><div>${ico('coin', 1)}50.1K</div><div>${ico('food', 1)}8.1K</div><div>${ico('mineral', 1)}3.1K</div></div>
+    <div style="position:absolute;left:0;right:0;top:354px;bottom:74px;border-top:1px solid var(--ink);background:#fff">
+      <div class="tabs"><div>방어</div><div class="on">지하</div><div>배치</div></div>
+      <div class="chips" style="padding:0 8px">${['1층 침실', '2층 식량', '3층 채굴', '4층 연구소'].map((n, j) => `<span class="${j === k ? 'on' : ''}" style="${j === 3 ? 'opacity:.45' : ''}">${n}</span>`).join('')}</div>
+      <div class="body" style="padding-top:2px">
+        ${[[a, '레벨', 'Lv 14', 'coin', '2.2K'], [b, '용량', 'Lv 3', 'coin', '1.1K'], [c, '등급', '1/5', 'mineral', '800']].map(([n, t, l, i, cost]) => `<div class="card row" style="margin-bottom:5px">${img('40px', '40px', '')}<div style="flex:1"><b>${n}</b> <span style="color:var(--muted)">${t} · ${l}</span><div class="bar" style="width:120px"><i></i></div></div><div class="btn">${ico(i, 1)}${cost}</div></div>`).join('')}
+        <div class="sec"><span>일꾼</span><span>${who.length}/5</span></div>
+        <div class="grid g5">${Array.from({ length: 5 }, (_, j) => `<div class="card" style="justify-items:center;padding:3px;${who[j] ? '' : 'opacity:.5'}">${img('100%', '34px', who[j] ? '초상화' : '+')}<span style="font-size:9px">${who[j] || '배치'}</span></div>`).join('')}</div>
+      </div></div>${nav('기지')}`]),
 ];
 document.getElementById('wrap').innerHTML = screens.map(([t, h]) => `<div class="scr"><b>${t}</b><div class="frame">${h}</div></div>`).join('');
 </script>
