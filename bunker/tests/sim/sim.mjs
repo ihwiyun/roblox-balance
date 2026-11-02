@@ -214,8 +214,9 @@ export function run(opts = {}) {
   function wantedTiers(S, short) {
     const out = [];
     const cost = k => L.price(st, `sec:${k}:tier`);
+    const aux = k => Object.keys(cost(k) || {})[0];
     const roof = cost('roof');
-    if (roof && roof.ore <= st.ore + S.prod.ore * 5400) out.push('roof');
+    if (roof && roof[aux('roof')] <= st[aux('roof')] + S.prod[aux('roof')] * 5400) out.push('roof');
     for (const [res, sec] of Object.entries(PRODUCER)) {
       // a floor's tier is worth it for a worker slot someone can fill, or when its output is short
       const c = cost(sec), slots = L.SECTIONS[sec].slots, filled = (st.crew.assign[sec] || []).length;
@@ -224,6 +225,11 @@ export function run(opts = {}) {
     }
     const crewN = Object.keys(st.crew.cards).length, bed = cost('bed');
     if (bed && (L.beds(st.sec.bed.tier) < crewN + 1 || Object.values(bed)[0] <= 0.25 * st.food)) out.push('bed');
+    // a surplus goes into whatever tier it pays for (a full box is wasted output)
+    for (const k of ['roof', 'food', 'mine', 'shop', 'bed']) {
+      const c = cost(k), r = aux(k);
+      if (c && !out.includes(k) && st[r] > 0.4 * S.caps[r] && st[r] - c[r] > 0.15 * S.caps[r]) out.push(k);
+    }
     return out;
   }
   function invest() {

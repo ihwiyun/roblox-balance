@@ -58,7 +58,9 @@ export const breakthroughCost = (kind, k, caps, extra) => capToStores(BREAKTHROU
 /* ---------- sections: level (gold, +4%), tier (aux 200 T^2, +10%), capacity (store) ---------- */
 // product: what its workers make; aux: what its tier costs; slots: workers by tier
 export const SECTIONS = {
-  roof: { name: '지붕 초소', product: null, aux: 'ore', cost0: 50, unlock: 1, tierName: '총좌', capName: '탄약고', levelName: '거리 측정기' },
+  // the roof's tier (총좌, gun mounts) is built from workshop parts: it is the parts' open-ended sink (enhancement is
+  // capped by grade, so parts had nowhere to go once the collection was maxed)
+  roof: { name: '지붕 초소', product: null, aux: 'parts', cost0: 50, unlock: 1, tierName: '총좌', capName: '탄약고', levelName: '거리 측정기' },
   shop: { name: '작업장', product: 'parts', aux: 'ore', cost0: 60, unlock: 15, tierName: '작업대', capName: '부품함', levelName: '공구', slots: t => Math.min(4, 1 + Math.floor(t / 3)) },
   bed: { name: '1층 침실', product: null, aux: 'food', cost0: 40, unlock: 1, tierName: '침대', capName: '방', levelName: '주방' },
   food: { name: '2층 식량', product: 'food', aux: 'ore', cost0: 30, unlock: 1, tierName: '씨앗', capName: '재배대', levelName: '생장등', slots: t => Math.min(5, 1 + Math.floor(t / 2)) },
