@@ -438,6 +438,25 @@ ICONS = {
   '.oYyoo....ooyyo.',
   '.ooo........ooo.',
   '................'],
+ # 다이아 (paid): a brilliant-cut diamond, white with pale cyan facets and blue facet lines, so it never reads
+ # as the ruby (free gems) or the blue ore
+ 'diamond': [
+  '................',
+  '................',
+  '...oooooooooo...',
+  '..oWWBWWWWBLLo..',
+  '.oWWBWWWWWWBLLo.',
+  'oWWBWWWWWWWWBLLo',
+  'oBBBBBBBBBBBBBBo',
+  '.oWWWBWWLLBLLLo.',
+  '..oWWBWWLLBLLo..',
+  '...oWWBWLBLLo...',
+  '....oWBWLBLo....',
+  '.....oWBBLo.....',
+  '......oBBo......',
+  '.......oo.......',
+  '................',
+  '................'],
 }
 items = [{'name': k, 'rows': v} for k, v in ICONS.items()]
 for it in items:
