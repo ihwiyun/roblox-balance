@@ -79,7 +79,7 @@ function drawSurvivor(c, zOff = 0) {
   }
   if (fr.mag) { const [mx, my] = frameSpot(info, fr.mag), x0 = info.mirror ? mx - 1 : mx; for (let y = 0; y < 3; y++) for (let x = 0; x < 2; x++) putPx(x0 + x, my + y, y ? rgb(52, 50, 58) : rgb(200, 160, 70), info.p.d + 1); }
 }
-function putPx(x, y, color, d) { if (x < 0 || y < 0 || x >= W || y >= H) return; const i = y * W + x; if (d <= zb[i]) return; zb[i] = d; pix[i] = color; }
+function putPx(x, y, color, d) { if (x < 0 || y < CLIP_Y || x >= W || y >= H) return; const i = y * W + x; if (d <= zb[i]) return; zb[i] = d; pix[i] = color; }
 function pxLine(x0, y0, x1, y1, color, d, w = 1) {
   const n = Math.max(1, Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0)));
   for (let k = 0; k <= n; k++) { const x = Math.round(lerp(x0, x1, k / n)), y = Math.round(lerp(y0, y1, k / n)); for (let o = 0; o < w; o++) putPx(x, y + o, color, d); }

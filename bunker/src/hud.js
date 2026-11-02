@@ -1,5 +1,5 @@
 'use strict';
-// The page around the picture: resources, the bottom panel and its cards, tabs, labels, settings.
+// The page around the picture: resources, the bottom panel and its cards, tabs, settings.
 /* ================= HUD ================= */
 const iconPal = paletteOf(ART.iconPal);
 function iconCanvas(name, scale = 2) {
@@ -42,7 +42,7 @@ function portraitOld(person, scale = 5) {
 }
 document.querySelectorAll('[data-ico]').forEach(el => el.prepend(iconCanvas(el.dataset.ico, el.classList.contains('tab') ? 1.5 : 1.25)));
 const nodes = {};
-for (const id of ['status', 'panel', 'bunkerFill', 'bunkerText', 'bunkerTrack', 'fenceFill', 'fenceText', 'waveLine', 'stage', 'speed', 'labels', 'notes', 'ammo', 'ammoNum', 'ammoBar']) nodes[id] = document.getElementById(id);
+for (const id of ['status', 'panel', 'bunkerFill', 'bunkerText', 'bunkerTrack', 'fenceFill', 'fenceText', 'waveLine', 'stage', 'speed', 'notes', 'ammo', 'ammoNum', 'ammoBar']) nodes[id] = document.getElementById(id);
 // notifications: one band at a time, queued; kind is '' | 'good' | 'new' | 'danger'
 const noteQueue = [];
 let noteBusy = false;
@@ -92,6 +92,9 @@ function viewFloor(k) {
   if (tab !== 'under') { tab = 'under'; document.querySelectorAll('.tab').forEach(t => t.setAttribute('aria-selected', String(t.dataset.tab === 'under'))); }
   if (G.view !== 'under') setView('under'); else showFloor(k);
   renderPanel(true);
+  // the card of the floor on screen stays in sight (a purchase or an alert can switch floors from anywhere)
+  const on = nodes.panel.querySelector('.card.on');
+  if (on) on.scrollIntoView({ block: 'nearest' });
 }
 document.querySelectorAll('.tab').forEach(b => b.addEventListener('click', () => {
   tab = b.dataset.tab;
@@ -256,7 +259,7 @@ function refreshTop() {
   }
   const hero = G.hero;
   const next = nextMutant();
-  nodes.waveLine.innerHTML = `<b>웨이브 ${G.wave}</b> · ${G.waveKills}/${killsNeeded(G.wave)}` + (isBossWave(G.wave) ? ' · <b>보스</b>' : next ? ` · 변이체 W${next.from}` : '');
+  nodes.waveLine.innerHTML = `<b>웨이브 ${G.wave}</b> · ${G.waveKills}/${killsNeeded(G.wave)}` + (isBossWave(G.wave) ? ' · <b>보스</b>' : next ? ` · 다음 변이체 ${next.from}웨이브` : '');
   const maxHp = bunkerHp(G.bunker);
   nodes.bunkerFill.style.width = clamp(G.hp / maxHp, 0, 1) * 100 + '%';
   nodes.bunkerText.textContent = '벙커 ' + fmt(Math.max(0, G.hp)) + '/' + fmt(maxHp);
@@ -275,21 +278,6 @@ function fitStage() {
   if (k && G.view === 'under') k += 1;
   const scale = k ? k / dpr : f;
   canvas.style.width = W * scale + 'px'; canvas.style.height = H * scale + 'px';
-}
-// floor names over the cutaway are real page text, laid over the canvas
-function placeLabels() {
-  // one floor at a time below ground: the floor buttons name it, so no labels are laid over the picture
-  nodes.labels.hidden = true;
-  return;
-  const r = canvas.getBoundingClientRect(), f = r.width / W;
-  if (nodes.labels.children.length !== 4) nodes.labels.innerHTML = FLOOR_NAME.map(t => { const [a, b] = t.split(' · '); return `<span class="fl"><b>${a}</b>${b}</span>`; }).join('') + '<span>지상 해치</span>';
-  // each name stands in the white margin left of its floor, level with it, so it never covers the floor
-  FLOOR_NAME.forEach((t, k) => {
-    const p = project(UG.x0, UG.y1, FLOOR_Z[k] + UG.h * .5), el = nodes.labels.children[k];
-    el.style.left = Math.max(2, r.left + p.sx * f - 6 - el.offsetWidth) + 'px'; el.style.top = r.top + p.sy * f + 'px';
-  });
-  const p = project(SHAFT.x, SHAFT.y, HATCH_TOP() + .5), el = nodes.labels.children[3];
-  el.style.left = r.left + p.sx * f + 'px'; el.style.top = r.top + p.sy * f + 'px';
 }
 
 /* ================= settings ================= */

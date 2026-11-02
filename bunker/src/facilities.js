@@ -1,7 +1,15 @@
 'use strict';
 // The floors below: the living quarters (beds), the farm and the mine: levels, what each adds, output and price.
 // (How they look is in under.js.) Each floor has 40 levels and every level adds one thing you can see.
-const LIVE = { max: 40, beds: [1, 3, 5, 8, 12], cost: L => { const c = { money: Math.ceil(50 * 1.42 ** L) }; if (L >= 3) c.mineral = Math.ceil(6 * 1.4 ** (L - 3)); return c; } };
+// Prices mix the resources: the living floor takes ore (and later food), the farm takes ore, the mine takes food,
+// so each floor leans on another. Output grows about 10% a level on top of the level itself, enough to keep up
+// with the money a later wave brings in (checked with the economy simulation: neither store sits full for long)
+const LIVE = { max: 40, beds: [1, 3, 5, 8, 12], cost: L => {
+  const c = { money: Math.ceil(50 * 1.4 ** L) };
+  if (L >= 3) c.mineral = Math.ceil(c.money * Math.min(.15, .05 + (L - 3) * .005));
+  if (L >= 6) c.food = Math.ceil(c.money * Math.min(.3, .1 + (L - 6) * .01));
+  return c;
+} };
 // the living floor: beds at the bed levels (each bed is a place to hire someone), then it fills up, and its walls
 // and floor change material: earth, planks, paint, tiles
 const LIVE_ITEMS = [
@@ -11,8 +19,16 @@ const LIVE_ITEMS = [
   '탁구대', '지도 벽', '커피 테이블', '빨래줄', '마루 바닥', '천장 조명', '어항', '오락기', '환기 덕트', '벙커 엠블럼',
 ];
 const bedsOf = L => LIVE.beds.filter(b => L >= b).length;
-const FARM = { max: 40, rate: L => L ? .35 * L * 1.05 ** L : 0, cost: L => ({ money: Math.ceil(20 * 1.45 ** L) }) };
-const MINE = { max: 40, rate: L => L ? .25 * L * 1.07 ** L : 0, cost: L => ({ money: Math.ceil(50 * 1.5 ** L) }) };
+const FARM = { max: 40, rate: L => L ? .22 * L * 1.1 ** L : 0, cost: L => {
+  const c = { money: Math.ceil(20 * 1.4 ** L) };
+  if (L >= 5) c.mineral = Math.ceil(c.money * Math.min(.15, .04 + (L - 5) * .005));
+  return c;
+} };
+const MINE = { max: 40, rate: L => L ? .28 * L * 1.1 ** L : 0, cost: L => {
+  const c = { money: Math.ceil(40 * 1.42 ** L) };
+  if (L >= 3) c.food = Math.ceil(c.money * Math.min(.5, .15 + (L - 3) * .015));
+  return c;
+} };
 // the farm and the mine change form every eight levels (levels 1, 9, 17, 25, 33); the levels in between add
 // rows, growth and equipment
 const FARM_TIERS = ['흙밭', '나무 화분대', '생장등 선반', '수경 재배', '자동 수직 농장'];

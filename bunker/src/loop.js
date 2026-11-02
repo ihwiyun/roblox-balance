@@ -152,13 +152,18 @@ function drawUnder() {
       for (let z = fz - .2; z < top - .1; z += STEP) { const p = project(x, y, z + dz), band = Math.floor(z * 6 + spin) & 1; putPx(Math.round(p.sx), Math.round(p.sy), band ? rgb(210, 214, 220) : rgb(96, 100, 108), p.d + .3); putPx(Math.round(p.sx) + 1, Math.round(p.sy), rgb(70, 74, 80), p.d + .3); }
     }
   }
-  // people on this floor, and anyone on the ladder between the opening in the floor and the one in the ceiling
+  // people on this floor, and anyone on the ladder between the opening in the floor and the one in the ceiling:
+  // the shaft ends at the top of the room (on B1 it goes on up to the hatch), and a climber is cut off there, so
+  // people come down feet first and leave head first instead of floating over the room
+  const shaftTop = UG.h + (v === 0 ? 1.2 : .05), clip = Math.max(0, Math.ceil(project(SHAFT.x, SHAFT.y + .5, FLOOR_Z[v] + shaftTop).sy));
   for (const c of G.crew) {
     if (!c || c.where !== 'ug') continue;
     const rel = c.z - LEVEL_Z[v];
-    if (rel < -1.3 || rel > UG.h + .2) continue;
-    if (c.state === 'sleep' && !c.path.length) { if (v === 0) drawSleeper(c); }
-    else drawPerson(c, FLOOR_Z[v] - LEVEL_Z[v]);
+    if (rel < -1.3 || rel > shaftTop) continue;
+    if (c.state === 'sleep' && !c.path.length) { if (v === 0) drawSleeper(c); continue; }
+    if (Math.abs(c.x - SHAFT.x) < 1 && c.y < LADDER_Y + .6) CLIP_Y = clip;
+    drawPerson(c, FLOOR_Z[v] - LEVEL_Z[v]);
+    CLIP_Y = 0;
   }
   castSpriteShadows(.25, .1);
   drawParts(G.uparts.filter(q => q.fk === v));
@@ -167,6 +172,4 @@ function draw() {
   if (G.view === 'under') drawUnder(); else drawYard();
   const shake = G.hurt > .2 && G.view === 'yard' ? (Math.floor(G.time * 40) % 2 ? 1 : -1) : 0;
   ctx.putImageData(image, shake, 0);
-  if (labelsFor !== G.view + innerWidth + 'x' + innerHeight) { labelsFor = G.view + innerWidth + 'x' + innerHeight; placeLabels(); }
 }
-let labelsFor = '';
