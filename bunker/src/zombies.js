@@ -32,13 +32,13 @@ function pickType(w) {
   return m.keys[0] || 'walker';
 }
 // the gold a stage pays before the multipliers (stage info): its zombies on average, and its boss
-const stageGold = s => (killsNeeded(s) - (isBossWave(s) ? 1 : 0)) * zombieReward(s) * mixOf(s).avgReward + (isBossWave(s) ? zombieReward(s) * ZTYPES.boss.reward * (s % 100 ? 1 : TITAN_HP) : 0);
+const stageGold = s => (killsNeeded(s) - (isBossWave(s) ? 1 : 0)) * zombieReward(s) * mixOf(s).avgReward + (isBossWave(s) ? zombieReward(s) * ZTYPES.boss.reward * (s % 100 ? 1 : titanMul()) : 0);
 // the name a player sees: the logic's (the stage window's) when it is there
 const zombieName = k => SYS.hook.zombieName(k) || ZTYPES[k].name;
 function spawn(type) {
   const side = Math.floor(Math.random() * 4), s = (Math.random() * 2 - 1) * (FIELD - .8), r = FIELD + .9 + Math.random() * .4;
   const [x, y] = [[r, s], [s, r], [-r, s], [s, -r]][side];
-  const w = G.wave, T = ZTYPES[type = type || pickType(w)], m = type === 'boss' ? { hp: w % 100 ? 1 : TITAN_HP, hit: 1, reward: w % 100 ? 1 : TITAN_HP } : mixOf(w), hp = zombieHp(w) * T.hp * m.hp;
+  const w = G.wave, T = ZTYPES[type = type || pickType(w)], m = type === 'boss' ? { hp: w % 100 ? 1 : titanMul(), hit: 1, reward: w % 100 ? 1 : titanMul() } : mixOf(w), hp = zombieHp(w) * T.hp * m.hp;
   const z = { x, y, n: Math.max(Math.abs(x), Math.abs(y)), yaw: Math.atan2(-y, -x), hp, max: hp, type, speed: T.speed * PACE * (.9 + Math.random() * .2),
     hitPower: zombieHit(w) * T.hit * m.hit, reward: zombieReward(w) * T.reward * m.reward, state: 'walk', t: 0, atk: 0, swings: 0, hit: 0, walkDist: Math.random(), swerve: (Math.random() - .5) * .5,
     incoming: 0, visible: false, sx: 0, sy: 0, zh: 0, rage: 0, lastHit: -9, st: 0, variant: Math.floor(Math.random() * ZVARIANTS) };

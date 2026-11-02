@@ -652,6 +652,86 @@ def write_js(types, cards):
         fh.write(head + body)
 
 
+# ---------------------------------------------------------------- sheets
+RAINBOW = [(224, 69, 69), (240, 176, 32), (69, 192, 112), (69, 144, 224), (160, 80, 224)]
+PAPER, SOFT, INK, MUTED = (255, 255, 255), (246, 244, 239), (28, 27, 25), (139, 135, 127)
+
+
+def _font(size=16):
+    from PIL import ImageFont
+    try:
+        return ImageFont.truetype('/usr/share/fonts/opentype/unifont/unifont.otf', size)
+    except OSError:
+        return ImageFont.load_default()
+
+
+def _paint(im, rws, pal, x0, y0, s):
+    for y, row in enumerate(rws):
+        for x, ch in enumerate(row):
+            if ch != '.':
+                im.paste(tuple(pal[ch]), (x0 + x * s, y0 + y * s, x0 + x * s + s, y0 + y * s + s))
+
+
+def _slot(dr, x0, y0, size, g):
+    """a UI slot: soft paper, a 2 px frame in the grade colour (the eternal frame runs through the rainbow)"""
+    dr.rectangle((x0, y0, x0 + size - 1, y0 + size - 1), fill=SOFT)
+    if g == 7:
+        for x in range(size):
+            c = RAINBOW[min(4, x * 5 // size)]
+            for t in (0, 1):
+                dr.point((x0 + x, y0 + t), c); dr.point((x0 + x, y0 + size - 1 - t), c)
+        for y in range(size):
+            for t in (0, 1):
+                dr.point((x0 + t, y0 + y), RAINBOW[0]); dr.point((x0 + size - 1 - t, y0 + y), RAINBOW[4])
+    else:
+        dr.rectangle((x0, y0, x0 + size - 1, y0 + size - 1), outline=tuple(GRADE_UI[g]), width=2)
+
+
+def sheet(path, types, cards, facing_grades=(0,)):
+    from PIL import Image, ImageDraw
+    f16, s_card, s_face = _font(16), 3, 3
+    cell = CARD * s_card + 16
+    cols = 4
+    grades = sorted({t['grade'] for t in types.values()})
+    fw, fh = W * s_face, H * s_face
+    width = max(cols * (cell + 150) + 40, 8 * (fw + 4) + 200)
+    height = 60 + len(grades) * (cell + 34) + 40 + len(facing_grades) * 4 * (fh + 30) + 40
+    im = Image.new('RGB', (width, height), PAPER)
+    dr = ImageDraw.Draw(im)
+    dr.text((20, 16), '터렛 카드 (32×32, 3배) · 등급마다 기관포 / 화염·냉각 / 전기 코일 / 박격포·로켓', font=f16, fill=INK)
+    y = 50
+    for g in grades:
+        dr.text((20, y + cell // 2 - 8), ['일반', '고급', '희귀', '영웅', '전설', '불멸', '신화', '영원'][g], font=f16, fill=tuple(GRADE_UI[g]) if g < 7 else (224, 69, 155))
+        for r in range(4):
+            k = 'turret%d' % (g * 4 + r)
+            x = 90 + r * (cell + 150)
+            if k not in types:
+                continue
+            _slot(dr, x, y, cell, g)
+            _paint(im, cards[k]['rows'], cards[k]['pal'], x + 8, y + 8, s_card)
+            dr.text((x + cell + 8, y + cell // 2 - 8), types[k]['name'], font=f16, fill=INK)
+        y += cell + 34
+    y += 10
+    for g in facing_grades:
+        dr.text((20, y), f'{PREFIX[g]} · 네 방향 (아래오른쪽 se, 아래왼쪽 sw, 위왼쪽 nw, 위오른쪽 ne) × 대기 / 사격, 게임 1px = 3칸', font=f16, fill=INK)
+        y += 24
+        for r in range(4):
+            k = 'turret%d' % (g * 4 + r)
+            if k not in types:
+                continue
+            t = types[k]
+            dr.text((20, y + fh // 2 - 8), t['name'], font=f16, fill=INK)
+            for c, (d, i) in enumerate([(d, i) for d in ('se', 'sw', 'nw', 'ne') for i in (0, 1)]):
+                x = 180 + c * (fw + 4)
+                dr.rectangle((x, y, x + fw - 1, y + fh - 1), fill=SOFT)
+                _paint(im, t['anims'][d]['F'][i]['rows'], t['pal'], x, y, s_face)
+            y += fh + 6
+        y += 20
+    im = im.crop((0, 0, width, y + 10))
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    im.save(path)
+
+
 def check(dirname):
     """a quick sheet: each turret in the four facings, idle and firing, at 5x"""
     from PIL import Image
@@ -676,5 +756,8 @@ if __name__ == '__main__':
     cards = {k: card_of(t['grade'], ROLES.index(t['role'])) for k, t in types.items()}
     write_js(types, cards)
     print('art/turrets.js:', len(types), 'turrets')
+    if '--sheet' in sys.argv:
+        fg = tuple(int(v) for v in sys.argv[sys.argv.index('--sheet') + 1].split(',')) if len(sys.argv) > sys.argv.index('--sheet') + 1 else (0,)
+        sheet(os.path.join(GAME, 'samples', 'turrets', 'sheet.png'), types, cards, fg)
     if '--check' in sys.argv:
         check(sys.argv[sys.argv.index('--check') + 1])

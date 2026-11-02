@@ -75,8 +75,9 @@ const ZTYPES = {
   boss:        { name: '보스', desc: '', from: 10, hp: 45, hit: 14, speed: .22, reward: 40, every: 2.6, special: 'boss' },
 };
 const isBossWave = w => w % 10 === 0;
-// a titan closes every hundred: a boss 2.5 times as tough (the logic's 1,000x against 400x) with a longer clock
-const TITAN_HP = 2.5;
+// a titan closes every hundred: a boss as many times tougher as the logic's titan is than its boss (1,000x against
+// 400x), with a longer clock
+const titanMul = () => (window.LOGIC ? LOGIC.T.stage.titanHp / LOGIC.T.stage.bossHp : 2.5);
 const MUTANT_ORDER = Object.keys(ZTYPES).filter(k => k !== 'boss').sort((a, b) => ZTYPES[a].from - ZTYPES[b].from);
 const nextMutant = () => MUTANT_ORDER.map(k => ZTYPES[k]).find(t => t.from > G.wave) || null;
 const NAMES = ['민준', '서연', '도윤', '하은', '지호'];
