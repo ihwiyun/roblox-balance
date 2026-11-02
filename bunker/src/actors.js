@@ -141,7 +141,7 @@ function drawZombie(z) {
 }
 function drawBars() {
   for (const z of G.zombies) {
-    if (z.state === 'dying' || z.hp >= z.max || !z.visible) continue;
+    if (z.state === 'dying' || z.hp >= z.max || !z.visible || z.type === 'boss') continue; // a boss's health is on the screen, not over it
     const boss = z.type === 'boss', big = BIG[z.type], w = boss ? 26 : big ? 14 : 9, left = Math.round(z.sx - w / 2), top = z.top - 4, fill = Math.ceil(w * clamp(z.hp / z.max, 0, 1));
     const color = boss ? rgb(230, 60, 50) : big || z.type === 'armored' ? rgb(220, 110, 60) : z.healing ? rgb(240, 120, 120) : rgb(120, 196, 88);
     for (let k = -1; k <= w; k++) for (let r = -1; r <= (boss ? 2 : 1); r++) {

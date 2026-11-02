@@ -30,7 +30,7 @@ const px = n => Math.max(1, Math.round(n * S / 12));
 /* ================= save ================= */
 // version 5: the game as before plus the systems' state (systems.js keeps it in G under these keys)
 const SYS_KEYS = ['gems', 'diamonds', 'medals', 'medalsLife', 'comps', 'record', 'runBest', 'runKills', 'evacs', 'evacAt', 'runs', 'medalUp', 'cmd',
-  'wInv', 'tInv', 'rel', 'cards', 'sums', 'equipW', 'equipT', 'manual', 'presets', 'shop', 'counts', 'autoSet', 'autoShare', 'early', 'oreGems', 'daily', 'activity', 'rng', 'sysInit'];
+  'wInv', 'tInv', 'rel', 'cards', 'sums', 'equipW', 'equipT', 'manual', 'presets', 'leader', 'shop', 'counts', 'autoSet', 'autoShare', 'early', 'oreGems', 'daily', 'activity', 'rng', 'sysInit'];
 // the jobs a hand can have: the roof's gunners (hired by bed), and the hands bought for the farm, the mine and the workshop
 const ALL_JOBS = [...JOBS, '정비공'];
 function save() {
@@ -64,8 +64,8 @@ function load() {
     const older = !(d.ver >= 4), up = L => L > 0 ? 1 + Math.round((L - 1) / LEVEL_STRETCH) : 0;
     G.bunker = clamp(older ? up(+d.bunker || 1) : +d.bunker || 1, 1, MAX_BUNKER); G.fence = clamp(older ? up(+d.fence || 0) : +d.fence || 0, 0, MAX_FENCE);
     G.live = clamp(+d.live || 0, 0, LIVE.max); G.farm = clamp(+d.farm || 0, 0, FARM.max); G.mine = clamp(+d.mine || 0, 0, MINE.max);
-    // the hands below are nameless now (bought for their floor); the roof's gunners keep their names
-    if (Array.isArray(d.crew)) d.crew.forEach((c, i) => { if (c && i < bedsOf(G.live) && ALL_JOBS.includes(c.job)) { const p = makePerson(i); p.job = c.job; if (c.job !== '사수') p.name = c.job; p.fatigue = clamp(+c.fatigue || 0, 0, 99); G.crew[i] = p; } });
+    // everyone hired before is a nameless hand of the section they worked in (the named crew are cards now)
+    if (Array.isArray(d.crew)) d.crew.forEach((c, i) => { if (c && i < bedsOf(G.live) && ALL_JOBS.includes(c.job)) { const p = makePerson(i, c.job); p.fatigue = clamp(+c.fatigue || 0, 0, 99); G.crew[i] = p; } });
     G.hp = Number.isFinite(+d.hp) && d.hp > 0 ? Math.min(+d.hp, bunkerHp(G.bunker)) : bunkerHp(G.bunker);
     G.fenceHp = Number.isFinite(+d.fenceHp) ? clamp(+d.fenceHp, 0, fenceHp(G.fence)) : fenceHp(G.fence);
     G.fenceDown = !!d.fenceDown && G.fence > 0;

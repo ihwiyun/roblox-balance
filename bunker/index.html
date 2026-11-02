@@ -47,6 +47,19 @@
   #waveBtn { min-width: 94px; padding: 0 4px; white-space: nowrap; font-size: 14px; font-variant-numeric: tabular-nums; }
   #wave .bar { width: 140px; height: 4px; background: var(--line); }
   #wave .bar i { display: block; height: 100%; width: 0; background: var(--ink); }
+  /* a boss on the field: one wide bar under the stage pill in place of the stage's own, as wide as the room between
+     the side columns: its name and its clock (red in the last ten seconds) over its health; a titan's bar is cut
+     where its phases change, and turns grey while it gathers itself between them */
+  #boss { width: calc(min(100vw, 480px) - var(--sl) - var(--sr) - 168px); box-sizing: border-box; padding: 3px 6px 5px; display: grid; gap: 3px; border: 1px solid var(--ink); background: var(--glass); pointer-events: none; }
+  #boss[hidden], .bossup #wave .bar { display: none; }
+  #boss .bh { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 13px; line-height: 16px; }
+  #bossName { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #bossTime { flex: none; font-variant-numeric: tabular-nums; } #bossTime.low { color: var(--bad); }
+  #boss .bt { position: relative; height: 12px; border: 1px solid var(--ink); background: #fff; }
+  #bossFill { display: block; height: 100%; width: 100%; background: #d0503c; }
+  #boss.shield #bossFill { background: var(--muted); }
+  #bossCuts s { position: absolute; top: -3px; bottom: -3px; width: 2px; margin-left: -1px; background: var(--ink); }
+  .bossup #notes { top: calc(var(--st) + 96px); }
   /* top right: settings, and under it the side buttons */
   .ib { width: 48px; height: 48px; padding: 0; border: 0; background: none; display: grid; place-items: center; cursor: pointer; }
   .ib:active, .ibl:active { background: var(--soft); }
@@ -144,7 +157,6 @@
   .cell .ph { width: 100%; }
   .cell[aria-pressed="true"] { border-color: var(--ink); }
   .cell .cost { font-size: 11px; }
-  .cell .ic.hire { opacity: .35; }
   .chips { display: grid; gap: 4px; margin: 0 0 6px; }
   .chip { min-width: 0; min-height: 44px; padding: 0 2px; border: 1px solid var(--line); background: var(--paper); font-size: 12px; cursor: pointer; white-space: nowrap; }
   .chip[aria-pressed="true"] { border-color: var(--ink); font-weight: 700; }
@@ -208,7 +220,12 @@
   .slot u.full { color: var(--ink); }
   .ihero { width: 100%; aspect-ratio: auto; height: 120px; margin-bottom: 8px; }
   /* a floor's workers: count and +1 with its price */
-  .floorrow { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; } .floorrow .go { flex: 1; margin: 0; }
+  .floorrow { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; } .floorrow .go { flex: 1; margin: 0; } .go.place { cursor: default; }
+  /* a roof gunner: standing small, then the weapon in its hands as a slot (a tap picks another) and its name */
+  .gunrow { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; padding-left: 16px; } .gunrow .stand { align-self: flex-end; }
+  /* a crew card: its portrait in its grade's frame, the stars and the copies to the next; not owned, a silhouette */
+  button.rc { padding: 0; border: 0; background: none; font: inherit; color: inherit; cursor: pointer; } button.rc:active .slot { background: var(--line); }
+  .rc.off b { color: var(--muted); } .slot em i.ic { vertical-align: -3px; margin-right: 1px; }
   .wbuy { display: inline-flex; align-items: center; gap: 8px; font-weight: 700; }
   .sec .wbuy { font-size: 13px; color: var(--ink); }
   /* shop: product cards are the buttons; the price inside only looks like one */
@@ -318,6 +335,7 @@
   <div id="wave">
     <div class="pill"><button class="arr tap" id="wavePrev" type="button" aria-label="이전 스테이지" data-ico="prev" data-s="1"></button><button id="waveBtn" class="tap" type="button">스테이지 1</button><button class="arr tap" id="waveNext" type="button" aria-label="다음 스테이지" data-ico="next" data-s="1"></button></div>
     <div class="bar"><i id="waveBar"></i></div>
+    <div id="boss" hidden><div class="bh"><b id="bossName"></b><b id="bossTime"></b></div><div class="bt"><i id="bossFill"></i><span id="bossCuts"></span></div></div>
   </div>
   <button class="ib" id="settingsBtn" type="button" aria-label="설정" data-ico="gear" data-s="2"></button>
   <div id="side"><button class="ibl" type="button" data-open="rebirth" data-ico="medal" data-s="2">환생</button><button class="ibl" type="button" data-open="rank" data-ico="trophy" data-s="2">랭킹</button></div>
@@ -394,6 +412,7 @@
 <script src="art/weapons.js" onerror="this.remove()"></script>
 <script src="art/turrets.js" onerror="this.remove()"></script>
 <script src="art/relics.js" onerror="this.remove()"></script>
+<script src="art/portraits.js" onerror="this.remove()"></script>
 <!-- the game, one file per job; they share globals and load in this order -->
 <script src="src/config.js"></script>
 <script src="src/buildings.js"></script>

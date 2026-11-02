@@ -63,12 +63,17 @@ var SYS = window.SYS || (() => {
     const sums = G.sums || {};
     G.sums = {};
     for (const k of ['weapon', 'turret', 'relic', 'crew']) G.sums[k] = fixSum(sums[k]);
+    // ids from before the nameless gunners: the hero was 'me', a gunner the named look of its bed
+    const BED = { minjun: 0, seoyeon: 1, doyun: 2, haeun: 3, jiho: 4 };
+    const newKey = k => (k === 'me' ? 'hero' : k in BED ? (G.crew[BED[k]] && G.crew[BED[k]].job === '사수' ? 'roof:' + roofGunners().indexOf(G.crew[BED[k]]) : null) : k);
     const ew = G.equipW && typeof G.equipW === 'object' ? G.equipW : {};
     G.equipW = {};
-    for (const [k, i] of Object.entries(ew)) if (Number.isInteger(i) && i >= 0 && i < Lg.WEAPONS.length) G.equipW[k] = i;
+    for (const [k, i] of Object.entries(ew)) { const key = newKey(k); if (key && Number.isInteger(i) && i >= 0 && i < Lg.WEAPONS.length) G.equipW[key] = i; }
     G.equipT = fixArr(G.equipT, SLOTS_T, -1).map(x => (Number.isInteger(x) && x >= 0 && x < Lg.TURRETS.length ? x : -1));
-    const mn = G.manual || {};
-    G.manual = { w: mn.w && typeof mn.w === 'object' ? mn.w : {}, t: fixArr(mn.t, SLOTS_T, false).map(Boolean), r: fixArr(mn.r, SLOTS_R, false).map(Boolean) };
+    const mn = G.manual || {}, mw = {};
+    for (const [k, v] of Object.entries(mn.w && typeof mn.w === 'object' ? mn.w : {})) { const key = newKey(k); if (key && v) mw[key] = true; }
+    G.manual = { w: mw, t: fixArr(mn.t, SLOTS_T, false).map(Boolean), r: fixArr(mn.r, SLOTS_R, false).map(Boolean) };
+    G.leader = G.leader && (G.leader === 'me' || G.cards && G.cards[G.leader]) ? G.leader : 'me';
     const c = G.cmd || {};
     G.cmd = { level: Math.max(1, nat(c.level)), xp: Math.max(0, +c.xp || 0), unspent: nat(c.unspent), points: Object.fromEntries(Lg.STATS.map(k => [k, nat(c.points && c.points[k])])) };
     const up = {};
@@ -87,12 +92,13 @@ var SYS = window.SYS || (() => {
     if (G.shop.owned.autoMerge) G.early.autoMerge = true;
     G.oreGems = G.oreGems && typeof G.oreGems === 'object' ? G.oreGems : { day: '', n: 0 };
     G.daily = typeof G.daily === 'string' ? G.daily : '';
-    G.presets = fixArr(G.presets, PRESETS, null).map(p => (p && p.w && typeof p.w === 'object' && Array.isArray(p.r) ? { w: p.w, r: fixArr(p.r, SLOTS_R, -1), at: +p.at || 0 } : null));
+    const presetW = w => { const o = {}; for (const [k, i] of Object.entries(w)) { const key = newKey(k); if (key && Number.isInteger(i)) o[key] = i; } return o; };
+    G.presets = fixArr(G.presets, PRESETS, null).map(p => (p && p.w && typeof p.w === 'object' && Array.isArray(p.r) ? { w: presetW(p.w), r: fixArr(p.r, SLOTS_R, -1), at: +p.at || 0 } : null));
     rng = Lg.makeRng(1);
     rng.setState((G.rng >>> 0) || (Math.random() * 4294967295) >>> 0);
     if (!G.sysInit) { G.sysInit = true; credit(G.record); }
     if (!G.wInv.owned.some(Boolean)) Lg.addCopy(G.wInv, 0);   // the hero's rusty revolver
-    if (G.equipW.me == null && G.wInv.owned[0] && !Object.values(G.equipW).includes(0)) G.equipW.me = 0;
+    if (G.equipW.hero == null && G.wInv.owned[0] && !Object.values(G.equipW).includes(0)) G.equipW.hero = 0;
     keepRng();
   }
   const keepRng = () => { G.rng = rng.state(); };
@@ -102,15 +108,21 @@ var SYS = window.SYS || (() => {
   const turretOpen = () => MOUNT_AT.filter(at => G.bunker >= at).length;
   const relicOpen = () => Lg.relicSlots(G.record);
   const jobCount = job => G.crew.reduce((n, c) => n + (c && c.job === job ? 1 : 0), 0);
-  // a card's ability works in its own section: each section's places (its people) take the best cards of that role
+  // the named crew (민준 and the rest) are cards in a collection, never hands in a section: every owned card's ability
+  // works all the time (its stars scale it), the one chosen as 대표 10% more
   function cardAbilities() {
-    const ab = {}, staffed = { roof: jobCount('사수'), food: jobCount('농부'), mine: jobCount('광부'), shop: jobCount('정비공'), lab: 0 }, active = new Set();
-    for (const sec of Object.keys(staffed)) {
-      const ids = Object.keys(G.cards).filter(id => id !== 'me' && Lg.ROLE_SECTION[Lg.CARD[id].role] === sec)
-        .sort((a, b) => Lg.CARD[b].grade - Lg.CARD[a].grade || G.cards[b].stars - G.cards[a].stars).slice(0, staffed[sec]);
-      for (const id of ids) { active.add(id); for (const [k, v] of Object.entries(Lg.ability(id, { cards: G.cards }))) ab[k] = (ab[k] || 0) + (+v || 0); }
+    const ab = {}, active = new Set();
+    for (const id of Object.keys(G.cards)) {
+      if (id === 'me') continue;
+      const f = id === G.leader ? 1 + tun().crew.leaderPct : 1;
+      active.add(id);
+      for (const [k, v] of Object.entries(Lg.ability(id, { cards: G.cards }))) ab[k] = (ab[k] || 0) + (+v || 0) * f;
     }
     return { ab, active };
+  }
+  function setLeader(id) {
+    if (!on || !(id === 'me' || G.cards[id])) return false;
+    G.leader = id; changed(); return true;
   }
   // the commander levels on their own: each level's points go half to power, half to luck (no allocation screen)
   function cmdMuls(level = G.cmd.level) {
@@ -158,17 +170,22 @@ var SYS = window.SYS || (() => {
   }
 
   /* ================= people: who shoots, and with what ================= */
-  const keyOf = p => (p.hero ? 'me' : p.look.key);
-  const shooterKeys = () => ['me', ...G.crew.filter(c => c && c.job === '사수').map(c => c.look.key)];
-  // a person from an id the screens may hold: 'me' / -1 for the hero, a bed number, a look key ('minjun') or a name
+  // who shoots: the hero ('hero') and the nameless gunners bought for the roof, by their place there ('roof:0'...)
+  const roofGunners = () => G.crew.filter(c => c && c.job === '사수');
+  const keyOf = p => (p.hero ? 'hero' : p.job === '사수' ? 'roof:' + roofGunners().indexOf(p) : null);
+  const shooterKeys = () => ['hero', ...roofGunners().map((c, k) => 'roof:' + k)];
+  // a person from an id the screens may hold: 'hero' ('me', -1) or 'roof:k', or a bed number
   function personOf(id) {
-    if (id == null || id === 'me' || id === 'hero' || id === -1 || id === '-1' || id === '나') return G.hero ? { key: 'me', p: G.hero } : { key: 'me', p: { hero: true } };
-    if (typeof id === 'object' && id.look) return { key: keyOf(id), p: id };
-    if (typeof id === 'number' || /^\d+$/.test(id)) { const p = G.crew[+id]; return p ? { key: keyOf(p), p } : null; }
-    const p = G.crew.find(c => c && (c.look.key === id || c.name === id));
-    return p ? { key: keyOf(p), p } : null;
+    if (id == null || id === 'hero' || id === 'me' || id === -1 || id === '-1' || id === '나') return { key: 'hero', p: G.hero || { hero: true } };
+    if (typeof id === 'object') return id.hero ? { key: 'hero', p: id } : keyOf(id) ? { key: keyOf(id), p: id } : null;
+    const m = /^roof:(\d+)$/.exec(id);
+    if (m) { const p = roofGunners()[+m[1]]; return p ? { key: 'roof:' + m[1], p } : null; }
+    if (typeof id === 'number' || /^\d+$/.test(id)) { const p = G.crew[+id]; return p && keyOf(p) ? { key: keyOf(p), p } : null; }
+    return null;
   }
-  const nameOfKey = k => (k === 'me' ? '나' : (G.crew.find(c => c && c.look.key === k) || { name: k }).name);
+  const nameOfKey = k => (k === 'hero' ? '나' : /^roof:\d+$/.test(k) ? '사수 ' + (+k.slice(5) + 1) : k);
+  // each gunner and the weapon in its hands (the screens' weapon slots)
+  const gunners = () => shooterKeys().map(id => { const i = G.equipW[id]; return { id, label: nameOfKey(id), weapon: i != null ? i : -1, weaponName: i != null ? Lg.WEAPONS[i].name : null, manual: !!G.manual.w[id] }; });
   const holderOf = i => { for (const [k, v] of Object.entries(G.equipW)) if (v === i) return k; return null; };
   // A choice made on screen stays (G.manual); every other hand, turret slot and relic slot takes the best of what is
   // free, hero first, so a better summon goes straight into use until the player picks something themselves
@@ -225,7 +242,7 @@ var SYS = window.SYS || (() => {
     return Lg.CARDS.map(c => {
       const own = G.cards[c.id], need = own ? tun().crew.starDupes[own.stars - 1] : null;
       return { id: c.id, name: c.name, grade: c.grade, gradeName: gradeName(c.grade), role: c.role, desc: c.desc, owned: !!own || c.id === 'me',
-        stars: own ? own.stars : c.id === 'me' ? 1 : 0, dupes: own ? own.dupes : 0, toNextStar: need != null && own.stars < 5 ? need - own.dupes : null, active: active.has(c.id) };
+        stars: own ? own.stars : c.id === 'me' ? 1 : 0, dupes: own ? own.dupes : 0, toNextStar: need != null && own.stars < 5 ? need - own.dupes : null, active: active.has(c.id), leader: G.leader === c.id };
     });
   }
   function codex() {
@@ -350,18 +367,23 @@ var SYS = window.SYS || (() => {
   const equipTurret = (slot, i) => equipSlot(G.equipT, G.manual.t, turretOpen(), slot, i, x => G.tInv.owned[x]);
   const equipRelic = (slot, id) => equipSlot(G.rel.slots, G.manual.r, relicOpen(), slot, id, x => G.rel.level[x] > 0);
 
-  /* ================= workers, bought per floor ================= */
-  // farm, mine and workshop take nameless hands bought for that floor; the roof's gunners are hired as before (a bed
-  // each, named); everyone sleeps in a bed and eats (state.js, loop.js). The price is the next hand's, as before
-  const SECTIONS = { farm: { job: '농부', max: 5 }, mine: { job: '광부', max: 5 }, workshop: { job: '정비공', max: 4, unlock: 15 }, roof: { job: '사수', max: 5 } };
+  /* ================= workers, bought per section ================= */
+  // every hand is bought for its section, nameless: the roof's gunners (into the next open place on the roof: they
+  // open at bunker levels 1/11/31/61/91, doc 8), the farm, the mine and the workshop. Nobody is hired into a bed or
+  // moved between sections; everyone sleeps in a bed and eats (state.js, loop.js). The price is the next hand's, as
+  // the hire ladder had it (the logic prices no roof place)
+  const SECTIONS = { roof: { job: '사수', max: () => (on ? Lg.shooterSlots(G.bunker) - 1 : 5) }, farm: { job: '농부', max: () => 5 }, mine: { job: '광부', max: () => 5 },
+    workshop: { job: '정비공', max: () => 4, unlock: 15 } };
   const SEC = { farm: 'farm', food: 'farm', '2층 식량': 'farm', mine: 'mine', ore: 'mine', mineral: 'mine', '3층 채굴': 'mine', workshop: 'workshop', shop: 'workshop', parts: 'workshop', '작업장': 'workshop', roof: 'roof', gunner: 'roof', '지붕 초소': 'roof' };
   function workers(section) {
     const key = SEC[section], s = SECTIONS[key];
     if (!s) return null;
     const used = hired().length, beds = bedsOf(G.live), c = used < HIRE.length ? capCost({ ...HIRE[used] }) : null, count = jobCount(s.job);
-    const locked = !!s.unlock && Math.max(G.record + 1, G.best) < s.unlock;
-    const reason = locked ? '스테이지 ' + s.unlock : count >= s.max ? '최대' : used >= beds || !c ? '침대 부족' : null;
-    return { section: key, job: s.job, count, max: s.max, price: c && purse({ gold: c.money, food: c.food, ore: c.mineral }),
+    const locked = !!s.unlock && Math.max(G.record + 1, G.best) < s.unlock, max = s.max();
+    // a full roof waits for the bunker level that opens its next place
+    const nextAt = key === 'roof' && on ? tun().base.roofSlotsAt.find(l => G.bunker < l) : null;
+    const reason = locked ? '스테이지 ' + s.unlock : count >= max ? (nextAt ? '벙커 Lv ' + nextAt : '최대') : used >= beds || !c ? '침대 부족' : null;
+    return { section: key, job: s.job, count, max, price: c && purse({ gold: c.money, food: c.food, ore: c.mineral }),
       beds: { used, total: beds }, locked, lockReason: reason, reason, canBuy: !reason && !!c && canPay(c) };
   }
   function buyWorker(section) {
@@ -687,7 +709,7 @@ var SYS = window.SYS || (() => {
     const role = ROLES[t.role], st = stats(), boss = z.type === 'boss';
     const dmg = turretDps(t.i) / TFIRE[t.role].rate * (boss ? role.boss * st.turretBoss * st.boss : 1) * (z.armor ? 1 - z.armor * .3 : 1);
     t.flash = 1; t.recoil = 1; t.shots++;
-    const mz = t.muzzle || [project(t.x, t.y, t.z + .3).sx, project(t.x, t.y, t.z + .3).sy], hit = project(z.x, z.y, .8);
+    const mz = t.muzzle || [project(t.x, t.y, t.z + .3).sx, project(t.x, t.y, t.z + .3).sy], hit = project(z.x, z.y, z.hitZ || .8);
     G.tracers.push({ ax: mz[0], ay: mz[1], bx: hit.sx, by: hit.sy, life: .06 });
     sound('shot');
     if (t.role === 'blast') {
@@ -695,7 +717,7 @@ var SYS = window.SYS || (() => {
       spray(z.x, z.y, .4, 14, 2.4, 2.2, .6, [rgb(255, 214, 120), rgb(255, 150, 60), rgb(120, 110, 100)]);
     } else if (t.role === 'tesla') {
       let from = z;
-      for (const o of near(z, 1.7, z).slice(0, 2)) { const a = project(from.x, from.y, .8), b = project(o.x, o.y, .8); G.tracers.push({ ax: a.sx, ay: a.sy, bx: b.sx, by: b.sy, life: .06 }); hurt(o, dmg * .6, true, true); from = o; }
+      for (const o of near(z, 1.7, z).slice(0, 2)) { const a = project(from.x, from.y, from.hitZ || .8), b = project(o.x, o.y, o.hitZ || .8); G.tracers.push({ ax: a.sx, ay: a.sy, bx: b.sx, by: b.sy, life: .06 }); hurt(o, dmg * .6, true, true); from = o; }
     } else if (t.role === 'status') {
       if (t.el === 'fire') ignite(z, dmg * .5); else chill(z, .35);
     }
@@ -817,7 +839,11 @@ var SYS = window.SYS || (() => {
     if (secT >= 1) {
       goldRate += ((G.earned - goldMark) / secT - goldRate) * Math.min(1, secT / 60); goldMark = G.earned; secT = 0;
       daily(); automate();
-      // the game changed what the numbers rest on (a hire, the bunker, a new record): count again
+      // a hand stays in the section it was bought for (nothing on the screens may move it)
+      let moved = false;
+      for (const c of G.crew) if (c && c.section && SECTIONS[c.section] && c.job !== SECTIONS[c.section].job) { c.job = SECTIONS[c.section].job; c.name = c.job; moved = true; }
+      if (moved) resyncPosts();
+      // the game changed what the numbers rest on (a hand, the bunker, a new record): count again
       const s = [G.bunker, G.record, G.live, jobCount('사수'), jobCount('농부'), jobCount('광부'), jobCount('정비공')].join();
       if (s !== sig) { sig = s; autoEquip(); changed(); }
     }
@@ -850,6 +876,11 @@ var SYS = window.SYS || (() => {
     downTower(slot, sec) { const t = towers.find(x => x.k === slot); if (t) t.down = Math.max(t.down || 0, sec * (1 - stats().turretResist)); },
     stunResist: () => (on ? stats().stunResist : 0),
     zombieName: k => (on && Lg.ZOMBIES[k] ? Lg.ZOMBIES[k].name : null),
+    // where a boss's own art may be found in ART_BOSSES.types: the titan, its band's pattern, the band, its name
+    bossArtKeys(w, titan) {
+      const b = titan ? 9 : on ? Lg.band(w) : 0, B = on ? Lg.BANDS[b] : null;
+      return [titan && 'titan', B && B.pattern, 'band' + b, String(b), B && B.boss, 'boss'].filter(Boolean);
+    },
     // every kill: XP, parts, and a relic every 2,000 kills
     killed(z, s) {
       if (!on) return;
@@ -930,7 +961,7 @@ var SYS = window.SYS || (() => {
     attach, ensure, start, hook,
     weapons: guard(() => gear('weapon'), () => []), turrets: guard(() => gear('turret'), () => []), relics: guard(relics, () => []), relicSets: guard(relicSets, () => []),
     cards: guard(cards, () => []), codex: guard(codex, null), summonInfo, summon, mergeAll, mergeable, enhance, enhancePrice,
-    equipWeapon, equipTurret, equipRelic, equipBest: guard(equipBest, false),
+    equipWeapon, equipTurret, equipRelic, equipBest: guard(equipBest, false), gunners: guard(gunners, () => []), setLeader,
     slots: guard(() => ({ turrets: turretOpen(), turretsMax: SLOTS_T, relics: relicOpen(), relicsMax: SLOTS_R, turretAt: MOUNT_AT.slice(), relicAt: tun().relics.slotsAt.slice() }), null),
     weaponOf: guard(id => { const pr = personOf(id); return pr && G.equipW[pr.key] != null ? G.equipW[pr.key] : -1; }, -1),
     workers, buyWorker, commander, prestigeInfo, prestige, buyMedalUp, setAutomation, setAuto: setAutomation, setAutoShare, presets, savePreset, loadPreset,

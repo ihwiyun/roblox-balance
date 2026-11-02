@@ -83,7 +83,7 @@ function update(dt) {
       spray(c.x + Math.cos(c.yaw) * .35, c.y + Math.sin(c.yaw) * .35, .45, 3, 1.2, 1.4, .3, [rgb(255, 214, 120), rgb(255, 160, 60)]);
     }
   }
-  G.hurt = Math.max(0, G.hurt - dt);
+  G.hurt = Math.max(0, G.hurt - dt); G.quake = Math.max(0, (G.quake || 0) - dt);
   for (const t of G.tracers) t.life -= dt;
   keep(G.tracers, t => t.life > 0);
   updateParts(dt);
@@ -116,7 +116,7 @@ function drawYard() {
     if (groundDecals < G.decals.length) { for (let k = groundDecals; k < G.decals.length; k++) paintDecal(G.decals[k]); groundFrame.set(pix); groundDecals = G.decals.length; }
   }
   applyFlash('yard');
-  for (const z of G.zombies) drawZombie(z);
+  for (const z of G.zombies) if (z.type === 'boss') drawBoss(z); else drawZombie(z);
   if (G.hero) drawPerson(G.hero);
   for (const c of G.crew) if (c && c.where === 'yard') drawHand(c);
   SYS.hook.drawYard(); // the turrets on the bunker's mounts
@@ -149,21 +149,48 @@ function drawYard() {
     if (k >= 5 && Math.random() < .3) { const side = Math.floor(Math.random() * 4), [x, y] = SIDE_AT(side, (Math.random() * 2 - 1) * FENCE_R); const p = project(x, y, .3 + Math.random() * .3); putPx(Math.round(p.sx), Math.round(p.sy), rgb(200, 240, 255), 99); putPx(Math.round(p.sx) + 1, Math.round(p.sy), rgb(140, 210, 255), 99); }
   }
   drawBars();
-  drawBossClock();
   if (G.hero) drawAmmo(G.hero);
   for (const f of G.floats) { const p = project(f.x, f.y, f.z); if (f.life > .25 || Math.floor(f.life * 20) % 2) pixelText(f.text, p.sx, p.sy - 6, f.color); }
 }
-// the boss's clock over its health bar (red in the last ten seconds), and a titan's phases as pips beside it (the
-// spent ones dark)
-function drawBossClock() {
-  const z = G.bossLeft > 0 && (G.zombies.find(o => o.type === 'boss' && !o.minion && o.state !== 'dying' && o.visible) || G.zombies.find(o => o.type === 'boss' && o.state !== 'dying' && o.visible));
-  if (!z) return;
-  const x = Math.round(z.sx), y = z.top - 13;
-  pixelText(String(Math.ceil(G.bossLeft)), x, y, G.bossLeft < 10 ? rgb(255, 96, 80) : rgb(255, 255, 255));
-  if (z.phases) for (let k = 0; k < z.phases.length; k++) for (let dy = -1; dy < 4; dy++) for (let dx = -1; dx < 4; dx++) {
-    const ix = x + 9 + k * 5 + dx, iy = y + 1 + dy, edge = dx < 0 || dy < 0 || dx > 2 || dy > 2;
-    if (ix >= 0 && iy >= 0 && ix < W && iy < H) pix[iy * W + ix] = edge ? INK : k < z.phase ? rgb(70, 66, 64) : SIGNAL;
+// A boss drawn big: each pixel of its frame becomes a k-by-k block from the anchor (its feet) up, each block at the
+// depth of its own height and throwing its own shadow (k = 1 draws art made at its own size); white only for the
+// short flash of a hit. Answers where the anchor landed
+function drawBig(type, anim, view, idx, mirror, x, y, z, pal, k, fade, hit, shadow = true) {
+  const set = SPR[type], frames = set.anims[anim][view], fr = frames[((idx % frames.length) + frames.length) % frames.length];
+  const p = projectTo(SPRITE_AT.p, x, y, z), bx = Math.round(p.sx), by = Math.round(p.sy), ax = set.ax, ay = set.ay, cells = fr.cells;
+  for (let n = 0; n < cells.length; n += 3) {
+    const cx = cells[n], cy = cells[n + 1], key = cells[n + 2], color = hit && key !== 111 ? WHITE : pal[key];
+    const x0 = bx + (mirror ? ax - cx : cx - ax) * k, y0 = by + (cy - ay) * k - (k - 1);
+    for (let dy = 0; dy < k; dy++) {
+      const sy = y0 + dy, hpx = (ay - cy) * k + (k - 1 - dy), d = p.d + hpx * perPx + .02;
+      if (sy < 0 || sy >= H) continue;
+      for (let dx = 0; dx < k; dx++) {
+        const sx = x0 + dx;
+        if (sx < 0 || sx >= W || (fade < 1 && bayerAt(sx, sy) >= fade)) continue;
+        const i = sy * W + sx;
+        if (d <= zb[i]) continue;
+        zb[i] = d; pix[i] = color;
+        if (shadow && fade >= 1 && shadowN < SHADOW_CAP * 4) { spriteShadow[shadowN] = sx; spriteShadow[shadowN + 1] = hpx; spriteShadow[shadowN + 2] = by; spriteShadow[shadowN + 3] = z; shadowN += 4; }
+      }
+    }
   }
+  return { bx, by, ay };
+}
+// a boss in its own look and size (zombies.js dressBoss); under the ground its mound, as big
+function drawBoss(z) {
+  const L = z.look || { type: 'boss', pal: ZPALS.boss, k: 1 }, k = L.k;
+  if (z.under && z.state !== 'emerge') {
+    const m = SPR.mound, name = Object.keys(m.anims)[0];
+    drawBig('mound', name, 'F', Math.floor(z.t * m.anims[name].fps), false, z.x, z.y, 0, ZPALS.mound, k, 1, false, false);
+    z.sx = -99; z.sy = -99;
+    return;
+  }
+  const set = SPR[L.type], { view, mirror } = facingOf(z.yaw), [anim, idx] = zombieFrame(z, ZTYPES.boss, set);
+  const fade = z.state === 'dying' ? clamp(4.4 - z.t, 0, 1) : clamp((FIELD + .7 - z.n) / 1.0, 0, 1);
+  if (fade <= 0) return;
+  const at = drawBig(L.type, anim, set.anims[anim][view] ? view : 'F', idx, mirror, z.x, z.y, z.zh || 0, L.pal, k, fade, z.hit > 0);
+  z.sx = at.bx; z.sy = at.by - Math.round(at.ay * k * .5); z.top = at.by - at.ay * k + 1;
+  if (z.healing && Math.random() < .5) part(z.x + (Math.random() - .5) * .3 * k, z.y + (Math.random() - .5) * .3 * k, (.6 + Math.random()) * k, 0, 0, .8, .4, rgb(255, 120, 110), rgb(200, 60, 60), 1, 1);
 }
 // a workshop hand at the bench swings its hammer (the miner's swing, hard hat and all)
 function drawHand(c) {
@@ -206,6 +233,8 @@ function drawUnder() {
 }
 function draw() {
   if (G.view === 'under') drawUnder(); else drawYard();
-  const shake = G.hurt > .2 && G.view === 'yard' ? (Math.floor(G.time * 40) % 2 ? 1 : -1) : 0;
-  ctx.putImageData(image, shake, 0);
+  // a hit on the base shakes the picture a pixel; a boss arriving, two each way
+  const yard = G.view === 'yard', q = yard && G.quake > 0 ? (Math.floor(G.time * 30) % 2 ? 2 : -2) : 0;
+  const shake = q || (G.hurt > .2 && yard ? (Math.floor(G.time * 40) % 2 ? 1 : -1) : 0);
+  ctx.putImageData(image, shake, q ? -q / 2 : 0);
 }

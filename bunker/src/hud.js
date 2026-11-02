@@ -124,14 +124,14 @@ const MENUS = {
   up: { title: '강화' },
   gear: { title: '장비', tabs: [['gun', '무기'], ['turret', '터렛'], ['relic', '유물']] },
   crew: { title: '캐릭터' },
-  base: { title: '기지', tabs: [['def', '방어'], ['under', '지하'], ['zones', '배치']] },
+  base: { title: '기지', tabs: [['def', '방어'], ['under', '지하']] },
   shop: { title: '상점', tabs: [['pack', '패키지'], ['gem', '다이아'], ['pass', '편의·패스']] },
   rebirth: { title: '환생' },
   rank: { title: '랭킹', tabs: [['best', '최고 기록'], ['raid', '기지 털기']] },
   codex: { title: '도감' },
 };
 // what is open, the page of each menu, levels bought per tap (0: MAX), the grade shown, the person picked
-const ui = { open: null, sub: { up: 'fire', gear: 'gun', crew: 'crew', base: 'def', shop: 'pack', rank: 'best' }, bulk: 1, grade: -1, sel: -1, jobs: false };
+const ui = { open: null, sub: { up: 'fire', gear: 'gun', crew: 'crew', base: 'def', shop: 'pack', rank: 'best' }, bulk: 1, grade: -1 };
 const sheetOf = m => m === 'up' ? 'up' : m === 'base' && ui.sub.base === 'under' ? 'ug' : null;
 const menuCovers = () => !!ui.open && !sheetOf(ui.open);
 function layout() {
@@ -146,14 +146,13 @@ function layout() {
 }
 function openMenu(m) {
   ensureAudio();
-  if (ui.open !== m) { ui.open = m; ui.jobs = false; ui.pick = false; nodes.panel.scrollTop = 0; }
-  if (ui.sel >= 0 && !G.crew[ui.sel]) ui.sel = -1;
+  if (ui.open !== m) { ui.open = m; ui.pick = false; nodes.panel.scrollTop = 0; }
   layout();
   renderPanel(true);
 }
 function closeMenu() {
   if (!ui.open) return;
-  ui.open = null; ui.jobs = false;
+  ui.open = null;
   layout();
 }
 document.querySelectorAll('.tab').forEach(b => b.addEventListener('click', () => {
@@ -166,7 +165,7 @@ addEventListener('keydown', e => { if (e.key === 'Escape' && ui.open && !documen
 nodes.menuTabs.addEventListener('click', e => {
   const b = e.target.closest('[data-sub]');
   if (!b || ui.sub[ui.open] === b.dataset.sub) return;
-  ui.sub[ui.open] = b.dataset.sub; ui.jobs = false; nodes.panel.scrollTop = 0;
+  ui.sub[ui.open] = b.dataset.sub; nodes.panel.scrollTop = 0;
   layout(); renderPanel(true);
 });
 let tabsKey = '';
@@ -202,7 +201,6 @@ function priceOf(id) {
   if (kind === 'live') return G.live >= LIVE.max ? null : capCost(LIVE.cost(G.live));
   if (kind === 'farm') return G.farm >= FARM.max ? null : capCost(FARM.cost(G.farm));
   if (kind === 'mine') return G.mine >= MINE.max ? null : capCost(MINE.cost(G.mine));
-  if (kind === 'hire') return capCost({ ...HIRE[+key] });
   return null;
 }
 // a price as small resource chips: icon and amount, red when you are short
@@ -284,17 +282,9 @@ function cardHtml(c) {
 }
 const fireHtml = () => bulkHtml() + Object.entries(GUN).map(([k, g]) => cardHtml({ id: 'gun:' + k, ico: { atk: 'bullet', spd: 'rate', mag: 'mag' }[k], name: g.name, lv: 'Lv ' + G.lv[k], inline: true, prog: G.lv[k] / g.max, max: G.lv[k] >= g.max })).join('');
 const cmdHtml = () => sec('지휘관 Lv 1', '포인트 0') + ['위력', '속사', '행운', '정밀', '지휘', '보급'].map(n => line(n, `0 ${off('+')}`)).join('');
-// people: a face with a name; a place to hire into (its price); a place not open yet
-const faceCell = (p, size, attrs = '') => `<${attrs ? 'button type="button" ' + attrs : 'div'} class="cell">${ph('100%', size + 'px', face(p, size))}<span>${p.name}</span></${attrs ? 'button' : 'div'}>`;
-// a bed with nobody in it: someone to hire (a faint figure, the price under it)
-const hireCell = (i, size, w = '100%') => { const c = priceOf('hire:' + i); return `<button class="cell" type="button" data-hire="${i}"${canPay(c) ? '' : ' disabled'}>${ph(w, size + 'px', '<i class="ic ic-person hire" style="--s:2"></i>')}<span>${costHtml(c)}</span></button>`; };
+// a bed's sleeper: the face and the job (the hands are nameless, bought for their section); a bed empty or not open
+const faceCell = (p, size) => `<div class="cell">${ph('100%', size + 'px', face(p, size))}<span>${p.job}</span></div>`;
 const shutCell = (size, label, lock, w = '100%') => `<div class="cell off">${ph(w, size + 'px', lock ? ic('lock', 2) : '')}<span>${label}</span></div>`;
-// a place to work: who is on that job, then empty places (a tap brings over the first hand on another job)
-function zoneHtml(title, job) {
-  const who = G.crew.filter(c => c && c.job === job), can = G.crew.some(c => c && c.job !== job);
-  return sec(title, who.length + '/5') + grid(5, Array.from({ length: 5 }, (_, i) => who[i] ? faceCell(who[i], 40)
-    : `<button class="cell off" type="button" data-assign="${job}"${can ? '' : ' disabled'}>${ph('100%', '40px', '+')}<span>배치</span></button>`));
-}
 // 기지's turret places: opened by the bunker level; a tap picks the turret that stands there
 function turretPlaces(B) {
   const list = sysCall('turrets'), sl = sysCall('slots'), at = sl ? sl.turretAt : TURRET_AT, open = sl ? sl.turrets : TURRET_AT.filter(L => B >= L).length, box = artBox('turret');
@@ -305,26 +295,44 @@ function turretPlaces(B) {
   });
   return sec('터렛 칸', (list ? list.filter(t => t.slot >= 0).length : 0) + '/' + open) + gridOf(box.w + 16, cells, 6);
 }
+// 기지 > 방어: the bunker and the fence, the turret places; above ground the roof's gunners (bought a slot at a time,
+// each with the weapon in its hands) and the workshop's hands; below, the floors and their hands
 function defHtml() {
-  const B = G.bunker, F = G.fence;
+  const BL = G.bunker, F = G.fence;
   return bulkHtml()
-    + cardHtml({ id: 'bunker', pic: 'lg', ico: 'bunker', name: '벙커', lv: bunkerInfo(B).name + ' · Lv ' + B, prog: B / MAX_BUNKER, max: B >= MAX_BUNKER })
+    + cardHtml({ id: 'bunker', pic: 'lg', ico: 'bunker', name: '벙커', lv: bunkerInfo(BL).name + ' · Lv ' + BL, prog: BL / MAX_BUNKER, max: BL >= MAX_BUNKER })
     + cardHtml({ id: 'fence', pic: 'lg', ico: 'fence', name: '울타리', lv: (F ? fenceInfo(F).name + ' · ' : '') + 'Lv ' + F, prog: F / MAX_FENCE, max: F >= MAX_FENCE })
-    + turretPlaces(B)
+    + turretPlaces(BL)
+    + (sys() ? sec('지상') + placeRow('지붕 사수', 'person', 'roof') + roofGunners().map(gunnerRow).join('') + placeRow('작업장', 'drill', 'workshop') : '')
     + sec('지하') + FLOORS_UI.map(([name, ico], k) => `<div class="floorrow"><button class="go" type="button" data-floor="${k}">${ph(FLOOR_SECTION[k] && sys() ? '48px' : '72px', '44px', ic(ico, 2))}<span>${name}<br>Lv ${floorLevel(k)}</span>${ic('next')}</button>${FLOOR_SECTION[k] ? workerBuy(FLOOR_SECTION[k]) : ''}</div>`).join('');
 }
 function underHtml() {
   const k = G.floorView || 0, L = floorLevel(k), max = [LIVE, FARM, MINE][k].max;
   const chips = `<div class="chips c4">${FLOORS_UI.map(([n], j) => `<button class="chip" type="button" data-floor="${j}" aria-pressed="${j === k}">${n}</button>`).join('')}<button class="chip" type="button" disabled>4층 연구소</button></div>`;
   const card = cardHtml({ id: ['live', 'farm', 'mine'][k], pic: 'sm', ico: FLOORS_UI[k][1], name: ['침대', '씨앗', '곡괭이'][k], lv: '레벨 · Lv ' + L, inline: true, prog: L / max, max: L >= max });
-  // the living floor: its beds, and who sleeps in them
+  // the living floor: its beds and who sleeps in them (nobody is hired into a bed: hands are bought for a section)
   const beds = bedsOf(G.live);
   const workers = k ? (sys() ? `<div class="sec"><span>일꾼</span>${workerBuy(FLOOR_SECTION[k], '')}</div>` : '')
-    : sec('일꾼', hired().length + '/5') + grid(5, G.crew.map((c, i) => c ? faceCell(c, 40) : i < beds ? hireCell(i, 40) : shutCell(40, '잠김', true)));
+    : sec('침대', hired().length + '/' + beds) + grid(5, G.crew.map((c, i) => c ? faceCell(c, 40) : i < beds ? shutCell(40, '빈 침대', false) : shutCell(40, 'Lv ' + LIVE.beds[i], true)));
   return chips + bulkHtml() + card + workers;
 }
-// the roof's gunners are placed by name (for now); the floors' workers are bought per floor (기지 > 지하)
-const zonesHtml = () => zoneHtml('지붕 초소', '사수') + (sys() ? `<div class="sec"><span>작업장</span>${workerBuy('workshop', '')}</div>` : sec('작업장', '잠김'));
+// a section above ground where hands are bought: its picture and name, how many of how many, +1 with its price
+const placeRow = (name, ico, section) => `<div class="floorrow"><div class="go place">${ph('48px', '44px', ic(ico, 2))}<span>${name}</span></div>${workerBuy(section)}</div>`;
+// the roof's gunners, a slot each: the systems' list (SYS.gunners) when there is one, else the crew on the roof; each
+// with the weapon in its hands and the key the weapon picker equips by (나 is not one: its weapon is in 캐릭터)
+function roofGunners() {
+  const ws = sysCall('weapons') || [], roof = G.crew.filter(c => c && c.job === '사수'), L = sysCall('gunners');
+  const held = key => ws.find(w => w.equippedBy === key) || null;
+  if (Array.isArray(L)) return L.filter(g => g && (g.key ?? g.id) !== 'me').map((g, n) => {
+    const key = g.key ?? g.id ?? 'roof:' + n, wi = typeof g.weapon === 'number' ? g.weapon : g.weapon && typeof g.weapon === 'object' ? g.weapon.i : null;
+    return { key, person: g.person || (Number.isInteger(g.bed) ? G.crew[g.bed] : null) || roof[n] || G.hero, weapon: wi != null && wi >= 0 ? ws[wi] || null : held(key) };
+  });
+  return roof.map(c => ({ key: c.i, person: c, weapon: held(c.look.key) }));
+}
+// a weapon in a slot as large as the art (2x), its level; an empty slot the same size
+const weaponSlot = (w, extra = '') => { const box = artBox('weapon'); return `<span class="slot${w ? ' g' + w.grade : ''} ${extra}" style="width:${box.w + 16}px;height:${box.h + 32}px">${w ? itemArt('weapon', w.i, true) + `<em>Lv ${w.level}</em>` : ''}</span>`; };
+// a gunner on the roof: standing, small, and the weapon in its hands as a slot (a tap picks another)
+const gunnerRow = g => `<div class="gunrow">${standHtml(g.person, 2)}<button class="wslot tap" type="button" data-gunner="${g.key}" aria-label="무기 고르기">${weaponSlot(g.weapon)}</button><span class="aux">${g.weapon ? g.weapon.name : ''}</span></div>`;
 // a floor's workers: how many of how many, and +1 with its price
 const FLOOR_SECTION = [null, 'food', 'mine'];
 function workerBuy(section, cls = 'sm') {
@@ -363,28 +371,37 @@ function stand(p) {
   return st;
 }
 const standHtml = (p, k = 4) => { const st = stand(p); return `<span class="stand" role="img" aria-label="${p.name}" style="width:${st.w * k}px;height:${st.h * k}px;background-image:url(${st.url});background-size:${st.w * k * st.n}px ${st.h * k}px;--w:${st.w * k}px;--n:${st.n};--t:${st.t}s"></span>`; };
-// the crew grid: a portrait in a 48 frame (the new busts go in the same frame), the name; the one picked outlined
-const crewCell = (i, c, picked) => `<button type="button" class="cell" data-sel="${i}" aria-pressed="${picked}">${ph('50px', '50px', face(c, 40))}<span>${c.name}</span></button>`;
+// 캐릭터: 나 standing with the weapon in its hands (a tap picks another); the crew cards, a collection whose passive
+// abilities work by themselves (owned in colour with their stars, the rest as silhouettes), and 동료 모집
+function cardCell(c) {
+  const box = artBox('crew'), stars = c.owned && c.stars ? `<em>${ic('star')}${c.stars}</em>` : '', dupes = c.owned && c.toNextStar != null ? `<u>${c.dupes}/${c.dupes + c.toNextStar}</u>` : '';
+  const inner = `<span class="slot g${c.grade}" style="height:${box.h + 16}px">${itemArt('crew', c.id === 'me' ? 'hero' : String(c.id), c.owned)}${stars}${dupes}</span><b>${c.owned ? c.name : '???'}</b>`;
+  return c.owned ? `<button class="rc card" type="button" data-card="${c.id}">${inner}</button>` : `<div class="rc card off">${inner}</div>`;
+}
 function crewHtml() {
-  const p = ui.sel >= 0 && G.crew[ui.sel] || G.hero, shoots = p.hero || p.job === '사수', fam = weaponFamily(G.lv.atk);
-  // the weapon this person carries (systems), else the rifle the game draws for all
-  const pid = p.hero ? 'me' : p.look.key, ws = sysCall('weapons'), w = ws && ws.find(x => x.equippedBy === pid);
-  // the weapon slot beside the one standing: only those who shoot carry one. The game has one rifle for all for now
-  const slotHtml = extra => w ? `<span class="slot g${w.grade} ${extra}" style="width:${artBox('weapon').w + 16}px;height:${artBox('weapon').h + 32}px">${itemArt('weapon', w.i, true)}<em>Lv ${w.level}</em></span>`
-    : `<span class="slot ${extra}">${gunImg(fam)}<em>Lv ${G.lv.atk}</em></span>`;
-  const weapon = shoots ? `<button class="wslot tap" type="button" data-pick aria-label="무기 고르기">${slotHtml('')}<span class="aux">${w ? w.name : weaponLookName(G.lv.atk)}</span></button>` : '';
-  const top = `<div class="hero">${standHtml(p)}${weapon}</div><div class="info"><b class="t16">${p.name}</b><div class="role">${p.hero ? '사수' : p.job}</div>`
-    + (p.hero ? '' : `<div class="tired"><span data-tired="${p.i}"></span></div>`)
-    // a stat shows once the game has a value for it (체력, 능력 come with the crew stats)
-    + [['사격', shoots ? fmt(damageOf()) : null], ['체력', null], ['능력', null]].filter(([, v]) => v != null).map(([k, v]) => line(k, `<b class="num">${v}</b>`)).join('') + '</div>';
+  const p = G.hero, fam = weaponFamily(G.lv.atk), ws = sysCall('weapons'), w = ws && ws.find(x => x.equippedBy === 'me');
+  // the weapon in 나's hands (systems), else the rifle the game draws for all
+  const slotHtml = extra => w ? weaponSlot(w, extra) : `<span class="slot ${extra}">${gunImg(fam)}<em>Lv ${G.lv.atk}</em></span>`;
+  const weapon = `<button class="wslot tap" type="button" data-pick aria-label="무기 고르기">${slotHtml('')}<span class="aux">${w ? w.name : weaponLookName(G.lv.atk)}</span></button>`;
+  const top = `<div class="hero">${standHtml(p)}${weapon}</div><div class="info"><b class="t16">${p.name}</b><div class="role">사수</div>` + line('사격', `<b class="num">${fmt(damageOf())}</b>`) + '</div>';
   // the weapons to pick from (a tap on the weapon slot): those owned, the one carried outlined
-  if (ui.pick && shoots && ws) { pickSheet('무기', 'weapon', w ? w.i : -1, i => sysCall('equipWeapon', pid, i)); ui.pick = false; }
-  if (ui.pick && shoots) return top + `<div class="wpick"><div class="sh"><b class="t16">무기</b><button class="ib tap" type="button" data-unpick aria-label="닫기">${ic('close', 1.5)}</button></div>`
+  if (ui.pick && ws) { pickSheet('무기', 'weapon', w ? w.i : -1, i => sysCall('equipWeapon', 'me', i)); ui.pick = false; }
+  if (ui.pick) return top + `<div class="wpick"><div class="sh"><b class="t16">무기</b><button class="ib tap" type="button" data-unpick aria-label="닫기">${ic('close', 1.5)}</button></div>`
     + sec('보유', '1') + grid(5, [slotHtml('ring')]) + '<div class="tool">' + B('sub', '장비로', 'data-gogear') + '</div></div>';
   const btns = `<div class="acts">${B('pri grow', '레벨업', 'disabled')}${B('sub', '대표', 'disabled')}</div>`;
-  const beds = bedsOf(G.live);
-  const cells = [crewCell(-1, G.hero, p === G.hero), ...G.crew.map((c, i) => c ? crewCell(i, c, p === c) : i < beds ? hireCell(i, 50, '50px') : shutCell(50, '???', true, '50px')), ...Array.from({ length: 6 }, () => shutCell(50, '???', false, '50px'))];
-  return top + btns + sec('보유 동료', 1 + hired().length + '/24') + strip('crew', '동료 모집', 200, 'mid') + grid(4, cells);
+  const cards = sysCall('cards') || [{ id: 'me', name: p.name, grade: 0, owned: true, stars: 1, toNextStar: null }];
+  return top + btns + sec('보유 동료', cards.filter(c => c.owned).length + '/' + cards.length) + strip('crew', '동료 모집', 200, 'mid') + gridOf(artBox('crew').w + 16, cards.map(cardCell), 4);
+}
+// a crew card up close: its portrait, grade and stars, its ability, the copies to its next star
+function cardSheet(id) {
+  const find = () => (sysCall('cards') || []).find(c => c.id === id);
+  const c = find();
+  if (!c) return;
+  openSheet(c.name, () => {
+    const x = find();
+    return `<div class="ihero slot g${x.grade}">${itemArt('crew', x.id === 'me' ? 'hero' : String(x.id), true)}</div><div class="sec"><span class="gr g${x.grade}">${GRADES[x.grade]}</span><span class="num">${ic('star')}${x.stars}</span></div>`
+      + (x.desc ? `<p class="aux">${x.desc}</p>` : '') + (x.toNextStar != null ? line('다음 별까지', `<b class="num">${x.toNextStar}</b>`) : '');
+  });
 }
 // buttons: the primary filled (one a screen), the secondary an outline; small icons and labels go inside
 const B = (cls, inner, attrs = '') => `<button class="b ${cls} tap" type="button"${attrs ? ' ' + attrs : ''}>${inner}</button>`;
@@ -627,7 +644,7 @@ function pageHtml() {
   if (m === 'up') return p === 'cmd' ? cmdHtml() : fireHtml();
   if (m === 'crew') return p === 'cmd' ? cmdHtml() : crewHtml();
   if (m === 'gear') return gearHtml();
-  if (m === 'base') return p === 'under' ? underHtml() : p === 'zones' ? zonesHtml() : defHtml();
+  if (m === 'base') return p === 'under' ? underHtml() : defHtml();
   if (m === 'shop') return shopHtml();
   if (m === 'rebirth') return rebirthHtml();
   if (m === 'rank') return rankHtml();
@@ -663,24 +680,16 @@ function renderPanel(force) {
   // tiredness moves all the time: its bar is set in place, the menu is not rebuilt for it
   for (const el of nodes.panel.querySelectorAll('[data-tired]')) { const c = G.crew[+el.dataset.tired]; if (c) setWidth(el, c.fatigue / 100); }
 }
-function setJob(i, job) {
-  const p = G.crew[i];
-  if (!p || p.job === job) return;
-  p.job = job;
-  if (p.state !== 'sleep' && p.state !== 'toBed') sendTo(p, workSpot(p), 'toWork');
-  resyncPosts(); sound('buy'); renderPanel(true);
-}
 nodes.panel.addEventListener('click', e => {
   const b = e.target.closest('button');
   if (!b || b.disabled) return;
   const d = b.dataset;
   if (d.buy) act(d.buy);
-  else if (d.hire) act('hire:' + d.hire);
   else if ('bulk' in d) { ui.bulk = +d.bulk; renderPanel(true); }
   else if (d.floor) { ensureAudio(); viewFloor(+d.floor); }
   else if (d.grade) { ui.grade = +d.grade; renderPanel(true); }
-  else if (d.sel) { ui.sel = +d.sel; ui.jobs = false; ui.pick = false; renderPanel(true); }
-  else if ('jobs' in d) { ui.jobs = !ui.jobs; renderPanel(true); }
+  else if (d.card) cardSheet(d.card);
+  else if (d.gunner != null) { const g = roofGunners().find(x => String(x.key) === d.gunner); if (g) pickSheet('무기', 'weapon', g.weapon ? g.weapon.i : -1, i => sysCall('equipWeapon', g.key, i)); }
   else if (d.rates) openSheet('확률', () => ratesHtml(d.rates));
   else if (d.item) { const [kind, i] = d.item.split(':'); itemSheet(kind, +i); }
   else if (d.relicslot != null) { const k = +d.relicslot, on = (listOf('relic') || []).find(r => r.slot === k); pickSheet('유물', 'relic', on ? on.id : -1, id => sysCall('equipRelic', k, id)); }
@@ -694,8 +703,6 @@ nodes.panel.addEventListener('click', e => {
   else if ('pick' in d) { ui.pick = true; renderPanel(true); }
   else if ('unpick' in d) { ui.pick = false; renderPanel(true); }
   else if ('gogear' in d) { ui.pick = false; ui.sub.gear = 'gun'; openMenu('gear'); }
-  else if (d.job) setJob(ui.sel, d.job);
-  else if (d.assign) { const i = G.crew.findIndex(c => c && c.job !== d.assign); if (i >= 0) setJob(i, d.assign); }
 });
 // whether any of the levels from + 1 to to begins something new
 const crossed = (isNew, from, to) => { for (let L = from + 1; L <= to; L++) if (isNew(L)) return true; return false; };
@@ -704,7 +711,7 @@ const crossed = (isNew, from, to) => { for (let L = from + 1; L <= to; L++) if (
 function act(id, want = ui.bulk) {
   ensureAudio();
   const [kind, key] = id.split(':');
-  const plan = planOf(id, kind === 'hire' ? 1 : want);
+  const plan = planOf(id, want);
   if (!plan || !canPay(plan.cost)) return;
   const n = plan.n;
   if (kind === 'gun') {
@@ -731,13 +738,6 @@ function act(id, want = ui.bulk) {
     const tiers = kind === 'farm' ? FARM_TIERS : MINE_TIERS, floorName = kind === 'farm' ? '식량층' : '채굴층';
     if (!from || facTier(G[kind]) !== facTier(from)) notify(floorName + ' · ' + tiers[facTier(G[kind])], (kind === 'farm' ? '식량' : '광물') + ' 초당 ' + (kind === 'farm' ? FARM : MINE).rate(G[kind]).toFixed(1), 'good');
     markUnder(kind === 'farm' ? 1 : 2, true); viewFloor(kind === 'farm' ? 1 : 2);
-  } else if (kind === 'hire') {
-    const i = +key;
-    if (G.crew[i] || i >= bedsOf(G.live)) return;
-    pay(plan.cost); G.crew[i] = makePerson(i);
-    G.crew[i].state = 'toWork'; G.crew[i].path = route(G.crew[i], workSpot(G.crew[i]));
-    resyncPosts(); // gunner posts follow slot order, so a new hire can move the others
-    markUnder(0); // a bed gets its blanket
   } else return;
   sound('buy');
   renderPanel(true);
@@ -748,6 +748,28 @@ function act(id, want = ui.bulk) {
 const resNodes = ['money', 'food', 'mineral'].map(r => [r, document.getElementById('r-' + r), document.getElementById('rr-' + r)]);
 const gemNode = document.getElementById('r-gem'), diaNode = document.getElementById('r-dia');
 const cmdNode = document.getElementById('cmd'), cmdLv = document.getElementById('cmdLv'), cmdBar = document.getElementById('cmdBar');
+const bossNode = document.getElementById('boss'), bossName = document.getElementById('bossName'), bossTime = document.getElementById('bossTime'), bossFill = document.getElementById('bossFill'), bossCuts = document.getElementById('bossCuts');
+// the boss on the field (SYS.stageNow): one wide bar under the stage pill in place of the stage's own, with its name,
+// its health and its clock (red in the last ten seconds); a titan's bar is cut where its phases change
+function refreshBoss() {
+  const b = (sysCall('stageNow') || {}).boss;
+  nodes.app.classList.toggle('bossup', !!b);
+  bossNode.hidden = !b;
+  if (!b) return;
+  setText(bossName, b.name);
+  setText(bossTime, String(Math.ceil(b.left)));
+  bossTime.classList.toggle('low', b.left < 10);
+  setWidth(bossFill, b.hp);
+  bossNode.classList.toggle('shield', !!b.gathering);
+  // the phases' shares of its health (the logic's), the cuts where one ends: from the full end of the bar
+  let cuts = '';
+  if (b.phases > 1) {
+    const ph = SYS.hook && SYS.hook.bossPhases ? SYS.hook.bossPhases(G.wave) : null, sh = ph && ph.phases.length === b.phases ? ph.phases : Array(b.phases).fill(1 / b.phases);
+    let at = 1;
+    for (let k = 0; k < sh.length - 1; k++) { at -= sh[k]; cuts += `<s style="left:${(at * 100).toFixed(2)}%"></s>`; }
+  }
+  if (bossCuts._h !== cuts) { bossCuts._h = cuts; bossCuts.innerHTML = cuts; }
+}
 function refreshTop() {
   sampleEarn();
   const pm = perMinute();
@@ -763,6 +785,7 @@ function refreshTop() {
   { const cm = sysCall('commander'); cmdNode.hidden = !cm || cm.unlocked === false; if (cm) { setText(cmdLv, 'Lv ' + cm.level); setWidth(cmdBar, cm.need ? cm.xp / cm.need : 0); } }
   setText(nodes.waveBtn, '스테이지 ' + G.wave);
   setWidth(nodes.waveBar, G.waveKills / killsNeeded(G.wave));
+  refreshBoss();
   setOff(nodes.wavePrev, G.wave <= 1); setOff(nodes.waveNext, G.wave >= G.best);
   const maxHp = bunkerHp(G.bunker);
   setWidth(nodes.bunkerFill, G.hp / maxHp);

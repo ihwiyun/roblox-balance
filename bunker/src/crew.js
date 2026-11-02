@@ -4,8 +4,11 @@
 // what everyone carries: a rifle with a full magazine, nobody to shoot yet, no route
 const personBase = () => ({ job: '사수', path: [], walk: 0, act: 0, ammo: gunStat('mag'), reload: 0, reloadLen: 1, cool: 0, recoil: 0, flash: 0,
   target: null, retarget: 0, magOut: false, magIn: false, pal: null });
-function makePerson(i) {
-  return { ...personBase(), i, name: NAMES[i], look: LOOKS[i + 1], fatigue: 10 + Math.random() * 20, state: 'toWork', where: 'ug', floor: 0,
+// every hand is bought for a section (systems.js) and is nameless: the job is its name; it keeps to its section, and
+// sleeps in bed i
+const SECTION_OF = { '사수': 'roof', '농부': 'farm', '광부': 'mine', '정비공': 'workshop' };
+function makePerson(i, job = '사수') {
+  return { ...personBase(), i, job, section: SECTION_OF[job], name: job, look: WORKER_LOOKS[i % WORKER_LOOKS.length], fatigue: 10 + Math.random() * 20, state: 'toWork', where: 'ug', floor: 0,
     x: BED_X(i) + .75, y: UG.y0 + 1.05, z: LEVEL_Z[0], yaw: -Math.PI / 2, act: Math.random() * 3 };
 }
 function makeHero() {
@@ -25,12 +28,11 @@ function workSpot(c) {
 // spot, the gun turret and the crates at the others), clear of the gunners on the roof
 const SHOP_AT = [[.6, 2.3, Math.PI / 2], [2.3, .6, 0], [-1, 2.3, Math.PI / 2], [2.3, -1, 0]];
 const shopSpot = n => { const [x, y, yaw] = SHOP_AT[n % SHOP_AT.length]; return { where: 'yard', x, y, z: 0, yaw }; };
-// a hand bought for a floor (systems.js): a free bed, nameless (the job is its name), and off to work
+// a hand bought for a section (systems.js): a free bed to sleep in, and off to work
 function hireWorker(job) {
   const i = G.crew.findIndex((c, k) => !c && k < bedsOf(G.live));
   if (i < 0) return null;
-  const p = makePerson(i);
-  p.job = job; if (job !== '사수') p.name = job;
+  const p = makePerson(i, job);
   G.crew[i] = p; p.state = 'toWork'; p.path = route(p, workSpot(p));
   resyncPosts(); markUnder(0);
   return p;
@@ -194,7 +196,7 @@ function fire(s, z) {
   s.recoil = .12; s.flash = .06;
   const fx = Math.cos(s.yaw), fy = Math.sin(s.yaw);
   part(s.x + fx * .3, s.y + fy * .3, s.z + 1.2, -fy * 1.4 + (Math.random() - .5) * .5, fx * 1.4 + (Math.random() - .5) * .5, 2.2 + Math.random(), 1.4, rgb(232, 184, 74), rgb(150, 104, 40));
-  const c = project(z.x, z.y, .8);
+  const c = project(z.x, z.y, z.hitZ || .8);
   G.tracers.push({ ax: s.muzzle ? s.muzzle[0] : project(s.x, s.y, s.z + 1.3).sx, ay: s.muzzle ? s.muzzle[1] : project(s.x, s.y, s.z + 1.3).sy, bx: c.sx, by: c.sy, life: .06 });
   sound('shot');
   let dmg = damageOf() * w.mul * (z.type === 'boss' ? w.boss : 1);

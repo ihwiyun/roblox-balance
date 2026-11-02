@@ -55,10 +55,34 @@ function spawn(type) {
 function spawnBoss() {
   const z = spawn('boss'), w = G.wave;
   z.swerve = 0; z.titan = w % 100 === 0; z.name = SYS.hook.bossName(w) || ZTYPES.boss.name;
+  dressBoss(z, w);
   bossSetup(z, w);
+  G.quake = .6;
   G.bossLeft = SYS.hook.bossLimit(w);
   notify(z.titan ? '타이탄 출현' : '보스 출현', z.name, 'danger');
   sound('crash');
+}
+// How a boss is drawn: its own art (art/bosses.js, ART_BOSSES) at its own size when there is one for it, else today's
+// boss sprite blown up by a whole number, nearest neighbour: 2x (96 px, doc 6: 2.5-3 times a zombie), a titan 3x.
+// scale: its size against today's boss (where it stops at the fence or the wall, where taps and shots find it)
+const BOSS_SCALE = 2, TITAN_SCALE = 3;
+function dressBoss(z, w, minion) {
+  z.look = null;
+  const A = window.ART_BOSSES, pack = A && (A.types || A);
+  if (pack) for (const key of SYS.hook.bossArtKeys(w, z.titan)) {
+    const src = pack[key];
+    if (!src || !src.anims) continue;
+    try {
+      const type = 'boss:' + key;
+      if (!SPR[type]) { SPR[type] = decodeSet(src); ZPALS[type] = paletteOf(src.pal || A.pal || {}); }
+      z.look = { type, pal: ZPALS[type], k: 1 };
+      z.scale = SPR[type].h / SPR.boss.h;
+      break;
+    } catch { z.look = null; }
+  }
+  if (!z.look) { z.look = { type: 'boss', pal: ZPALS.boss, k: z.titan && !minion ? TITAN_SCALE : BOSS_SCALE }; z.scale = z.look.k; }
+  // shots and tracers land on its body, a little under half its height
+  z.hitZ = SPR[z.look.type].ay * z.look.k * .45 / (COS * S);
 }
 // the boss outlasted its clock: the stage is lost and the one before it plays on repeat (doc 6)
 function bossTimeout() {
@@ -80,8 +104,9 @@ const bunkerReach = () => bunkerInfo().half + .55;
 // where a zombie stops: at the fence while it stands, else at the bunker wall; spitters and screamers keep
 // their distance; a burrower comes up inside the fence
 function stopRing(z, T) {
-  if (z.under) return fenceUp() ? FENCE_R - .7 : bunkerReach() + .9;
-  const base = fenceUp() && z.n >= FENCE_R ? FENCE_R + .45 : bunkerReach();
+  const big = ((z.scale || 1) - 1) * .45; // a big boss keeps its body clear of what it hits
+  if (z.under) return fenceUp() ? FENCE_R - .7 : bunkerReach() + .9 + big;
+  const base = fenceUp() && z.n >= FENCE_R ? FENCE_R + .45 + big : bunkerReach() + big;
   // never beyond where the gunners can see (a small island has little room for a spitter's distance)
   return Math.min(base + (T.range || 0), FIELD - .6);
 }
@@ -249,11 +274,13 @@ function hurt(z, dmg, quiet, still, crit) {
   // a titan gathering itself between phases: nothing gets through (grey sparks)
   if (z.shield > 0) { spray(z.x, z.y, 1.3, 2, 1.4, .8, .25, SPARK); return; }
   dmg *= ZTYPES[z.type].armor || 1;
-  z.hit = .07; z.lastHit = G.time;
+  z.lastHit = G.time;
+  // a hit flashes white for a frame or two, at most every 0.4 s (never a white silhouette under steady fire)
+  if (G.time - (z.flashAt ?? -9) >= .4) { z.hit = .035; z.flashAt = G.time; }
   const d = Math.hypot(z.x, z.y) || 1;
   if (!still && !BIG[z.type] && z.state !== 'leap') { z.x += z.x / d * .04; z.y += z.y / d * .04; z.n = Math.max(Math.abs(z.x), Math.abs(z.y)); }
-  // spread so rapid hits stay readable; a critical hit shows in orange
-  if (!quiet) { const j = Math.random() - .5; float(z.x + j * .7, z.y - j * .7, 1.8 + Math.random() * .3, fmt(Math.round(dmg)), crit ? rgb(255, 150, 50) : rgb(255, 255, 255)); }
+  // only a critical hit shows its number, small and orange (none over a boss: the screen shows its health)
+  if (crit && !quiet && z.type !== 'boss') { const j = Math.random() - .5; float(z.x + j * .7, z.y - j * .7, 1.8 + Math.random() * .3, fmt(Math.round(dmg)), rgb(255, 150, 50)); }
   spray(z.x, z.y, .9, 3, 1.2, 1.5, .4, [rgb(110, 40, 40), rgb(80, 120, 60)]);
   wound(z, dmg);
 }
@@ -281,7 +308,7 @@ function kill(z) {
   G.money += gold; G.totalKills++; G.earned += gold;
   SYS.hook.killed(z, s);
   if (boss) notify(z.titan ? '타이탄 처치' : '보스 처치', '+' + fmt(gold), 'good');
-  float(z.x, z.y, 2.85, '+$' + fmt(gold), SIGNAL); // high enough not to overlap the damage number
+  if (z.type !== 'boss') float(z.x, z.y, 2.85, '+$' + fmt(gold), SIGNAL); // high enough not to overlap the damage number
   sound('kill');
   for (let k = 0; k < (BIG[z.type] ? 8 : 3); k++) part(z.x, z.y, 1, (Math.random() - .5) * 2, (Math.random() - .5) * 2, 3 + Math.random() * 2, .8, rgb(255, 214, 10), rgb(186, 132, 20), 2, 1);
   const pts = [];
@@ -409,7 +436,7 @@ const BOSS_DO = {
   },
   leapStun(z) {
     // over the fence (or a hop in place at the wall) onto the gunners
-    const R = bunkerReach() + .3, k = z.n > R ? R / z.n : 1;
+    const R = bunkerReach() + .3 + ((z.scale || 1) - 1) * .45, k = z.n > R ? R / z.n : 1;
     z.state = 'leap'; z.st = 0; z.leap = { x0: z.x, y0: z.y, x1: z.x * k, y1: z.y * k, dur: .9 }; z.landStun = true; sound('leap');
   },
   turretStun(z) {
@@ -438,7 +465,8 @@ function splitBoss(z) {
   spray(z.x, z.y, 1, 30, 3.4, 3, 1, [rgb(176, 196, 90), rgb(120, 150, 60), rgb(210, 220, 130)], 2, 2); sound('crash'); G.hurt = .4;
   for (const side of [-1, 1]) {
     const o = spawn('boss'), a = Math.atan2(z.y, z.x) + side * Math.PI / 2;
-    Object.assign(o, { minion: true, titan: z.titan, name: z.name, x: z.x + Math.cos(a) * 1.1, y: z.y + Math.sin(a) * 1.1, swerve: side * .3, state: 'walk', reward: z.reward * .1 });
+    Object.assign(o, { minion: true, titan: z.titan, name: z.name, x: z.x + Math.cos(a) * 1.1 * z.scale / 2, y: z.y + Math.sin(a) * 1.1 * z.scale / 2, swerve: side * .3, state: 'walk', reward: z.reward * .1 });
+    dressBoss(o, G.wave, true);
     spray(o.x, o.y, .4, 14, 2.4, 2, .7, [rgb(176, 196, 90), rgb(120, 150, 60)], 2, 2);
     o.n = Math.max(Math.abs(o.x), Math.abs(o.y)); o.max = o.hp = z.max * (z.splitShare || .125); o.yaw = z.yaw;
   }

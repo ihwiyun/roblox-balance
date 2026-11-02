@@ -80,6 +80,15 @@ const isBossWave = w => w % 10 === 0;
 const titanMul = () => (window.LOGIC ? LOGIC.T.stage.titanHp / LOGIC.T.stage.bossHp : 2.5);
 const MUTANT_ORDER = Object.keys(ZTYPES).filter(k => k !== 'boss').sort((a, b) => ZTYPES[a].from - ZTYPES[b].from);
 const NAMES = ['민준', '서연', '도윤', '하은', '지호'];
+// the hands bought for a section are nameless: five looks of their own (the hero's head drawing in other colours), never
+// the named crew's faces (민준 and the rest are cards in the collection)
+const WORKER_LOOKS = [
+  { key: 'w1', head: 'short', hair: [60, 48, 40], skin: [214, 168, 132], shirt: [112, 106, 92], pants: [62, 60, 66] },
+  { key: 'w2', head: 'short', hair: [150, 100, 60], skin: [236, 192, 156], shirt: [92, 120, 140], pants: [58, 62, 72] },
+  { key: 'w3', head: 'short', hair: [34, 28, 30], skin: [176, 124, 92], shirt: [150, 120, 80], pants: [66, 58, 52] },
+  { key: 'w4', head: 'short', hair: [196, 172, 136], skin: [226, 180, 146], shirt: [124, 82, 72], pants: [54, 56, 64] },
+  { key: 'w5', head: 'short', hair: [96, 70, 56], skin: [200, 150, 112], shirt: [82, 112, 88], pants: [60, 60, 60] },
+];
 // each survivor looks different: hair, skin, shirt
 const LOOKS = [
   { key: 'hero', head: 'short', hair: [92, 64, 44], skin: [222, 172, 134], shirt: [96, 116, 76], pants: [58, 56, 70] },

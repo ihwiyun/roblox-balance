@@ -7,7 +7,8 @@ canvas.addEventListener('pointerdown', e => {
   const r = canvas.getBoundingClientRect(), x = (e.clientX - r.left) * W / r.width, y = (e.clientY - r.top) * H / r.height, hero = G.hero;
   if (hero.reload > 0) { hero.reload = Math.max(.01, hero.reload - hero.reloadLen * .12); return; } // tapping hurries the reload
   let best = null, bestD = 20; // game pixels: a 32 px figure is easy to hit with a thumb
-  for (const z of G.zombies) { if (z.state === 'dying' || !z.visible) continue; const d = Math.hypot(z.sx - x, z.sy - y); if (d < bestD) { bestD = d; best = z; } }
+  // a big boss answers a tap as far out as it is big
+  for (const z of G.zombies) { if (z.state === 'dying' || !z.visible) continue; const d = Math.hypot(z.sx - x, z.sy - y) / (z.scale || 1); if (d < bestD) { bestD = d; best = z; } }
   if (best) { hero.target = best; hero.retarget = .8; hero.yaw = Math.atan2(best.y - hero.y, best.x - hero.x); fire(hero, best); }
 });
 // the speed button keeps its label (index.html); pressed means x2
