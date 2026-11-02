@@ -156,16 +156,17 @@ TIRE = spr([
 TIRE_ANCHOR = (6, 6)
 
 # ---------------------------------------------------------------------------- sandbag lying on a roof
-# (top view, pillow). anchor = centre bottom
+# (top view, a pillow lying along x). anchor = centre of its belly
 BAG_TOP = spr([
-    "..oooooo..",
-    ".oKKffKKo.",
-    "oKffKKKkko",
-    "okKKkkkkBo",
-    ".oBBBBBbo.",
-    "..oooooo..",
+    "...bbbb.....",
+    ".bbKKfKbbb..",
+    "bKfKKKKKKkb.",
+    "bkKKKkkkkkBb",
+    ".bBkkkkkBBbb",
+    "..bbBBBBbb..",
+    "....bbbb....",
 ])
-BAG_TOP_ANCHOR = (5, 5)
+BAG_TOP_ANCHOR = (6, 5)
 
 # ---------------------------------------------------------------------------- campfire with stones
 CAMPFIRE = spr([

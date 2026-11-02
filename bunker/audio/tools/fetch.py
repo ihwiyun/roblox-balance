@@ -20,6 +20,8 @@ def safe_join(root, name):
 
 
 def unpack(archive, dest):
+    if not archive.lower().endswith(('.zip', '.7z')):
+        return False
     os.makedirs(dest, exist_ok=True)
     if archive.lower().endswith('.zip'):
         with zipfile.ZipFile(archive) as z:

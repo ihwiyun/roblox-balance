@@ -337,15 +337,15 @@ oCCDo....
 # near (right) arm: elbow tucked down, forearm forward to the pistol grip; hand anchor = knuckles
 ARM_F.update({
     'aim_n': P("""
-.oo....
-oWVo...
-oWVu...
-oWVu...
-oVVuoo.
-.oVVVuo
-..ooSLo
-....oso
-....oo.
+.oo.....
+oWVo....
+oWVu....
+oWVu....
+oVVuooo.
+.oVVVVuo
+..oooSLo
+.....oso
+.....oo.
 """, 2, 1, 'arm_aim_n'),
     # far (left) arm: reaches forward to the handguard; hand under the handguard
     'aim_f': P("""
@@ -392,4 +392,116 @@ oWVVuo
 ..osso
 ...oo.
 """, 1, 1, 'arm_rl_handle'),
+})
+
+# ---------------------------------------------------------------- arms for tools and carrying (F)
+# Named by where the hand ends up relative to the shoulder pivot (the part anchor).
+ARM_F.update({
+    # near hand up by the near shoulder, elbow down and out (wind-up over the right shoulder)
+    'n_wind': P("""
+.oo..
+oLSo.
+oSso.
+oVuo.
+oWVo.
+oWVuo
+oWVuo
+.ooo.
+""", 2, 5, 'arm_n_wind'),
+    # far arm across the chest, hand in front of the near shoulder (holds the handle end)
+    'f_across': P("""
+....oo..
+..ooWVo.
+.oVVVuo.
+oLSoVuo.
+osso.oo.
+.oo.....
+""", 6, 1, 'arm_f_across'),
+    # near hand in front of the chest, high (overhead swing passing)
+    'n_high': P("""
+.oo...
+oWVoo.
+oWVVLo
+.oVuSo
+.oVoso
+..o.o.
+""", 2, 1, 'arm_n_high'),
+    # far hand meets the near hand in front, chest height
+    'f_front': P("""
+..oo.
+.oWVo
+oVVuo
+oSLuo
+osso.
+.oo..
+""", 3, 1, 'arm_f_front'),
+    # near hand low in front (impact / pulling), arm straight down-right
+    'n_low': P("""
+.oo....
+oWVo...
+oWVuo..
+.oWVuo.
+..oVVuo
+...oSLo
+...oSso
+....oo.
+""", 2, 1, 'arm_n_low'),
+    # far hand low in front, next to the near hand
+    'f_low': P("""
+.oo..
+oWVo.
+oWVuo
+.oVuo
+.oVuo
+.oSLo
+.oSso
+..oo.
+""", 1, 1, 'arm_f_low'),
+    # carrying: forearms forward under the crate, elbows bent at the sides
+    'n_carry': P("""
+.oo...
+oWVo..
+oWVu..
+oWVuoo
+.oVVSL
+..oosS
+....oo
+""", 2, 1, 'arm_n_carry'),
+    'f_carry': P("""
+.oo..
+oWVo.
+oWVuo
+oVVSL
+.oosS
+...oo
+""", 1, 1, 'arm_f_carry'),
+    # far hand holding the plate against the target in front (repair)
+    'f_hold': P("""
+.oo...
+oWVo..
+oWVuo.
+.oWVuo
+..oVLo
+..oSso
+...oo.
+""", 1, 1, 'arm_f_hold'),
+    # near arm cocked back: elbow up and back, hand by the ear (hammer wind-up)
+    'n_cock': P("""
+.oo..
+oLSo.
+oSso.
+oVVo.
+oWVuo
+oWVuo
+.ooo.
+""", 2, 4, 'arm_n_cock'),
+    # near arm swung forward to the target (hammer impact): forearm out front, chest height
+    'n_strike': P("""
+.oo....
+oWVoo..
+oWVVVoo
+.oVVuLo
+..ooSso
+....oo.
+""", 2, 1, 'arm_n_strike'),
 })

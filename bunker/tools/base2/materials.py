@@ -25,18 +25,18 @@ def paint(rows, rmp):
 
 # ============================================================================ ramps (lit / shade)
 BAG = {
-    'lit': ramp(o='mauve', **{'1': 'rose', '2': 'beige', '3': 'khaki', '4': 'foam'}, t='mauve', s='sand'),
-    'shade': ramp(o='grape', **{'1': 'mauve', '2': 'rose', '3': 'beige', '4': 'khaki'}, t='grape', s='tan'),
+    'lit': ramp(o='grape', **{'1': 'mauve', '2': 'rose', '3': 'beige', '4': 'khaki'}, t='grape', s='sand'),
+    'shade': ramp(o='ink', **{'1': 'grape', '2': 'mauve', '3': 'rose', '4': 'beige'}, t='ink', s='tan'),
     'top': ramp(o='mauve', **{'1': 'beige', '2': 'khaki', '3': 'foam', '4': 'white'}, t='rose', s='sand'),
 }
 WOOD = {
     'lit': ramp(o='grape', **{'1': 'plum', '2': 'rust', '3': 'copper', '4': 'tan'}, n='mist', k='grape'),
     'shade': ramp(o='ink', **{'1': 'grape', '2': 'plum', '3': 'rust', '4': 'copper'}, n='lilac', k='ink'),
-    'top': ramp(o='plum', **{'1': 'plum', '2': 'rust', '3': 'copper', '4': 'tan'}, n='mist', k='grape'),
+    'top': ramp(o='rust', **{'1': 'rust', '2': 'copper', '3': 'tan', '4': 'sand'}, n='foam', k='plum'),
     # weathered grey boards, for variety on roofs and fences
     'grey_lit': ramp(o='slate', **{'1': 'stone', '2': 'lilac', '3': 'mist', '4': 'foam'}, n='white', k='slate'),
     'grey_shade': ramp(o='ink', **{'1': 'slate', '2': 'stone', '3': 'lilac', '4': 'mist'}, n='foam', k='ink'),
-    'grey_top': ramp(o='slate', **{'1': 'stone', '2': 'lilac', '3': 'mist', '4': 'foam'}, n='foam', k='slate'),
+    'grey_top': ramp(o='stone', **{'1': 'lilac', '2': 'mist', '3': 'foam', '4': 'white'}, n='white', k='stone'),
 }
 IRON = {
     'lit': ramp(o='slate', **{'1': 'stone', '2': 'lilac', '3': 'mist', '4': 'foam'},

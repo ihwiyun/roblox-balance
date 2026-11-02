@@ -51,7 +51,7 @@ def ground_shadow(cv, poly):
     cv.shade(poly, DARK, z=0, only=(1,))
 
 
-def box_shadow(cv, x0, x1, y0, y1, h, k=.42):
+def box_shadow(cv, x0, x1, y0, y1, h, k=.3):
     """the shadow of an upright box: light from the top-left, so it falls toward +x (screen lower-right)
     and a little toward +y"""
     dx, dy = h * k, h * k * .3
@@ -96,6 +96,20 @@ def plank_roof(lay, x0, x1, y0, z0, boards, thick=2):
             lay.left(bx0, bx1, yb + 2, z0, z0 + thick,
                      lambda u, v, s=side: s['3'] if v == 0 else (s['2'] if u % 9 else s['1']))
         y += 2
+
+
+def top_grid(lay, x0, x1, y0, y1, z, rows, rmp):
+    """a hand-typed grid laid flat on a top face: row r covers half a step of y (1 px on screen),
+    column c half a step of x; '.' leaves what is below"""
+    def tex(wx, wy, px, py):
+        r = int((wy - y0) * 2)
+        c = int((wx - x0) * 2)
+        if 0 <= r < len(rows) and 0 <= c < len(rows[r]):
+            ch = rows[r][c]
+            if ch != '.':
+                return rmp[ch]
+        return lay.get(px, py)
+    lay.top(x0, x1, y0, y1, z, tex)
 
 
 # ============================================================================ face sprites
@@ -158,26 +172,37 @@ def person(cv, name, x, y, z, mirror=False):
 
 
 # ============================================================================ yard ground
-DIRT = dict(D=N['grape'], d=N['mauve'], b=N['rose'], B=N['beige'], s=N['stone'], S=N['lilac'])
+DIRT = {'#': N['rose'], '+': N['beige'], ',': N['mauve'], ';': N['grape'], 's': N['stone'], 'S': N['lilac']}
+
+# the worn path from the door to the gate and out to the island edge, typed per world step.
+# rows: y from PATH_Y0, columns: x from PATH_X0. # dirt, + dusty light, , trampled dark
+PATH_X0, PATH_Y0 = -9, 7
+PATH = [
+    "..+++#####++.....",
+    ".+###########+...",
+    ".###,,#####,###..",
+    "..####,,,#####...",
+    "...+#######......",
+    "....+#####.......",
+    "....+####,.......",
+    "...+######.......",
+    "....+#####.......",
+    "....+######......",
+    "....+####,.......",
+    "...+#######......",
+    "....+#####.......",
+    ".....+####.......",
+    ".....+#####......",
+    "......+###.......",
+    "......+####......",
+    ".......+##.......",
+    ".......+###......",
+    "........+#.......",
+    "........+##......",
+]
 
 
-def yard(cv, x0, x1, y0, y1, bites):
-    """trampled dirt around the bunker: a rectangle in world space whose edge is bitten in by hand
-    (bites: list of (side, from, to, depth) in steps)"""
-    def inside(wx, wy):
-        if not (x0 <= wx < x1 and y0 <= wy < y1):
-            return False
-        for side, a, b, d in bites:
-            if side == 'x0' and a <= wy < b and wx < x0 + d:
-                return False
-            if side == 'x1' and a <= wy < b and wx >= x1 - d:
-                return False
-            if side == 'y0' and a <= wx < b and wy < y0 + d:
-                return False
-            if side == 'y1' and a <= wx < b and wy >= y1 - d:
-                return False
-        return True
-
+def path(cv):
     for py in range(cv.h):
         for px in range(cv.w):
             if cv.kind[py, px] != 1:
@@ -185,66 +210,67 @@ def yard(cv, x0, x1, y0, y1, bites):
             d = (px + .5 - cv.ox) / 2
             s = py + .5 - cv.oy
             wx, wy = (s + d) / 2, (s - d) / 2
-            if inside(wx, wy):
-                cv.a[py, px] = DIRT['d']
-                # a lighter dusty rim one pixel inside the edge
-                for ex, ey in ((.5, 0), (0, .5), (-.5, 0), (0, -.5)):
-                    if not inside(wx + ex, wy + ey):
-                        cv.a[py, px] = DIRT['b']
-                        break
-    return inside
+            r, c = int(np.floor(wy - PATH_Y0)), int(np.floor(wx - PATH_X0))
+            if 0 <= r < len(PATH) and 0 <= c < len(PATH[r]) and PATH[r][c] != '.':
+                cv.a[py, px] = DIRT[PATH[r][c]]
 
 
-DIRT_MARKS = [  # hand-drawn pebbles and trampled spots (screen space)
-    grid(["bB",
-          "Dd"], DIRT),
-    grid([".b.",
-          "bBd",
-          ".D."], DIRT),
-    grid(["DDdd",
-          ".DD."], DIRT),
-    grid(["s.",
-          ".S"], DIRT),
-    grid(["dDDd..",
-          ".dDDDd"], DIRT),
-]
+DIRT_MARKS = []
 
 
 # ============================================================================ level 1
 LV1_BOARDS = [
-    ('', 0, 1, ["4444444444444444444444444444444444444444444",
-                "3333333333333333333333n333333333333333333n3",
-                "2222212222222222222222222222222222122222222",
-                "2222222222222222222212222222222222222222222"]),
-    ('grey', 1, 0, ["ooooooooooooooooooooooooooooooooooooooooooo",
-                    "33n33333333333333333333333333333333333333n3",
+    ('', 0, 1, ["4444444444444444444444444444444444444444",
+                "3333333333333333333333n333333333333333n3",
+                "2222212222222222222222222222222222122222",
+                "2222222222222222222212222222222222222222"]),
+    ('grey', 1, 0, ["oooooooooooooooooooooooooooooooooooooooooo",
+                    "33n3333333333333333333333333333333333333n3",
                     "2222222222222212222222222222222221222222222",
                     "2212222222222222222222222122222222222222222"]),
-    ('', 0, 2, ["ooooooooooooooooooooooooooooooooooooooooooooo",
-                "3n333333333333333333333333333333333333333333n3",
-                "222222222222222221122222222222222222222222222",
-                "222222222222222222222222222222221222222222222"]),
-    ('', 1, 0, ["ooooooooooooooooooooooooooooooooooooooooooo",
-                "33333333333333333333333333n3333333333333333",
+    ('', 0, 2, ["oooooooooooooooooooooooooooooooooooooooooooo",
+                "3n33333333333333333333333333333333333333333n3",
+                "22222222222222222112222222222222222222222222",
+                "22222222222222222222222222222222122222222222"]),
+    ('', 1, 0, ["oooooooooooooooooooooooooooooooooooooooooo",
+                "33333333333333333333333333n333333333333333",
                 "2222222222122222222222222222222222222222222",
-                "2222222222222222222222222222222222222212222"]),
-    ('grey', 0, 1, ["ooooooooooooooooooooooooooooooooooooooooooo",
-                    "3333n333333333333333333333333333333333n3333",
-                    "2222222222222222222222212222222222222222222",
-                    "2222222222221222222222222222222222222222222"]),
-    ('', 0, 0, ["ooooooooooooooooooooooooooooooooooooooooo",
-                "3n33333333333333333333333333333333333n333",
-                "2222222222222221222222222222222222222222",
-                "2222222222222222222222222222212222222222"]),
-    ('', 1, 2, ["ooooooooooooooooooooooooooooooooooooooooooooo",
-                "33333333333333333333333333333333333333333n333",
-                "2222222222222222222222212222222222222222222222",
-                "1111111111111111111111111111111111111111111111"]),
+                "2222222222222222222222222222222222222122222"]),
+    ('grey', 0, 1, ["oooooooooooooooooooooooooooooooooooooooo",
+                    "3333n333333333333333333333333333333n3333",
+                    "2222222222222222222222212222222222222222",
+                    "2222222222221222222222222222222222222222"]),
+    ('', 0, 0, ["oooooooooooooooooooooooooooooooooooooo",
+                "3n333333333333333333333333333333333n33",
+                "22222222222222212222222222222222222222",
+                "22222222222222222222222222222122222222"]),
+    ('', 1, 2, ["oooooooooooooooooooooooooooooooooooooooooooo",
+                "3333333333333333333333333333333333333333n333",
+                "22222222222222222222222122222222222222222222",
+                "11111111111111111111111111111111111111111111"]),
 ]
+
+# a rusty corrugated sheet thrown over part of the roof (top space: rows along y, columns along x).
+# ridges run along x; rust pools in the troughs and bleeds from the nail holes.
+LV1_SHEET = [
+    "3333333333333333333",
+    "2222222222222222222",
+    "1111111b11111111b11",
+    "3333333333333rr3333",
+    "22222222222rrqrs222",
+    "1111111111rqqr11111",
+    "33333333333rrs33333",
+    "2222rr222222r222222",
+    "111rqrr1111111b1111",
+    "3333rrs333333333333",
+    "222222222222222rr22",
+    "oooooooooooooooooo.",
+]
+SHEET_TOP = dict(M.IRON['lit'])
 
 
 def lv1(cv):
-    X0, X1, Y0, Y1, H = -9, 9, -7, 7, 16
+    X0, X1, Y0, Y1, H = -9, 9, -7, 7, 15
     box_shadow(cv, X0, X1, Y0, Y1, H + 2)
     lay = cv.layer()
     lay.left(X0, X1, Y1, 0, H, M.face_fn(M.bag_wall(2 * (X1 - X0), H, start=0, shift=0), M.BAG['lit']))
@@ -252,41 +278,41 @@ def lv1(cv):
     on_left(lay, DOOR_DUGOUT, WOOD_FACE, X0, Y1, H, 8, H - len(DOOR_DUGOUT))
     on_right(lay, SLIT, WOOD_FACE, X1, Y1, H, 9, 5)
     plank_roof(lay, X0, X1, Y0, H, LV1_BOARDS)
+    top_grid(lay, 1, 10.5, Y0, Y0 + 6, H + 2, LV1_SHEET, SHEET_TOP)
     outline(lay)
     cv.paste(lay)
     # a ladder against the front-left wall, right of the door
     lad = cv.layer()
-    lad.on_left(grid(LADDER_FLAT, WOOD_FACE), X0, Y1 + .5, H + 4, 26, 0)
-    outline(lad)
+    lad.on_left(grid(LADDER_FLAT, WOOD_FACE), X0, Y1 + .5, H + 4, 28, 0)
     cv.paste(lad)
-    # two bags holding the boards down, a jerry can on the roof
-    place(cv, P.BAG_TOP, P.BAG_TOP_ANCHOR, -6, -4, H + 2)
-    place(cv, P.BAG_TOP, P.BAG_TOP_ANCHOR, 6, 5, H + 2)
-    return dict(roof=H + 2, people=[('hero_aim', 1, 1)])
+    # bags holding the boards down
+    place(cv, P.BAG_TOP, P.BAG_TOP_ANCHOR, -7, -3, H + 2)
+    place(cv, P.BAG_TOP, P.BAG_TOP_ANCHOR, -7, 3, H + 2)
+    place(cv, P.BAG_TOP, P.BAG_TOP_ANCHOR, 7, 5, H + 2)
+    return dict(roof=H + 2, people=[('hero_aim', 0, 1)])
 
 
 # a ladder drawn flat in face space; the shear slants its rungs along the wall
 LADDER_FLAT = [
-    "43....43",
-    "32....32",
-    "32....32",
-    "3233332o",
-    "32111132",
-    "32....32",
-    "32....32",
-    "3233332o",
-    "32111132",
-    "32....32",
-    "32....32",
-    "3233332o",
-    "32111132",
-    "32....32",
-    "32....32",
-    "3233332o",
-    "32111132",
-    "32....32",
-    "32....32",
-    "1o....1o",
+    "43...43",
+    "4o...4o",
+    "4333341",
+    "4111141",
+    "4o...4o",
+    "4o...4o",
+    "4333341",
+    "4111141",
+    "4o...4o",
+    "4o...4o",
+    "4333341",
+    "4111141",
+    "4o...4o",
+    "4o...4o",
+    "4333341",
+    "4111141",
+    "4o...4o",
+    "4o...4o",
+    "oo...oo",
 ]
 
 
@@ -296,14 +322,14 @@ LEVELS = {1: lv1}
 # ============================================================================ scene
 def scene(level):
     import island
+    import fence
     cv = Canvas(270, 196, 135, 84)
     island.draw(cv)
-    inside = yard(cv, -14, 14, -12, 13, [('y1', -14, -6, 2), ('x0', 6, 13, 2), ('y0', 4, 14, 1), ('x1', -12, -5, 2)])
-    cx, cy = cv.ox, cv.oy
-    marks = [(0, -30, 6), (1, 22, -10), (2, -10, 18), (3, 34, 10), (4, -40, -4), (0, 8, 20), (3, -22, -14)]
-    for k, dx, dy in marks:
-        cv.stamp(DIRT_MARKS[k], cx + dx, cy + dy, only=(1,))
+    path(cv)
+    fence.shadows(cv, level)
+    fence.draw(cv, level, front=False)
     info = LEVELS[level](cv)
     for name, x, y in info['people']:
         person(cv, name, x, y, info['roof'])
+    fence.draw(cv, level, front=True)
     return cv
