@@ -178,7 +178,7 @@
   .pk .b { margin-top: 4px; width: 100%; }
   .pk.locked .slot2 { opacity: .5; }
   .gem { display: grid; justify-items: center; gap: 4px; padding: 8px; border: 1px solid var(--line); }
-  .gem .pile { height: 62px; display: flex; align-items: flex-end; }
+  .gem .pile { height: 76px; display: flex; align-items: flex-end; }
   .gem .amt { display: flex; align-items: center; gap: 4px; }
   /* 편의·패스: a name, what it does, its price */
   .cv { display: flex; align-items: center; gap: 8px; min-height: 60px; padding: 8px 0; border-bottom: 1px solid var(--line); }
@@ -189,7 +189,7 @@
   .tapdemo { display: flex; align-items: center; justify-content: space-around; height: 64px; }
   .types > div { display: flex; justify-content: space-between; align-items: baseline; height: 28px; border-bottom: 1px solid var(--line); }
   .sizes { display: grid; gap: 8px; }
-  .sizes > div { display: flex; align-items: center; gap: 8px; }
+  .sizes > div { display: flex; align-items: center; gap: 4px; }
   .still .spr { animation-play-state: paused !important; }
 </style>
 </head>
@@ -229,10 +229,11 @@ const B = (cls, inner) => `<span class="b ${cls} tap">${inner}</span>`;
 const cost = (res, n, short) => `${ico(res)}<span class="num${short ? ' short' : ''}">${n}</span>`;
 const chip = (t, cls = '', g) => `<span class="chip tap ${cls}${g != null ? ' gq q' + g : ''}">${t}</span>`;
 const strip = (label, pct, one, ten) => `<div class="strip"><div class="lv tap" aria-label="소환 확률"><b>${label}</b><span><span class="prog2"><i style="width:${pct}%"></i></span><span class="link">확률</span></span></div>${B('sub sm', '1회 ' + cost('ruby', one))}${B('sub sm', '10회 ' + cost('ruby', ten))}</div>`;
-// a small cut diamond (8x6) in the 다이아 icon's colours; a pile is rows of them, the bottom row widest, drawn back to front
-const DIA = ['.oooooo.', 'oWWBWLLo', 'oBBBBBBo', '.oWBLLo.', '..oWLo..', '...oo...'];
+// a small cut diamond (8x7) in the 다이아 icon's colours, outlined in blue so a heap of them stays light; a pile is rows
+// of them, the bottom row widest, drawn back to front
+const DIA = ['..bbbb..', '.bWWLLb.', 'bWWWLLBb', 'bBBBBBBb', '.bWWLBb.', '..bWBb..', '...bb...'];
 function pile(rows, s = 2) {
-  const dx = 6, dy = 4, w = dx * (rows - 1) + 8, h = dy * (rows - 1) + DIA.length, c = document.createElement('canvas'), g = c.getContext('2d');
+  const dx = 6, dy = 5, w = dx * (rows - 1) + 8, h = dy * (rows - 1) + DIA.length, c = document.createElement('canvas'), g = c.getContext('2d');
   c.width = w; c.height = h;
   for (let r = 0; r < rows; r++) for (let i = 0; i <= r; i++) DIA.forEach((row, y) => [...row].forEach((ch, x) => { if (ch !== '.') { const [R, G, B] = ART.iconPal[ch]; g.fillStyle = `rgb(${R},${G},${B})`; g.fillRect(3 * (rows - 1 - r) + i * dx + x, r * dy + y, 1, 1); } }));
   return `<img class="gun" src="${c.toDataURL()}" style="width:${w * s}px;height:${h * s}px" alt="">`;
