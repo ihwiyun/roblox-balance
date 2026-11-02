@@ -138,7 +138,6 @@
   /* square slots of the collections (weapons, turrets, relics), framed in the colour of their grade */
   .slot { position: relative; aspect-ratio: 1; border: 2px solid var(--g, var(--line)); background: var(--soft); display: grid; place-items: center; color: var(--muted); font-size: 10px; text-align: center; overflow: hidden; }
   .g7.slot { border-image: linear-gradient(90deg, #e04545, #f0b020, #45c070, #4590e0, #a050e0) 1; }
-  .slot .sil { position: absolute; inset: 18%; background: var(--ink); opacity: .16; }
   /* a box with a picture and a label: crew, workers, turret and relic upgrades */
   .cell { display: grid; justify-items: center; align-content: start; gap: 2px; min-width: 0; min-height: 44px; padding: 4px 3px; border: 1px solid var(--line); background: var(--paper); font-size: 11px; text-align: center; }
   button.cell { cursor: pointer; font-size: 11px; }
@@ -290,6 +289,8 @@
   #sheet[hidden] { display: none; }
   #sheet .scrim { position: absolute; inset: 0; background: rgba(255, 255, 255, .6); }
   #sheet .shp { position: absolute; left: 0; right: 0; bottom: 0; max-height: 82%; overflow-y: auto; overscroll-behavior: contain; padding: 0 12px calc(12px + env(safe-area-inset-bottom, 0px)); background: var(--paper); border-top: 1px solid var(--ink); }
+  /* a sheet's action row stays in reach under a long list (a ten-pull) */
+  #shBody > .tool:last-child { position: sticky; bottom: 0; z-index: 1; background: var(--paper); padding-top: 8px; }
   .shh { position: sticky; top: 0; display: flex; align-items: center; justify-content: space-between; height: 48px; background: var(--paper); font-size: 16px; z-index: 1; }
   /* summon rates: grade, now, the next level */
   .rates { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 8px 16px; align-items: baseline; padding: 4px 0 8px; }
