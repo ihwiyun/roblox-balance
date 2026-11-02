@@ -127,7 +127,7 @@ export const toNextMerge = (inv, i, n = T.gear.mergeN) => n - (inv.copies[i] % n
 
 /* ---------- enhancing: cap by grade, gold and parts a level, ore and parts every 10 ---------- */
 export const enhCap = grade => T.gear.enhCapByGrade[grade];
-export const enhCost = (grade, L) => ({ gold: Math.ceil(40 * 1.24 ** L * (grade + 1)), parts: Math.ceil((1 + L / 4) * (grade + 1)) });
+export const enhCost = (grade, L) => ({ gold: Math.ceil(T.gear.enhGold0 * T.gear.enhGoldGrow ** L * (grade + 1)), parts: Math.ceil((1 + L / 4) * (grade + 1)) });
 export const enhNeedsBt = (inv, i) => inv.enh[i] > 0 && inv.enh[i] % 10 === 0 && inv.bt[i] < inv.enh[i] / 10;
 export const enhBtCost = (grade, k, caps) => breakthroughCost('gear', k, caps, grade);
 

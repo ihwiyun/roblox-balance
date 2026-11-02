@@ -340,10 +340,11 @@ function crewHtml() {
   const weapon = shoots ? `<button class="wslot tap" type="button" data-pick aria-label="무기 고르기">${slotHtml('')}<span class="aux">${weaponLookName(G.lv.atk)}</span></button>` : '';
   const top = `<div class="hero">${standHtml(p)}${weapon}</div><div class="info"><b class="t16">${p.name}</b><div class="role">${p.hero ? '사수' : p.job}</div>`
     + (p.hero ? '' : `<div class="tired"><span data-tired="${p.i}"></span></div>`)
-    + line('사격', `<b class="num">${shoots ? fmt(damageOf()) : '—'}</b>`) + line('체력', '<b class="num">—</b>') + line('능력', '<b class="num">—</b>') + '</div>';
+    // a stat shows once the game has a value for it (체력, 능력 come with the crew stats)
+    + [['사격', shoots ? fmt(damageOf()) : null], ['체력', null], ['능력', null]].filter(([, v]) => v != null).map(([k, v]) => line(k, `<b class="num">${v}</b>`)).join('') + '</div>';
   // the weapons to pick from (a tap on the weapon slot): those owned, the one carried outlined
   if (ui.pick && shoots) return top + `<div class="wpick"><div class="sh"><b class="t16">무기</b><button class="ib tap" type="button" data-unpick aria-label="닫기">${ic('close', 1.5)}</button></div>`
-    + sec('보유', '1') + grid(5, [slotHtml('ring')]) + '<p class="aux">다른 무기는 장비에서 소환해 얻습니다.</p>' + B('sub', '장비로', 'data-gogear') + '</div>';
+    + sec('보유', '1') + grid(5, [slotHtml('ring')]) + '<div class="tool">' + B('sub', '장비로', 'data-gogear') + '</div></div>';
   const btns = `<div class="acts">${B('pri grow', '레벨업', 'disabled')}${B('sub', '배치', p.hero ? 'disabled' : 'data-jobs')}${B('sub', '대표', 'disabled')}</div>`;
   const jobs = ui.jobs && !p.hero ? `<div class="tool"><div class="chipset">${JOBS.map(j => `<button class="fchip tap" type="button" data-job="${j}" aria-pressed="${p.job === j}">${j}</button>`).join('')}</div></div>` : '';
   const beds = bedsOf(G.live);

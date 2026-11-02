@@ -75,6 +75,9 @@ const DEFAULTS = {
     // the enhance breakthrough every 10 levels (doc 7: ore and parts) is the parts sink of the late game: production
     // runs ~20 h a day once offline credit is counted, and 20 k^2 parts left the box full 70-90% of the time
     btOre: 40, btParts: 400,
+    // a level costs enhGold0 * enhGoldGrow^L * (grade + 1) gold: at 1.24 every owned piece sat at its grade cap
+    // (doc: 20 .. 160) by stage ~500, which emptied the gear sink for the rest of the game
+    enhGold0: 40, enhGoldGrow: 1.24,
     enhCapByGrade: [20, 40, 60, 80, 100, 120, 140, 160],    // doc
     codexPer: 0.01, codexGradeSet: 0.10,                    // doc: +1% each, a grade set adds more
     pullCost: 50, pity: [[3, 50], [4, 150], [5, 500]],     // doc: hero+ in 50, legend+ in 150, immortal+ in 500
