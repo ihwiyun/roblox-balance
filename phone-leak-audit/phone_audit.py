@@ -12,6 +12,7 @@ import argparse
 import csv
 import datetime as dt
 import html
+import ipaddress
 import json
 import os
 import re
@@ -170,6 +171,25 @@ APPOPS = {
     "GET_USAGE_STATS": "사용 기록 접근",
     "REQUEST_INSTALL_PACKAGES": "앱 설치 권한",
     "MANAGE_EXTERNAL_STORAGE": "모든 파일 접근",
+}
+# 알려진 VPN 앱: (판별 함수, 이름, 안내). 유니콘은 안드로이드 패키지 이름을 확인하지 못해 이름으로 추정한다.
+VPN_NOTES = [
+    (lambda p: p == "com.tailscale.ipn", "Tailscale",
+     "기기끼리 직접 암호화(WireGuard)해 잇는 방식이라, 평소에는 내 기기들(100.x 대역)과의 통신만 터널로 갑니다.\n"
+     "확인할 것: (1) login.tailscale.com/admin/machines 에 모르는 기기가 없는지 "
+     "(2) '종료 노드(Exit node)'를 켰다면 모든 인터넷 통신이 그 기기를 거치므로 본인 기기가 맞는지 "
+     "(3) 남에게 공유한 기기·초대가 남아 있지 않은지 (4) 키 만료(Key expiry)가 켜져 있는지"),
+    (lambda p: "lylstudio" in p or "unicorn" in p, "유니콘(패키지 이름으로 추정)",
+     "개발사 안내로는 외부 서버를 거치지 않고 폰 안에서만 도는 로컬 VPN입니다(이 도구가 검증한 내용은 아님).\n"
+     "확인할 것: (1) 아래 설치 경로가 공식 스토어인지 "
+     "(2) HTTPS 필터링용 인증서를 설치했다면 사용자 인증서 목록에 유니콘 것 외에 다른 것이 없는지"),
+]
+DNS_NAMES = {
+    "100.100.100.100": "Tailscale MagicDNS", "1.1.1.1": "Cloudflare", "1.0.0.1": "Cloudflare",
+    "8.8.8.8": "Google", "8.8.4.4": "Google", "9.9.9.9": "Quad9",
+    "94.140.14.14": "AdGuard DNS", "94.140.15.15": "AdGuard DNS",
+    "168.126.63.1": "KT", "168.126.63.2": "KT", "210.220.163.82": "SK브로드밴드",
+    "219.250.36.130": "SK브로드밴드", "164.124.101.2": "LG U+", "203.248.252.2": "LG U+",
 }
 ROOT_PKGS = {"com.topjohnwu.magisk", "eu.chainfire.supersu", "me.weishu.kernelsu"}
 PKG_RE = re.compile(r"[A-Za-z][\w]*(\.[\w]+)+")
@@ -405,6 +425,58 @@ def parse_device_policy(text):
     return admins, owners
 
 
+def parse_vpn_services(text):
+    """`dumpsys package`의 서비스 표에서 VpnService를 선언한 패키지 집합"""
+    out, on = set(), False
+    for line in text.splitlines():
+        if line.strip() == "android.net.VpnService:":
+            on = True
+        elif on:
+            m = re.match(r"\s+[0-9a-f]+ ([A-Za-z][\w.]*)/", line)
+            if not m:
+                on = False
+            else:
+                out.add(m.group(1))
+    return out
+
+
+def parse_connectivity(text):
+    """`dumpsys connectivity` -> 연결된 네트워크 목록 [{iface, vpn, owner, dns}]"""
+    nets = {}
+    for line in text.splitlines():
+        iface = re.search(r"InterfaceName: (\S+)", line)
+        if "NetworkAgentInfo" not in line or not iface:
+            continue
+        tr = re.search(r"Transports: ([A-Z_|]+)", line)
+        dns = re.search(r"DnsAddresses: \[([^\]]*)\]", line)
+        owner = re.search(r"OwnerUid: (\d+)", line)
+        nets[iface.group(1)] = {
+            "iface": iface.group(1),
+            "vpn": bool(tr and "VPN" in tr.group(1).split("|")),
+            "owner": int(owner.group(1)) if owner else None,
+            "dns": [d.strip(" /") for d in (dns.group(1) if dns else "").split(",") if d.strip(" /")],
+        }
+    return list(nets.values())
+
+
+def dns_label(addr):
+    if addr in DNS_NAMES:
+        return f"{addr} ({DNS_NAMES[addr]})"
+    try:
+        if ipaddress.ip_address(addr.split("%")[0]).is_private:
+            return f"{addr} (공유기/내부망)"
+    except ValueError:
+        pass
+    return addr
+
+
+def vpn_note(pkg):
+    for match, name, note in VPN_NOTES:
+        if match(pkg.lower()):
+            return name, note
+    return None, ""
+
+
 def parse_netstats(text):
     """`dumpsys netstats detail` -> {uid: {rx, tx, bg_tx}} (UID stats 구역만)"""
     usage = defaultdict(lambda: {"rx": 0, "tx": 0, "bg_tx": 0})
@@ -544,10 +616,8 @@ def android_audit(adb, ioc=None, today=None):
     if setting("global", "private_dns_mode") == "hostname":
         rep.add("INFO", "프라이빗 DNS 사용 중: " + setting("global", "private_dns_specifier"),
                 "모든 도메인 조회가 이 서버로 갑니다. 본인이 설정한 것(NextDNS, AdGuard 등)인지 확인하세요.")
-    vpn = setting("secure", "always_on_vpn_app")
-    if vpn:
-        rep.add("LOW", f"항상 켜진 VPN 앱: {vpn}", "VPN 앱은 휴대폰의 모든 트래픽을 볼 수 있습니다. "
-                "무료 VPN은 트래픽을 수집·판매하는 경우가 많습니다.", "신뢰하는 앱이 아니면 삭제하세요.")
+    always_on = setting("secure", "always_on_vpn_app")
+    lockdown = setting("secure", "always_on_vpn_lockdown") == "1"
     certs = adb.shell("ls /data/misc/user/0/cacerts-added 2>&1").strip()
     if "denied" in certs.lower():
         rep.skipped.append("사용자 설치 인증서: 설정 > 보안 > 암호화 및 사용자 인증 정보 > "
@@ -563,7 +633,18 @@ def android_audit(adb, ioc=None, today=None):
     if not all_pkgs:
         rep.add("INFO", "앱 목록을 가져오지 못했습니다", "adb 연결 상태를 확인하세요.")
         return rep
-    details = parse_dumpsys_package(adb.shell("dumpsys package", 300))
+    dump = adb.shell("dumpsys package", 300)
+    details = parse_dumpsys_package(dump)
+    uid2pkg = defaultdict(list)
+    for pkg, v in all_pkgs.items():
+        if v["uid"] is not None:
+            uid2pkg[v["uid"]].append(pkg)
+
+    def source(pkg):
+        """-> (비공식 설치 여부, 설치 경로 설명)"""
+        inst = all_pkgs.get(pkg, {}).get("installer")
+        return (inst not in TRUSTED_INSTALLERS,
+                TRUSTED_INSTALLERS.get(inst) or f"비공식({inst or '설치경로 없음'})")
     a11y = parse_components(setting("secure", "enabled_accessibility_services"))
     notif = parse_components(setting("secure", "enabled_notification_listeners"))
     admins, owners = parse_device_policy(adb.shell("dumpsys device_policy"))
@@ -587,12 +668,45 @@ def android_audit(adb, ioc=None, today=None):
     for pkg in sorted(ROOT_PKGS & set(all_pkgs)):
         rep.add("MED", f"루팅 관리 앱 설치됨: {pkg}", "", "직접 설치한 게 아니면 초기화를 고려하세요.")
 
+    # ---- VPN / DNS ----
+    vpn_apps = set(re.findall(r"^[A-Za-z]\w*(?:\.\w+)+$",
+                              adb.shell("appops query-op ACTIVATE_VPN allow"), re.M))
+    vpn_apps = ((vpn_apps or parse_vpn_services(dump)) | {always_on}) & third
+    nets = parse_connectivity(adb.shell("dumpsys connectivity", 120))
+    active = {p for n in nets if n["vpn"] for p in uid2pkg.get(n["owner"], [])}
+    for pkg in sorted(vpn_apps):
+        side, src = source(pkg)
+        name, note = vpn_note(pkg)
+        state = (["지금 켜져 있음"] if pkg in active else []) + \
+                (["항상 켜짐" + (" + VPN 없이는 연결 차단" if lockdown else "")] if pkg == always_on else [])
+        title = f"VPN 앱: {pkg}" + (f" ({name})" if name else "") + \
+                (" - " + ", ".join(state) if state else "")
+        if side:
+            rep.add("HIGH" if launcher is not None and pkg not in launcher else "MED", title,
+                    "공식 스토어 밖에서 설치된 VPN 앱입니다. VPN 앱은 폰의 모든 통신이 지나가는 자리라, "
+                    f"변조된 가짜 앱이면 그대로 감청 도구가 됩니다.\n설치 경로: {src}",
+                    "직접 받은 APK가 아니면 삭제하고 공식 스토어에서 다시 설치하세요.")
+        elif name:
+            rep.add("INFO", title, f"{note}\n설치 경로: {src}")
+        else:
+            rep.add("LOW", title, "VPN 앱은 폰의 모든 통신이 지나가는 자리입니다. 무료 VPN 중에는 "
+                    f"트래픽을 수집·판매하는 곳이 많습니다.\n설치 경로: {src}",
+                    "운영 주체를 믿을 수 있는 앱이 아니면 삭제하세요.")
+    if any(n["vpn"] for n in nets) and not active & vpn_apps:
+        rep.add("LOW", "VPN이 켜져 있는데 어느 앱 것인지 확인하지 못했습니다",
+                "소유 앱: " + (", ".join(sorted(active)) or "미확인"),
+                "설정 > 연결 > 기타 연결 설정 > VPN에서 어떤 앱인지 확인하세요.")
+    dns_lines = [f"{n['iface']}{'(VPN)' if n['vpn'] else ''}: " + ", ".join(dns_label(d) for d in n["dns"])
+                 for n in nets if n["dns"]]
+    if dns_lines:
+        rep.add("INFO", "지금 쓰고 있는 DNS 서버", "\n".join(dns_lines) +
+                "\nDNS 서버는 내가 접속하는 모든 사이트 이름을 봅니다. 이름이 안 붙은 주소는 보통 통신사 것이지만, "
+                "집 Wi-Fi에서 낯선 주소가 보이면 공유기 설정이 바뀌지 않았는지 확인하세요.")
+
     rows, sideloaded, watched = [], [], []
     for pkg in sorted(third):
         info = details.get(pkg, {"perms": set(), "version": "", "first_install": ""})
-        installer = all_pkgs.get(pkg, {}).get("installer")
-        side = installer not in TRUSTED_INSTALLERS
-        src = TRUSTED_INSTALLERS.get(installer) or f"비공식({installer or '설치경로 없음'})"
+        side, src = source(pkg)
         groups = {}
         for p in info["perms"]:
             if p in SENSITIVE_PERMS:
@@ -680,10 +794,6 @@ def android_audit(adb, ioc=None, today=None):
 
     # ---- 데이터 사용량: 실제로 얼마나 내보냈나 ----
     usage = parse_netstats(adb.shell("dumpsys netstats detail", 120))
-    uid2pkg = defaultdict(list)
-    for pkg, v in all_pkgs.items():
-        if v["uid"] is not None:
-            uid2pkg[v["uid"]].append(pkg)
     net_rows, heavy = [], []
     for uid, u in sorted(usage.items(), key=lambda kv: -kv[1]["tx"]):
         if uid < 10000 or u["tx"] == 0:
@@ -691,20 +801,27 @@ def android_audit(adb, ioc=None, today=None):
         names = uid2pkg.get(uid, [f"uid {uid}"])
         name = names[0] + (f" 외 {len(names) - 1}" if len(names) > 1 else "")
         wl = watch_label(names[0])
-        net_rows.append([name + (f" ({wl})" if wl else ""), human(u["tx"]), human(u["bg_tx"]),
+        is_vpn = bool(vpn_apps & set(names))
+        net_rows.append([name + (f" ({wl})" if wl else "") + (" [VPN]" if is_vpn else ""),
+                         human(u["tx"]), human(u["bg_tx"]),
                          human(u["rx"])])
-        if names[0] in third and u["tx"] > u["rx"] and u["tx"] > 100 * 1024 * 1024:
+        if names[0] in third and not is_vpn and u["tx"] > u["rx"] and u["tx"] > 100 * 1024 * 1024:
             heavy.append(f"{name}: 보냄 {human(u['tx'])} / 받음 {human(u['rx'])}")
     if heavy:
         rep.add("LOW", "받은 것보다 보낸 데이터가 많은 앱", "\n".join(heavy[:15]),
                 "클라우드 백업·영상 업로드 앱이면 정상입니다. 그 외 앱이면 무엇을 올리는지 의심해 보세요.")
     if usage:
         rep.table("앱별 데이터 전송량 (보낸 양 순)", ["앱", "보냄", "백그라운드 보냄", "받음"],
-                  net_rows[:25], "기기에 남아 있는 통계 기간(보통 최근 몇 주) 기준입니다.")
+                  net_rows[:25], "기기에 남아 있는 통계 기간(보통 최근 몇 주) 기준입니다. "
+                  "[VPN] 표시 앱은 다른 앱의 통신을 실어 나르므로 전송량이 크게 잡힐 수 있습니다.")
     else:
         rep.skipped.append("앱별 데이터 전송량(netstats 조회 실패). 설정 > 연결 > 데이터 사용에서 확인하세요.")
     rep.skipped.append("통신 '내용'과 접속 '목적지'는 adb로 볼 수 없습니다. "
                        "PCAPdroid로 기록한 뒤 `phone_audit.py netlog`로 분석하세요.")
+    if vpn_apps:
+        rep.skipped.append("안드로이드는 VPN을 한 번에 하나만 켤 수 있습니다. PCAPdroid도 VPN 자리를 쓰므로 "
+                           "기록하는 동안에는 Tailscale·유니콘 등 다른 VPN이 꺼집니다. VPN을 켠 상태의 통신은 "
+                           "이 방법으로 기록할 수 없습니다.")
     return rep
 
 
@@ -884,6 +1001,14 @@ CHECKLIST = """\
 10. 설정 > 구글 > 광고 > 광고 ID 삭제.
 11. 실제 접속 목적지 확인: PCAPdroid(F-Droid/Play, 루팅 불필요)로 하루 기록 > CSV 내보내기
     > python3 phone_audit.py netlog 파일.csv
+
+[VPN을 쓰는 경우]
+ V1. 안드로이드는 VPN을 한 번에 하나만 켭니다. Tailscale을 켜면 유니콘이 꺼지고, PCAPdroid 기록 중엔 둘 다 꺼집니다.
+     "켜 놨다고 생각한 차단 앱이 사실은 꺼져 있는" 상황이 생기니 상단 열쇠 아이콘을 누가 쓰는지 확인하세요.
+ V2. Tailscale: login.tailscale.com/admin/machines 에서 모르는 기기 삭제, 종료 노드(Exit node)는 본인 기기만,
+     공유(Share)·사용자 초대 정리, 키 만료(Key expiry) 켜 두기.
+ V3. 광고 차단·우회용 VPN 앱: 공식 스토어에서 받은 것인지, 인증서 설치를 요구했다면 그 인증서 하나만 있는지 확인.
+ V4. 설정 > 연결 > 기타 연결 설정 > VPN 에 내가 모르는 VPN 항목이 없는지 확인.
 
 [아이폰]
 12. 설정 > 일반 > VPN 및 기기 관리: 모르는 '구성 프로파일'/MDM 삭제 (가장 중요).

@@ -29,6 +29,10 @@ package:com.zhiliaoapp.musically  installer=com.android.vending uid:10201
 package:com.system.update.helper  installer=com.google.android.packageinstaller uid:10202
 package:com.fake.bank  installer=null uid:10203
 package:com.sohu.inputmethod.sogou  installer=com.android.vending uid:10204
+package:com.tailscale.ipn  installer=com.android.vending uid:10205
+package:kr.co.lylstudio.httpsguard  installer=com.android.vending uid:10206
+package:com.free.fastvpn  installer=null uid:10207
+package:com.store.vpn  installer=com.android.vending uid:10208
 """
 PM_THIRD = """\
 package:com.kakao.talk
@@ -36,9 +40,21 @@ package:com.zhiliaoapp.musically
 package:com.system.update.helper
 package:com.fake.bank
 package:com.sohu.inputmethod.sogou
+package:com.tailscale.ipn
+package:kr.co.lylstudio.httpsguard
+package:com.free.fastvpn
+package:com.store.vpn
 """
 
 DUMPSYS_PACKAGE = """\
+Service Resolver Table:
+  Non-Data Actions:
+      android.net.VpnService:
+        a1b2c3 com.tailscale.ipn/.IPNService
+        d4e5f6 com.free.fastvpn/.Tunnel
+      android.service.notification.NotificationListenerService:
+        0a0b0c com.system.update.helper/.NL
+
 Packages:
   Package [com.kakao.talk] (1a2b3c):
     userId=10200
@@ -95,6 +111,16 @@ LAUNCHER = """\
   com.fake.bank/.Main
   com.sohu.inputmethod.sogou/.Main
   com.samsung.android.app.notes/.Main
+  com.tailscale.ipn/.MainActivity
+  kr.co.lylstudio.httpsguard/.Main
+  com.free.fastvpn/.Main
+  com.store.vpn/.Main
+"""
+
+CONNECTIVITY = """\
+Current Networks:
+  NetworkAgentInfo{network{100} handle{1} ni{WIFI CONNECTED} lp{{InterfaceName: wlan0 LinkAddresses: [ 192.168.0.5/24 ] DnsAddresses: [ /192.168.0.1,/168.126.63.1 ] Domains: null}} nc{[ Transports: WIFI Capabilities: INTERNET&VALIDATED OwnerUid: 1000 ]}}
+  NetworkAgentInfo{network{101} handle{2} ni{VPN CONNECTED} lp{{InterfaceName: tun0 LinkAddresses: [ 100.64.0.7/32 ] DnsAddresses: [ /100.100.100.100 ] Domains: null}} nc{[ Transports: WIFI|VPN Capabilities: INTERNET OwnerUid: 10205 ]}}
 """
 
 NETSTATS = """\
@@ -113,6 +139,9 @@ UID stats:
   ident=[{type=WIFI, subType=COMBINED}] uid=10200 set=FOREGROUND tag=0x0
     NetworkStatsHistory: bucketDuration=7200
       st=1700000000 rb=500000000 rp=10 tb=1000000 tp=12 op=0
+  ident=[{type=WIFI, subType=COMBINED}] uid=10205 set=DEFAULT tag=0x0
+    NetworkStatsHistory: bucketDuration=7200
+      st=1700000000 rb=1000 rp=10 tb=900000000 tp=12 op=0
 UID tag stats:
   ident=[{type=WIFI}] uid=10200 set=FOREGROUND tag=0xffffff01
     NetworkStatsHistory: bucketDuration=7200
@@ -127,7 +156,11 @@ class FakeAdb:
         ("settings get global package_verifier_user_consent", "-1\n"),
         ("settings get global http_proxy", "192.168.0.9:8888\n"),
         ("settings get global private_dns_mode", "off\n"),
-        ("settings get secure always_on_vpn_app", "null\n"),
+        ("settings get secure always_on_vpn_app", "com.tailscale.ipn\n"),
+        ("settings get secure always_on_vpn_lockdown", "0\n"),
+        ("appops query-op ACTIVATE_VPN",
+         "com.tailscale.ipn\nkr.co.lylstudio.httpsguard\ncom.free.fastvpn\ncom.store.vpn\n"),
+        ("dumpsys connectivity", CONNECTIVITY),
         ("settings get secure enabled_accessibility_services",
          "com.system.update.helper/.Svc:com.kakao.talk/.A11y\n"),
         ("settings get secure enabled_notification_listeners", "com.system.update.helper/.NL\n"),
@@ -238,16 +271,41 @@ class AndroidAuditTests(unittest.TestCase):
         self.assertIn("서드파티 키보드 사용 중: com.sohu.inputmethod.sogou", med)
         self.assertNotIn("부트로더", med)
         low = {f["title"]: f for f in self.rep.findings if f["sev"] == "LOW"}
-        self.assertIn("스토어를 거치지 않고 설치된 앱 2개", low)
+        self.assertIn("스토어를 거치지 않고 설치된 앱 3개", low)
         self.assertIn("com.zhiliaoapp.musically", low["중국 본사 기업의 앱 2개 (사용자 설치)"]["detail"])
         self.assertIn("com.system.update.helper", low["받은 것보다 보낸 데이터가 많은 앱"]["detail"])
+
+    def test_vpn_and_dns(self):
+        f = {x["title"]: x for x in self.rep.findings}
+        ts = f["VPN 앱: com.tailscale.ipn (Tailscale) - 지금 켜져 있음, 항상 켜짐"]
+        self.assertEqual(ts["sev"], "INFO")
+        self.assertIn("admin/machines", ts["detail"])
+        self.assertEqual(f["VPN 앱: kr.co.lylstudio.httpsguard (유니콘(패키지 이름으로 추정))"]["sev"], "INFO")
+        self.assertEqual(f["VPN 앱: com.free.fastvpn"]["sev"], "MED")      # 비공식 설치 VPN
+        self.assertEqual(f["VPN 앱: com.store.vpn"]["sev"], "LOW")         # 스토어 설치, 모르는 VPN
+        dns = f["지금 쓰고 있는 DNS 서버"]["detail"]
+        self.assertIn("wlan0: 192.168.0.1 (공유기/내부망), 168.126.63.1 (KT)", dns)
+        self.assertIn("tun0(VPN): 100.100.100.100 (Tailscale MagicDNS)", dns)
+        # VPN 앱은 전송량이 커도 '보낸 게 더 많은 앱'으로 잡지 않는다
+        self.assertNotIn("tailscale", f["받은 것보다 보낸 데이터가 많은 앱"]["detail"])
+        self.assertFalse(any("어느 앱 것인지" in t for t in f))
+        self.assertTrue(any("한 번에 하나만" in x for x in self.rep.skipped))
+
+    def test_vpn_fallback_parsers(self):
+        self.assertEqual(pa.parse_vpn_services(DUMPSYS_PACKAGE), {"com.tailscale.ipn", "com.free.fastvpn"})
+        nets = pa.parse_connectivity(CONNECTIVITY)
+        self.assertEqual([(n["iface"], n["vpn"], n["owner"]) for n in nets],
+                         [("wlan0", False, 1000), ("tun0", True, 10205)])
+        self.assertEqual(pa.dns_label("211.1.2.3"), "211.1.2.3")          # 모르는 공용 주소는 그대로
+        self.assertEqual(pa.dns_label("8.8.8.8"), "8.8.8.8 (Google)")
 
     def test_tables_and_outputs(self):
         apps = self.rep.tables[0]
         self.assertTrue(apps["rows"][0][0].startswith("com.system.update.helper"))
         self.assertIn("아이콘 없음", apps["rows"][0][3])
         net = self.rep.tables[1]
-        self.assertEqual(net["rows"][0][:2], ["com.system.update.helper", "286.1MB"])
+        self.assertEqual(net["rows"][0][:2], ["com.tailscale.ipn [VPN]", "858.3MB"])
+        self.assertEqual(net["rows"][1][:2], ["com.system.update.helper", "286.1MB"])
         self.assertTrue(any("사용자 인증서" in s for s in self.rep.skipped))
         page = self.rep.to_html()
         self.assertIn("com.system.update.helper", page)
